@@ -1,10 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AssetGuard Login</title>
-
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
 <style>
@@ -43,7 +43,12 @@ button{
   font-weight:700;
   cursor:pointer;
 }
-#status{margin-top:10px;text-align:center;color:#d00;font-size:13px}
+#status{
+  margin-top:10px;
+  text-align:center;
+  font-size:13px;
+  color:#c0392b;
+}
 </style>
 </head>
 
@@ -73,13 +78,20 @@ firebase.initializeApp({
 
 const auth = firebase.auth();
 
+// Redirect to dashboard if already logged in
+auth.onAuthStateChanged(user=>{
+  if(user){
+    location.href = "app.html";
+  }
+});
+
 function login(){
-  document.getElementById("status").innerText = "Signing in...";
+  status.innerText = "Signing in...";
   auth.signInWithEmailAndPassword(
     email.value,
     password.value
   )
-  .then(()=>location.href="dashboard.html")
+  .then(()=>location.href="app.html")
   .catch(e=>status.innerText=e.message);
 }
 </script>
