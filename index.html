@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,30 +10,40 @@
 <style>
 :root{--primary:#0072CE;--bg:#f4f7fe;--sidebar-w:280px}
 *{margin:0;padding:0;box-sizing:border-box;font-family:Poppins,sans-serif}
-body{background:var(--bg);height:100vh;overflow:hidden}
+body{background:var(--bg);height:100vh;overflow:hidden;display:flex}
 
-/* LOGIN */
-#login-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:2000}
+/* LOGIN SCREEN */
+#login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:2000}
 .login-card{background:#fff;padding:40px;border-radius:25px;width:90%;max-width:380px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.08)}
-input{width:100%;padding:14px;margin:10px 0;border-radius:12px;border:2px solid #eee}
-.primary-btn{width:100%;padding:15px;background:var(--primary);color:#fff;border:none;border-radius:12px;font-weight:700}
+input{width:100%;padding:14px;margin:10px 0;border-radius:12px;border:2px solid #eee;outline:none}
+input:focus{border-color:var(--primary)}
+.primary-btn{width:100%;padding:15px;background:var(--primary);color:#fff;border:none;border-radius:12px;font-weight:700;cursor:pointer;transition:0.3s}
+.primary-btn:hover{opacity:0.9}
 
-/* SIDEBAR */
-#sidebar{position:fixed;left:20px;top:20px;bottom:20px;width:var(--sidebar-w);background:#fff;border-radius:20px;box-shadow:10px 0 30px rgba(0,0,0,.05);display:none;flex-direction:column;padding:25px;z-index:1000;transition:.3s}
-.nav-container{flex:1;overflow-y:auto}
-.nav-link{display:flex;align-items:center;padding:12px 15px;color:#444;text-decoration:none;border-radius:12px;margin-bottom:4px}
-.nav-link.active,.nav-link:hover{background:var(--primary);color:#fff}
-.logout-btn{margin-top:10px;padding:12px;border-radius:12px;border:none;background:#ffecec;color:#ff4757;font-weight:600}
+/* HOVERING SIDEBAR */
+#sidebar{position:fixed;left:20px;top:20px;bottom:20px;width:var(--sidebar-w);background:#fff;border-radius:20px;box-shadow:10px 0 30px rgba(0,0,0,0.05);display:none;flex-direction:column;padding:25px;z-index:1000;transition:.3s ease}
+.nav-container{flex:1;overflow-y:auto;margin:15px 0;padding-right:5px}
+.nav-container::-webkit-scrollbar{width:4px}
+.nav-container::-webkit-scrollbar-thumb{background:#eee;border-radius:10px}
 
-/* CONTENT */
+.nav-group{font-size:11px;color:#aaa;margin:15px 0 5px;font-weight:700;text-transform:uppercase}
+.nav-link{display:flex;align-items:center;padding:12px 15px;color:#444;text-decoration:none;border-radius:12px;margin-bottom:4px;font-size:14px;transition:0.2s}
+.nav-link:hover{background:#f0f4ff;color:var(--primary)}
+.nav-link.active{background:var(--primary);color:#fff}
+
+.logout-btn{margin-top:10px;padding:12px;border-radius:12px;border:none;background:#ffecec;color:#ff4757;font-weight:600;cursor:pointer;transition:0.2s}
+.logout-btn:hover{background:#ff4757;color:#fff}
+
+/* CONTENT AREA */
 #main-content{width:100%;height:100vh;padding-left:calc(var(--sidebar-w) + 40px);display:none}
 iframe{width:100%;height:100%;border:none}
 
-/* MOBILE */
-.menu-btn{position:fixed;top:20px;left:20px;z-index:3000;background:var(--primary);color:#fff;border:none;padding:10px 14px;border-radius:10px;font-size:18px;display:none}
+/* MOBILE TOGGLE */
+.menu-btn{position:fixed;top:20px;right:20px;z-index:3000;background:var(--primary);color:#fff;border:none;padding:12px;border-radius:12px;font-size:20px;display:none;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.1)}
+
 @media(max-width:900px){
   #main-content{padding-left:0}
-  #sidebar{transform:translateX(-110%)}
+  #sidebar{transform:translateX(-120%);left:10px;top:70px;bottom:10px;width:calc(100% - 20px)}
   #sidebar.open{transform:translateX(0)}
   .menu-btn{display:block}
 }
@@ -43,88 +52,118 @@ iframe{width:100%;height:100%;border:none}
 
 <body>
 
-<button id="menuBtn" class="menu-btn">☰</button>
+<button id="menuBtn" class="menu-btn" onclick="toggleMenu()">☰</button>
 
-<!-- LOGIN -->
 <div id="login-screen">
   <div class="login-card">
-    <h2 style="color:var(--primary)">AssetGuard</h2>
-    <p id="status-text">Secure Login</p>
-    <input id="email" type="email" placeholder="Email">
+    <h2 style="color:var(--primary); margin-bottom:5px;">AssetGuard</h2>
+    <p id="status-text" style="font-size:13px; color:#666; margin-bottom:20px;">Secure Management Portal</p>
+    <input id="email" type="email" placeholder="Email Address">
     <input id="password" type="password" placeholder="Password">
     <button class="primary-btn" onclick="login()">Sign In</button>
   </div>
 </div>
 
-<!-- SIDEBAR -->
 <nav id="sidebar">
-  <h3 style="color:var(--primary)">AssetGuard Pro</h3>
+  <h3 style="color:var(--primary); font-size:18px; margin-bottom:10px;">AssetGuard Pro</h3>
 
   <div class="nav-container">
+    <div class="nav-group">Operations</div>
     <a href="sales.html" target="content-frame" class="nav-link active">📊 Sales</a>
     <a href="purchases.html" target="content-frame" class="nav-link">🛒 Purchases</a>
     <a href="stock.html" target="content-frame" class="nav-link">📦 Stock</a>
+    <a href="stock_in.html" target="content-frame" class="nav-link">📥 Stock In</a>
+    
+    <div class="nav-group">Finance & Reports</div>
+    <a href="cash_report.html" target="content-frame" class="nav-link">💰 Cash Report</a>
+    <a href="credit_report.html" target="content-frame" class="nav-link">📄 Credit Report</a>
+    <a href="credit_payment.html" target="content-frame" class="nav-link">💳 Credit Payments</a>
     <a href="expenses.html" target="content-frame" class="nav-link">💸 Expenses</a>
+    <a href="vat_filing.html" target="content-frame" class="nav-link">📝 VAT Filing</a>
+
+    <div class="nav-group">System</div>
     <a href="history.html" target="content-frame" class="nav-link">🕒 History</a>
+    <a href="expenses_history.html" target="content-frame" class="nav-link">⏳ Exp. History</a>
   </div>
 
-  <button class="logout-btn" onclick="logout()">Logout</button>
+  <button class="logout-btn" onclick="logout()">Logout Account</button>
 </nav>
 
-<!-- CONTENT -->
 <main id="main-content">
-  <iframe name="content-frame" src="about:blank"></iframe>
+  <iframe name="content-frame" id="mainFrame" src="about:blank"></iframe>
 </main>
 
-<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 
 <script>
-firebase.initializeApp({
+// Firebase Config
+const firebaseConfig = {
   apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA",
   authDomain: "assetguard-c8c8c.firebaseapp.com",
   projectId: "assetguard-c8c8c"
-});
+};
 
-const auth=firebase.auth();
-const loginScreen=document.getElementById("login-screen");
-const sidebar=document.getElementById("sidebar");
-const main=document.getElementById("main-content");
-const frame=document.querySelector("iframe");
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
 
-auth.onAuthStateChanged(user=>{
+const loginScreen = document.getElementById("login-screen");
+const sidebar = document.getElementById("sidebar");
+const mainArea = document.getElementById("main-content");
+const frame = document.getElementById("mainFrame");
+const status = document.getElementById("status-text");
+
+// Auth Listener
+auth.onAuthStateChanged(user => {
   if(user){
-    loginScreen.style.display="none";
-    sidebar.style.display="flex";
-    main.style.display="block";
-    if(frame.src==="about:blank") frame.src="sales.html";
-  }else{
-    loginScreen.style.display="flex";
-    sidebar.style.display="none";
-    main.style.display="none";
+    loginScreen.style.display = "none";
+    sidebar.style.display = "flex";
+    mainArea.style.display = "block";
+    if(frame.src === "about:blank") frame.src = "sales.html";
+  } else {
+    loginScreen.style.display = "flex";
+    sidebar.style.display = "none";
+    mainArea.style.display = "none";
+    frame.src = "about:blank";
   }
 });
 
-function login(){
-  document.getElementById("status-text").innerText="Signing in...";
-  auth.signInWithEmailAndPassword(
-    email.value,password.value
-  ).catch(e=>status-text.innerText=e.message);
+// Login Function with Session Persistence
+function login() {
+  const emailVal = document.getElementById("email").value;
+  const passVal = document.getElementById("password").value;
+
+  if(!emailVal || !passVal) return alert("Please fill in all fields.");
+
+  status.innerText = "Authenticating...";
+  status.style.color = "var(--primary)";
+
+  auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
+    .then(() => {
+      return auth.signInWithEmailAndPassword(emailVal, passVal);
+    })
+    .catch(e => {
+      status.innerText = e.message;
+      status.style.color = "red";
+    });
 }
 
-function logout(){auth.signOut();}
+function logout() {
+  auth.signOut().then(() => location.reload());
+}
 
-menuBtn.onclick=()=>sidebar.classList.toggle("open");
+function toggleMenu() {
+  sidebar.classList.toggle("open");
+}
 
-document.querySelectorAll(".nav-link").forEach(l=>{
-  l.onclick=()=>document.querySelectorAll(".nav-link").forEach(x=>x.classList.remove("active"))||l.classList.add("active");
+// Nav Link Logic
+document.querySelectorAll(".nav-link").forEach(link => {
+  link.onclick = () => {
+    document.querySelectorAll(".nav-link").forEach(l => l.classList.remove("active"));
+    link.classList.add("active");
+    if(window.innerWidth <= 900) sidebar.classList.remove("open");
+  };
 });
-
-/* OFFLINE */
-if("serviceWorker" in navigator){
-  navigator.serviceWorker.register("service-worker.js");
-}
 </script>
 
 </body>
