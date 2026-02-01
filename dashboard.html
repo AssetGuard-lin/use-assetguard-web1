@@ -1,130 +1,186 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AssetGuard - Full View POS</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Roboto', sans-serif; background: #f0f2f5; display: flex; height: 100vh; width: 100vw; overflow: hidden; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AssetGuard - POS</title>
 
-        /* SIDEBAR: Hidden by default using transform */
-        .sidebar { 
-            width: 260px; 
-            min-width: 260px;
-            background: #002E5D; 
-            color: #fff; 
-            display: flex; 
-            flex-direction: column; 
-            position: fixed; /* Floats over content when open */
-            left: -260px; /* Hidden state */
-            top: 0;
-            bottom: 0;
-            transition: transform 0.3s ease-in-out;
-            z-index: 1000;
-        }
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
-        /* When this class is added via JS, the sidebar "flips" in */
-        .sidebar.active { transform: translateX(260px); }
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:Roboto,sans-serif;
+  background:#f0f2f5;
+  height:100vh;
+  overflow:hidden;
+  display:flex;
+}
 
-        .sidebar-header { padding: 20px; font-size: 20px; font-weight: 700; background: #001F3F; text-align: center; }
-        .menu-section { flex: 1; overflow-y: auto; padding: 10px 0; }
-        .label { padding: 15px 25px 5px; font-size: 11px; color: #8bb4dd; text-transform: uppercase; }
-        
-        .nav-link { padding: 12px 25px; cursor: pointer; display: block; font-size: 14px; color: #d1d8e0; text-decoration: none; transition: 0.2s; }
-        .nav-link:hover { background: #004080; color: #fff; }
+/* SIDEBAR */
+.sidebar{
+  width:260px;
+  background:#002E5D;
+  color:#fff;
+  display:flex;
+  flex-direction:column;
+  position:fixed;
+  left:-260px;
+  top:0;bottom:0;
+  transition:transform .3s ease;
+  z-index:1000;
+}
+.sidebar.active{transform:translateX(260px)}
 
-        /* MAIN CONTENT: Takes up 100% (or 98% as you requested) */
-        .main { 
-            flex: 1; 
-            width: 100%;
-            display: flex; 
-            flex-direction: column; 
-            transition: margin-left 0.3s ease;
-        }
+.sidebar-header{
+  padding:20px;
+  font-size:20px;
+  font-weight:700;
+  background:#001F3F;
+  text-align:center;
+}
 
-        header { 
-            background: #fff; 
-            height: 60px; 
-            display: flex; 
-            align-items: center; 
-            padding: 0 20px; 
-            border-bottom: 1px solid #d1d8e0; 
-            gap: 15px;
-        }
+.menu-section{flex:1;overflow-y:auto;padding:10px 0}
+.label{
+  padding:15px 25px 5px;
+  font-size:11px;
+  color:#8bb4dd;
+  text-transform:uppercase;
+}
+.nav-link{
+  padding:12px 25px;
+  cursor:pointer;
+  font-size:14px;
+  color:#d1d8e0;
+}
+.nav-link:hover{background:#004080;color:#fff}
 
-        /* The Burger Menu Button */
-        .menu-toggle {
-            background: #0072CE;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            z-index: 1100;
-        }
+/* LOGOUT */
+.logout{
+  padding:15px 25px;
+  background:#001F3F;
+  cursor:pointer;
+  font-weight:500;
+  text-align:center;
+}
+.logout:hover{background:#c0392b}
 
-        #content-frame { flex: 1; width: 100%; height: 100%; border: none; }
+/* MAIN */
+.main{
+  flex:1;
+  width:100%;
+  display:flex;
+  flex-direction:column;
+}
+header{
+  height:60px;
+  background:#fff;
+  display:flex;
+  align-items:center;
+  padding:0 20px;
+  border-bottom:1px solid #d1d8e0;
+  gap:15px;
+}
+.menu-toggle{
+  background:#0072CE;
+  color:#fff;
+  border:none;
+  padding:10px 15px;
+  border-radius:5px;
+  cursor:pointer;
+  font-weight:bold;
+}
 
-        /* Overlay to dim the screen when menu is open */
-        .overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 900;
-        }
-        .overlay.active { display: block; }
-    </style>
+#content-frame{
+  flex:1;
+  width:100%;
+  border:none;
+}
+
+/* OVERLAY */
+.overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.5);
+  z-index:900;
+}
+.overlay.active{display:block}
+</style>
 </head>
+
 <body>
 
-    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+<div class="overlay" id="overlay" onclick="toggleMenu()"></div>
 
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">AssetGuard Menu</div>
-        <div class="menu-section">
-            <div class="label">Operations</div>
-            <div class="nav-link" onclick="loadPage('sales.html', 'Sales')">Sales</div>
-            <div class="nav-link" onclick="loadPage('dashboard.html', 'Dashboard')">Dashboard</div>
-            <div class="nav-link" onclick="loadPage('history.html', 'History')">History</div>
-            <div class="label">Inventory</div>
-            <div class="nav-link" onclick="loadPage('stock.html', 'Stock')">Stock</div>
-            <div class="nav-link" onclick="loadPage('stock_in.html', 'Stock In')">Stock In</div>
-            <div class="label">Finance</div>
-            <div class="nav-link" onclick="loadPage('expenses.html', 'Expenses')">Expenses</div>
-            <div class="nav-link" onclick="loadPage('vat_filing.html', 'VAT')">VAT Filing</div>
-            <div class="label">Reports</div>
-            <div class="nav-link" onclick="loadPage('cash_report.html', 'Cash')">Cash Report</div>
-            <div class="nav-link" onclick="loadPage('credit_report.html', 'Credit')">Credit Report</div>
-        </div>
-    </aside>
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">AssetGuard</div>
 
-    <main class="main">
-        <header>
-            <button class="menu-toggle" onclick="toggleMenu()">☰ MENU</button>
-            <h2 id="view-title" style="color: #002E5D;">Sales</h2>
-        </header>
-        
-        <iframe id="content-frame" src="sales.html"></iframe>
-    </main>
+  <div class="menu-section">
+    <div class="label">Operations</div>
+    <div class="nav-link" onclick="loadPage('dashboard_home.html','Dashboard')">Dashboard</div>
+    <div class="nav-link" onclick="loadPage('sales.html','Sales')">Sales</div>
+    <div class="nav-link" onclick="loadPage('history.html','History')">History</div>
 
-    <script>
-        function toggleMenu() {
-            document.getElementById('sidebar').classList.toggle('active');
-            document.getElementById('overlay').classList.toggle('active');
-        }
+    <div class="label">Inventory</div>
+    <div class="nav-link" onclick="loadPage('stock.html','Stock')">Stock</div>
+    <div class="nav-link" onclick="loadPage('stock_in.html','Stock In')">Stock In</div>
 
-        function loadPage(page, title) {
-            // Change the page
-            document.getElementById('content-frame').src = page;
-            document.getElementById('view-title').innerText = title;
+    <div class="label">Finance</div>
+    <div class="nav-link" onclick="loadPage('expenses.html','Expenses')">Expenses</div>
+    <div class="nav-link" onclick="loadPage('vat_filing.html','VAT Filing')">VAT Filing</div>
 
-            // Flip the menu back out (Auto-hide)
-            toggleMenu();
-        }
-    </script>
+    <div class="label">Reports</div>
+    <div class="nav-link" onclick="loadPage('cash_report.html','Cash Report')">Cash Report</div>
+    <div class="nav-link" onclick="loadPage('credit_report.html','Credit Report')">Credit Report</div>
+  </div>
+
+  <div class="logout" onclick="logout()">🚪 Logout</div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <header>
+    <button class="menu-toggle" onclick="toggleMenu()">☰ MENU</button>
+    <h2 id="view-title" style="color:#002E5D">Dashboard</h2>
+  </header>
+
+  <iframe id="content-frame" src="dashboard_home.html"></iframe>
+</main>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA",
+  authDomain:"assetguard-c8c8c.firebaseapp.com",
+  projectId:"assetguard-c8c8c"
+});
+
+firebase.auth().onAuthStateChanged(user=>{
+  if(!user) location.href="login.html";
+});
+
+function toggleMenu(){
+  sidebar.classList.toggle("active");
+  overlay.classList.toggle("active");
+}
+
+function loadPage(page,title){
+  document.getElementById("content-frame").src = page;
+  document.getElementById("view-title").innerText = title;
+  toggleMenu();
+}
+
+function logout(){
+  firebase.auth().signOut().then(()=>{
+    location.href="login.html";
+  });
+}
+</script>
+
 </body>
 </html>
