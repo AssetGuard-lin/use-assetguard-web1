@@ -74,13 +74,19 @@
         appId: "1:717561990429:web:2b86968c4d3e6ea15ba5f4"
     };
 
+    // Initialize
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     
+    // FORCED RESET: Clears any "Remembered" sessions from previous visits 
+    // so the user is ALWAYS greeted by the login form.
+    auth.signOut();
+
     const status = document.getElementById("status-text");
     const loginForm = document.getElementById("login-form");
     const dashMenu = document.getElementById("dashboard-menu");
 
+    // Monitor State
     auth.onAuthStateChanged((user) => {
         if (user) {
             status.innerText = "Welcome, " + user.email;
@@ -88,12 +94,12 @@
             loginForm.style.display = "none";
             dashMenu.style.display = "block";
             
+            // Redirect to sales after success
             setTimeout(() => { 
-                // Only redirect if still on index.html
                 if(window.location.pathname.includes("index.html") || window.location.pathname.endsWith("/")) {
                     window.location.href = "sales.html"; 
                 }
-            }, 1200);
+            }, 1500);
 
             if(window.AppInventor) {
                 window.AppInventor.setWebViewString("LOGIN_SUCCESS");
@@ -112,14 +118,14 @@
         const btn = document.getElementById("login-btn");
 
         if(!email || !pass) {
-            alert("Please enter your credentials.");
+            alert("Please enter credentials.");
             return;
         }
 
         status.innerText = "Authenticating...";
         btn.disabled = true;
 
-        // NEW: Set persistence to SESSION before signing in
+        // Apply Session persistence so closure of tab logs them out
         auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
             .then(() => {
                 return auth.signInWithEmailAndPassword(email, pass);
@@ -132,7 +138,9 @@
     }
 
     function logout() {
-        auth.signOut();
+        auth.signOut().then(() => {
+            location.reload(); // Refresh to show clean login form
+        });
     }
 </script>
 </body>
