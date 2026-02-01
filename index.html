@@ -2,220 +2,60 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AssetGuard Pro - Management System</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-
-<style>
-:root{
-  --primary:#0072CE;
-  --bg:#f4f7fe;
-  --sidebar-w:280px;
-}
-*{margin:0;padding:0;box-sizing:border-box;font-family:Poppins,sans-serif}
-body{background:var(--bg);height:100vh;overflow:hidden}
-
-/* LOGIN */
-#login-screen{
-  position:fixed;inset:0;
-  display:flex;align-items:center;justify-content:center;
-  z-index:3000;
-}
-.login-card{
-  background:#fff;padding:40px;border-radius:25px;
-  width:90%;max-width:380px;text-align:center;
-  box-shadow:0 20px 50px rgba(0,0,0,.08);
-}
-
-/* SIDEBAR */
-#sidebar{
-  position:fixed;left:20px;top:20px;bottom:20px;
-  width:var(--sidebar-w);
-  background:#fff;border-radius:20px;
-  box-shadow:10px 0 30px rgba(0,0,0,.05);
-  display:none;flex-direction:column;
-  padding:25px;
-  z-index:1000;
-  transition:transform .3s ease;
-}
-#sidebar.closed{transform:translateX(-120%)}
-
-.nav-container{
-  flex:1;overflow-y:auto;margin:15px 0;
-}
-.nav-group{
-  font-size:11px;color:#aaa;
-  margin:15px 0 5px;
-  font-weight:700;text-transform:uppercase;
-}
-.nav-link{
-  display:flex;align-items:center;
-  padding:12px 15px;
-  color:#444;text-decoration:none;
-  border-radius:12px;margin-bottom:4px;
-  transition:.2s;font-size:14px;
-}
-.nav-link:hover{background:#f0f4ff;color:var(--primary)}
-.nav-link.active{background:var(--primary);color:#fff}
-
-.logout-btn{
-  background:#fff;color:#ff4757;
-  padding:12px;border-radius:12px;
-  border:2px solid #fff5f5;
-  cursor:pointer;font-weight:600;
-}
-
-/* MENU BUTTON (ATTACHED TO SIDEBAR) */
-#menuBtn{
-  position:absolute;
-  right:-44px;top:30px;
-  width:44px;height:44px;
-  border:none;
-  border-radius:0 12px 12px 0;
-  background:var(--primary);
-  color:#fff;
-  font-size:18px;
-  cursor:pointer;
-  display:none;
-}
-
-/* MAIN */
-#main-content{
-  width:100%;height:100vh;
-  padding-left:calc(var(--sidebar-w) + 40px);
-  display:none;
-}
-iframe{border:none;width:100%;height:100%}
-
-/* UI */
-input{
-  width:100%;padding:14px;
-  margin:10px 0;border-radius:12px;
-  border:2px solid #eee;
-}
-button.primary-btn{
-  width:100%;padding:15px;
-  background:var(--primary);color:#fff;
-  border:none;border-radius:12px;
-  font-weight:700;cursor:pointer;
-}
-
-/* MOBILE */
-@media(max-width:900px){
-  #main-content{padding-left:0}
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AssetGuard - Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body { background: #f4f7fe; font-family: 'Poppins', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .login-card { background: #fff; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); width: 100%; max-width: 350px; text-align: center; }
+        h2 { color: #0072CE; margin-bottom: 20px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; outline: none; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #0072CE; color: white; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+        #status { font-size: 13px; color: #666; margin-top: 15px; }
+    </style>
 </head>
-
 <body>
 
-<!-- LOGIN -->
-<div id="login-screen">
-  <div class="login-card">
-    <h2 style="color:var(--primary)">AssetGuard</h2>
-    <p id="status-text">Secure Portal Access</p>
-    <input id="user" type="email" placeholder="Email Address">
-    <input id="pass" type="password" placeholder="Password">
-    <button class="primary-btn" onclick="handleLogin()">Sign In</button>
-  </div>
+<div class="login-card">
+    <h2>AssetGuard</h2>
+    <input type="email" id="email" placeholder="Email Address">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="handleLogin()">Login</button>
+    <p id="status"></p>
 </div>
 
-<!-- SIDEBAR -->
-<nav id="sidebar" class="closed">
-  <button id="menuBtn">☰</button>
-
-  <div class="sidebar-header">
-    <h2 style="color:var(--primary);font-size:20px;">AssetGuard Pro</h2>
-  </div>
-
-  <div class="nav-container">
-    <div class="nav-group">Main Ops</div>
-    <a href="#" class="nav-link active" data-page="sales.html">📊 Sales Dashboard</a>
-    <a href="#" class="nav-link" data-page="purchases.html">🛒 Purchases</a>
-    <a href="#" class="nav-link" data-page="stock.html">📦 Stock Overview</a>
-    <a href="#" class="nav-link" data-page="stock_in.html">📥 Stock In</a>
-
-    <div class="nav-group">Reports & Finance</div>
-    <a href="#" class="nav-link" data-page="cash_report.html">💰 Cash Report</a>
-    <a href="#" class="nav-link" data-page="expenses.html">💸 Expenses</a>
-    <a href="#" class="nav-link" data-page="expenses_history.html">⏳ Exp. History</a>
-    <a href="#" class="nav-link" data-page="vat_filing.html">📝 VAT Filing</a>
-
-    <div class="nav-group">Credits & History</div>
-    <a href="#" class="nav-link" data-page="credit_payment.html">💳 Credit Payments</a>
-    <a href="#" class="nav-link" data-page="credit_report.html">📄 Credit Report</a>
-    <a href="#" class="nav-link" data-page="history.html">🕒 System History</a>
-  </div>
-
-  <button class="logout-btn" onclick="logout()">Logout Account</button>
-</nav>
-
-<!-- MAIN -->
-<main id="main-content">
-  <iframe id="content-frame" src="about:blank"></iframe>
-</main>
-
-<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 
 <script>
-firebase.initializeApp({
-  apiKey:"AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA",
-  authDomain:"assetguard-c8c8c.firebaseapp.com",
-  projectId:"assetguard-c8c8c"
-});
+    const firebaseConfig = {
+        apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA",
+        authDomain: "assetguard-c8c8c.firebaseapp.com",
+        projectId: "assetguard-c8c8c"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
 
-const auth=firebase.auth();
-const sidebar=document.getElementById("sidebar");
-const main=document.getElementById("main-content");
-const frame=document.getElementById("content-frame");
-const loginScreen=document.getElementById("login-screen");
-const menuBtn=document.getElementById("menuBtn");
+    // If already logged in, go straight to dashboard
+    auth.onAuthStateChanged(user => {
+        if (user) window.location.href = "dashboard.html";
+    });
 
-auth.onAuthStateChanged(user=>{
-  if(user){
-    loginScreen.style.display="none";
-    sidebar.style.display="flex";
-    main.style.display="block";
-    menuBtn.style.display="flex";
-    sidebar.classList.remove("closed");
-    if(frame.src==="about:blank") frame.src="sales.html";
-  }else{
-    loginScreen.style.display="flex";
-    sidebar.style.display="none";
-    main.style.display="none";
-    menuBtn.style.display="none";
-  }
-});
-
-function handleLogin(){
-  auth.signInWithEmailAndPassword(
-    user.value,pass.value
-  ).catch(e=>alert(e.message));
-}
-function logout(){auth.signOut();}
-
-/* SIDEBAR TOGGLE */
-menuBtn.onclick=()=>sidebar.classList.toggle("closed");
-
-/* LOCKED IFRAME NAV */
-document.querySelectorAll(".nav-link").forEach(link=>{
-  link.onclick=e=>{
-    e.preventDefault();
-    document.querySelectorAll(".nav-link").forEach(l=>l.classList.remove("active"));
-    link.classList.add("active");
-    frame.src=link.dataset.page;
-  };
-});
-
-/* OFFLINE */
-if("serviceWorker" in navigator){
-  navigator.serviceWorker.register("service-worker.js");
-}
+    function handleLogin() {
+        const e = document.getElementById("email").value;
+        const p = document.getElementById("password").value;
+        const s = document.getElementById("status");
+        
+        s.innerText = "Authenticating...";
+        
+        auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).then(() => {
+            return auth.signInWithEmailAndPassword(e, p);
+        }).catch(err => {
+            s.innerText = err.message;
+            s.style.color = "red";
+        });
+    }
 </script>
-
 </body>
 </html>
