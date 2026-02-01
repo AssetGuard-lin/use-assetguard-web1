@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AssetGuard Pro</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root { --primary:#0072CE; --bg:#f4f7fe; }
         *{margin:0;padding:0;box-sizing:border-box;font-family:Poppins,sans-serif;}
@@ -14,16 +14,9 @@
             width:90%; max-width:380px; text-align:center;
             box-shadow:0 20px 50px rgba(0,0,0,.08);
         }
-        h2 { margin-bottom: 10px; color: #333; }
         #status-text { font-size: 14px; margin-bottom: 20px; color: #666; }
-        input{
-            width:100%; padding:14px; margin:10px 0;
-            border-radius:10px; border:2px solid #eee; outline:none;
-        }
-        button{
-            width:100%; padding:15px; background:var(--primary); color:#fff;
-            border:none; border-radius:12px; font-weight:700; cursor:pointer;
-        }
+        input{ width:100%; padding:14px; margin:10px 0; border-radius:10px; border:2px solid #eee; outline:none; }
+        button{ width:100%; padding:15px; background:var(--primary); color:#fff; border:none; border-radius:12px; font-weight:700; cursor:pointer; }
         button:disabled { background: #ccc; }
     </style>
 </head>
@@ -31,7 +24,7 @@
 
 <div class="login-card">
     <h2>AssetGuard</h2>
-    <p id="status-text">Initializing Secure Login...</p>
+    <p id="status-text">Enter your credentials</p>
     <input id="user" type="email" placeholder="Email Address">
     <input id="pass" type="password" placeholder="Password">
     <button id="login-btn" onclick="handleLogin()">Login</button>
@@ -41,46 +34,38 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 
 <script>
-    // PASTE YOUR CONFIG FROM STEP 1 HERE
+    // Config updated with your personal credentials
     const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
+        apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA",
         authDomain: "assetguard-c8c8c.firebaseapp.com",
         projectId: "assetguard-c8c8c",
-        storageBucket: "assetguard-c8c8c.appspot.com",
-        messagingSenderId: "YOUR_SENDER_ID",
-        appId: "YOUR_APP_ID"
+        storageBucket: "assetguard-c8c8c.firebasestorage.app",
+        messagingSenderId: "717561990429",
+        appId: "1:717561990429:web:2b86968c4d3e6ea15ba5f4"
     };
 
-    // Initialize Firebase
+    // Initialize Firebase in COMPAT mode
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const status = document.getElementById("status-text");
-
-    status.innerText = "Ready for secure login";
 
     function handleLogin() {
         const email = document.getElementById("user").value.trim();
         const pass = document.getElementById("pass").value.trim();
         const btn = document.getElementById("login-btn");
 
-        if(!email || !pass) {
-            alert("Enter email and password.");
-            return;
-        }
-
-        status.innerText = "Authenticating...";
+        status.innerText = "Checking...";
         btn.disabled = true;
 
-        // Secure Login via Firebase Auth
         auth.signInWithEmailAndPassword(email, pass)
-            .then((userCredential) => {
+            .then(() => {
                 status.innerText = "Login Success!";
-                if(window.AppInventor) {
-                    window.AppInventor.setWebViewString("LOGIN_SUCCESS");
-                }
+                status.style.color = "green";
+                if(window.AppInventor) window.AppInventor.setWebViewString("LOGIN_SUCCESS");
             })
             .catch((error) => {
                 status.innerText = "Error: " + error.message;
+                status.style.color = "red";
                 btn.disabled = false;
             });
     }
