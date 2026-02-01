@@ -1,19 +1,20 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AssetGuard Pro</title>
+    <title>AssetGuard Pro - Management System</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary:#0072CE; --bg:#f4f7fe; --sidebar-w: 260px; }
+        :root { --primary:#0072CE; --bg:#f4f7fe; --sidebar-w: 280px; }
         *{margin:0;padding:0;box-sizing:border-box;font-family:Poppins,sans-serif;}
-        body { background: var(--bg); display: flex; height: 100vh; overflow: hidden; }
+        body { background: var(--bg); height: 100vh; overflow: hidden; }
 
         /* --- LOGIN SCREEN --- */
         #login-screen {
             position: fixed; inset: 0; background: var(--bg);
-            display: flex; align-items: center; justify-content: center; z-index: 1000;
+            display: flex; align-items: center; justify-content: center; z-index: 2000;
         }
         .login-card {
             background:#fff; padding:40px; border-radius:25px;
@@ -21,53 +22,94 @@
             box-shadow:0 20px 50px rgba(0,0,0,.08);
         }
 
-        /* --- SIDEBAR PANEL --- */
+        /* --- HOVERING SIDEBAR --- */
         #sidebar {
-            width: var(--sidebar-w); background: #fff; height: 100%;
-            border-right: 1px solid #eef0f7; display: none; flex-direction: column;
-            padding: 20px; transition: 0.3s;
+            position: fixed; left: 20px; top: 20px; bottom: 20px;
+            width: var(--sidebar-w); background: #fff;
+            border-radius: 20px; box-shadow: 10px 0 30px rgba(0,0,0,0.05);
+            display: none; flex-direction: column;
+            padding: 25px; z-index: 1000; transition: transform 0.3s ease;
         }
-        .sidebar-header { padding-bottom: 20px; border-bottom: 2px solid var(--bg); margin-bottom: 20px; }
+        
+        .nav-container { 
+            flex: 1; overflow-y: auto; margin: 15px 0; 
+            padding-right: 5px;
+        }
+        /* Custom Scrollbar for Nav */
+        .nav-container::-webkit-scrollbar { width: 4px; }
+        .nav-container::-webkit-scrollbar-thumb { background: #eee; border-radius: 10px; }
+
+        .sidebar-header { border-bottom: 2px solid #f4f7fe; padding-bottom: 15px; margin-bottom: 10px; }
+        .nav-group { font-size: 11px; color: #aaa; margin: 15px 0 5px; font-weight: 700; text-transform: uppercase; }
+
         .nav-link { 
-            display:flex; align-items:center; padding:14px; 
-            color:#444; text-decoration:none; font-weight:500; 
-            border-radius: 10px; margin-bottom: 5px; transition: 0.2s;
+            display:flex; align-items:center; padding:12px 15px; 
+            color:#444; text-decoration:none; font-weight:500; font-size: 14px;
+            border-radius: 12px; margin-bottom: 4px; transition: 0.2s;
         }
         .nav-link:hover { background: #f0f4ff; color: var(--primary); }
         .nav-link.active { background: var(--primary); color: #fff; }
 
-        /* --- CONTENT AREA --- */
-        #main-content { flex: 1; display: none; flex-direction: column; }
-        iframe { border: none; width: 100%; height: 100%; }
+        /* --- MAIN CONTENT (Full Width) --- */
+        #main-content { 
+            width: 100%; height: 100vh; 
+            padding-left: calc(var(--sidebar-w) + 40px); /* Space for floating sidebar */
+            display: none; 
+        }
+        iframe { border: none; width: 100%; height: 100%; border-radius: 0; }
 
-        /* UI Components */
+        /* UI Elements */
         input { width:100%; padding:14px; margin:10px 0; border-radius:12px; border:2px solid #eee; outline:none; }
         button.primary-btn { width:100%; padding:15px; background:var(--primary); color:#fff; border:none; border-radius:12px; font-weight:700; cursor:pointer; }
-        .logout-btn { background:#ff4757; color: white; padding: 12px; border-radius: 10px; border: none; cursor: pointer; margin-top: auto; font-weight: 600; }
+        .logout-btn { 
+            background:#fff; color: #ff4757; padding: 12px; border-radius: 12px; 
+            border: 2px solid #fff5f5; cursor: pointer; font-weight: 600; transition: 0.2s;
+        }
+        .logout-btn:hover { background: #ff4757; color: white; }
+
+        /* Mobile View Adjustment */
+        @media (max-width: 900px) {
+            #main-content { padding-left: 0; }
+            #sidebar { transform: translateX(-110%); }
+            #sidebar.open { transform: translateX(0); }
+        }
     </style>
 </head>
 <body>
 
     <div id="login-screen">
         <div class="login-card">
-            <h2>AssetGuard</h2>
-            <p id="status-text" style="font-size: 13px; margin-bottom: 20px; color: #666;">Secure Login Required</p>
+            <h2 style="color: var(--primary)">AssetGuard</h2>
+            <p id="status-text">Secure Portal Access</p>
             <input id="user" type="email" placeholder="Email Address">
             <input id="pass" type="password" placeholder="Password">
-            <button class="primary-btn" id="login-btn" onclick="handleLogin()">Login to Dashboard</button>
+            <button class="primary-btn" onclick="handleLogin()">Sign In</button>
         </div>
     </div>
 
     <nav id="sidebar">
         <div class="sidebar-header">
-            <h2 style="color: var(--primary);">AssetGuard</h2>
+            <h2 style="color: var(--primary); font-size: 20px;">AssetGuard Pro</h2>
         </div>
-        <p style="font-size:11px; color:#aaa; margin-bottom:10px; font-weight:700;">DASHBOARD</p>
-        <a href="sales.html" target="content-frame" class="nav-link active">📊 Sales</a>
-        <a href="stock.html" target="content-frame" class="nav-link">📦 Stock</a>
-        <a href="customers.html" target="content-frame" class="nav-link">👥 Customers</a>
-        <a href="suppliers.html" target="content-frame" class="nav-link">🚚 Suppliers</a>
-        <a href="expenses.html" target="content-frame" class="nav-link">💸 Expenses</a>
+
+        <div class="nav-container">
+            <div class="nav-group">Main Ops</div>
+            <a href="sales.html" target="content-frame" class="nav-link active">📊 Sales Dashboard</a>
+            <a href="purchases.html" target="content-frame" class="nav-link">🛒 Purchases</a>
+            <a href="stock.html" target="content-frame" class="nav-link">📦 Stock Overview</a>
+            <a href="stock_in.html" target="content-frame" class="nav-link">📥 Stock In</a>
+
+            <div class="nav-group">Reports & Finance</div>
+            <a href="cash_report.html" target="content-frame" class="nav-link">💰 Cash Report</a>
+            <a href="expenses.html" target="content-frame" class="nav-link">💸 Expenses</a>
+            <a href="expenses_history.html" target="content-frame" class="nav-link">⏳ Exp. History</a>
+            <a href="vat_filing.html" target="content-frame" class="nav-link">📝 VAT Filing</a>
+
+            <div class="nav-group">Credits & History</div>
+            <a href="credit_payment.html" target="content-frame" class="nav-link">💳 Credit Payments</a>
+            <a href="credit_report.html" target="content-frame" class="nav-link">📄 Credit Report</a>
+            <a href="history.html" target="content-frame" class="nav-link">🕒 System History</a>
+        </div>
         
         <button class="logout-btn" onclick="logout()">Logout Account</button>
     </nav>
@@ -92,63 +134,40 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
-    // Elements
     const loginScreen = document.getElementById("login-screen");
     const sidebar = document.getElementById("sidebar");
     const mainContent = document.getElementById("main-content");
     const contentFrame = document.getElementById("content-frame");
-    const status = document.getElementById("status-text");
 
-    // Monitor Authentication
     auth.onAuthStateChanged((user) => {
         if (user) {
-            // Logged In: Show Sidebar and Content, Hide Login
             loginScreen.style.display = "none";
             sidebar.style.display = "flex";
-            mainContent.style.display = "flex";
-            
-            // Load the default page (Sales) if frame is empty
-            if (contentFrame.src === "about:blank") {
-                contentFrame.src = "sales.html";
-            }
+            mainContent.style.display = "block";
+            if (contentFrame.src === "about:blank") contentFrame.src = "sales.html";
         } else {
-            // Logged Out: Show Login, Hide Dashboard
             loginScreen.style.display = "flex";
             sidebar.style.display = "none";
             mainContent.style.display = "none";
-            contentFrame.src = "about:blank";
         }
     });
 
     function handleLogin() {
-        const email = document.getElementById("user").value.trim();
-        const pass = document.getElementById("pass").value.trim();
-        
-        if(!email || !pass) return alert("Credentials required");
-
-        status.innerText = "Authenticating...";
-        
-        // Force SESSION persistence
-        auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
-            .then(() => {
-                return auth.signInWithEmailAndPassword(email, pass);
-            })
-            .catch(err => {
-                status.innerText = err.message;
-                status.style.color = "red";
-            });
+        const email = document.getElementById("user").value;
+        const pass = document.getElementById("pass").value;
+        auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).then(() => {
+            return auth.signInWithEmailAndPassword(email, pass);
+        }).catch(err => alert(err.message));
     }
 
     function logout() {
-        auth.signOut().then(() => {
-            location.reload();
-        });
+        auth.signOut().then(() => location.reload());
     }
 
-    // Highlight active link
+    // Handle Active States
     document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', function() {
-            document.querySelector('.nav-link.active').classList.remove('active');
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             this.classList.add('active');
         });
     });
