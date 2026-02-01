@@ -1,62 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AssetGuard Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary:#0072CE; --bg:#f4f7fe; --sidebar-w: 260px; }
+        *{margin:0;padding:0;box-sizing:border-box;font-family:Poppins,sans-serif;}
+        body { background: var(--bg); display: flex; height: 100vh; overflow: hidden; }
+
+        /* --- LOGIN SCREEN --- */
+        #login-screen {
+            position: fixed; inset: 0; background: var(--bg);
+            display: flex; align-items: center; justify-content: center; z-index: 1000;
+        }
+        .login-card {
+            background:#fff; padding:40px; border-radius:25px;
+            width:90%; max-width:380px; text-align:center;
+            box-shadow:0 20px 50px rgba(0,0,0,.08);
+        }
+
+        /* --- SIDEBAR PANEL --- */
+        #sidebar {
+            width: var(--sidebar-w); background: #fff; height: 100%;
+            border-right: 1px solid #eef0f7; display: none; flex-direction: column;
+            padding: 20px; transition: 0.3s;
+        }
+        .sidebar-header { padding-bottom: 20px; border-bottom: 2px solid var(--bg); margin-bottom: 20px; }
+        .nav-link { 
+            display:flex; align-items:center; padding:14px; 
+            color:#444; text-decoration:none; font-weight:500; 
+            border-radius: 10px; margin-bottom: 5px; transition: 0.2s;
+        }
+        .nav-link:hover { background: #f0f4ff; color: var(--primary); }
+        .nav-link.active { background: var(--primary); color: #fff; }
+
+        /* --- CONTENT AREA --- */
+        #main-content { flex: 1; display: none; flex-direction: column; }
+        iframe { border: none; width: 100%; height: 100%; }
+
+        /* UI Components */
+        input { width:100%; padding:14px; margin:10px 0; border-radius:12px; border:2px solid #eee; outline:none; }
+        button.primary-btn { width:100%; padding:15px; background:var(--primary); color:#fff; border:none; border-radius:12px; font-weight:700; cursor:pointer; }
+        .logout-btn { background:#ff4757; color: white; padding: 12px; border-radius: 10px; border: none; cursor: pointer; margin-top: auto; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen">
+        <div class="login-card">
+            <h2>AssetGuard</h2>
+            <p id="status-text" style="font-size: 13px; margin-bottom: 20px; color: #666;">Secure Login Required</p>
+            <input id="user" type="email" placeholder="Email Address">
+            <input id="pass" type="password" placeholder="Password">
+            <button class="primary-btn" id="login-btn" onclick="handleLogin()">Login to Dashboard</button>
+        </div>
+    </div>
+
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h2 style="color: var(--primary);">AssetGuard</h2>
+        </div>
+        <p style="font-size:11px; color:#aaa; margin-bottom:10px; font-weight:700;">DASHBOARD</p>
+        <a href="sales.html" target="content-frame" class="nav-link active">📊 Sales</a>
+        <a href="stock.html" target="content-frame" class="nav-link">📦 Stock</a>
+        <a href="customers.html" target="content-frame" class="nav-link">👥 Customers</a>
+        <a href="suppliers.html" target="content-frame" class="nav-link">🚚 Suppliers</a>
+        <a href="expenses.html" target="content-frame" class="nav-link">💸 Expenses</a>
+        
+        <button class="logout-btn" onclick="logout()">Logout Account</button>
+    </nav>
+
+    <main id="main-content">
+        <iframe name="content-frame" id="content-frame" src="about:blank"></iframe>
+    </main>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
 <script>
-    // 1. Initialize Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA",
+        authDomain: "assetguard-c8c8c.firebaseapp.com",
+        projectId: "assetguard-c8c8c",
+        storageBucket: "assetguard-c8c8c.firebasestorage.app",
+        messagingSenderId: "717561990429",
+        appId: "1:717561990429:web:2b86968c4d3e6ea15ba5f4"
+    };
+
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
-    
-    const status = document.getElementById("status-text");
-    const loginForm = document.getElementById("login-form");
-    const dashMenu = document.getElementById("dashboard-menu");
 
-    // 2. The "Normal" State Monitor
+    // Elements
+    const loginScreen = document.getElementById("login-screen");
+    const sidebar = document.getElementById("sidebar");
+    const mainContent = document.getElementById("main-content");
+    const contentFrame = document.getElementById("content-frame");
+    const status = document.getElementById("status-text");
+
+    // Monitor Authentication
     auth.onAuthStateChanged((user) => {
         if (user) {
-            // USER IS LOGGED IN
-            status.innerText = "Welcome, " + user.email;
-            status.style.color = "green";
-            loginForm.style.display = "none";
-            dashMenu.style.display = "block";
+            // Logged In: Show Sidebar and Content, Hide Login
+            loginScreen.style.display = "none";
+            sidebar.style.display = "flex";
+            mainContent.style.display = "flex";
             
-            // Redirect to sales only if the user is currently on the login page
-            if (window.location.pathname.endsWith("index.html") || window.location.pathname.endsWith("/")) {
-                setTimeout(() => { window.location.href = "sales.html"; }, 1000);
+            // Load the default page (Sales) if frame is empty
+            if (contentFrame.src === "about:blank") {
+                contentFrame.src = "sales.html";
             }
         } else {
-            // USER IS NOT LOGGED IN
-            status.innerText = "Please sign in to continue";
-            status.style.color = "#666";
-            loginForm.style.display = "block";
-            dashMenu.style.display = "none";
+            // Logged Out: Show Login, Hide Dashboard
+            loginScreen.style.display = "flex";
+            sidebar.style.display = "none";
+            mainContent.style.display = "none";
+            contentFrame.src = "about:blank";
         }
     });
 
-    // 3. The Login Function
     function handleLogin() {
         const email = document.getElementById("user").value.trim();
         const pass = document.getElementById("pass").value.trim();
-        const btn = document.getElementById("login-btn");
-
-        if(!email || !pass) return alert("Enter credentials");
+        
+        if(!email || !pass) return alert("Credentials required");
 
         status.innerText = "Authenticating...";
-        btn.disabled = true;
-
-        // Set to SESSION: This makes it behave like a "normal" site
-        // where closing the tab/browser ends the session.
+        
+        // Force SESSION persistence
         auth.setPersistence(firebase.auth.Auth.Persistence.SESSION)
             .then(() => {
                 return auth.signInWithEmailAndPassword(email, pass);
             })
-            .catch((error) => {
-                status.innerText = "Error: " + error.message;
+            .catch(err => {
+                status.innerText = err.message;
                 status.style.color = "red";
-                btn.disabled = false;
             });
     }
 
-    // 4. The Logout Function
     function logout() {
         auth.signOut().then(() => {
-            window.location.href = "index.html";
+            location.reload();
         });
     }
+
+    // Highlight active link
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', function() {
+            document.querySelector('.nav-link.active').classList.remove('active');
+            this.classList.add('active');
+        });
+    });
 </script>
+</body>
+</html>
