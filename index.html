@@ -1,143 +1,190 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AssetGuard Pro</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
 <style>
-:root{--primary:#0072CE;--bg:#f4f7fe;--sidebar-w:280px}
+:root{
+  --primary:#0072CE;
+  --bg:#f4f7fe;
+  --sidebar-w:260px;
+}
 *{margin:0;padding:0;box-sizing:border-box;font-family:Poppins,sans-serif}
-body{background:var(--bg);height:100vh;overflow:hidden;display:flex;width:100vw;}
+body{background:var(--bg);height:100vh;overflow:hidden}
 
-/* LOGIN SCREEN */
-#login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:2000}
-.login-card{background:#fff;padding:40px;border-radius:25px;width:90%;max-width:380px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.08)}
-input{width:100%;padding:14px;margin:10px 0;border-radius:12px;border:2px solid #eee;outline:none;font-size:16px;} /* 16px prevents zoom on iPhone */
+/* LOGIN */
+#login-screen{
+  position:fixed;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  z-index:3000;
+}
+.login-card{
+  background:#fff;padding:40px;border-radius:25px;
+  width:90%;max-width:380px;text-align:center;
+  box-shadow:0 20px 50px rgba(0,0,0,.08)
+}
+input{width:100%;padding:14px;margin:10px 0;border-radius:12px;border:2px solid #eee}
+.primary-btn{width:100%;padding:15px;background:var(--primary);color:#fff;border:none;border-radius:12px;font-weight:700}
 
-.primary-btn{width:100%;padding:15px;background:var(--primary);color:#fff;border:none;border-radius:12px;font-weight:700;cursor:pointer;}
+/* SIDEBAR */
+#sidebar{
+  position:fixed;top:20px;bottom:20px;left:20px;
+  width:var(--sidebar-w);
+  background:#fff;border-radius:20px;
+  box-shadow:10px 0 30px rgba(0,0,0,.05);
+  padding:20px;
+  display:none;
+  flex-direction:column;
+  transition:transform .3s ease;
+  z-index:2000;
+}
+#sidebar.closed{transform:translateX(-105%)}
 
-/* HOVERING SIDEBAR */
-#sidebar{position:fixed;left:20px;top:20px;bottom:20px;width:var(--sidebar-w);background:#fff;border-radius:20px;box-shadow:10px 0 30px rgba(0,0,0,0.05);display:none;flex-direction:column;padding:25px;z-index:1000;transition:.3s ease}
-.nav-container{flex:1;overflow-y:auto;margin:15px 0;}
-.nav-group{font-size:11px;color:#aaa;margin:15px 0 5px;font-weight:700;text-transform:uppercase}
-.nav-link{display:flex;align-items:center;padding:12px 15px;color:#444;text-decoration:none;border-radius:12px;margin-bottom:4px;font-size:14px;}
-.nav-link.active{background:var(--primary);color:#fff}
-.logout-btn{padding:12px;border-radius:12px;border:none;background:#ffecec;color:#ff4757;font-weight:600;cursor:pointer;}
-
-/* CONTENT AREA - MOBILE FIX */
-#main-content {
-    flex: 1;
-    height: 100vh;
-    width: 100%;
-    padding-left: calc(var(--sidebar-w) + 40px);
-    display: none;
-    -webkit-overflow-scrolling: touch; /* Smooth scroll for iOS */
+.nav-container{flex:1;overflow-y:auto;margin-top:15px}
+.nav-link{
+  display:flex;align-items:center;
+  padding:12px 14px;
+  color:#444;text-decoration:none;
+  border-radius:12px;margin-bottom:6px;
+  font-size:14px;font-weight:500;
+}
+.nav-link:hover,.nav-link.active{
+  background:var(--primary);
+  color:#fff;
+}
+.logout-btn{
+  margin-top:10px;padding:12px;
+  border:none;border-radius:12px;
+  background:#ffecec;color:#ff4757;
+  font-weight:600;cursor:pointer;
 }
 
-iframe {
-    width: 100%;
-    height: 100%;
-    border: none;
-    display: block;
+/* TOGGLE BUTTON (ATTACHED TO SIDEBAR) */
+#toggleBtn{
+  position:absolute;
+  right:-42px;top:20px;
+  width:40px;height:40px;
+  background:var(--primary);
+  color:#fff;border:none;
+  border-radius:0 12px 12px 0;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;
 }
 
-/* MOBILE TOGGLE */
-.menu-btn{position:fixed;top:15px;right:15px;z-index:3000;background:var(--primary);color:#fff;border:none;padding:10px 15px;border-radius:10px;font-size:20px;display:none;cursor:pointer;}
+/* MAIN */
+#main{
+  width:100%;height:100vh;
+  padding-left:calc(var(--sidebar-w) + 40px);
+  display:none;
+}
+iframe{width:100%;height:100%;border:none}
 
+/* MOBILE */
 @media(max-width:900px){
-  #main-content{padding-left:0; width: 100vw;}
-  #sidebar{transform:translateX(-120%);left:10px;top:10px;bottom:10px;width:280px; box-shadow: 20px 0 50px rgba(0,0,0,0.2);}
-  #sidebar.open{transform:translateX(0)}
-  .menu-btn{display:block}
+  #main{padding-left:0}
 }
 </style>
 </head>
+
 <body>
 
-<button id="menuBtn" class="menu-btn" onclick="toggleMenu()">☰</button>
-
+<!-- LOGIN -->
 <div id="login-screen">
   <div class="login-card">
-    <h2 style="color:var(--primary)">AssetGuard</h2>
-    <p id="status-text">Secure Login</p>
-    <input id="email" type="email" placeholder="Email Address">
+    <h2 style="color:#0072CE">AssetGuard</h2>
+    <p id="status">Secure Login</p>
+    <input id="email" type="email" placeholder="Email">
     <input id="password" type="password" placeholder="Password">
     <button class="primary-btn" onclick="login()">Sign In</button>
   </div>
 </div>
 
-<nav id="sidebar">
-  <h3 style="color:var(--primary); margin-bottom:10px;">AssetGuard Pro</h3>
+<!-- SIDEBAR -->
+<nav id="sidebar" class="closed">
+  <button id="toggleBtn">☰</button>
+
+  <h3 style="color:#0072CE">AssetGuard Pro</h3>
+
   <div class="nav-container">
-    <div class="nav-group">Operations</div>
-    <a href="sales.html" target="content-frame" class="nav-link active">📊 Sales</a>
-    <a href="purchases.html" target="content-frame" class="nav-link">🛒 Purchases</a>
-    <a href="stock.html" target="content-frame" class="nav-link">📦 Stock</a>
-    <a href="stock_in.html" target="content-frame" class="nav-link">📥 Stock In</a>
-    <div class="nav-group">Reports</div>
-    <a href="cash_report.html" target="content-frame" class="nav-link">💰 Cash Report</a>
-    <a href="credit_report.html" target="content-frame" class="nav-link">📄 Credit Report</a>
-    <a href="expenses.html" target="content-frame" class="nav-link">💸 Expenses</a>
-    <a href="vat_filing.html" target="content-frame" class="nav-link">📝 VAT Filing</a>
-    <div class="nav-group">System</div>
-    <a href="history.html" target="content-frame" class="nav-link">🕒 History</a>
+    <a href="sales.html" class="nav-link active" data-page="sales.html">📊 Sales</a>
+    <a href="purchases.html" class="nav-link" data-page="purchases.html">🛒 Purchases</a>
+    <a href="stock.html" class="nav-link" data-page="stock.html">📦 Stock</a>
+    <a href="expenses.html" class="nav-link" data-page="expenses.html">💸 Expenses</a>
+    <a href="history.html" class="nav-link" data-page="history.html">🕒 History</a>
   </div>
+
   <button class="logout-btn" onclick="logout()">Logout</button>
 </nav>
 
-<main id="main-content">
-  <iframe name="content-frame" id="mainFrame" src="about:blank"></iframe>
+<!-- MAIN -->
+<main id="main">
+  <iframe id="frame" src=""></iframe>
 </main>
 
+<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA",
-  authDomain: "assetguard-c8c8c.firebaseapp.com",
-  projectId: "assetguard-c8c8c"
-};
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
+firebase.initializeApp({
+  apiKey:"AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA",
+  authDomain:"assetguard-c8c8c.firebaseapp.com",
+  projectId:"assetguard-c8c8c"
+});
 
-const loginScreen = document.getElementById("login-screen");
-const sidebar = document.getElementById("sidebar");
-const mainArea = document.getElementById("main-content");
-const frame = document.getElementById("mainFrame");
+const auth=firebase.auth();
+const sidebar=document.getElementById("sidebar");
+const main=document.getElementById("main");
+const frame=document.getElementById("frame");
+const loginScreen=document.getElementById("login-screen");
 
-auth.onAuthStateChanged(user => {
+auth.onAuthStateChanged(user=>{
   if(user){
-    loginScreen.style.display = "none";
-    sidebar.style.display = "flex";
-    mainArea.style.display = "block";
-    if(frame.src === "about:blank") frame.src = "sales.html";
-  } else {
-    loginScreen.style.display = "flex";
-    sidebar.style.display = "none";
-    mainArea.style.display = "none";
+    loginScreen.style.display="none";
+    sidebar.style.display="flex";
+    main.style.display="block";
+    sidebar.classList.remove("closed");
+    frame.src="sales.html";
+  }else{
+    loginScreen.style.display="flex";
+    sidebar.style.display="none";
+    main.style.display="none";
   }
 });
 
-function login() {
-  auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).then(() => {
-    return auth.signInWithEmailAndPassword(email.value, password.value);
-  }).catch(e => alert(e.message));
+function login(){
+  document.getElementById("status").innerText="Signing in...";
+  auth.signInWithEmailAndPassword(email.value,password.value)
+  .catch(e=>status.innerText=e.message);
 }
 
-function logout() { auth.signOut().then(() => location.reload()); }
-function toggleMenu() { sidebar.classList.toggle("open"); }
+function logout(){auth.signOut();}
 
-document.querySelectorAll(".nav-link").forEach(link => {
-  link.onclick = () => {
-    document.querySelectorAll(".nav-link").forEach(l => l.classList.remove("active"));
+/* TOGGLE */
+toggleBtn.onclick=()=>sidebar.classList.toggle("closed");
+
+/* LOCKED IFRAME NAV */
+document.querySelectorAll(".nav-link").forEach(link=>{
+  link.onclick=e=>{
+    e.preventDefault();
+    document.querySelectorAll(".nav-link").forEach(l=>l.classList.remove("active"));
     link.classList.add("active");
-    if(window.innerWidth <= 900) sidebar.classList.remove("open");
+    frame.src=link.dataset.page;
+    if(window.innerWidth<900) sidebar.classList.add("closed");
   };
 });
+
+/* OFFLINE */
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("service-worker.js");
+}
 </script>
+
 </body>
 </html>
