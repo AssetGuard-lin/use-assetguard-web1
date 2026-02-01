@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Add Expense - AssetGuard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* Stripped and optimized for Iframe integration */
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fa;
+            margin: 0;
+            padding: 20px;
+            color: #1f2937;
+        }
+
+        .container {
+            max-width: 600px; /* narrowed for better form focus */
+            margin: 0 auto;
+        }
+
+        h2 { 
+            text-align: center; 
+            color: #e06b3f; 
+            margin-bottom: 20px;
+        }
+
+        form {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            color: #4b5563;
+        }
+
+        input[type="text"], 
+        input[type="number"], 
+        input[type="datetime-local"], 
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            box-sizing: border-box;
+            font-size: 1em;
+            background: #f9fafb;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        input[type="submit"] {
+            background: #ff7f50;
+            color: white;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 25px;
+            width: 100%;
+            transition: background 0.2s;
+        }
+
+        input[type="submit"]:hover {
+            background: #e06b3f;
+        }
+
+        .history-link {
+            margin-top: 25px;
+            text-align: center;
+        }
+
+        .history-link a {
+            color: #0072CE;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>💰 Add New Expense</h2>
+        
+        <form method="POST" action="expenses.php">
+            <label for="expense_name">Expense Name</label>
+            <input type="text" id="expense_name" name="expense_name" required maxlength="255" placeholder="e.g. Electricity Bill">
+
+            <label for="category">Category</label>
+            <input type="text" id="category" name="category" required maxlength="100" placeholder="e.g. Utilities">
+
+            <label for="amount">Amount (KES)</label>
+            <input type="number" id="amount" name="amount" step="0.01" min="0.01" required placeholder="0.00">
+
+            <label for="expense_date">Date</label>
+            <input type="datetime-local" id="expense_date" name="expense_date" value="2026-01-28T13:21">
+
+            <label for="notes">Notes</label>
+            <textarea id="notes" name="notes" placeholder="Optional details..."></textarea>
+
+            <input type="submit" value="Record Expense">
+        </form>
+
+        <div class="history-link">
+            👉 <a href="expenses_history.html">View Expense History</a>
+        </div>
+    </div>
+
+</body>
+</html>

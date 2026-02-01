@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Stock Purchase - AssetGuard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #0072CE; --dark: #001A35; --success: #10b981; --warning: #f59e0b; }
+        body { font-family: 'Poppins', sans-serif; margin: 0; padding: 15px; background: #fff; color: #1f2937; }
+        .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #f0f2f5; }
+        
+        h2 { text-align: center; color: var(--dark); margin-bottom: 20px; font-weight: 700; }
+        label { display: block; margin-top: 10px; font-weight: 700; color: var(--dark); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .input-wrapper { position: relative; display: flex; align-items: center; }
+        input, select { width: 100%; padding: 12px; margin-top: 5px; border: 2px solid #f0f2f5; border-radius: 10px; box-sizing: border-box; background: #f9fbff; font-family: inherit; transition: 0.3s; }
+        input:focus { border-color: var(--primary); background: #fff; outline: none; }
+        input:disabled { background: #eef4ff; color: #5c6b89; cursor: not-allowed; border-color: #d1d9e6; }
+        input.editing-active { border-color: var(--warning); background: #fffdf5; }
+
+        .btn-pen { position: absolute; right: 10px; top: 12px; background: #fff; border: 1px solid #cbd5e0; border-radius: 5px; padding: 3px 8px; font-size: 12px; cursor: pointer; color: var(--primary); display: none; }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: #fdfeff; padding: 15px; border-radius: 15px; border: 1px solid #edf2f7; margin-bottom: 15px; }
+        .item-picker { background: #fff; padding: 15px; border-radius: 15px; border: 2px solid #f0f2f5; margin-bottom: 20px; }
+        
+        .btn-main { color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 15px; transition: 0.3s; }
+        .btn-add { background: var(--dark); }
+        .btn-save { background: var(--warning); display: none; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+        th { text-align: left; padding: 12px 8px; color: #64748b; border-bottom: 2px solid #f1f5f9; background: #f8fafc; }
+        td { padding: 12px 8px; border-bottom: 1px solid #f1f5f9; }
+        
+        .row-edit { color: var(--primary); cursor: pointer; font-size: 16px; }
+
+        .totals-display { background: var(--dark); color: white; padding: 20px; border-radius: 15px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-sync { background: linear-gradient(135deg, #28a745, #10b981); color: white; border: none; padding: 18px; border-radius: 12px; font-weight: 700; cursor: pointer; width: 100%; margin-top: 15px; font-size: 16px; }
+        
+        #status { text-align: center; margin-top: 15px; font-size: 13px; min-height: 20px; }
+        .success-msg { color: var(--success); font-weight: 600; background: #ecfdf5; padding: 10px; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2> Stock Purchase</h2>
+    
+    <div class="form-grid">
+        <div>
+            <label>Supplier Name</label>
+            <div class="input-wrapper">
+                <input type="text" id="supplier_name" value="General Supplier" 
+                       onfocus="if(this.value=='General Supplier')this.value='';" 
+                       onblur="if(this.value=='')this.value='General Supplier';">
+                <button id="edit_supplier_btn" class="btn-pen" onclick="startSupplierEdit()">✏️</button>
+            </div>
+        </div>
+        <div>
+            <label>Payment Mode</label>
+            <select id="payment_status">
+                <option value="Cash">Cash</option>
+                <option value="M-Pesa">M-Pesa</option>
+                <option value="Bank Transfer">Bank Transfer</option>
+                <option value="Credit/Debt">Credit/Debt</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="item-picker">
+        <label>Item Description (e.g. 50kg Cement)</label>
+        <input type="text" id="product" placeholder="Type item name and specs...">
+
+        <div style="display: flex; gap: 10px; margin-top: 5px;">
+            <div style="flex: 2;">
+                <label>Unit Buying Price</label>
+                <input type="number" id="price" placeholder="0.00">
+            </div>
+            <div style="flex: 1;">
+                <label>Qty</label>
+                <input type="number" id="quantity" value="1">
+            </div>
+            <div style="flex: 1;">
+                <label>VAT %</label>
+                <input type="number" id="vat_rate" value="16">
+            </div>
+        </div>
+        
+        <button id="add-btn" class="btn-main btn-add" onclick="addToPurchase()">Add to Purchase List</button>
+        <button id="save-btn" class="btn-main btn-save" onclick="saveEdit()">Update Changes</button>
+    </div>
+
+    <div class="cart-section">
+        <table>
+            <thead>
+                <tr>
+                    <th>Supplier</th>
+                    <th>Item</th>
+                    <th>Qty</th>
+                    <th>Price</th>
+                    <th>Total</th>
+                    <th style="width: 40px;">Edit</th>
+                </tr>
+            </thead>
+            <tbody id="cart-body"></tbody>
+        </table>
+
+        <div class="totals-display">
+            <span style="font-size: 12px; opacity: 0.8;">TOTAL INVESTMENT</span>
+            <span id="grand-total" style="font-size: 24px; font-weight: 700;">KES 0.00</span>
+        </div>
+
+        <button class="btn-sync" onclick="syncWithApp()">Confirm & Stock In Items</button>
+        <p id="status"></p>
+    </div>
+</div>
+
+<script>
+    let purchaseCart = [];
+    let editIndex = null;
+    let isEditingSupplier = false;
+
+    function addToPurchase() {
+        const supField = document.getElementById('supplier_name');
+        const sup = supField.value;
+        const pay = document.getElementById('payment_status').value;
+        const prod = document.getElementById('product').value;
+        const prc = parseFloat(document.getElementById('price').value);
+        const qty = parseInt(document.getElementById('quantity').value);
+        const vRate = parseFloat(document.getElementById('vat_rate').value);
+
+        if(!prod || isNaN(prc) || qty < 1 || !sup) {
+            alert("Please fill all details before adding.");
+            return;
+        }
+
+        supField.disabled = true;
+        document.getElementById('edit_supplier_btn').style.display = 'block';
+
+        const subtotal = prc * qty;
+        const vatAmount = subtotal * (vRate / 100);
+        const lineTotal = subtotal + vatAmount;
+
+        const item = {
+            supplier: sup, payment: pay, product: prod,
+            price: prc, quantity: qty, vat: vatAmount.toFixed(2),
+            total: lineTotal.toFixed(2), vatRate: vRate
+        };
+
+        purchaseCart.push(item);
+        updateUI();
+        clearInputs();
+    }
+
+    function startSupplierEdit() {
+        const field = document.getElementById('supplier_name');
+        field.disabled = false;
+        field.classList.add('editing-active');
+        field.focus();
+        isEditingSupplier = true;
+        toggleButtons(true);
+        document.getElementById('edit_supplier_btn').style.display = 'none';
+    }
+
+    function saveEdit() {
+        const supField = document.getElementById('supplier_name');
+        if(isEditingSupplier) {
+            const newName = supField.value;
+            purchaseCart.forEach(item => item.supplier = newName);
+            supField.disabled = true;
+            supField.classList.remove('editing-active');
+            isEditingSupplier = false;
+            document.getElementById('edit_supplier_btn').style.display = 'block';
+        } else if(editIndex !== null) {
+            purchaseCart.splice(editIndex, 1);
+            addToPurchase();
+            editIndex = null;
+        }
+        updateUI();
+        toggleButtons(false);
+    }
+
+    function toggleButtons(isEditing) {
+        document.getElementById('add-btn').style.display = isEditing ? 'none' : 'block';
+        document.getElementById('save-btn').style.display = isEditing ? 'block' : 'none';
+    }
+
+    function clearInputs() {
+        document.getElementById('product').value = "";
+        document.getElementById('price').value = "";
+        document.getElementById('quantity').value = "1";
+    }
+
+    function editItem(index) {
+        const item = purchaseCart[index];
+        editIndex = index;
+        isEditingSupplier = false;
+        document.getElementById('product').value = item.product;
+        document.getElementById('price').value = item.price;
+        document.getElementById('quantity').value = item.quantity;
+        document.getElementById('vat_rate').value = item.vatRate;
+        toggleButtons(true);
+        window.scrollTo(0,0);
+    }
+
+    function updateUI() {
+        const tbody = document.getElementById('cart-body');
+        tbody.innerHTML = "";
+        let runningTotal = 0;
+        purchaseCart.forEach((item, index) => {
+            runningTotal += parseFloat(item.total);
+            tbody.innerHTML += `<tr>
+                <td style="font-weight:600; color:var(--primary);">${item.supplier}</td>
+                <td>${item.product}</td>
+                <td>${item.quantity}</td>
+                <td>${item.price}</td>
+                <td style="font-weight:700;">${item.total}</td>
+                <td style="text-align:center;"><span class="row-edit" onclick="editItem(${index})">✏️</span></td>
+            </tr>`;
+        });
+        document.getElementById('grand-total').innerText = "KES " + runningTotal.toLocaleString(undefined, {minimumFractionDigits: 2});
+        if (purchaseCart.length === 0 && !isEditingSupplier) {
+            const sup = document.getElementById('supplier_name');
+            sup.disabled = false;
+            document.getElementById('edit_supplier_btn').style.display = 'none';
+        }
+    }
+
+    function syncWithApp() {
+        if(purchaseCart.length === 0) { alert("List is empty"); return; }
+        let finalData = [];
+        purchaseCart.forEach(item => {
+            let row = `${item.supplier}:${item.payment}:${item.product}:${item.price}:${item.quantity}:${item.vat}:${item.total}`;
+            finalData.push(row);
+        });
+        const syncString = finalData.join("|");
+        if (window.AppInventor) {
+            window.AppInventor.setWebViewString(syncString);
+            const statusLabel = document.getElementById('status');
+            statusLabel.innerHTML = "✅ Stock Sent to App!";
+            statusLabel.classList.add('success-msg');
+            purchaseCart = [];
+            updateUI();
+            document.getElementById('supplier_name').value = "General Supplier";
+            setTimeout(() => { statusLabel.innerHTML = ""; statusLabel.classList.remove('success-msg'); }, 5000);
+        } else {
+            console.log("Purchase Sync:", syncString);
+            alert("Inside Web View: Data simulated.");
+        }
+    }
+</script>
+
+</body>
+</html>

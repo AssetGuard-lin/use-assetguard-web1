@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AssetGuard Pro</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root { --primary:#0072CE; --bg:#f4f7fe; }
+*{margin:0;padding:0;box-sizing:border-box;font-family:Poppins,sans-serif;}
+body{background:var(--bg);height:100vh;}
+
+#landing-page{
+    height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.login-card{
+    background:#fff;
+    padding:40px;
+    border-radius:25px;
+    width:90%;
+    max-width:380px;
+    text-align:center;
+    box-shadow:0 20px 50px rgba(0,0,0,.08);
+}
+
+input{
+    width:100%;
+    padding:14px;
+    margin:10px 0;
+    border-radius:10px;
+    border:2px solid #eee;
+}
+
+button{
+    width:100%;
+    padding:15px;
+    background:var(--primary);
+    color:#fff;
+    border:none;
+    border-radius:12px;
+    font-weight:700;
+    cursor:pointer;
+}
+
+#app-shell{display:none;height:100vh;}
+</style>
+</head>
+
+<body>
+
+<div id="landing-page">
+    <div class="login-card">
+        <h2>AssetGuard</h2>
+        <p id="status-text">Enter credentials to connect</p>
+
+        <input id="user" placeholder="Username">
+        <input id="pass" type="password" placeholder="Password">
+
+        <button id="login-btn" onclick="attemptLogin()">Login</button>
+    </div>
+</div>
+
+<div id="app-shell">
+    <h2 style="padding:20px">Welcome 🎉</h2>
+</div>
+
+<script>
+function attemptLogin(){
+    let u = document.getElementById("user").value.trim();
+    let p = document.getElementById("pass").value.trim();
+
+    if(!u || !p){
+        alert("Fill all fields");
+        return;
+    }
+
+    document.getElementById("status-text").innerText="Authenticating...";
+    document.getElementById("login-btn").disabled=true;
+
+    // STEP 1: load bridge (sets InfinityFree cookies)
+    fetch("https://assetguard.wuaze.com/bridge.php",{
+        credentials:"include"
+    })
+    .then(()=>{
+
+        // STEP 2: real login request
+        return fetch("https://assetguard.wuaze.com/api.php",{
+            method:"POST",
+            credentials:"include",
+            headers:{
+                "Content-Type":"application/x-www-form-urlencoded"
+            },
+            body:
+                "action=login"+
+                "&u="+encodeURIComponent(u)+
+                "&p="+encodeURIComponent(p)
+        });
+    })
+    .then(res=>res.text())
+    .then(txt=>{
+        txt = txt.trim();
+
+        if(txt==="SUCCESS" || txt==="OK"){
+            showAppShell();
+
+            if(window.AppInventor){
+                window.AppInventor.setWebViewString("LOGIN_SUCCESS");
+            }
+
+        }else{
+            loginFailed(txt);
+        }
+    })
+    .catch(err=>{
+        loginFailed("Network error");
+        console.log(err);
+    });
+}
+
+function showAppShell(){
+    document.getElementById("landing-page").style.display="none";
+    document.getElementById("app-shell").style.display="block";
+}
+
+function loginFailed(msg){
+    document.getElementById("status-text").innerText=msg;
+    document.getElementById("login-btn").disabled=false;
+}
+</script>
+
+</body>
+</html>

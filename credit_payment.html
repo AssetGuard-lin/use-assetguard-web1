@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Credit Payment - AssetGuard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f6f8;
+            margin: 0;
+            padding: 20px;
+            color: #1f2937;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 20px auto; /* Reduced top margin for iframe view */
+            background: #fff;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        select, input[type="number"], input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box; /* Ensures padding doesn't break width */
+        }
+
+        input[type="submit"] {
+            margin-top: 25px;
+            width: 100%;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        input[type="submit"]:hover {
+            background: #218838;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px auto;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Credit Payment</h2>
+        
+        <form method="POST" action="credit_payment.php">
+            <label>Select Credit Sale:</label>
+            <select name="sale_id" required>
+                <option value="" selected>-- Choose Customer --</option>
+                <option value="238">Jomba stores - Bal: KES 600.60</option>
+                <option value="240">Kamdev - Bal: KES 464.00</option>
+                <option value="242">Subukia stores - Bal: KES 1,682.00</option>
+                <option value="251">Jomba stores - Bal: KES 580.00</option>
+                <option value="252">Kamdev - Bal: KES 928.00</option>
+                <option value="253">Subukia stores - Bal: KES 400.00</option>
+                <option value="263">Marina - Bal: KES 178.40</option>
+            </select>
+
+            <label>Amount to Pay:</label>
+            <input type="number" name="amount_paid" step="0.01" min="0.01" required placeholder="0.00">
+
+            <label>Remarks:</label>
+            <input type="text" name="remarks" placeholder="Optional note">
+
+            <input type="submit" value="Record Payment">
+        </form>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Cash Sales Report - AssetGuard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        /* Base Styles - Cleaned for Iframe */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f8f9fa;
+            color: #1f2937;
+        }
+
+        h2 { text-align: center; margin-bottom: 15px; color: #002E5D; }
+
+        /* Filter Form */
+        form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 15px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        input[type="text"], input[type="date"], button, a.button {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        button { background: #28a745; color: white; cursor: pointer; border: none; transition: 0.3s; font-weight: bold; }
+        button:hover { background: #1e7e34; }
+
+        a.button { 
+            background: #dc3545; 
+            color: white; 
+            text-decoration: none; 
+            transition: 0.3s; 
+            display: inline-block; 
+            text-align: center;
+        }
+        a.button:hover { background: #c82333; }
+
+        /* Table & Cards */
+        .table-container { 
+            background: white; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+            overflow: hidden; 
+            margin-top: 20px;
+        }
+
+        .mobile-view { padding: 10px; }
+        .card {
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            padding: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-left: 4px solid #007bff;
+        }
+
+        .card-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #eee; }
+        .label { font-weight: bold; color: #4b5563; }
+        
+        .item-box { 
+            background: #f0f7ff; 
+            border-radius: 6px; 
+            padding: 8px; 
+            margin-top: 5px; 
+            font-size: 0.9rem; 
+            color: #333; 
+        }
+
+        .generate-btn {
+            display: block;
+            width: 100%;
+            text-align: center;
+            padding: 10px;
+            margin-top: 10px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        /* Hide the Table on Mobile, Show on Desktop */
+        @media (max-width: 1000px) { .table-container { display: none; } }
+        @media (min-width: 1001px) { .mobile-view { display: none; } }
+    </style>
+</head>
+<body>
+
+    <h2>Cash Sales Report</h2>
+
+    <form action="cash_report.php">
+        <input type="text" name="business" placeholder="Search Business">
+        <input type="date" name="date_from" value="2026-01-01">
+        <input type="date" name="date_to" value="2026-01-28">
+        <button type="submit">Filter Report</button>
+        <a href="cash_report.html" class="button">Reset</a>
+    </form>
+
+    <div class="table-container">
+        </div>
+
+    <div class="mobile-view">
+        <div class="card">
+            <div class="card-item"><span class="label">Business:</span><span class="value">Marina</span></div>
+            <div class="card-item">
+                <span class="label">Items:</span>
+                <div class="item-box">Aseton | KES 2,000.00 | Qty: 1 | VAT: 16%</div>
+            </div>
+            <div class="card-item"><span class="label">Total:</span><span class="value">KES 2,320.00</span></div>
+            <div class="card-item"><span class="label">Date:</span><span class="value">2026-01-16 09:59:16</span></div>
+            <a href="#" class="generate-btn">Generate Receipt</a>
+        </div>
+
+        <div class="card">
+            <div class="card-item"><span class="label">Business:</span><span class="value">Marina 50</span></div>
+            <div class="card-item">
+                <span class="label">Items:</span>
+                <div class="item-box">RC2 1/2 (ltrs) | KES 1,000.00 | Qty: 1 | VAT: 16%</div>
+            </div>
+            <div class="card-item"><span class="label">Total:</span><span class="value">KES 1,160.00</span></div>
+            <div class="card-item"><span class="label">Date:</span><span class="value">2026-01-16 09:57:02</span></div>
+            <a href="#" class="generate-btn">Generate Receipt</a>
+        </div>
+    </div>
+
+</body>
+</html>

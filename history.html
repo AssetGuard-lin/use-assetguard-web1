@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Sales History - AssetGuard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* Optimized for Iframe Integration */
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f8f9fa;
+            color: #1f2937;
+        }
+
+        h2 { text-align: center; margin-bottom: 15px; color: #002E5D; }
+
+        /* Filter Form */
+        form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        input, select, button {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        button:hover { background: #0056b3; }
+
+        /* Table Design */
+        .table-container {
+            overflow-x: auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+
+        th, td {
+            border-bottom: 1px solid #eee;
+            padding: 12px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        th {
+            background: #f4f4f4;
+            color: #333;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+
+        tr:hover { background: #f9f9f9; }
+
+        .item-list {
+            background: #f1f1f1;
+            padding: 8px;
+            border-radius: 5px;
+            text-align: left;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .invoice-link {
+            display: inline-block;
+            padding: 6px 12px;
+            background: #28a745;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .invoice-link:hover { background: #218838; }
+    </style>
+</head>
+<body>
+
+    <h2>Sales History</h2>
+
+    <form action="history.html">
+        <input type="text" name="business" placeholder="Search Business">
+        <select name="type">
+            <option value="" selected>All Types</option>
+            <option value="sale">Sale</option>
+            <option value="purchase">Purchase</option>
+        </select>
+        <input type="date" name="date_from" value="2026-01-01">
+        <input type="date" name="date_to" value="2026-01-28">
+        <button type="submit">Filter Results</button>
+    </form>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Business</th>
+                    <th>Type</th>
+                    <th>Items</th>
+                    <th>Total</th>
+                    <th>Payment</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>266</td>
+                    <td>Marina</td>
+                    <td>Sale</td>
+                    <td>
+                        <div class="item-list">
+                            Aseton (1 x 2,000.00, VAT: 16.00%)
+                        </div>
+                    </td>
+                    <td>2,320.00</td>
+                    <td>Cash</td>
+                    <td>2026-01-16 09:59:16</td>
+                    <td><a class="invoice-link" href="#">Receipt</a></td>
+                </tr>
+                <tr>
+                    <td>263</td>
+                    <td>Marina</td>
+                    <td>Sale</td>
+                    <td>
+                        <div class="item-list">
+                            Paint (2 x 120.00, VAT: 16.00%)
+                        </div>
+                    </td>
+                    <td>278.40</td>
+                    <td>Credit</td>
+                    <td>2026-01-16 09:32:57</td>
+                    <td><a class="invoice-link" href="#" style="background:#007bff;">Invoice</a></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</body>
+</html>
