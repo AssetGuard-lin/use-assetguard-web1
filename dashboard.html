@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Minimalist Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: rgba(30, 41, 59, 0.7);
+            --text: #f8fafc;
+            --accent1: #8b5cf6;
+            --accent2: #06b6d4;
+            --accent3: #10b981;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .dashboard-container {
+            width: 100%;
+            max-width: 1100px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+        }
+
+        .card {
+            background: var(--card);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        }
+
+        h2 {
+            font-weight: 500;
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+            letter-spacing: -0.025em;
+            color: #94a3b8;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+        }
+
+        /* Center text for the donut */
+        .donut-inner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .donut-inner span {
+            display: block;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-container">
+    <div class="card">
+        <h2>System Distribution</h2>
+        <div class="chart-wrapper">
+            <canvas id="modernDonut"></canvas>
+            <div class="donut-inner">
+                <span>84%</span>
+                <small style="color:#64748b">Efficiency</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Network Activity</h2>
+        <div class="chart-wrapper">
+            <canvas id="modernLine"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- MODERN DONUT (Better than Pie) ---
+    const ctxDonut = document.getElementById('modernDonut').getContext('2d');
+    new Chart(ctxDonut, {
+        type: 'doughnut',
+        data: {
+            labels: ['Primary', 'Secondary', 'Idle'],
+            datasets: [{
+                data: [65, 20, 15],
+                backgroundColor: ['#8b5cf6', '#06b6d4', '#1e293b'],
+                borderWidth: 0,
+                borderRadius: 10, // Rounded ends for a modern look
+                spacing: 10       // Gap between segments
+            }]
+        },
+        options: {
+            cutout: '85%', // Thin ring look
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { color: '#94a3b8', usePointStyle: true, padding: 20 }
+                }
+            }
+        }
+    });
+
+    // --- MODERN AREA CHART ---
+    const ctxLine = document.getElementById('modernLine').getContext('2d');
+    const purpleGrad = ctxLine.createLinearGradient(0, 0, 0, 300);
+    purpleGrad.addColorStop(0, 'rgba(139, 92, 246, 0.3)');
+    purpleGrad.addColorStop(1, 'rgba(139, 92, 246, 0)');
+
+    new Chart(ctxLine, {
+        type: 'line',
+        data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+            datasets: [{
+                data: [30, 45, 35, 60, 55, 80],
+                borderColor: '#8b5cf6',
+                borderWidth: 3,
+                fill: true,
+                backgroundColor: purpleGrad,
+                tension: 0.5, // Ultra smooth curve
+                pointRadius: 0, // Clean look, show on hover
+                pointHitRadius: 20
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { display: false },
+                x: { 
+                    grid: { display: false },
+                    ticks: { color: '#64748b' }
+                }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
