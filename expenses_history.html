@@ -1,144 +1,120 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="utf-8">
-    <title>Expenses History - AssetGuard</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        /* Stripped and optimized for Iframe */
-        body {
-            font-family: "Segoe UI", Arial, sans-serif;
-            background: #f5f7fa;
-            color: #333;
-            margin: 0;
-            padding: 20px;
-        }
+<meta charset="UTF-8">
+<title>Expenses History</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        h2 { text-align: center; color: #ff7f50; margin-bottom: 20px; }
-
-        .container { max-width: 1000px; margin: 0 auto; }
-
-        /* Filter Section */
-        .filter {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            align-items: center;
-            margin-bottom: 15px;
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-
-        .filter select { padding: 8px; border-radius: 5px; border: 1px solid #ccc; background: #fff; }
-
-        .filter button {
-            padding: 8px 20px;
-            background: #ff7f50;
-            border: none;
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: 0.3s;
-        }
-
-        .filter button:hover { background: #e36f41; }
-
-        /* Summary Box */
-        .total-summary {
-            padding: 12px;
-            background: #ecfdf5;
-            color: #065f46;
-            font-weight: bold;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            text-align: right;
-            border: 1px solid #d1fae5;
-        }
-
-        /* Table Design */
-        .table-container {
-            background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            overflow-x: auto;
-        }
-
-        table { width: 100%; border-collapse: collapse; min-width: 600px; }
-
-        th, td { padding: 12px 15px; border-bottom: 1px solid #eee; text-align: left; }
-
-        th {
-            background: #ff7f50;
-            color: white;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.85rem;
-        }
-
-        tr:hover { background: #f9fafb; }
-
-        @media (max-width: 768px) {
-            .filter { flex-direction: column; align-items: stretch; }
-            .total-summary { text-align: center; }
-        }
-    </style>
+<style>
+body{
+  font-family:Roboto,sans-serif;
+  background:#f0f2f5;
+  padding:20px;
+}
+h2{
+  color:#002E5D;
+  margin-bottom:20px;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  background:#fff;
+}
+th,td{
+  padding:12px;
+  border-bottom:1px solid #ddd;
+  text-align:left;
+}
+th{
+  background:#002E5D;
+  color:#fff;
+}
+tr:hover{background:#f1f1f1}
+.delete-btn{
+  background:#c0392b;
+  color:#fff;
+  border:none;
+  padding:6px 10px;
+  border-radius:4px;
+  cursor:pointer;
+}
+.total-box{
+  margin-top:20px;
+  font-weight:bold;
+  font-size:16px;
+}
+</style>
 </head>
 <body>
 
-    <h2>Expenses History - Monthly Archive</h2>
+<h2>Expenses History</h2>
 
-    <div class="container">
-        
-        <form class="filter" method="GET" action="expenses_history.php">
-            <label>Month: 
-                <select name="month">
-                    <option value="1" selected>January</option>
-                    <option value="2">February</option>
-                    <option value="3">March</option>
-                    <option value="12">December</option>
-                </select>
-            </label>
-            <label>Year: 
-                <select name="year">
-                    <option value="2026" selected>2026</option>
-                    <option value="2025">2025</option>
-                </select>
-            </label>
-            <button type="submit">Show Report</button>
-        </form>
+<table>
+<thead>
+<tr>
+<th>Date</th>
+<th>Category</th>
+<th>Description</th>
+<th>Amount</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody id="expenseTable"></tbody>
+</table>
 
-        <div class="total-summary">
-            Total Expenses for January 2026: KES 2,000.00
-        </div>
+<div class="total-box">
+Total Expenses: <span id="totalAmount">0</span>
+</div>
 
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Category</th>
-                        <th>Amount (KES)</th>
-                        <th>Date</th>
-                        <th>Notes</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>16</td>
-                        <td>Van</td>
-                        <td>Fuel</td>
-                        <td>2,000.00</td>
-                        <td>2026-01-16 11:54</td>
-                        <td>Nairobi kenya</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA",
+  authDomain:"assetguard-c8c8c.firebaseapp.com",
+  projectId:"assetguard-c8c8c"
+});
+
+const db = firebase.firestore();
+const table = document.getElementById("expenseTable");
+const totalEl = document.getElementById("totalAmount");
+
+let total = 0;
+
+db.collection("expenses").orderBy("timestamp","desc")
+.onSnapshot(snapshot=>{
+  table.innerHTML="";
+  total = 0;
+
+  snapshot.forEach(doc=>{
+    const data = doc.data();
+    total += Number(data.amount || 0);
+
+    table.innerHTML += `
+      <tr>
+        <td>${data.date || ''}</td>
+        <td>${data.category || ''}</td>
+        <td>${data.description || ''}</td>
+        <td>${data.amount || 0}</td>
+        <td>
+          <button class="delete-btn" onclick="deleteExpense('${doc.id}')">
+            Delete
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+
+  totalEl.innerText = total.toFixed(2);
+});
+
+function deleteExpense(id){
+  if(confirm("Delete this record?")){
+    db.collection("expenses").doc(id).delete();
+  }
+}
+</script>
 
 </body>
 </html>
