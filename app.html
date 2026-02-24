@@ -119,7 +119,7 @@ header{
 
   <div class="menu-section">
     <div class="label">Operations</div>
-    <div class="nav-link" onclick="loadPage('dashboard_home.html','Dashboard')">Dashboard</div>
+    <div class="nav-link" onclick="loadPage('dashboard.html','Dashboard')">Dashboard</div>
     <div class="nav-link" onclick="loadPage('sales.html','Sales')">Sales</div>
     <div class="nav-link" onclick="loadPage('history.html','History')">History</div>
 
@@ -148,7 +148,8 @@ header{
     <h2 id="view-title" style="color:#002E5D">Dashboard</h2>
   </header>
 
-  <iframe id="content-frame" src="dashboard_home.html"></iframe>
+  <!-- FIXED HERE -->
+  <iframe id="content-frame" src="dashboard.html"></iframe>
 </main>
 
 <!-- FIREBASE -->
@@ -168,8 +169,8 @@ firebase.auth().onAuthStateChanged(user=>{
 });
 
 function toggleMenu(){
-  sidebar.classList.toggle("active");
-  overlay.classList.toggle("active");
+  document.getElementById("sidebar").classList.toggle("active");
+  document.getElementById("overlay").classList.toggle("active");
 }
 
 function loadPage(page,title){
