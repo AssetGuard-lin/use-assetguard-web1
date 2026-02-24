@@ -126,9 +126,11 @@ header{
     <div class="label">Inventory</div>
     <div class="nav-link" onclick="loadPage('stock.html','Stock')">Stock</div>
     <div class="nav-link" onclick="loadPage('stock_in.html','Stock In')">Stock In</div>
+    <div class="nav-link" onclick="loadPage('purchases_history.html','Purchases History')">Purchases History</div>
 
     <div class="label">Finance</div>
     <div class="nav-link" onclick="loadPage('expenses.html','Expenses')">Expenses</div>
+    <div class="nav-link" onclick="loadPage('expenses_history.html','Expenses History')">Expenses History</div>
     <div class="nav-link" onclick="loadPage('vat_filing.html','VAT Filing')">VAT Filing</div>
 
     <div class="label">Reports</div>
