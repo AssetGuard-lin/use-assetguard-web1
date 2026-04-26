@@ -1,100 +1,191 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<title>AssetGuard Pro - Portal</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AssetGuard Login</title>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Roboto,sans-serif}
-body{
-  height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:#f0f2f5;
-}
-.login-box{
-  background:#fff;
-  padding:40px;
-  width:100%;
-  max-width:380px;
-  border-radius:12px;
-  box-shadow:0 15px 40px rgba(0,0,0,.1);
-}
-h2{text-align:center;color:#002E5D;margin-bottom:10px}
-p{text-align:center;color:#666;margin-bottom:20px}
-input{
-  width:100%;
-  padding:14px;
-  margin-bottom:15px;
-  border-radius:8px;
-  border:1px solid #ccc;
-}
-button{
-  width:100%;
-  padding:14px;
-  background:#0072CE;
-  color:#fff;
-  border:none;
-  border-radius:8px;
-  font-weight:700;
-  cursor:pointer;
-}
-#status{
-  margin-top:10px;
-  text-align:center;
-  font-size:13px;
-  color:#c0392b;
-}
+/* ORIGINAL LOOK PRESERVED */
+* { box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+body { margin: 0; height: 100vh; background: radial-gradient(circle at center, #2c5364, #0f2027); display: flex; flex-direction: column; align-items: center; overflow: hidden; padding-top: 50px; }
+#notification { position: fixed; top: 20px; background: #333; color: #fff; padding: 12px 25px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; box-shadow: 0 5px 15px rgba(0,0,0,0.3); display: none; z-index: 5000; animation: slideDown 0.4s ease-out; }
+@keyframes slideDown { from { top: -50px; opacity: 0; } to { top: 20px; opacity: 1; } }
+.hero-content h1 { margin: 0; font-size: 2.5rem; color: white; text-align: center; }
+.top-nav { width: 90%; max-width: 280px; background: linear-gradient(145deg, #1e3a46, #2c5364); border-radius: 50px; padding: 6px 15px; display: flex; justify-content: space-between; align-items: center; margin: 20px 0; }
+.logo { color: #fff; font-weight: 800; font-size: 0.75rem; }
+.menu-btn { background: #fff; color: #2c5364; border: none; padding: 6px 15px; border-radius: 20px; cursor: pointer; font-size: 0.75rem; font-weight: 700; }
+.auth-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 3000; backdrop-filter: blur(8px); }
+.scene { width: 340px; height: 530px; perspective: 1200px; }
+.card { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.8s; }
+.card.flip-register { transform: rotateY(180deg); }
+.face { position: absolute; inset: 0; background: #fff; border-radius: 20px; padding: 30px; backface-visibility: hidden; display: flex; flex-direction: column; justify-content: center; }
+.register { transform: rotateY(180deg); }
+h2 { margin-bottom: 20px; color: #2c5364; font-weight: 800; }
+input { width: 100%; padding: 14px; margin: 8px 0; border-radius: 12px; border: 1px solid #ddd; outline: none; background: #f9fbff; font-size: 16px; }
+button.action-btn { width: 100%; padding: 14px; margin-top: 12px; background: #2c5364; color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 1rem; }
+.link { text-align: center; margin-top: 15px; font-size: 0.85rem; color: #2c5364; cursor: pointer; font-weight: 600; }
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; justify-content: center; align-items: center; z-index: 4000; }
+.modal-content { background: #fff; padding: 30px; border-radius: 15px; width: 300px; text-align: center; }
 </style>
 </head>
-
 <body>
 
-<div class="login-box">
-  <h2>AssetGuard</h2>
-  <p>Secure POS Login</p>
+<div id="notification"></div>
 
-  <input id="email" type="email" placeholder="Email">
-  <input id="password" type="password" placeholder="Password">
-
-  <button onclick="login()">Login</button>
-  <div id="status"></div>
+<div class="hero-content">
+  <h1>AssetGuard Pro</h1>
+  <nav class="top-nav">
+    <div class="logo">OPERATOR PORTAL</div>
+    <button class="menu-btn" onclick="toggleAuth()">LOGIN</button>
+  </nav>
 </div>
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<div class="auth-overlay" id="authOverlay" onclick="closeIfOutside(event)">
+  <div class="scene" onclick="event.stopPropagation()">
+    <div class="card" id="card">
+      <div class="face login">
+        <h2>Sign In</h2>
+        <input id="l_email" type="email" placeholder="Email Address">
+        <input id="l_pin" type="password" placeholder="Password / PIN">
+        <button class="action-btn" id="loginBtn" onclick="doLogin()">Authenticate</button>
+        <div class="link" onclick="showForgotModal()">Forgot Access?</div>
+        <div class="link" style="color:#64748b" onclick="goRegister()">Create New Account</div>
+      </div>
+      <div class="face register">
+        <h2>New Account</h2>
+        <input id="r_user" placeholder="Full Name">
+        <input id="r_email" type="email" placeholder="Email Address">
+        <input id="r_pass" type="password" placeholder="Password">
+        <input id="r_pass_confirm" type="password" placeholder="Confirm Password">
+        <button class="action-btn" id="regBtn" onclick="doSignup()">Create Account</button>
+        <div class="link" onclick="goLogin()">Return to Login</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="forgotModal">
+  <div class="modal-content">
+    <h2 style="margin-top:0;">Reset PIN</h2>
+    <input id="f_email" type="email" placeholder="Registered Email">
+    <button class="action-btn" onclick="doReset()">Send Reset Link</button>
+    <div class="link" style="color:red; margin-top:15px;" onclick="closeForgotModal()">Cancel</div>
+  </div>
+</div>
 
 <script>
-firebase.initializeApp({
+const DASHBOARD_URL = "dashboard.html"; // Ensure this matches your file name
+const firebaseConfig = {
   apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA",
   authDomain: "assetguard-c8c8c.firebaseapp.com",
   projectId: "assetguard-c8c8c"
-});
+};
 
+firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 
-// Redirect to dashboard if already logged in
-auth.onAuthStateChanged(user=>{
-  if(user){
-    location.href = "app.html";
-  }
-});
+function msg(text, color="#ef4444") {
+  const el = document.getElementById("notification");
+  el.innerText = text; el.style.backgroundColor = color; el.style.display = "block";
+  setTimeout(() => { el.style.display = "none"; }, 3500);
+}
 
-function login(){
-  status.innerText = "Signing in...";
-  auth.signInWithEmailAndPassword(
-    email.value,
-    password.value
-  )
-  .then(()=>location.href="app.html")
-  .catch(e=>status.innerText=e.message);
+function toggleAuth() {
+  const o = document.getElementById("authOverlay");
+  o.style.display = (o.style.display === "flex") ? "none" : "flex";
+}
+function closeIfOutside(e) { if (e.target.id === "authOverlay") toggleAuth(); }
+function goRegister() { document.getElementById("card").className = "card flip-register"; }
+function goLogin() { document.getElementById("card").className = "card"; }
+function showForgotModal() { document.getElementById("forgotModal").style.display = "flex"; }
+function closeForgotModal() { document.getElementById("forgotModal").style.display = "none"; }
+
+async function doLogin() {
+  const email = document.getElementById("l_email").value.trim().toLowerCase();
+  const pass = document.getElementById("l_pin").value.trim();
+  const btn = document.getElementById("loginBtn");
+
+  if (!email || !pass) return msg("Please enter all details");
+  btn.disabled = true; btn.innerText = "Authenticating...";
+
+  // 1. Check Local Registry (Allows independent users to login offline on same device)
+  const cachedData = localStorage.getItem("ag_auth_" + email);
+  if (cachedData) {
+    const creds = JSON.parse(cachedData);
+    if (creds.pin === pass) {
+      // Set globally active session data
+      localStorage.setItem("ag_active_uid", creds.uid);
+      localStorage.setItem("ag_session_active", "true");
+      setTimeout(() => { window.location.href = DASHBOARD_URL; }, 500);
+      return;
+    }
+  }
+
+  // 2. Online Login
+  if (navigator.onLine) {
+    try {
+      await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+      const userCredential = await auth.signInWithEmailAndPassword(email, pass);
+      const user = userCredential.user;
+      
+      // Stamp device with UID for independent data access
+      localStorage.setItem("ag_auth_" + email, JSON.stringify({ 
+        email: email, 
+        pin: pass, 
+        uid: user.uid 
+      }));
+      
+      localStorage.setItem("ag_active_uid", user.uid);
+      localStorage.setItem("ag_session_active", "true");
+
+      window.location.href = DASHBOARD_URL;
+    } catch (err) {
+      msg("Credentials not recognized");
+      btn.disabled = false; btn.innerText = "Authenticate";
+    }
+  } else {
+    msg("Device not registered. Connect to internet once.");
+    btn.disabled = false; btn.innerText = "Authenticate";
+  }
+}
+
+async function doSignup() {
+  const email = document.getElementById("r_email").value.trim().toLowerCase();
+  const pass = document.getElementById("r_pass").value;
+  const confirm = document.getElementById("r_pass_confirm").value;
+
+  if (!navigator.onLine) return msg("Internet required for setup");
+  if (pass !== confirm) return msg("Passwords do not match");
+
+  try {
+    const userCredential = await auth.createUserWithEmailAndPassword(email, pass);
+    const user = userCredential.user;
+
+    // Cache UID immediately so user can go offline right away
+    localStorage.setItem("ag_auth_" + email, JSON.stringify({
+        email: email, 
+        pin: pass, 
+        uid: user.uid
+    }));
+
+    msg("Account Sealed Locally!", "#10b981");
+    setTimeout(() => { goLogin(); }, 1200);
+  } catch (err) { msg(err.message); }
+}
+
+async function doReset() {
+  const email = document.getElementById("f_email").value.trim();
+  if (!email) return msg("Enter email first");
+  try {
+    await auth.sendPasswordResetEmail(email);
+    msg("Reset link sent!", "#10b981");
+    closeForgotModal();
+  } catch (e) { msg(e.message); }
 }
 </script>
-
 </body>
 </html>

@@ -1,280 +1,302 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<title>Purchases Terminal - AssetGuard Pro</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-<style>
-:root { --primary: #0072CE; --dark: #001A35; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; }
-body { font-family: 'Poppins', sans-serif; margin: 0; padding: 15px; background: #fff; color: #1f2937; }
-.container { max-width: 900px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #f0f2f5; }
-h2 { text-align: center; color: var(--dark); margin-bottom: 20px; font-weight: 700; }
-label { display: block; margin-top: 10px; font-weight: 700; color: var(--dark); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
-
-.input-wrapper { position: relative; display: flex; align-items: center; }
-input, select { width: 100%; padding: 12px; margin-top: 5px; border: 2px solid #f0f2f5; border-radius: 10px; box-sizing: border-box; background: #f9fbff; font-family: inherit; transition: 0.3s; }
-input:focus, select:focus { border-color: var(--primary); background: #fff; outline: none; }
-input:disabled { background: #eef4ff; color: #5c6b89; cursor: not-allowed; border-color: #d1d9e6; }
-input.editing-active { border-color: var(--warning); background: #fffdf5; }
-
-.btn-pen { position: absolute; right: 10px; top: 12px; background: #fff; border: 1px solid #cbd5e0; border-radius: 5px; padding: 3px 8px; font-size: 12px; cursor: pointer; color: var(--primary); display: none; }
-
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: #fdfeff; padding: 15px; border-radius: 15px; border: 1px solid #edf2f7; margin-bottom: 15px; }
-.item-picker { background: #fff; padding: 15px; border-radius: 15px; border: 2px solid #f0f2f5; margin-bottom: 20px; }
-
-.stock-tag { float: right; font-size: 10px; background: #eef4ff; color: var(--primary); padding: 2px 8px; border-radius: 5px; }
-
-.btn-main { color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 15px; transition: 0.3s; }
-.btn-add { background: var(--dark); }
-.btn-save { background: var(--warning); display: none; }
-
-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
-th { text-align: left; padding: 12px 8px; color: #64748b; border-bottom: 2px solid #f1f5f9; background: #f8fafc; }
-td { padding: 12px 8px; border-bottom: 1px solid #f1f5f9; }
-.row-edit { color: var(--primary); cursor: pointer; font-size: 16px; }
-
-.totals-display { background: var(--dark); color: white; padding: 20px; border-radius: 15px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center; }
-.btn-sync { background: linear-gradient(135deg, var(--primary), #00d2ff); color: white; border: none; padding: 18px; border-radius: 12px; font-weight: 700; cursor: pointer; width: 100%; margin-top: 15px; font-size: 16px; }
-
-#status { text-align: center; margin-top: 15px; font-size: 13px; min-height: 20px; }
-</style>
+    <meta charset="utf-8">
+    <title>Purchase Hub - AssetGuard Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* Styles remain identical for UI consistency */
+        :root { --primary: #0072CE; --dark: #001A35; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --bg: #f4f6f9; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Poppins', sans-serif; margin: 0; padding: 15px; background: var(--bg); color: #1f2937; line-height: 1.4; }
+        .container { max-width: 500px; margin: 0 auto; }
+        .card { background: #fff; padding: 25px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-top: 6px solid var(--primary); }
+        .card.edit-mode { border-top-color: var(--warning); }
+        h2 { color: var(--dark); margin: 0 0 20px; font-weight: 800; text-align: center; font-size: 20px; }
+        label { display: block; margin-top: 15px; font-weight: 800; color: #64748b; font-size: 10px; text-transform: uppercase; }
+        input { width: 100%; padding: 14px; margin-top: 5px; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; font-family: inherit; }
+        .btn-submit { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 14px; font-weight: 800; cursor: pointer; width: 100%; margin-top: 25px; font-size: 16px; }
+        .btn-submit.edit-btn { background: var(--warning); color: #000; }
+        #historyOverlay { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 2000; overflow-y: auto; }
+        .overlay-header { position: sticky; top: 0; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); padding: 15px; display: flex; align-items: center; border-bottom: 1px solid #e2e8f0; }
+        .overlay-header h3 { flex: 2; text-align: center; margin: 0; font-size: 15px; color: var(--dark); font-weight: 800; text-transform: uppercase; }
+        .overlay-content { padding: 15px; }
+        .search-bar { width: 100%; padding: 14px; border-radius: 14px; border: 1px solid #e2e8f0; margin-bottom: 15px; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; background: white; border-radius: 18px; }
+        td, th { padding: 14px; border-bottom: 1px solid #f1f5f9; text-align: left; }
+        .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,26,53,0.3); z-index: 3000; align-items: center; justify-content: center; backdrop-filter: blur(6px); }
+        .modal-box { background: white; padding: 30px; border-radius: 28px; width: 90%; max-width: 340px; text-align: center; }
+    </style>
 </head>
 <body>
 
 <div class="container">
-<h2>📦 Purchases Terminal</h2>
+    <div class="card" id="formCard">
+        <h2 id="formTitle">Record Purchase</h2>
+        <form id="purchaseForm">
+            <input type="hidden" id="edit_id">
+            
+            <label>Supplier Name</label>
+            <input type="text" id="supplier" placeholder="e.g. Jcorp ltd" required autocomplete="off"> 
 
-<div class="form-grid">
-    <div>
-        <label>Supplier Name</label>
-        <div class="input-wrapper">
-            <input type="text" id="supplier_name" value="Walk-in Supplier" 
-                   onfocus="if(this.value=='Walk-in Supplier')this.value='';" 
-                   onblur="if(this.value=='')this.value='Walk-in Supplier';">
-            <button id="edit_name_btn" class="btn-pen" onclick="startNameEdit()">✏️</button>
+            <label>Item Name</label>
+            <input type="text" id="product_name" placeholder="Search product..." required oninput="fetchCurrentStock()" autocomplete="off">
+            <div id="stock_note" style="font-size:10px; color:var(--primary); margin-top:5px; font-weight:800;">Current Stock: --</div>
+
+            <div style="display: flex; gap: 10px;">
+                <div style="flex: 1;"><label>Unit Cost</label><input type="number" id="unit_price" step="0.01" placeholder="0.00" required></div>
+                <div style="flex: 1;"><label>Quantity</label><input type="number" id="qty" value="1" min="1" required></div>
+            </div>
+            
+            <button type="submit" id="submitBtn" class="btn-submit">Confirm Purchase</button>
+            <button type="button" id="cancelEdit" style="display:none; width:100%; background:none; border:none; color:var(--danger); margin-top:15px; font-weight:800; cursor:pointer;" onclick="resetForm()">CANCEL EDIT</button>
+        </form>
+        
+        <div style="text-align:center; margin-top:25px;">
+            <button onclick="toggleHistory(true)" style="background:none; border:none; color:var(--primary); font-weight:800; cursor:pointer; text-decoration:underline; font-size: 12px;">View Purchase Ledger</button>
         </div>
-    </div>
-    <div>
-        <label>Payment Method</label>
-        <select id="payment_status">
-            <option value="Cash">Cash</option>
-            <option value="M-Pesa">M-Pesa</option>
-            <option value="Bank Transfer">Bank Transfer</option>
-            <option value="Credit">Credit</option>
-        </select>
     </div>
 </div>
 
-<div class="item-picker">
-    <span id="stock_display" class="stock-tag">STOCK: --</span>
-    <label>Select Stock Item</label>
-    <select id="product_stock" onchange="updateStockDisplay()">
-        <option value="">-- Choose Item --</option>
-        <option value="Aseton" data-stock="50">Aseton</option>
-        <option value="Bitumen 5L" data-stock="12">Bitumen 5L</option>
-        <option value="Greenwood 20L" data-stock="8">Greenwood 20L</option>
-        <option value="Paint 4L" data-stock="20">Paint 4L</option>
-        <option value="RC2" data-stock="15">RC2</option>
-    </select>
-
-    <div style="display: flex; gap: 10px; margin-top: 5px;">
-        <div style="flex: 2;">
-            <label>Unit Purchase Price</label>
-            <input type="number" id="price" placeholder="0.00">
-        </div>
-        <div style="flex: 1;">
-            <label>Qty</label>
-            <input type="number" id="quantity" value="1" oninput="validateStock()">
-        </div>
-        <div style="flex: 1;">
-            <label>VAT %</label>
-            <input type="number" id="vat_rate" value="16">
+<div id="historyOverlay">
+    <div class="overlay-header">
+        <div style="flex:1"></div>
+        <h3>Purchase Ledger</h3>
+        <div style="flex:1; text-align:right">
+            <button onclick="toggleHistory(false)" style="border:none; background:none; font-weight:800; color:#64748b;">CLOSE</button>
         </div>
     </div>
-
-    <button id="add-btn" class="btn-main btn-add" onclick="addToCart()">Add to Purchase</button>
-    <button id="save-btn" class="btn-main btn-save" onclick="saveEdit()">Update Changes</button>
-</div>
-
-<div class="cart-section">
-    <table>
-        <thead>
-            <tr>
-                <th>Supplier</th>
-                <th>Item</th>
-                <th>Qty</th>
-                <th>Price</th>
-                <th>Total</th>
-                <th style="width: 40px;">Edit</th>
-            </tr>
-        </thead>
-        <tbody id="cart-body"></tbody>
-    </table>
-
-    <div class="totals-display">
-        <span style="font-size: 12px; opacity: 0.8;">TOTAL PAYABLE</span>
-        <span id="grand-total" style="font-size: 24px; font-weight: 700;">KES 0.00</span>
+    <div class="overlay-content">
+        <input type="text" id="tableSearch" class="search-bar" placeholder="🔍 Search..." onkeyup="filterTable()">
+        <table id="purchase-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Supplier</th>
+                    <th>Item</th>
+                    <th>Cost</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="purchase-tbody"></tbody>
+        </table>
     </div>
-
-    <button class="btn-sync" onclick="syncWithApp()">Confirm Purchase & Update Stock</button>
-    <p id="status"></p>
-</div>
 </div>
 
-<script>
-let cart = [];
-let editIndex = null;
-let isEditingName = false;
+<div id="customModal" class="modal-bg">
+    <div class="modal-box">
+        <h4 id="modalMsg">Admin PIN Required</h4>
+        <input type="password" id="modalInput" maxlength="4" placeholder="••••">
+        <div style="display:flex; gap:10px; margin-top:20px;">
+            <button style="flex:1; padding:12px; border:none; border-radius:10px;" onclick="closeModal()">CANCEL</button>
+            <button id="modalConfirmBtn" style="flex:1; padding:12px; border:none; border-radius:10px; background:var(--primary); color:white;">CONFIRM</button>
+        </div>
+    </div>
+</div>
 
-function updateStockDisplay() {
-    const select = document.getElementById('product_stock');
-    const option = select.options[select.selectedIndex];
-    const stock = option.getAttribute('data-stock');
-    document.getElementById('stock_display').innerText = stock ? `STOCK: ${stock}` : "STOCK: --";
-}
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getDatabase, ref, set, get, runTransaction, onValue, remove, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
-function validateStock() {
-    const select = document.getElementById('product_stock');
-    const option = select.options[select.selectedIndex];
-    if(!option.value) return;
-    const available = parseInt(option.getAttribute('data-stock'));
-    const requested = parseInt(document.getElementById('quantity').value);
-    if(requested > available) {
-        alert("Insufficient Stock!");
-        document.getElementById('quantity').value = available;
-    }
-}
+    const firebaseConfig = {
+        apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA",
+        authDomain: "assetguard-c8c8c.firebaseapp.com",
+        databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com",
+        projectId: "assetguard-c8c8c"
+    };
 
-function addToCart() {
-    const supplierField = document.getElementById('supplier_name');
-    const select = document.getElementById('product_stock');
-    const option = select.options[select.selectedIndex];
-    const prc = parseFloat(document.getElementById('price').value);
-    const qty = parseInt(document.getElementById('quantity').value);
-    const vRate = parseFloat(document.getElementById('vat_rate').value);
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const ADMIN_PASS = "1234";
 
-    if(!option.value || isNaN(prc) || qty < 1) {
-        alert("Complete all fields."); return;
-    }
-
-    // Deduct from local UI stock
-    const currentStock = parseInt(option.getAttribute('data-stock'));
-    option.setAttribute('data-stock', currentStock + qty); // For purchases, stock increases
-    updateStockDisplay();
-
-    supplierField.disabled = true;
-    document.getElementById('edit_name_btn').style.display = 'block';
-
-    const subtotal = prc * qty;
-    const lineTotal = subtotal + (subtotal * (vRate / 100));
-
-    cart.push({
-        supplier: supplierField.value, 
-        payment: document.getElementById('payment_status').value, 
-        product: option.value,
-        price: prc, quantity: qty, vatRate: vRate,
-        total: lineTotal.toFixed(2)
-    });
-
-    updateUI();
-    clearInputs();
-}
-
-function startNameEdit() {
-    const field = document.getElementById('supplier_name');
-    field.disabled = false;
-    field.classList.add('editing-active');
-    field.focus();
-    isEditingName = true;
-    toggleButtons(true);
-    document.getElementById('edit_name_btn').style.display = 'none';
-}
-
-function saveEdit() {
-    if(isEditingName) {
-        const newName = document.getElementById('supplier_name').value;
-        cart.forEach(item => item.supplier = newName);
-        document.getElementById('supplier_name').disabled = true;
-        document.getElementById('supplier_name').classList.remove('editing-active');
-        isEditingName = false;
-        document.getElementById('edit_name_btn').style.display = 'block';
-    } else if(editIndex !== null) {
-        const oldItem = cart[editIndex];
-        const select = document.getElementById('product_stock');
-        for(let opt of select.options) {
-            if(opt.value === oldItem.product) {
-                opt.setAttribute('data-stock', parseInt(opt.getAttribute('data-stock')) - oldItem.quantity);
-                break;
-            }
-        }
-        cart.splice(editIndex, 1);
-        addToCart();
-        editIndex = null;
-    }
-    updateUI();
-    toggleButtons(false);
-}
-
-function toggleButtons(isEditing) {
-    document.getElementById('add-btn').style.display = isEditing ? 'none' : 'block';
-    document.getElementById('save-btn').style.display = isEditing ? 'block' : 'none';
-}
-
-function clearInputs() {
-    document.getElementById('product_stock').value = "";
-    document.getElementById('price').value = "";
-    document.getElementById('quantity').value = "1";
-    updateStockDisplay();
-}
-
-function editItem(index) {
-    const item = cart[index];
-    editIndex = index;
-    isEditingName = false;
-    document.getElementById('product_stock').value = item.product;
-    document.getElementById('price').value = item.price;
-    document.getElementById('quantity').value = item.quantity;
-    document.getElementById('vat_rate').value = item.vatRate;
-    updateStockDisplay();
-    toggleButtons(true);
-    window.scrollTo(0,0);
-}
-
-function updateUI() {
-    const tbody = document.getElementById('cart-body');
-    tbody.innerHTML = "";
-    let runningTotal = 0;
-    cart.forEach((item, index) => {
-        runningTotal += parseFloat(item.total);
-        tbody.innerHTML += `<tr>
-            <td>${item.supplier}</td>
-            <td>${item.product}</td>
-            <td>${item.quantity}</td>
-            <td>${item.price}</td>
-            <td style="font-weight:700;">${item.total}</td>
-            <td><span class="row-edit" onclick="editItem(${index})">✏️</span></td>
-        </tr>`;
-    });
-    document.getElementById('grand-total').innerText = "KES " + runningTotal.toLocaleString();
-}
-
-function syncWithApp() {
-    if(cart.length === 0) return;
-    let finalData = cart.map(item => `${item.supplier}:${item.payment}:${item.product}:${item.price}:${item.quantity}:${item.total}`).join("|");
+    // --- USER ISOLATION CONFIG ---
+    const currentUID = localStorage.getItem("ag_active_uid");
+    const purchasePath = `users/${currentUID}/purchases`;
+    const inventoryPath = `users/${currentUID}/inventory`;
     
-    if (window.AppInventor) {
-        window.AppInventor.setWebViewString(finalData);
-        document.getElementById('status').innerHTML = "✅ Purchase Recorded & Stock Updated!";
-        cart = [];
-        updateUI();
-        document.getElementById('supplier_name').value = "Walk-in Supplier";
-    } else {
-        console.log("Sync String:", finalData);
-        alert("Syncing simulated.");
-    }
-}
-</script>
+    // Per-user local storage keys
+    const storageKey = `ag_purchases_${currentUID}`;
+    const queueKey = `ag_purchase_queue_${currentUID}`;
 
+    if (!currentUID) {
+        document.body.innerHTML = "<h2 style='text-align:center; padding-top:50px;'>Authentication Required.</h2>";
+    }
+
+    let localPurchases = JSON.parse(localStorage.getItem(storageKey)) || {};
+    let syncQueue = JSON.parse(localStorage.getItem(queueKey)) || [];
+
+    const persistToDisk = () => {
+        localStorage.setItem(storageKey, JSON.stringify(localPurchases));
+        localStorage.setItem(queueKey, JSON.stringify(syncQueue));
+    };
+
+    let pendingCallback = null;
+    window.askAdmin = (msg, callback) => {
+        document.getElementById('modalMsg').innerText = msg;
+        document.getElementById('modalInput').value = "";
+        document.getElementById('customModal').style.display = 'flex';
+        pendingCallback = callback;
+    };
+    window.closeModal = () => document.getElementById('customModal').style.display = 'none';
+    
+    document.getElementById('modalConfirmBtn').onclick = () => {
+        if(document.getElementById('modalInput').value === ADMIN_PASS) { closeModal(); pendingCallback(); } 
+        else { alert("Incorrect PIN"); }
+    };
+
+    window.toggleHistory = (show) => {
+        document.getElementById('historyOverlay').style.display = show ? 'block' : 'none';
+        if(show) renderTable(localPurchases);
+    };
+
+    window.fetchCurrentStock = async () => {
+        const name = document.getElementById('product_name').value.trim();
+        if(!name) return;
+        const key = name.replace(/\s+/g, '_');
+        
+        if(navigator.onLine) {
+            try {
+                // Fetching from the user's isolated inventory
+                const snap = await get(ref(db, `${inventoryPath}/${key}/qty`));
+                const stock = snap.exists() ? snap.val() : 0;
+                document.getElementById('stock_note').innerText = `Current Stock: ${stock}`;
+            } catch(e) {}
+        }
+    };
+
+    document.getElementById('purchaseForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const editId = document.getElementById('edit_id').value;
+        const name = document.getElementById('product_name').value.trim();
+        const qty = parseInt(document.getElementById('qty').value);
+        const price = parseFloat(document.getElementById('unit_price').value);
+        const supplier = document.getElementById('supplier').value;
+
+        const data = { 
+            supplier, product: name, qty, unitPrice: price, 
+            totalCost: qty * price, timestamp: Date.now(), synced: false 
+        };
+
+        const recordId = editId || "PUR_" + Date.now();
+        localPurchases[recordId] = data;
+        syncQueue.push({ id: recordId, data: data, action: editId ? 'UPDATE' : 'ADD' });
+        
+        persistToDisk();
+        renderTable(localPurchases);
+        resetForm();
+        if (navigator.onLine) processQueue();
+    });
+
+    async function processQueue() {
+        if (!navigator.onLine || syncQueue.length === 0) return;
+        const currentQueue = [...syncQueue];
+        for (const item of currentQueue) {
+            const prodKey = item.data.product.replace(/\s+/g, '_');
+            try {
+                if(item.action === 'ADD') {
+                    await set(ref(db, `${purchasePath}/${item.id}`), { ...item.data, synced: true });
+                    // Increment isolated stock
+                    await runTransaction(ref(db, `${inventoryPath}/${prodKey}/qty`), (curr) => (curr || 0) + item.data.qty);
+                    // Ensure the name is set in inventory if it's a new product record
+                    await update(ref(db, `${inventoryPath}/${prodKey}`), { name: item.data.product });
+                } else if(item.action === 'UPDATE') {
+                    await update(ref(db, `${purchasePath}/${item.id}`), { ...item.data, synced: true });
+                } else if(item.action === 'DELETE') {
+                    await remove(ref(db, `${purchasePath}/${item.id}`));
+                    await runTransaction(ref(db, `${inventoryPath}/${prodKey}/qty`), (curr) => (curr || 0) - item.data.qty);
+                }
+                if(localPurchases[item.id]) localPurchases[item.id].synced = true;
+                syncQueue = syncQueue.filter(q => q.id !== item.id);
+                persistToDisk();
+            } catch (e) { break; }
+        }
+        renderTable(localPurchases);
+    }
+
+    onValue(ref(db, purchasePath), (snap) => {
+        if (snap.exists() && navigator.onLine) {
+            const remote = snap.val();
+            Object.keys(remote).forEach(id => {
+                if(!localPurchases[id] || localPurchases[id].synced !== false) {
+                    localPurchases[id] = { ...remote[id], synced: true };
+                }
+            });
+            persistToDisk();
+            renderTable(localPurchases);
+        }
+    });
+
+    function renderTable(data) {
+        const tbody = document.getElementById('purchase-tbody');
+        tbody.innerHTML = "";
+        const sorted = Object.keys(data).sort((a,b) => data[b].timestamp - data[a].timestamp);
+        
+        sorted.forEach(id => {
+            const p = data[id];
+            const dt = new Date(p.timestamp).toLocaleDateString('en-GB');
+            tbody.insertAdjacentHTML('beforeend', `
+                <tr>
+                    <td>${dt}</td>
+                    <td><b>${p.supplier}</b></td>
+                    <td>${p.product}<br><small>Qty: ${p.qty}</small></td>
+                    <td style="color:var(--success); font-weight:800;">${p.totalCost.toFixed(2)}</td>
+                    <td>
+                        <button onclick="initEdit('${id}')">✏️</button>
+                        <button onclick="initDelete('${id}')">🗑️</button>
+                    </td>
+                </tr>
+            `);
+        });
+    }
+
+    window.initEdit = (id) => {
+        askAdmin("PIN for Edit:", () => {
+            const p = localPurchases[id];
+            document.getElementById('edit_id').value = id;
+            document.getElementById('supplier').value = p.supplier;
+            document.getElementById('product_name').value = p.product;
+            document.getElementById('unit_price').value = p.unitPrice;
+            document.getElementById('qty').value = p.qty;
+            document.getElementById('formTitle').innerText = "Edit Purchase";
+            document.getElementById('submitBtn').innerText = "Update Record";
+            document.getElementById('submitBtn').classList.add('edit-btn');
+            document.getElementById('cancelEdit').style.display = "block";
+            toggleHistory(false);
+        });
+    };
+
+    window.initDelete = (id) => {
+        askAdmin("Confirm Delete:", () => {
+            const p = localPurchases[id];
+            delete localPurchases[id];
+            syncQueue.push({ id, action: 'DELETE', data: p });
+            persistToDisk();
+            renderTable(localPurchases);
+            if(navigator.onLine) processQueue();
+        });
+    };
+
+    window.resetForm = () => {
+        document.getElementById('purchaseForm').reset();
+        document.getElementById('edit_id').value = "";
+        document.getElementById('formTitle').innerText = "Record Purchase";
+        document.getElementById('submitBtn').innerText = "Confirm Purchase";
+        document.getElementById('submitBtn').classList.remove('edit-btn');
+        document.getElementById('cancelEdit').style.display = "none";
+        document.getElementById('stock_note').innerText = "Current Stock: --";
+    };
+
+    window.filterTable = () => {
+        const q = document.getElementById('tableSearch').value.toLowerCase();
+        document.querySelectorAll('#purchase-tbody tr').forEach(r => {
+            r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none';
+        });
+    };
+
+    window.addEventListener('online', processQueue);
+    renderTable(localPurchases);
+    if(navigator.onLine) processQueue();
+</script>
 </body>
 </html>
