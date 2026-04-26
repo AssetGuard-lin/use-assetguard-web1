@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AssetGuard Pro - Inventory</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS remains exactly as your original provided code */
+        :root { --primary: #0f172a; --accent: #0072CE; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --bg: #f4f7fa; --white: #ffffff; --text-main: #1e293b; --text-sub: #64748b; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); margin: 0; padding: 0; color: var(--text-main); line-height: 1.5; overflow-x: hidden; }
+        .sticky-header { position: fixed; top: 0; left: 0; right: 0; background: var(--white); z-index: 1000; padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .header-left { font-weight: 800; font-size: 14px; color: var(--primary); letter-spacing: -0.5px; }
+        .header-right { font-size: 11px; font-weight: 800; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1px; }
+        .app-container { max-width: 500px; margin: 0 auto; padding: 85px 15px 30px 15px; }
+        .controls-row { display: flex; gap: 10px; margin-bottom: 20px; }
+        .search-box { flex: 1; padding: 12px 16px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 14px; background: var(--white); box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: border-color 0.2s; }
+        .btn-add { background: var(--accent); color: white; border: none; width: 45px; height: 45px; border-radius: 12px; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .stock-item { background: var(--white); padding: 14px 16px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border: 1px solid rgba(226, 232, 240, 0.8); position: relative; }
+        .stock-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+        .stock-item.status-good::before { background: var(--success); }
+        .stock-item.status-low::before { background: var(--warning); }
+        .stock-item.status-out::before { background: var(--danger); }
+        .item-info h3 { margin: 0; font-size: 13px; font-weight: 700; text-transform: uppercase; }
+        .item-info p { margin: 2px 0 0; font-size: 11px; color: var(--text-sub); }
+        .qty-val { font-size: 14px; font-weight: 700; background: #f1f5f9; padding: 6px 12px; border-radius: 8px; }
+        .view { display: none; }
+        .view.active { display: block; }
+        .admin-form { background: var(--white); padding: 20px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        .modern-input { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 12px; font-size: 14px; }
+        .btn-main { width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; background: var(--accent); color: white; }
+        .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 280px; margin: 0 auto; }
+        .num-btn { background: var(--white); border: 1px solid #e2e8f0; padding: 18px; border-radius: 14px; font-size: 18px; font-weight: 700; cursor: pointer; }
+        .manage-item { background: var(--white); padding: 12px 15px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e2e8f0; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); display: none; align-items: center; justify-content: center; z-index: 2000; }
+        .modal-card { background: var(--white); width: 85%; border-radius: 20px; padding: 20px; text-align: center; }
+        #toastContainer { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 3000; }
+        .toast { background: var(--primary); color: white; padding: 10px 20px; border-radius: 10px; font-size: 12px; margin-top: 8px; }
+    </style>
+</head>
+<body>
+
+<div id="toastContainer"></div>
+
+<div class="sticky-header">
+    <div class="header-left">AssetGuard Pro</div>
+    <div class="header-right">Inventory</div>
+</div>
+
+<div id="modalOverlay" class="modal-overlay">
+    <div class="modal-card">
+        <h3 id="modalTitle" style="font-size: 16px;">Delete Item?</h3>
+        <p id="modalMsg" style="color:#64748b; font-size: 13px; margin-bottom: 20px;"></p>
+        <button class="btn-main" id="modalConfirmBtn" style="background:var(--danger); margin-bottom:10px">Yes, Delete</button>
+        <button class="btn-main" style="background:#f1f5f9; color:#64748b" onclick="closeModal()">Cancel</button>
+    </div>
+</div>
+
+<div class="app-container">
+    <div id="view-dashboard" class="view active">
+        <div class="controls-row">
+            <input type="text" id="searchInput" class="search-box" placeholder="Search products..." oninput="renderDashboard()">
+            <button class="btn-add" onclick="openAdmin()">+</button>
+        </div>
+        <div id="inventoryContainer"></div>
+    </div>
+
+    <div id="view-pin" class="view">
+        <div style="text-align: center; padding-top: 20px;">
+            <h3>Manager PIN</h3>
+            <div class="pin-dots" style="display: flex; justify-content: center; gap: 12px; margin: 25px 0;">
+                <div class="pin-dot" style="width:12px; height:12px; border-radius:50%; border:2px solid #cbd5e1;"></div>
+                <div class="pin-dot" style="width:12px; height:12px; border-radius:50%; border:2px solid #cbd5e1;"></div>
+                <div class="pin-dot" style="width:12px; height:12px; border-radius:50%; border:2px solid #cbd5e1;"></div>
+                <div class="pin-dot" style="width:12px; height:12px; border-radius:50%; border:2px solid #cbd5e1;"></div>
+            </div>
+            <div class="numpad">
+                <button class="num-btn" onclick="pressNum('1')">1</button><button class="num-btn" onclick="pressNum('2')">2</button><button class="num-btn" onclick="pressNum('3')">3</button>
+                <button class="num-btn" onclick="pressNum('4')">4</button><button class="num-btn" onclick="pressNum('5')">5</button><button class="num-btn" onclick="pressNum('6')">6</button>
+                <button class="num-btn" onclick="pressNum('7')">7</button><button class="num-btn" onclick="pressNum('8')">8</button><button class="num-btn" onclick="pressNum('9')">9</button>
+                <button class="num-btn" onclick="pressNum('C')" style="color:var(--danger)">C</button><button class="num-btn" onclick="pressNum('0')">0</button><button class="num-btn" onclick="pressNum('⌫')">⌫</button>
+            </div>
+            <button class="btn-main" style="background:transparent; color:#64748b; margin-top:20px" onclick="switchView('view-dashboard')">Cancel</button>
+        </div>
+    </div>
+
+    <div id="view-admin" class="view">
+        <div class="controls-row">
+            <h2 style="font-size: 16px; flex: 1;">Control Center</h2>
+            <button style="background:#f1f5f9; border:none; padding: 10px 15px; border-radius:8px; font-weight:700;" onclick="switchView('view-dashboard')">Back</button>
+        </div>
+        <div class="admin-form">
+            <h4 id="formTitle" style="margin:0 0 12px 0; font-size: 14px;">Product Editor</h4>
+            <input type="text" id="itemName" class="modern-input" placeholder="Product Name">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
+                <input type="number" id="itemQty" class="modern-input" placeholder="Add/Sub Qty">
+                <input type="number" id="itemLiters" class="modern-input" placeholder="Liters">
+            </div>
+            <input type="number" id="salePrice" class="modern-input" placeholder="Price (KES)">
+            <button class="btn-main" onclick="handleSave()">Execute Save</button>
+        </div>
+        <div id="adminManageList"></div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getDatabase, ref, onValue, set, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA",
+        authDomain: "assetguard-c8c8c.firebaseapp.com",
+        databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com",
+        projectId: "assetguard-c8c8c"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // --- USER ISOLATION LOGIC ---
+    // Fetch the specific UID from the parent Dashboard or LocalStorage
+    const currentUID = localStorage.getItem("ag_active_uid");
+    
+    // Create a user-specific key for LocalStorage to prevent multi-user clashes
+    const storageKey = `inventory_db_${currentUID}`;
+    let inventory = JSON.parse(localStorage.getItem(storageKey)) || {};
+
+    if (!currentUID) {
+        console.error("No UID found. Data sync disabled.");
+        document.body.innerHTML = "<h2 style='padding:50px; text-align:center;'>Access Denied. Please Login.</h2>";
+    }
+
+    // Sync only from the logged-in user's folder
+    const userDbPath = `users/${currentUID}/inventory`;
+    onValue(ref(db, userDbPath), (snap) => {
+        if (snap.exists()) {
+            inventory = snap.val();
+            saveLocal();
+            renderDashboard();
+            renderAdminList();
+        }
+    }, { onlyOnce: false });
+
+    window.handleSave = async () => {
+        const name = document.getElementById('itemName').value.trim();
+        const qtyAdj = parseInt(document.getElementById('itemQty').value) || 0;
+        const price = parseFloat(document.getElementById('salePrice').value);
+        const liters = parseFloat(document.getElementById('itemLiters').value);
+
+        if(!name) return notify("Name required", "error");
+        const key = name.replace(/\s+/g, '_').toLowerCase();
+
+        if(!inventory[key]) inventory[key] = { name, qty: 0, liters: 0, salePrice: 0 };
+        
+        inventory[key].qty += qtyAdj;
+        if(!isNaN(price)) inventory[key].salePrice = price;
+        if(!isNaN(liters)) inventory[key].liters = liters;
+
+        saveLocal();
+        renderDashboard();
+        renderAdminList();
+        resetForm();
+        notify("Saved to your account");
+
+        // Backup to user's private folder in Firebase
+        try { 
+            set(ref(db, `${userDbPath}/${key}`), inventory[key]); 
+        } catch (e) { 
+            console.log("Offline: Backup queued."); 
+        }
+    };
+
+    window.popDelete = (k) => {
+        document.getElementById('modalMsg').innerText = `Permanently delete ${inventory[k].name}?`;
+        document.getElementById('modalOverlay').style.display = 'flex';
+        document.getElementById('modalConfirmBtn').onclick = async () => {
+            closeModal();
+            delete inventory[k];
+            saveLocal();
+            renderDashboard();
+            renderAdminList();
+            notify("Deleted");
+            try { remove(ref(db, `${userDbPath}/${k}`)); } catch(e) {}
+        };
+    };
+
+    function saveLocal() { localStorage.setItem(storageKey, JSON.stringify(inventory)); }
+
+    // UI RENDERERS
+    window.renderDashboard = () => {
+        const container = document.getElementById('inventoryContainer');
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        container.innerHTML = '';
+        const sortedKeys = Object.keys(inventory).sort();
+        if(sortedKeys.length === 0) {
+            container.innerHTML = '<p style="text-align:center; color:#94a3b8; font-size:12px; margin-top:40px;">No products in your database.</p>';
+            return;
+        }
+        sortedKeys.forEach(k => {
+            const item = inventory[k];
+            if(!item.name.toLowerCase().includes(search)) return;
+            const status = item.qty > 5 ? 'status-good' : (item.qty > 0 ? 'status-low' : 'status-out');
+            container.innerHTML += `<div class="stock-item ${status}"><div class="item-info"><h3>${item.name}</h3><p>${item.liters || 0}L • KES ${item.salePrice || 0}</p></div><div class="qty-val">${item.qty}</div></div>`;
+        });
+    };
+
+    window.renderAdminList = () => {
+        const container = document.getElementById('adminManageList');
+        container.innerHTML = '<label style="font-size:9px; font-weight:800; color:#64748b; text-transform:uppercase;">My Database Management</label><div style="height:10px"></div>';
+        Object.keys(inventory).sort().forEach(k => {
+            const item = inventory[k];
+            container.innerHTML += `<div class="manage-item"><div style="font-size:12px; font-weight:700">${item.name} (${item.qty})</div><div style="display:flex; gap:5px;"><button style="border:none; background:#eff6ff; color:#3b82f6; padding:6px 12px; border-radius:6px; font-size:11px; font-weight:700;" onclick="fillForm('${k}')">EDIT</button><button style="border:none; background:#fff1f2; color:#ef4444; padding:6px 12px; border-radius:6px; font-size:11px; font-weight:700;" onclick="popDelete('${k}')">DEL</button></div></div>`;
+        });
+    };
+
+    // UI Helpers (Pin, Numpad, Views)
+    let pinBuffer = "";
+    window.pressNum = (n) => {
+        if(n === 'C') pinBuffer = ""; 
+        else if(n === '⌫') pinBuffer = pinBuffer.slice(0, -1); 
+        else if(pinBuffer.length < 4) pinBuffer += n;
+        document.querySelectorAll('.pin-dot').forEach((d, i) => {
+            d.style.background = i < pinBuffer.length ? "var(--accent)" : "transparent";
+            d.style.borderColor = i < pinBuffer.length ? "var(--accent)" : "#cbd5e1";
+        });
+        if(pinBuffer.length === 4) { 
+            if(pinBuffer === "1234") switchView('view-admin'); 
+            else { notify("Invalid PIN", "error"); pinBuffer = ""; } 
+        }
+    };
+    window.switchView = (id) => {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        window.scrollTo(0, 0);
+    };
+    window.openAdmin = () => { pinBuffer = ""; switchView('view-pin'); };
+    window.fillForm = (k) => {
+        const i = inventory[k];
+        document.getElementById('itemName').value = i.name;
+        document.getElementById('itemLiters').value = i.liters || 0;
+        document.getElementById('salePrice').value = i.salePrice || 0;
+        document.getElementById('itemQty').value = "";
+        document.getElementById('formTitle').innerText = "Updating: " + i.name;
+        window.scrollTo(0, 0);
+    };
+    window.closeModal = () => document.getElementById('modalOverlay').style.display = 'none';
+    window.notify = (m, type="success") => {
+        const t = document.createElement('div'); t.className = 'toast'; 
+        if(type === 'error') t.style.background = '#ef4444';
+        t.innerText = m; document.getElementById('toastContainer').appendChild(t); 
+        setTimeout(() => t.remove(), 2000);
+    };
+    function resetForm() {
+        ['itemName', 'itemQty', 'itemLiters', 'salePrice'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('formTitle').innerText = "Product Editor";
+    }
+
+    renderDashboard();
+    renderAdminList();
+</script>
+</body>
+</html>
