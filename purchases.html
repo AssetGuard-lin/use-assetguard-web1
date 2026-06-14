@@ -2,107 +2,139 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Purchase Entry | AssetGuard</title>
+    <title>Purchase Hub | AssetGuard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #0072CE; --dark: #001A35; --bg: #f8fafc; --text: #1e293b; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 0; }
+        :root { --primary: #0072CE; --dark: #001A35; --bg: #f4f6f9; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); color: #1f2937; margin: 0; padding: 15px; }
 
-        .navbar { background: white; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; }
-        .main-container { max-width: 450px; margin: 30px auto; padding: 0 20px; }
-        .entry-card { background: white; padding: 30px; border-radius: 24px; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); }
+        .container { max-width: 450px; margin: 0 auto; }
+        .navbar { background: white; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-radius: 16px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
+        
+        .entry-card { background: white; padding: 30px; border-radius: 24px; border: 1px solid #e2e8f0; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-top: 6px solid var(--primary); }
+        h2 { color: var(--dark); margin: 0 0 20px; font-weight: 800; font-size: 20px; text-align: center; }
         
         .form-group { margin-bottom: 20px; }
         .row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         
-        label { font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px; display: block; }
-        input, select { width: 100%; padding: 14px; border-radius: 12px; border: 2px solid #f1f5f9; background: #f8fafc; font-size: 14px; font-weight: 600; outline: none; box-sizing: border-box; }
+        label { font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 8px; display: block; letter-spacing: 0.5px; }
+        input, select { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #e2e8f0; background: #f8fafc; font-size: 14px; font-weight: 600; outline: none; transition: 0.2s; }
+        input:focus { border-color: var(--primary); background: white; }
         
-        .submit-btn { width: 100%; padding: 16px; background: var(--dark); color: white; border: none; border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer; text-transform: uppercase; }
+        .submit-btn { width: 100%; padding: 16px; background: var(--dark); color: white; border: none; border-radius: 14px; font-weight: 800; font-size: 14px; cursor: pointer; text-transform: uppercase; margin-top: 10px; }
+
+        /* --- OVERLAY SYSTEM --- */
+        #historyOverlay { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 2000; overflow-y: auto; }
+        .overlay-header { position: sticky; top: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 15px; border-bottom: 1px solid #e2e8f0; z-index: 10; }
+        .search-bar { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; margin-top: 10px; font-size: 14px; }
+        
+        .overlay-content { padding: 15px; }
+        details { background: white; border-radius: 16px; border: 1px solid #e2e8f0; margin-bottom: 10px; padding: 16px; }
+        summary { font-weight: 800; font-size: 14px; cursor: pointer; display: flex; justify-content: space-between; list-style: none; }
+        summary::-webkit-details-marker { display: none; }
+        .btn-close { border: none; padding: 8px 14px; border-radius: 10px; font-weight: 800; background: #f1f5f9; color: var(--dark); cursor: pointer; font-size: 11px; }
     </style>
 </head>
 <body>
 
-    <div class="navbar">
-        <div style="font-size: 12px; font-weight: 800; color: var(--dark);">PURCHASE LOG</div>
-        <a href="purchases_history.html" style="font-size: 10px; font-weight: 800; color: var(--primary); text-decoration: none;">HISTORY</a>
-    </div>
+    <div class="container">
+        <div class="navbar">
+            <div style="font-size: 12px; font-weight: 800; color: var(--dark);">PURCHASE LOG</div>
+            <button onclick="toggleHistory(true)" style="background:none; border:none; font-size: 10px; font-weight: 800; color: var(--primary); cursor: pointer;">HISTORY</button>
+        </div>
 
-    <div class="main-container">
         <div class="entry-card">
-            <h2 style="margin-top:0;">New Purchase</h2>
+            <h2>New Purchase</h2>
             <form id="purchaseForm">
-                <div class="form-group">
-                    <label>Date</label>
-                    <input type="datetime-local" id="purchase_date" required>
-                </div>
-                <div class="form-group">
-                    <label>Item Name</label>
-                    <input type="text" id="item_name" required>
-                </div>
-                <div class="form-group">
-                    <label>Supplier</label>
-                    <input type="text" id="supplier" required>
-                </div>
+                <div class="form-group"><label>Date</label><input type="datetime-local" id="purchase_date" required></div>
+                <div class="form-group"><label>Item Name</label><input type="text" id="item_name" required></div>
+                <div class="form-group"><label>Supplier</label><input type="text" id="supplier" required></div>
                 
                 <div class="row">
-                    <div class="form-group">
-                        <label>Quantity</label>
-                        <input type="number" id="qty" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Unit</label>
+                    <div class="form-group"><label>Quantity</label><input type="number" id="qty" required></div>
+                    <div class="form-group"><label>Unit</label>
                         <select id="unit">
-                            <option value="kg">kg</option>
-                            <option value="gms">gms</option>
-                            <option value="cm">cm</option>
-                            <option value="meters">meters</option>
-                            <option value="pcs">pcs</option>
-                            <option value="liters">liters</option>
+                            <option value="kg">kg</option><option value="gms">gms</option><option value="cm">cm</option>
+                            <option value="meters">meters</option><option value="pcs">pcs</option><option value="liters">liters</option>
                         </select>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label>Total Cost (KES)</label>
-                    <input type="number" id="amount" step="0.01" required>
-                </div>
+                <div class="form-group"><label>Total Cost (KES)</label><input type="number" id="amount" step="0.01" required></div>
                 <button type="submit" class="submit-btn">Record Purchase</button>
             </form>
         </div>
     </div>
 
+    <div id="historyOverlay">
+        <div class="overlay-header">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="font-weight: 800; font-size: 12px;">PURCHASE HISTORY</div>
+                <button onclick="toggleHistory(false)" class="btn-close">CLOSE</button>
+            </div>
+            <input type="text" id="histSearch" class="search-bar" placeholder="🔍 Search item or supplier..." onkeyup="filterHistory()">
+        </div>
+        <div class="overlay-content" id="historyList"></div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-        import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
         const db = getDatabase(initializeApp({ databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com" }));
         const currentUID = localStorage.getItem("ag_active_uid");
         const cloudPath = `users/${currentUID}/purchases`;
 
+        window.toggleHistory = (show) => { document.getElementById('historyOverlay').style.display = show ? 'block' : 'none'; };
+
+        // Search Filter Logic
+        window.filterHistory = () => {
+            const query = document.getElementById('histSearch').value.toLowerCase();
+            document.querySelectorAll('details').forEach(d => {
+                d.style.display = d.innerText.toLowerCase().includes(query) ? 'block' : 'none';
+            });
+        };
+
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        document.getElementById('purchase_date').value = now.toISOString().slice(0, 16);
+
+        onValue(ref(db, cloudPath), (snap) => {
+            const data = snap.val() || {};
+            document.getElementById('historyList').innerHTML = Object.values(data).reverse().map(p => {
+                const readableDate = new Date(p.purchase_date).toLocaleString();
+                return `
+                <details>
+                    <summary>${p.item_name} <span style="color:var(--primary)">KES ${parseFloat(p.amount).toLocaleString()}</span></summary>
+                    <div style="margin-top:12px; padding-top:12px; border-top:1px solid #f1f5f9; font-size:12px; color:#64748b;">
+                        <div><strong>Supplier:</strong> ${p.supplier}</div>
+                        <div><strong>Quantity:</strong> ${p.quantity} ${p.unit}</div>
+                        <div><strong>Recorded:</strong> ${readableDate}</div>
+                    </div>
+                </details>
+            `}).join('');
+        });
+
         document.getElementById('purchaseForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            const data = {
-                id: "pur_" + Date.now(),
-                item_name: document.getElementById('item_name').value,
-                supplier: document.getElementById('supplier').value,
-                quantity: document.getElementById('qty').value,
-                unit: document.getElementById('unit').value,
-                amount: document.getElementById('amount').value,
-                purchase_date: document.getElementById('purchase_date').value,
-                timestamp: Date.now()
-            };
-
+            const id = "pur_" + Date.now();
             try {
-                await set(ref(db, `${cloudPath}/${data.id}`), data);
-                alert("Purchase Recorded Successfully");
+                await set(ref(db, `${cloudPath}/${id}`), {
+                    id,
+                    item_name: document.getElementById('item_name').value,
+                    supplier: document.getElementById('supplier').value,
+                    quantity: document.getElementById('qty').value,
+                    unit: document.getElementById('unit').value,
+                    amount: document.getElementById('amount').value,
+                    purchase_date: document.getElementById('purchase_date').value,
+                    timestamp: Date.now()
+                });
                 document.getElementById('purchaseForm').reset();
-            } catch (err) {
-                alert("Error: " + err.message);
-            }
+                document.getElementById('purchase_date').value = now.toISOString().slice(0, 16);
+            } catch (err) { alert("Error: " + err.message); }
         });
     </script>
 </body>
 </html>
+
