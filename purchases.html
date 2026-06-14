@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #0072CE; --dark: #001A35; --bg: #f4f6f9; }
+        :root { --primary: #0072CE; --dark: #001A35; --bg: #f4f6f9; --danger: #ef4444; --success: #10b981; }
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); color: #1f2937; margin: 0; padding: 15px; }
 
         .container { max-width: 450px; margin: 0 auto; }
@@ -19,122 +19,163 @@
         .row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         
         label { font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 8px; display: block; letter-spacing: 0.5px; }
-        input, select { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #e2e8f0; background: #f8fafc; font-size: 14px; font-weight: 600; outline: none; transition: 0.2s; }
-        input:focus { border-color: var(--primary); background: white; }
+        input, select { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #e2e8f0; background: #f8fafc; font-size: 14px; font-weight: 600; outline: none; }
         
-        .submit-btn { width: 100%; padding: 16px; background: var(--dark); color: white; border: none; border-radius: 14px; font-weight: 800; font-size: 14px; cursor: pointer; text-transform: uppercase; margin-top: 10px; }
+        .submit-btn { width: 100%; padding: 16px; background: var(--dark); color: white; border: none; border-radius: 14px; font-weight: 800; font-size: 14px; cursor: pointer; text-transform: uppercase; }
 
-        /* --- OVERLAY SYSTEM --- */
-        #historyOverlay { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 2000; overflow-y: auto; }
-        .overlay-header { position: sticky; top: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 15px; border-bottom: 1px solid #e2e8f0; z-index: 10; }
-        .search-bar { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #e2e8f0; margin-top: 10px; font-size: 14px; }
+        /* --- MODERN MODALS --- */
+        .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,26,53,0.4); z-index: 3000; align-items: center; justify-content: center; backdrop-filter: blur(6px); padding: 20px; }
+        .modal-box { background: white; padding: 30px; border-radius: 28px; width: 100%; max-width: 320px; text-align: center; }
+        .modal-box input { margin: 20px 0; text-align: center; letter-spacing: 8px; font-size: 20px; }
         
-        .overlay-content { padding: 15px; }
+        #toast { display: none; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--success); color: white; padding: 12px 24px; border-radius: 50px; font-weight: 800; z-index: 4000; }
+        #errorMsg { color: var(--danger); font-size: 12px; font-weight: 800; display: none; margin-bottom: 10px; }
+
+        /* --- HISTORY --- */
+        #historyOverlay { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 2000; overflow-y: auto; }
         details { background: white; border-radius: 16px; border: 1px solid #e2e8f0; margin-bottom: 10px; padding: 16px; }
-        summary { font-weight: 800; font-size: 14px; cursor: pointer; display: flex; justify-content: space-between; list-style: none; }
-        summary::-webkit-details-marker { display: none; }
-        .btn-close { border: none; padding: 8px 14px; border-radius: 10px; font-weight: 800; background: #f1f5f9; color: var(--dark); cursor: pointer; font-size: 11px; }
+        .details-list { margin-top: 15px; padding-top: 15px; border-top: 1px solid #f1f5f9; font-size: 13px; color: #64748b; display: flex; flex-direction: column; gap: 8px; }
+        .btn-act { border: none; padding: 8px 16px; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 10px; }
     </style>
 </head>
 <body>
 
     <div class="container">
         <div class="navbar">
-            <div style="font-size: 12px; font-weight: 800; color: var(--dark);">PURCHASE LOG</div>
-            <button onclick="toggleHistory(true)" style="background:none; border:none; font-size: 10px; font-weight: 800; color: var(--primary); cursor: pointer;">HISTORY</button>
+            <div style="font-weight: 800;">PURCHASE LOG</div>
+            <button onclick="toggleHistory(true)" style="background:none; border:none; color:var(--primary); font-weight:800; cursor:pointer;">HISTORY</button>
         </div>
 
         <div class="entry-card">
-            <h2>New Purchase</h2>
+            <h2 id="formTitle">New Purchase</h2>
             <form id="purchaseForm">
+                <input type="hidden" id="edit_id">
                 <div class="form-group"><label>Date</label><input type="datetime-local" id="purchase_date" required></div>
                 <div class="form-group"><label>Item Name</label><input type="text" id="item_name" required></div>
                 <div class="form-group"><label>Supplier</label><input type="text" id="supplier" required></div>
-                
                 <div class="row">
                     <div class="form-group"><label>Quantity</label><input type="number" id="qty" required></div>
-                    <div class="form-group"><label>Unit</label>
-                        <select id="unit">
-                            <option value="kg">kg</option><option value="gms">gms</option><option value="cm">cm</option>
-                            <option value="meters">meters</option><option value="pcs">pcs</option><option value="liters">liters</option>
-                        </select>
-                    </div>
+                    <div class="form-group"><label>Unit</label><select id="unit"><option>kg</option><option>gms</option><option>pcs</option><option>liters</option></select></div>
                 </div>
-
                 <div class="form-group"><label>Total Cost (KES)</label><input type="number" id="amount" step="0.01" required></div>
-                <button type="submit" class="submit-btn">Record Purchase</button>
+                <button type="submit" id="submitBtn" class="submit-btn">Record Purchase</button>
             </form>
         </div>
     </div>
 
-    <div id="historyOverlay">
-        <div class="overlay-header">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div style="font-weight: 800; font-size: 12px;">PURCHASE HISTORY</div>
-                <button onclick="toggleHistory(false)" class="btn-close">CLOSE</button>
+    <div id="toast">Saved Successfully!</div>
+
+    <div id="actionModal" class="modal-bg">
+        <div class="modal-box">
+            <h4 id="modalTitle">Admin PIN Required</h4>
+            <div id="errorMsg">Incorrect PIN. Please try again.</div>
+            <input type="password" id="modalInput" maxlength="4" placeholder="••••">
+            <div style="display:flex; gap:10px;">
+                <button class="btn-act" style="flex:1; background:#f1f5f9" onclick="closeModal()">CANCEL</button>
+                <button class="btn-act" style="flex:1; background:var(--primary); color:white" onclick="handleAction()">CONFIRM</button>
             </div>
-            <input type="text" id="histSearch" class="search-bar" placeholder="🔍 Search item or supplier..." onkeyup="filterHistory()">
         </div>
-        <div class="overlay-content" id="historyList"></div>
+    </div>
+
+    <div id="historyOverlay">
+        <div style="padding: 20px; background: white; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 100;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><strong>HISTORY</strong><button onclick="toggleHistory(false)" class="btn-act">CLOSE</button></div>
+            <input type="text" id="histSearch" style="width:100%; padding:14px; border-radius:12px; border:1px solid #e2e8f0; box-sizing: border-box;" placeholder="Search by supplier name..." oninput="filterHistory()">
+        </div>
+        <div id="historyList" style="padding: 15px;"></div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+        import { getDatabase, ref, set, onValue, remove, get, child } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
         const db = getDatabase(initializeApp({ databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com" }));
         const currentUID = localStorage.getItem("ag_active_uid");
         const cloudPath = `users/${currentUID}/purchases`;
+        
+        let pendingAction = null, selectedId = null;
 
         window.toggleHistory = (show) => { document.getElementById('historyOverlay').style.display = show ? 'block' : 'none'; };
+        window.closeModal = () => { document.getElementById('actionModal').style.display = 'none'; document.getElementById('errorMsg').style.display = 'none'; };
+        const showToast = () => { const t = document.getElementById('toast'); t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2000); };
 
-        // Search Filter Logic
         window.filterHistory = () => {
             const query = document.getElementById('histSearch').value.toLowerCase();
             document.querySelectorAll('details').forEach(d => {
-                d.style.display = d.innerText.toLowerCase().includes(query) ? 'block' : 'none';
+                const supplierName = d.querySelector('summary div').innerText.toLowerCase();
+                d.style.display = supplierName.includes(query) ? 'block' : 'none';
             });
         };
 
-        const now = new Date();
-        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-        document.getElementById('purchase_date').value = now.toISOString().slice(0, 16);
+        window.handleAction = async () => {
+            if(document.getElementById('modalInput').value === "1234") {
+                document.getElementById('errorMsg').style.display = 'none';
+                closeModal();
+                await pendingAction(selectedId);
+                document.getElementById('modalInput').value = "";
+            } else { document.getElementById('errorMsg').style.display = 'block'; }
+        };
 
         onValue(ref(db, cloudPath), (snap) => {
             const data = snap.val() || {};
-            document.getElementById('historyList').innerHTML = Object.values(data).reverse().map(p => {
-                const readableDate = new Date(p.purchase_date).toLocaleString();
-                return `
+            document.getElementById('historyList').innerHTML = Object.values(data).reverse().map(p => `
                 <details>
-                    <summary>${p.item_name} <span style="color:var(--primary)">KES ${parseFloat(p.amount).toLocaleString()}</span></summary>
-                    <div style="margin-top:12px; padding-top:12px; border-top:1px solid #f1f5f9; font-size:12px; color:#64748b;">
-                        <div><strong>Supplier:</strong> ${p.supplier}</div>
+                    <summary style="display:block;">
+                        <div style="font-weight: 800; font-size: 15px;">${p.supplier}</div>
+                        <div style="color:var(--primary); font-weight: 700; margin-top: 4px;">KES ${p.amount}</div>
+                    </summary>
+                    <div class="details-list">
+                        <div><strong>Item Supplied:</strong> ${p.item_name}</div>
+                        <div><strong>Total VAT (16%):</strong> KES ${(p.amount * 0.16).toFixed(2)}</div>
                         <div><strong>Quantity:</strong> ${p.quantity} ${p.unit}</div>
-                        <div><strong>Recorded:</strong> ${readableDate}</div>
+                        <div><strong>Date:</strong> ${new Date(p.purchase_date).toLocaleString()}</div>
+                        <div style="display:flex; gap:10px; margin-top:5px;">
+                            <button class="btn-act" style="background:#e0f2fe; flex:1" onclick="editItem('${p.id}')">EDIT</button>
+                            <button class="btn-act" style="background:#fee2e2; flex:1" onclick="deleteItem('${p.id}')">DELETE</button>
+                        </div>
                     </div>
                 </details>
-            `}).join('');
+            `).join('');
         });
+
+        window.editItem = (id) => {
+            selectedId = id;
+            document.getElementById('modalTitle').innerText = "Enter PIN to Edit";
+            pendingAction = async (id) => {
+                const p = (await get(child(ref(db), `${cloudPath}/${id}`))).val();
+                document.getElementById('edit_id').value = id;
+                document.getElementById('item_name').value = p.item_name;
+                document.getElementById('supplier').value = p.supplier;
+                document.getElementById('qty').value = p.quantity;
+                document.getElementById('amount').value = p.amount;
+                document.getElementById('formTitle').innerText = "Edit Purchase";
+                toggleHistory(false);
+            };
+            document.getElementById('actionModal').style.display = 'flex';
+        };
+
+        window.deleteItem = (id) => {
+            selectedId = id;
+            document.getElementById('modalTitle').innerText = "Enter PIN to Delete";
+            pendingAction = async (id) => { await remove(ref(db, `${cloudPath}/${id}`)); };
+            document.getElementById('actionModal').style.display = 'flex';
+        };
 
         document.getElementById('purchaseForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const id = "pur_" + Date.now();
-            try {
-                await set(ref(db, `${cloudPath}/${id}`), {
-                    id,
-                    item_name: document.getElementById('item_name').value,
-                    supplier: document.getElementById('supplier').value,
-                    quantity: document.getElementById('qty').value,
-                    unit: document.getElementById('unit').value,
-                    amount: document.getElementById('amount').value,
-                    purchase_date: document.getElementById('purchase_date').value,
-                    timestamp: Date.now()
-                });
-                document.getElementById('purchaseForm').reset();
-                document.getElementById('purchase_date').value = now.toISOString().slice(0, 16);
-            } catch (err) { alert("Error: " + err.message); }
+            const id = document.getElementById('edit_id').value || "pur_" + Date.now();
+            await set(ref(db, `${cloudPath}/${id}`), {
+                id, item_name: document.getElementById('item_name').value,
+                supplier: document.getElementById('supplier').value,
+                quantity: document.getElementById('qty').value,
+                unit: document.getElementById('unit').value,
+                amount: document.getElementById('amount').value,
+                purchase_date: document.getElementById('purchase_date').value,
+                timestamp: Date.now()
+            });
+            document.getElementById('purchaseForm').reset();
+            showToast();
         });
     </script>
 </body>
 </html>
-
