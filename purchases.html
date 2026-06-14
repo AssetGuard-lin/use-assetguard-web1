@@ -148,6 +148,7 @@
                 document.getElementById('supplier').value = p.supplier;
                 document.getElementById('qty').value = p.quantity;
                 document.getElementById('amount').value = p.amount;
+                document.getElementById('purchase_date').value = p.purchase_date; // Preserves time
                 document.getElementById('formTitle').innerText = "Edit Purchase";
                 toggleHistory(false);
             };
@@ -174,6 +175,8 @@
                 timestamp: Date.now()
             });
             document.getElementById('purchaseForm').reset();
+            document.getElementById('edit_id').value = "";
+            document.getElementById('formTitle').innerText = "New Purchase";
             showToast();
         });
     </script>
