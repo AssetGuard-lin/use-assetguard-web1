@@ -244,10 +244,8 @@ let editIndex = -1;
 let currentSaleId = "SALE-" + Date.now(); 
 let firebaseInventory = JSON.parse(localStorage.getItem(`ag_stock_cache_${currentUID}`)) || {};
 let syncQueue = JSON.parse(localStorage.getItem(`ag_sales_queue_${currentUID}`)) || [];
-let modificationQueue = JSON.parse(localStorage.getItem(`ag_mod_queue_${currentUID}`)) || [];
-
-let cloudSalesBuffer = JSON.parse(localStorage.getItem(`ag_sales_cache_${currentUID}`)) || {}; 
 let rawLedgerData = {}; 
+let cloudSalesBuffer = JSON.parse(localStorage.getItem(`ag_sales_history_cache_${currentUID}`)) || {}; 
 let openLedgerCard = null;
 let currentActiveLedgerId = null;
 
@@ -293,30 +291,14 @@ onValue(ref(db, inventoryPath), snap => {
 
 onValue(ref(db, salesPath), snapshot => {
     cloudSalesBuffer = snapshot.val() || {};
-    localStorage.setItem(`ag_sales_cache_${currentUID}`, JSON.stringify(cloudSalesBuffer));
+    localStorage.setItem(`ag_sales_history_cache_${currentUID}`, JSON.stringify(cloudSalesBuffer));
     refreshUnifiedLedger();
 });
 
 function refreshUnifiedLedger() {
     rawLedgerData = { ...cloudSalesBuffer };
-    
-    // Step 1: Layer any pending local deletions or offline mutations over the base cloud database
-    modificationQueue.forEach(mod => {
-        if (mod.type === 'DELETE') {
-            delete rawLedgerData[mod.id];
-        } else if (mod.type === 'UPDATE') {
-            if (rawLedgerData[mod.id]) {
-                rawLedgerData[mod.id] = { ...rawLedgerData[mod.id], ...mod.data };
-            }
-        }
-    });
-
-    // Step 2: Overlay entirely new sales created offline
-    syncQueue.forEach(qItem => { 
-        rawLedgerData[qItem.saleId] = qItem; 
-    });
-
-    if(document.getElementById('view-ledger').classList.contains('active')) renderSales();
+    syncQueue.forEach(qItem => { rawLedgerData[qItem.saleId] = qItem; });
+    renderSales();
 }
 
 function populateDropdown() {
@@ -377,7 +359,8 @@ window.togglePaymentExtra = () => {
 
 function lockInputs(l) { 
     ['customer_name', 'payment_status', 'mpesa_number', 'bank_details'].forEach(id => {
-        document.getElementById(id).disabled = l;
+        const el = document.getElementById(id);
+        if (el) el.disabled = l;
     });
 }
 
@@ -504,25 +487,7 @@ function resetFullForm() {
 }
 
 async function attemptSync() {
-    if(!navigator.onLine) return;
-    
-    // 1. Process pending updates or deletions on past records
-    while(modificationQueue.length > 0) {
-        const mod = modificationQueue[0];
-        try {
-            if (mod.type === 'DELETE') {
-                await remove(ref(db, `${salesPath}/${mod.id}`));
-            } else if (mod.type === 'UPDATE') {
-                await update(ref(db, `${salesPath}/${mod.id}`), mod.data);
-            }
-            modificationQueue.shift();
-            localStorage.setItem(`ag_mod_queue_${currentUID}`, JSON.stringify(modificationQueue));
-        } catch(e) {
-            break; 
-        }
-    }
-
-    // 2. Process completely new local offline logs
+    if(!navigator.onLine || syncQueue.length === 0) return;
     while(syncQueue.length > 0) {
         const trans = { ...syncQueue[0] };
         delete trans.isPending;
@@ -533,29 +498,18 @@ async function attemptSync() {
             await set(push(ref(db, salesPath)), trans);
             syncQueue.shift();
             localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
-        } catch (e) { 
-            break; 
-        }
+            refreshUnifiedLedger();
+        } catch (e) { break; }
     }
-    
     updateStatusUI();
-    refreshUnifiedLedger();
 }
 
 function updateStatusUI() {
     const banner = document.getElementById('syncStatus');
-    const aggregateCount = syncQueue.length + modificationQueue.length;
-    if (!navigator.onLine) { 
-        banner.innerText = "Offline Mode"; 
-        banner.className = "status-offline"; 
-        banner.style.display = "block"; 
-    } else if (aggregateCount > 0) { 
-        banner.innerText = `Syncing (${aggregateCount} changes)...`; 
-        banner.className = "status-syncing"; 
-        banner.style.display = "block"; 
-    } else {
-        banner.style.display = "none";
-    }
+    if (!banner) return;
+    if (!navigator.onLine) { banner.innerText = "Offline Mode"; banner.className = "status-offline"; banner.style.display = "block"; }
+    else if (syncQueue.length > 0) { banner.innerText = "Syncing..."; banner.className = "status-syncing"; banner.style.display = "block"; }
+    else banner.style.display = "none";
 }
 
 window.openReceiptSummary = (items) => {
@@ -715,6 +669,7 @@ window.nativeShare = async () => {
 
 window.renderSales = () => {
     const container = document.getElementById('sales-container');
+    if (!container) return;
     const selectedMonth = document.getElementById('monthFilter').value;
     const selectedYear = document.getElementById('yearFilter').value;
     container.innerHTML = "";
@@ -844,31 +799,27 @@ document.getElementById('btn-add-payment').onclick = async () => {
     const newPayments = s.payments || [];
     newPayments.push({ amount: amt, date: new Date().toISOString() });
 
-    // Handle Local Aggregation / Mutation Storage First
-    const pendingData = { payments: newPayments };
-    
-    // Check if this was a purely offline-created sale that isn't on the server yet
-    const uncommittedIndex = syncQueue.findIndex(q => q.saleId === currentActiveLedgerId);
-    if (uncommittedIndex > -1) {
-        syncQueue[uncommittedIndex].payments = newPayments;
-        localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
-    } else {
-        // Enqueue update tracking payload for real historic server transactions
-        modificationQueue = modificationQueue.filter(m => !(m.id === currentActiveLedgerId && m.type === 'UPDATE'));
-        modificationQueue.push({ id: currentActiveLedgerId, type: 'UPDATE', data: pendingData });
-        localStorage.setItem(`ag_mod_queue_${currentUID}`, JSON.stringify(modificationQueue));
+    try {
+        if (navigator.onLine) {
+            await update(ref(db, `${salesPath}/${currentActiveLedgerId}`), { payments: newPayments });
+        } else {
+            if (cloudSalesBuffer[currentActiveLedgerId]) {
+                cloudSalesBuffer[currentActiveLedgerId].payments = newPayments;
+                localStorage.setItem(`ag_sales_history_cache_${currentUID}`, JSON.stringify(cloudSalesBuffer));
+            } else {
+                const targetIdx = syncQueue.findIndex(q => q.saleId === currentActiveLedgerId);
+                if (targetIdx !== -1) {
+                    syncQueue[targetIdx].payments = newPayments;
+                    localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
+                }
+            }
+        }
+        alert("Payment Recorded Successfully.");
+        refreshUnifiedLedger();
+        openManager(currentActiveLedgerId);
+    } catch (e) {
+        alert("Sync Error: " + e.message);
     }
-
-    // Mutate state view immediately offline
-    if (cloudSalesBuffer[currentActiveLedgerId]) {
-        cloudSalesBuffer[currentActiveLedgerId].payments = newPayments;
-    }
-    
-    alert("Payment Saved Locally.");
-    refreshUnifiedLedger();
-    openManager(currentActiveLedgerId);
-    
-    if (navigator.onLine) attemptSync();
 };
 
 document.getElementById('btn-save-changes').onclick = async () => {
@@ -883,54 +834,47 @@ document.getElementById('btn-save-changes').onclick = async () => {
         updated.push({ ...s.items[idx], quantity: q, price: p, vatRate: vr, total: (sub+vat).toFixed(2), vatAmount: vat.toFixed(2) });
     });
 
-    const pendingData = { 
+    const updatedProps = { 
         customer: document.getElementById('edit-cust-name').value, 
         items: updated, 
         mpesa: s.payment === "M-Pesa" ? document.getElementById('edit-pay-ref').value : "", 
         bank: s.payment === "Bank Transfer" ? document.getElementById('edit-pay-ref').value : "" 
     };
 
-    const uncommittedIndex = syncQueue.findIndex(q => q.saleId === currentActiveLedgerId);
-    if (uncommittedIndex > -1) {
-        syncQueue[uncommittedIndex] = { ...syncQueue[uncommittedIndex], ...pendingData };
-        localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
+    if (navigator.onLine) {
+        await update(ref(db, `${salesPath}/${currentActiveLedgerId}`), updatedProps);
     } else {
-        modificationQueue = modificationQueue.filter(m => !(m.id === currentActiveLedgerId && m.type === 'UPDATE'));
-        modificationQueue.push({ id: currentActiveLedgerId, type: 'UPDATE', data: pendingData });
-        localStorage.setItem(`ag_mod_queue_${currentUID}`, JSON.stringify(modificationQueue));
+        if (cloudSalesBuffer[currentActiveLedgerId]) {
+            Object.assign(cloudSalesBuffer[currentActiveLedgerId], updatedProps);
+            localStorage.setItem(`ag_sales_history_cache_${currentUID}`, JSON.stringify(cloudSalesBuffer));
+        } else {
+            const targetIdx = syncQueue.findIndex(q => q.saleId === currentActiveLedgerId);
+            if (targetIdx !== -1) {
+                Object.assign(syncQueue[targetIdx], updatedProps);
+                localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
+            }
+        }
     }
-
-    if (cloudSalesBuffer[currentActiveLedgerId]) {
-        cloudSalesBuffer[currentActiveLedgerId] = { ...cloudSalesBuffer[currentActiveLedgerId], ...pendingData };
-    }
-
     document.getElementById('manageModal').style.display = 'none'; 
     refreshUnifiedLedger();
-    
-    if (navigator.onLine) attemptSync();
 };
 
 document.getElementById('btn-del-mode').onclick = async () => {
     if(document.getElementById('authPin').value !== ADMIN_PASS) return alert("Security Error: Invalid Admin PIN.");
     
-    const uncommittedIndex = syncQueue.findIndex(q => q.saleId === currentActiveLedgerId);
-    if (uncommittedIndex > -1) {
-        syncQueue.splice(uncommittedIndex, 1);
-        localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
+    if (navigator.onLine) {
+        await remove(ref(db, `${salesPath}/${currentActiveLedgerId}`));
     } else {
-        modificationQueue = modificationQueue.filter(m => m.id !== currentActiveLedgerId);
-        modificationQueue.push({ id: currentActiveLedgerId, type: 'DELETE' });
-        localStorage.setItem(`ag_mod_queue_${currentUID}`, JSON.stringify(modificationQueue));
+        if (cloudSalesBuffer[currentActiveLedgerId]) {
+            delete cloudSalesBuffer[currentActiveLedgerId];
+            localStorage.setItem(`ag_sales_history_cache_${currentUID}`, JSON.stringify(cloudSalesBuffer));
+        } else {
+            syncQueue = syncQueue.filter(q => q.saleId !== currentActiveLedgerId);
+            localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
+        }
     }
-
-    if (cloudSalesBuffer[currentActiveLedgerId]) {
-        delete cloudSalesBuffer[currentActiveLedgerId];
-    }
-
     document.getElementById('manageModal').style.display = 'none'; 
     refreshUnifiedLedger();
-    
-    if (navigator.onLine) attemptSync();
 };
 
 window.closeModal = () => document.getElementById('manageModal').style.display = 'none';
@@ -939,7 +883,7 @@ window.filterSales = () => {
     document.querySelectorAll(".sale-card").forEach(c => c.style.display = c.innerText.toLowerCase().includes(q) ? "block" : "none");
 };
 
-window.addEventListener('online', attemptSync);
+window.addEventListener('online', () => { updateStatusUI(); attemptSync(); });
 window.addEventListener('offline', updateStatusUI);
 </script>
 </body>
