@@ -244,12 +244,13 @@ let editIndex = -1;
 let currentSaleId = "SALE-" + Date.now(); 
 let firebaseInventory = JSON.parse(localStorage.getItem(`ag_stock_cache_${currentUID}`)) || {};
 let syncQueue = JSON.parse(localStorage.getItem(`ag_sales_queue_${currentUID}`)) || [];
+let modificationQueue = JSON.parse(localStorage.getItem(`ag_mod_queue_${currentUID}`)) || [];
+
+let cloudSalesBuffer = JSON.parse(localStorage.getItem(`ag_sales_cache_${currentUID}`)) || {}; 
 let rawLedgerData = {}; 
-let cloudSalesBuffer = {}; 
 let openLedgerCard = null;
 let currentActiveLedgerId = null;
 
-// High-Resolution Configuration for PDF generation
 const pdfOptions = {
     margin: [10, 5, 10, 5],
     filename: `JCorp_Official_Receipt_${Date.now()}.pdf`,
@@ -280,6 +281,7 @@ window.toggleMainView = () => {
 window.onload = () => {
     populateDropdown();
     updateStatusUI();
+    refreshUnifiedLedger();
     if (navigator.onLine) attemptSync();
 };
 
@@ -291,12 +293,29 @@ onValue(ref(db, inventoryPath), snap => {
 
 onValue(ref(db, salesPath), snapshot => {
     cloudSalesBuffer = snapshot.val() || {};
+    localStorage.setItem(`ag_sales_cache_${currentUID}`, JSON.stringify(cloudSalesBuffer));
     refreshUnifiedLedger();
 });
 
 function refreshUnifiedLedger() {
     rawLedgerData = { ...cloudSalesBuffer };
-    syncQueue.forEach(qItem => { rawLedgerData[qItem.saleId] = qItem; });
+    
+    // Step 1: Layer any pending local deletions or offline mutations over the base cloud database
+    modificationQueue.forEach(mod => {
+        if (mod.type === 'DELETE') {
+            delete rawLedgerData[mod.id];
+        } else if (mod.type === 'UPDATE') {
+            if (rawLedgerData[mod.id]) {
+                rawLedgerData[mod.id] = { ...rawLedgerData[mod.id], ...mod.data };
+            }
+        }
+    });
+
+    // Step 2: Overlay entirely new sales created offline
+    syncQueue.forEach(qItem => { 
+        rawLedgerData[qItem.saleId] = qItem; 
+    });
+
     if(document.getElementById('view-ledger').classList.contains('active')) renderSales();
 }
 
@@ -485,7 +504,25 @@ function resetFullForm() {
 }
 
 async function attemptSync() {
-    if(!navigator.onLine || syncQueue.length === 0) return;
+    if(!navigator.onLine) return;
+    
+    // 1. Process pending updates or deletions on past records
+    while(modificationQueue.length > 0) {
+        const mod = modificationQueue[0];
+        try {
+            if (mod.type === 'DELETE') {
+                await remove(ref(db, `${salesPath}/${mod.id}`));
+            } else if (mod.type === 'UPDATE') {
+                await update(ref(db, `${salesPath}/${mod.id}`), mod.data);
+            }
+            modificationQueue.shift();
+            localStorage.setItem(`ag_mod_queue_${currentUID}`, JSON.stringify(modificationQueue));
+        } catch(e) {
+            break; 
+        }
+    }
+
+    // 2. Process completely new local offline logs
     while(syncQueue.length > 0) {
         const trans = { ...syncQueue[0] };
         delete trans.isPending;
@@ -496,17 +533,29 @@ async function attemptSync() {
             await set(push(ref(db, salesPath)), trans);
             syncQueue.shift();
             localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
-            refreshUnifiedLedger();
-        } catch (e) { break; }
+        } catch (e) { 
+            break; 
+        }
     }
+    
     updateStatusUI();
+    refreshUnifiedLedger();
 }
 
 function updateStatusUI() {
     const banner = document.getElementById('syncStatus');
-    if (!navigator.onLine) { banner.innerText = "Offline Mode"; banner.className = "status-offline"; banner.style.display = "block"; }
-    else if (syncQueue.length > 0) { banner.innerText = "Syncing..."; banner.className = "status-syncing"; banner.style.display = "block"; }
-    else banner.style.display = "none";
+    const aggregateCount = syncQueue.length + modificationQueue.length;
+    if (!navigator.onLine) { 
+        banner.innerText = "Offline Mode"; 
+        banner.className = "status-offline"; 
+        banner.style.display = "block"; 
+    } else if (aggregateCount > 0) { 
+        banner.innerText = `Syncing (${aggregateCount} changes)...`; 
+        banner.className = "status-syncing"; 
+        banner.style.display = "block"; 
+    } else {
+        banner.style.display = "none";
+    }
 }
 
 window.openReceiptSummary = (items) => {
@@ -795,14 +844,31 @@ document.getElementById('btn-add-payment').onclick = async () => {
     const newPayments = s.payments || [];
     newPayments.push({ amount: amt, date: new Date().toISOString() });
 
-    try {
-        await update(ref(db, `${salesPath}/${currentActiveLedgerId}`), { payments: newPayments });
-        alert("Payment Recorded Successfully.");
-        openManager(currentActiveLedgerId);
-        renderSales();
-    } catch (e) {
-        alert("Sync Error: " + e.message);
+    // Handle Local Aggregation / Mutation Storage First
+    const pendingData = { payments: newPayments };
+    
+    // Check if this was a purely offline-created sale that isn't on the server yet
+    const uncommittedIndex = syncQueue.findIndex(q => q.saleId === currentActiveLedgerId);
+    if (uncommittedIndex > -1) {
+        syncQueue[uncommittedIndex].payments = newPayments;
+        localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
+    } else {
+        // Enqueue update tracking payload for real historic server transactions
+        modificationQueue = modificationQueue.filter(m => !(m.id === currentActiveLedgerId && m.type === 'UPDATE'));
+        modificationQueue.push({ id: currentActiveLedgerId, type: 'UPDATE', data: pendingData });
+        localStorage.setItem(`ag_mod_queue_${currentUID}`, JSON.stringify(modificationQueue));
     }
+
+    // Mutate state view immediately offline
+    if (cloudSalesBuffer[currentActiveLedgerId]) {
+        cloudSalesBuffer[currentActiveLedgerId].payments = newPayments;
+    }
+    
+    alert("Payment Saved Locally.");
+    refreshUnifiedLedger();
+    openManager(currentActiveLedgerId);
+    
+    if (navigator.onLine) attemptSync();
 };
 
 document.getElementById('btn-save-changes').onclick = async () => {
@@ -816,18 +882,55 @@ document.getElementById('btn-save-changes').onclick = async () => {
         const sub = q * p; const vat = sub * (vr/100);
         updated.push({ ...s.items[idx], quantity: q, price: p, vatRate: vr, total: (sub+vat).toFixed(2), vatAmount: vat.toFixed(2) });
     });
-    await update(ref(db, `${salesPath}/${currentActiveLedgerId}`), { 
-        customer: document.getElementById('edit-cust-name').value, items: updated, 
+
+    const pendingData = { 
+        customer: document.getElementById('edit-cust-name').value, 
+        items: updated, 
         mpesa: s.payment === "M-Pesa" ? document.getElementById('edit-pay-ref').value : "", 
         bank: s.payment === "Bank Transfer" ? document.getElementById('edit-pay-ref').value : "" 
-    });
-    document.getElementById('manageModal').style.display = 'none'; renderSales();
+    };
+
+    const uncommittedIndex = syncQueue.findIndex(q => q.saleId === currentActiveLedgerId);
+    if (uncommittedIndex > -1) {
+        syncQueue[uncommittedIndex] = { ...syncQueue[uncommittedIndex], ...pendingData };
+        localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
+    } else {
+        modificationQueue = modificationQueue.filter(m => !(m.id === currentActiveLedgerId && m.type === 'UPDATE'));
+        modificationQueue.push({ id: currentActiveLedgerId, type: 'UPDATE', data: pendingData });
+        localStorage.setItem(`ag_mod_queue_${currentUID}`, JSON.stringify(modificationQueue));
+    }
+
+    if (cloudSalesBuffer[currentActiveLedgerId]) {
+        cloudSalesBuffer[currentActiveLedgerId] = { ...cloudSalesBuffer[currentActiveLedgerId], ...pendingData };
+    }
+
+    document.getElementById('manageModal').style.display = 'none'; 
+    refreshUnifiedLedger();
+    
+    if (navigator.onLine) attemptSync();
 };
 
 document.getElementById('btn-del-mode').onclick = async () => {
     if(document.getElementById('authPin').value !== ADMIN_PASS) return alert("Security Error: Invalid Admin PIN.");
-    await remove(ref(db, `${salesPath}/${currentActiveLedgerId}`));
-    document.getElementById('manageModal').style.display = 'none'; renderSales();
+    
+    const uncommittedIndex = syncQueue.findIndex(q => q.saleId === currentActiveLedgerId);
+    if (uncommittedIndex > -1) {
+        syncQueue.splice(uncommittedIndex, 1);
+        localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
+    } else {
+        modificationQueue = modificationQueue.filter(m => m.id !== currentActiveLedgerId);
+        modificationQueue.push({ id: currentActiveLedgerId, type: 'DELETE' });
+        localStorage.setItem(`ag_mod_queue_${currentUID}`, JSON.stringify(modificationQueue));
+    }
+
+    if (cloudSalesBuffer[currentActiveLedgerId]) {
+        delete cloudSalesBuffer[currentActiveLedgerId];
+    }
+
+    document.getElementById('manageModal').style.display = 'none'; 
+    refreshUnifiedLedger();
+    
+    if (navigator.onLine) attemptSync();
 };
 
 window.closeModal = () => document.getElementById('manageModal').style.display = 'none';
