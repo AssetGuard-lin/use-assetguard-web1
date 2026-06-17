@@ -81,8 +81,6 @@
     .history-item { font-size: 11px; color: #1f2937; padding: 8px 0; border-bottom: 1px dashed #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
     .history-meta { display: flex; flex-direction: column; }
     .history-meta small { font-size: 9px; color: var(--muted); font-weight: 600; }
-    
-    /* New diagnostics layout styles */
     .diagnostic-panel { background: #fff5f5; border: 1px solid #fecaca; border-radius: 14px; padding: 12px; margin-bottom: 12px; display: none; }
     .diagnostic-title { font-size: 11px; font-weight: 800; color: var(--error); text-transform: uppercase; display: flex; justify-content: space-between; }
     .diagnostic-msg { font-size: 11px; margin-top: 5px; color: #7f1d1d; font-family: monospace; line-height: 1.4; }
@@ -255,12 +253,19 @@ const salesPath = `users/${currentUID}/sales`;
 let cart = [];
 let editIndex = -1;
 let currentSaleId = "SALE-" + Date.now(); 
+
+// INSTANT OFFLINE STRATEGY: Load both stock and ledger mirror frames into memory immediately on boot
 let firebaseInventory = JSON.parse(localStorage.getItem(`ag_stock_cache_${currentUID}`)) || {};
 let syncQueue = JSON.parse(localStorage.getItem(`ag_sales_queue_${currentUID}`)) || [];
-let rawLedgerData = JSON.parse(localStorage.getItem(`ag_ledger_offline_mirror_${currentUID}`)) || {}; 
-let cloudSalesBuffer = JSON.parse(localStorage.getItem(`ag_ledger_offline_mirror_${currentUID}`)) || {}; 
+let fallbackMirror = JSON.parse(localStorage.getItem(`ag_ledger_offline_mirror_${currentUID}`)) || {};
+
+let rawLedgerData = { ...fallbackMirror }; 
+let cloudSalesBuffer = null;
 let openLedgerCard = null;
 let currentActiveLedgerId = null;
+
+// Safe runtime map to keep item object data isolated from destructive global evaluations
+const runtimeActiveLedgerSalesMap = new Map();
 
 const pdfOptions = {
     margin: [10, 5, 10, 5],
@@ -292,7 +297,7 @@ window.toggleMainView = () => {
 window.onload = () => {
     populateDropdown();
     updateStatusUI();
-    refreshUnifiedLedger();
+    refreshUnifiedLedger(); // Render historical records right away from fallbackMirror
     if (navigator.onLine) attemptSync();
 };
 
@@ -309,16 +314,19 @@ onValue(ref(db, inventoryPath), snap => {
 onValue(ref(db, salesPath), snapshot => {
     const snapVal = snapshot.val();
     
-    if (!snapVal && !navigator.onLine) {
-        return; 
+    // Fixed block: Never drop or exit execution loops if offline frame returns null/empty on startup
+    if (!snapVal) {
+        if (!navigator.onLine) return;
+        cloudSalesBuffer = {};
+    } else {
+        cloudSalesBuffer = snapVal;
     }
-
-    cloudSalesBuffer = snapVal || {};
+    
     try {
         localStorage.setItem(`ag_ledger_offline_mirror_${currentUID}`, JSON.stringify(cloudSalesBuffer));
         hideDiagnosticError();
     } catch (e) {
-        logDiagnosticError("CRITICAL: 10-Year historical data is too large to save for offline use! Browser LocalStorage quota limit (5MB) has been exceeded. Past historical records will not be visible when internet is off.", e);
+        logDiagnosticError("CRITICAL: 10-Year historical data is too large to save for offline use! Browser LocalStorage quota limit (5MB) has been exceeded.", e);
     }
     refreshUnifiedLedger();
 });
@@ -349,11 +357,16 @@ function hideDiagnosticError() {
 }
 
 function refreshUnifiedLedger() {
-    const fallbackMirror = JSON.parse(localStorage.getItem(`ag_ledger_offline_mirror_${currentUID}`)) || {};
-    rawLedgerData = { ...fallbackMirror, ...cloudSalesBuffer };
+    fallbackMirror = JSON.parse(localStorage.getItem(`ag_ledger_offline_mirror_${currentUID}`)) || {};
     
-    if (!navigator.onLine && Object.keys(fallbackMirror).length === 0) {
-        logDiagnosticError("Offline Error: No historical mirror records found in local database. This happens if browser storage was wiped or data capacity was exceeded when last online.", null);
+    if (cloudSalesBuffer && Object.keys(cloudSalesBuffer).length > 0) {
+        rawLedgerData = { ...fallbackMirror, ...cloudSalesBuffer };
+    } else {
+        rawLedgerData = { ...fallbackMirror };
+    }
+    
+    if (!navigator.onLine && Object.keys(rawLedgerData).length === 0) {
+        logDiagnosticError("Offline Error: No historical mirror records found in local database.", null);
     }
     
     syncQueue.forEach(qItem => { 
@@ -598,7 +611,7 @@ window.openReceiptSummary = (items) => {
 };
 
 window.reprintReceipt = (id) => {
-    const sale = window["active_sale_" + id];
+    const sale = runtimeActiveLedgerSalesMap.get(id);
     if (!sale) return;
     generateReceiptContent(sale.customer, sale.payment, sale.mpesa || sale.bank || "", sale.items, sale.timestamp, sale.payments);
     document.getElementById('receiptModal').style.display = 'flex';
@@ -754,6 +767,8 @@ window.renderSales = () => {
     const selectedYear = document.getElementById('yearFilter').value;
     container.innerHTML = "";
     
+    runtimeActiveLedgerSalesMap.clear();
+    
     let gQty=0, gTotal=0, gTax=0;
     const allSales = Object.keys(rawLedgerData).map(k => ({ id: k, ...rawLedgerData[k] }))
                      .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -763,18 +778,19 @@ window.renderSales = () => {
     }
 
     allSales.forEach(s => {
+        if (!s.timestamp || !s.items) return;
         const date = new Date(s.timestamp);
         if (selectedYear !== "all" && date.getFullYear().toString() !== selectedYear) return;
         if (selectedMonth !== "all" && date.getMonth().toString() !== selectedMonth) return;
         
         let saleTotal = 0, saleQty = 0, saleTax = 0;
         const rows = s.items.map(i => {
-            saleTotal += parseFloat(i.total); saleQty += parseFloat(i.quantity); saleTax += parseFloat(i.vatAmount);
+            saleTotal += parseFloat(i.total || 0); saleQty += parseFloat(i.quantity || 0); saleTax += parseFloat(i.vatAmount || 0);
             return `<div class="ledger-row"><div><b>${i.quantity}</b></div><div style="padding-right: 4px;">${i.product}</div><div style="color:var(--muted)">@${i.price}</div><div style="color:var(--danger); font-size:9px;">V:${i.vatRate}%</div><div style="text-align:right; font-weight: 800;">KES ${parseFloat(i.total).toLocaleString()}</div></div>`;
         }).join('');
         
         const isCredit = (s.payment === "Credit");
-        const paidSoFar = (s.payments || []).reduce((acc, p) => acc + parseFloat(p.amount), 0);
+        const paidSoFar = (s.payments || []).reduce((acc, p) => acc + parseFloat(p.amount || 0), 0);
         const bal = saleTotal - paidSoFar;
         
         gQty += saleQty; gTotal += saleTotal; gTax += saleTax;
@@ -803,7 +819,8 @@ window.renderSales = () => {
                     </div>
                 </div>
             </div>`);
-        window["active_sale_"+s.id] = s;
+            
+        runtimeActiveLedgerSalesMap.set(s.id, s);
     });
     
     document.getElementById('stat-gross').innerText = `KES ${gTotal.toLocaleString()}`;
@@ -825,7 +842,8 @@ window.toggleLedgerCard = id => {
 
 window.openManager = id => {
     currentActiveLedgerId = id;
-    const s = window["active_sale_"+id];
+    const s = runtimeActiveLedgerSalesMap.get(id);
+    if (!s) return;
     document.getElementById('edit-cust-name').value = s.customer;
     document.getElementById('edit-pay-ref').value = s.mpesa || s.bank || "";
     document.getElementById('authPin').value = "";
@@ -835,8 +853,8 @@ window.openManager = id => {
     const creditBlock = document.getElementById('credit-payment-block');
     if (isCredit) {
         creditBlock.style.display = 'block';
-        const saleTotal = s.items.reduce((acc, i) => acc + parseFloat(i.total), 0);
-        const paidSoFar = (s.payments || []).reduce((acc, p) => acc + parseFloat(p.amount), 0);
+        const saleTotal = s.items.reduce((acc, i) => acc + parseFloat(i.total || 0), 0);
+        const paidSoFar = (s.payments || []).reduce((acc, p) => acc + parseFloat(p.amount || 0), 0);
         const bal = saleTotal - paidSoFar;
         document.getElementById('credit-bal-text').innerText = `KES ${bal.toLocaleString()}`;
         
@@ -874,9 +892,9 @@ document.getElementById('btn-add-payment').onclick = async () => {
     if (!amt || amt <= 0) return alert("Please enter a valid payment amount.");
     if (pin !== ADMIN_PASS) return alert("Security Error: Invalid Admin PIN.");
 
-    const s = window["active_sale_" + currentActiveLedgerId];
-    const saleTotal = s.items.reduce((acc, i) => acc + parseFloat(i.total), 0);
-    const paidSoFar = (s.payments || []).reduce((acc, p) => acc + parseFloat(p.amount), 0);
+    const s = runtimeActiveLedgerSalesMap.get(currentActiveLedgerId);
+    const saleTotal = s.items.reduce((acc, i) => acc + parseFloat(i.total || 0), 0);
+    const paidSoFar = (s.payments || []).reduce((acc, p) => acc + parseFloat(p.amount || 0), 0);
     const balanceRemaining = saleTotal - paidSoFar;
 
     if (amt > (balanceRemaining + 0.01)) {
@@ -925,7 +943,7 @@ document.getElementById('btn-add-payment').onclick = async () => {
 
 document.getElementById('btn-save-changes').onclick = async () => {
     if(document.getElementById('authPin').value !== ADMIN_PASS) return alert("Security Error: Invalid Admin PIN.");
-    const s = window["active_sale_"+currentActiveLedgerId];
+    const s = runtimeActiveLedgerSalesMap.get(currentActiveLedgerId);
     const updated = [];
     document.querySelectorAll('.edit-block').forEach((block, idx) => {
         const q = parseFloat(block.querySelector('.item-qty').value);
