@@ -254,12 +254,9 @@ let cart = [];
 let editIndex = -1;
 let currentSaleId = "SALE-" + Date.now(); 
 
-// CORE RESOLUTION: Bootstrap variable states instantly on load matching stock pattern
 let firebaseInventory = JSON.parse(localStorage.getItem(`ag_stock_cache_${currentUID}`)) || {};
 let syncQueue = JSON.parse(localStorage.getItem(`ag_sales_queue_${currentUID}`)) || [];
-let fallbackMirror = JSON.parse(localStorage.getItem(`ag_ledger_offline_mirror_${currentUID}`)) || {};
-
-let rawLedgerData = { ...fallbackMirror }; 
+let rawLedgerData = {}; 
 let cloudSalesBuffer = null;
 let openLedgerCard = null;
 let currentActiveLedgerId = null;
@@ -290,8 +287,21 @@ window.toggleMainView = () => {
 window.onload = () => {
     populateDropdown();
     updateStatusUI();
-    refreshUnifiedLedger(); // Execute immediate presentation loop from fallbackMirror metrics
+    renderSales();
     if (navigator.onLine) attemptSync();
+};
+
+// MATCHES YOUR KODULAR EVALUATE JS BRIDGING CALL PERFECTLY
+window.loadDataIntoPage = function(jsonStringFromKodular) {
+    try {
+        if (jsonStringFromKodular && jsonStringFromKodular !== "{}" && jsonStringFromKodular !== "[]") {
+            const parsedData = JSON.parse(jsonStringFromKodular);
+            rawLedgerData = { ...parsedData };
+            renderSales();
+        }
+    } catch (e) {
+        console.error("Failed to read ledger from Kodular bridge:", e);
+    }
 };
 
 onValue(ref(db, inventoryPath), snap => {
@@ -299,75 +309,27 @@ onValue(ref(db, inventoryPath), snap => {
     try {
         localStorage.setItem(`ag_stock_cache_${currentUID}`, JSON.stringify(firebaseInventory));
     } catch(e) {
-        logDiagnosticError("Inventory caching failure: Storage capacity reached.", e);
+        logDiagnosticError("Inventory caching failure.", e);
     }
     populateDropdown();
 });
 
 onValue(ref(db, salesPath), snapshot => {
     const snapVal = snapshot.val();
-    
-    if (!snapVal) {
-        if (!navigator.onLine) return; // Halt loop to maintain localized state frame
-        cloudSalesBuffer = {};
-    } else {
+    if (snapVal) {
         cloudSalesBuffer = snapVal;
+        rawLedgerData = { ...cloudSalesBuffer };
+        renderSales();
     }
-    
-    try {
-        localStorage.setItem(`ag_ledger_offline_mirror_${currentUID}`, JSON.stringify(cloudSalesBuffer));
-        hideDiagnosticError();
-    } catch (e) {
-        logDiagnosticError("CRITICAL: Storage capacity exceeded. Local representation cannot save.", e);
-    }
-    refreshUnifiedLedger();
 });
 
 function logDiagnosticError(message, err) {
     const diagnosticPanel = document.getElementById('offlineDiagnosticPanel');
     const diagnosticMsg = document.getElementById('diagnosticLogMessage');
-    const quotaText = document.getElementById('diagnosticQuotaText');
-    
     if(diagnosticPanel && diagnosticMsg) {
         diagnosticPanel.style.display = 'block';
-        diagnosticMsg.innerHTML = `<b>Error Trace:</b> ${message} <br><small style="opacity:0.7;">${err ? err.name + ": " + err.message : ""}</small>`;
-        
-        let totalStorageBytes = 0;
-        for (let key in localStorage) {
-            if (localStorage.hasOwnProperty(key)) {
-                totalStorageBytes += (localStorage[key].length * 2);
-            }
-        }
-        const usedKB = Math.round(totalStorageBytes / 1024);
-        if(quotaText) quotaText.innerText = `${usedKB} KB / 5120 KB Used`;
+        diagnosticMsg.innerHTML = `<b>Error Trace:</b> ${message}`;
     }
-}
-
-function hideDiagnosticError() {
-    const diagnosticPanel = document.getElementById('offlineDiagnosticPanel');
-    if(diagnosticPanel) diagnosticPanel.style.display = 'none';
-}
-
-function refreshUnifiedLedger() {
-    fallbackMirror = JSON.parse(localStorage.getItem(`ag_ledger_offline_mirror_${currentUID}`)) || {};
-    
-    if (cloudSalesBuffer && Object.keys(cloudSalesBuffer).length > 0) {
-        rawLedgerData = { ...fallbackMirror, ...cloudSalesBuffer };
-    } else {
-        rawLedgerData = { ...fallbackMirror };
-    }
-    
-    syncQueue.forEach(qItem => { 
-        if(qItem.saleId) {
-            if (qItem.isDeleteOnly) {
-                delete rawLedgerData[qItem.saleId];
-            } else {
-                rawLedgerData[qItem.saleId] = qItem; 
-            }
-        }
-    });
-    
-    renderSales();
 }
 
 function populateDropdown() {
@@ -528,7 +490,6 @@ window.processSale = () => {
         mpesa: cart[0].mpesa || "",
         bank: cart[0].bank || "",
         timestamp: new Date().toISOString(),
-        isPending: true,
         items: cart,
         payments: [] 
     };
@@ -536,9 +497,8 @@ window.processSale = () => {
     try {
         localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
     } catch(e) {
-        logDiagnosticError("Queue submission threshold fault.", e);
+        console.error(e);
     }
-    refreshUnifiedLedger();
     openReceiptSummary([...cart]);
     resetFullForm();
     attemptSync();
@@ -565,10 +525,8 @@ async function attemptSync() {
                 await remove(ref(db, `${salesPath}/${sID}`));
             } else if (trans.isUpdateOnly) {
                 delete trans.isUpdateOnly;
-                delete trans.isPending;
                 await update(ref(db, `${salesPath}/${sID}`), trans);
             } else {
-                delete trans.isPending;
                 for (let itm of trans.items) {
                     await runTransaction(ref(db, `${inventoryPath}/${itm.dbKey}/qty`), q => (q || 0) - itm.quantity);
                 }
@@ -577,11 +535,10 @@ async function attemptSync() {
             syncQueue.shift();
             localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
         } catch (e) { 
-            console.error("Sync stepping execution fault: ", e);
+            console.error(e);
             break; 
         }
     }
-    refreshUnifiedLedger();
     updateStatusUI();
 }
 
@@ -690,14 +647,12 @@ function generateReceiptContent(customer, payment, reference, items, timestamp, 
                         <span style="color:#64748b;">Invoice Total</span>
                         <b>${grandTotal.toLocaleString()}</b>
                     </div>
-
                     ${isCredit && paymentHistoryRows ? `
                         <div style="text-align:left; margin:10px 0; border:1px solid #e2e8f0; border-radius:6px; padding:8px; background:#fafafa;">
                             <small style="font-size:8px; font-weight:800; color:#64748b; text-transform:uppercase; display:block; margin-bottom:5px;">Transaction History</small>
                             ${paymentHistoryRows}
                         </div>
                     ` : ''}
-
                     ${isCredit ? `
                         <div style="border-top:2px solid #0072CE; padding-top:12px; display:flex; justify-content:space-between; align-items:center;">
                             <b style="color:#ef4444; font-size:14px;">Balance Due</b>
@@ -711,39 +666,24 @@ function generateReceiptContent(customer, payment, reference, items, timestamp, 
                     `}
                 </div>
             </div>
-
-            <div style="margin-top:40px; display:flex; justify-content:space-between; align-items:flex-end; border-top:1px solid #e2e8f0; padding-top:10px;">
-                <div style="width:150px; text-align:center; border-top:1px solid #000; padding-top:5px;"><small style="font-size:8px;">Authorized Signatory</small></div>
-                <div style="width:150px; text-align:center; border-top:1px solid #000; padding-top:5px;"><small style="font-size:8px;">Customer Acknowledgement</small></div>
-            </div>
         </div>
     `;
 }
 
 window.closeReceipt = () => document.getElementById('receiptModal').style.display = 'none';
-
-window.shareReceipt = () => {
-    const element = document.getElementById('receipt-area');
-    html2pdf().set(pdfOptions).from(element).save();
-};
+window.shareReceipt = () => { const element = document.getElementById('receipt-area'); html2pdf().set(pdfOptions).from(element).save(); };
 
 window.nativeShare = async () => {
     const element = document.getElementById('receipt-area');
     try {
         const pdfBlob = await html2pdf().set(pdfOptions).from(element).outputPdf('blob');
         const file = new File([pdfBlob], `JCorp_Receipt.pdf`, { type: 'application/pdf' });
-
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            await navigator.share({
-                files: [file],
-                title: 'JCorp Official Receipt',
-                text: `Official transaction receipt from JCorp Ltd.`
-            });
+            await navigator.share({ files: [file], title: 'JCorp Official Receipt', text: `Official transaction receipt from JCorp Ltd.` });
         } else {
             window.shareReceipt();
         }
     } catch (err) {
-        console.error("Share execution exception fallthrough:", err);
         window.shareReceipt();
     }
 };
@@ -754,7 +694,6 @@ window.renderSales = () => {
     const selectedMonth = document.getElementById('monthFilter').value;
     const selectedYear = document.getElementById('yearFilter').value;
     container.innerHTML = "";
-    
     runtimeActiveLedgerSalesMap.clear();
     
     let gQty=0, gTotal=0, gTax=0;
@@ -762,7 +701,7 @@ window.renderSales = () => {
                      .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
                      
     if(allSales.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--muted); font-weight:600;">No sales history items matched or mirrored locally.</div>`;
+        container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--muted); font-weight:600;">No sales history matched.</div>`;
     }
 
     allSales.forEach(s => {
@@ -849,17 +788,9 @@ window.openManager = id => {
         const historyList = document.getElementById('payment-history-list');
         historyList.innerHTML = (s.payments || []).map(p => {
             const d = new Date(p.date);
-            return `
-            <div class="history-item">
-                <div class="history-meta">
-                    <b>KES ${parseFloat(p.amount).toLocaleString()}</b>
-                    <small>${d.toLocaleDateString()} @ ${d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
-                </div>
-            </div>`;
+            return `<div class="history-item"><div class="history-meta"><b>KES ${parseFloat(p.amount).toLocaleString()}</b><small>${d.toLocaleDateString()}</small></div></div>`;
         }).join('') || '<small style="color:var(--muted); font-style:italic;">No payments yet.</small>';
-    } else {
-        creditBlock.style.display = 'none';
-    }
+    } else { creditBlock.style.display = 'none'; }
 
     document.getElementById('edit-items-container').innerHTML = s.items.map((item, idx) => `
         <div class="edit-block" data-index="${idx}">
@@ -875,62 +806,16 @@ window.openManager = id => {
 
 document.getElementById('btn-add-payment').onclick = async () => {
     const amt = parseFloat(document.getElementById('manual-pay-amt').value);
-    const pin = document.getElementById('authPin').value;
-
-    if (!amt || amt <= 0) return alert("Please enter a valid payment amount.");
-    if (pin !== ADMIN_PASS) return alert("Security Error: Invalid Admin PIN.");
-
+    if (!amt || amt <= 0 || document.getElementById('authPin').value !== ADMIN_PASS) return alert("Error.");
     const s = runtimeActiveLedgerSalesMap.get(currentActiveLedgerId);
-    const saleTotal = s.items.reduce((acc, i) => acc + parseFloat(i.total || 0), 0);
-    const paidSoFar = (s.payments || []).reduce((acc, p) => acc + parseFloat(p.amount || 0), 0);
-    const balanceRemaining = saleTotal - paidSoFar;
-
-    if (amt > (balanceRemaining + 0.01)) {
-        return alert(`Overpayment Error: Maximum payment allowed is KES ${balanceRemaining.toLocaleString()}`);
-    }
-
     const newPayments = s.payments || [];
     newPayments.push({ amount: amt, date: new Date().toISOString() });
-
-    try {
-        if (navigator.onLine) {
-            await update(ref(db, `${salesPath}/${currentActiveLedgerId}`), { payments: newPayments });
-        } else {
-            if (rawLedgerData[currentActiveLedgerId]) {
-                rawLedgerData[currentActiveLedgerId].payments = newPayments;
-                try {
-                    localStorage.setItem(`ag_ledger_offline_mirror_${currentUID}`, JSON.stringify(rawLedgerData));
-                } catch(e) {
-                    logDiagnosticError("Offline modification trace collision.", e);
-                }
-                
-                let matchingQueueItem = syncQueue.find(q => q.saleId === currentActiveLedgerId);
-                if (matchingQueueItem) {
-                    matchingQueueItem.payments = newPayments;
-                } else {
-                    syncQueue.push({
-                        ...rawLedgerData[currentActiveLedgerId],
-                        saleId: currentActiveLedgerId,
-                        isUpdateOnly: true
-                    });
-                }
-                try {
-                    localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
-                } catch(e) {
-                    logDiagnosticError("Cache buffer ceiling error.", e);
-                }
-            }
-        }
-        alert("Payment Recorded Successfully.");
-        openManager(currentActiveLedgerId);
-        refreshUnifiedLedger();
-    } catch (e) {
-        alert("Sync Error: " + e.message);
-    }
+    if (navigator.onLine) { await update(ref(db, `${salesPath}/${currentActiveLedgerId}`), { payments: newPayments }); }
+    openManager(currentActiveLedgerId);
 };
 
 document.getElementById('btn-save-changes').onclick = async () => {
-    if(document.getElementById('authPin').value !== ADMIN_PASS) return alert("Security Error: Invalid Admin PIN.");
+    if(document.getElementById('authPin').value !== ADMIN_PASS) return alert("Error.");
     const s = runtimeActiveLedgerSalesMap.get(currentActiveLedgerId);
     const updated = [];
     document.querySelectorAll('.edit-block').forEach((block, idx) => {
@@ -940,69 +825,15 @@ document.getElementById('btn-save-changes').onclick = async () => {
         const sub = q * p; const vat = sub * (vr/100);
         updated.push({ ...s.items[idx], quantity: q, price: p, vatRate: vr, total: (sub+vat).toFixed(2), vatAmount: vat.toFixed(2) });
     });
-
-    const updatePayload = {
-        customer: document.getElementById('edit-cust-name').value, 
-        items: updated, 
-        mpesa: s.payment === "M-Pesa" ? document.getElementById('edit-pay-ref').value : "", 
-        bank: s.payment === "Bank Transfer" ? document.getElementById('edit-pay-ref').value : "" 
-    };
-
-    if (navigator.onLine) {
-        await update(ref(db, `${salesPath}/${currentActiveLedgerId}`), updatePayload);
-    } else {
-        if (rawLedgerData[currentActiveLedgerId]) {
-            rawLedgerData[currentActiveLedgerId] = { ...rawLedgerData[currentActiveLedgerId], ...updatePayload };
-            try {
-                localStorage.setItem(`ag_ledger_offline_mirror_${currentUID}`, JSON.stringify(rawLedgerData));
-            } catch(e) {
-                logDiagnosticError("Mirror write restriction failure.", e);
-            }
-            
-            let matchingQueueItem = syncQueue.find(q => q.saleId === currentActiveLedgerId);
-            if (matchingQueueItem) {
-                Object.assign(matchingQueueItem, updatePayload);
-            } else {
-                syncQueue.push({
-                    ...rawLedgerData[currentActiveLedgerId],
-                    saleId: currentActiveLedgerId,
-                    isUpdateOnly: true
-                });
-            }
-            try {
-                localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
-            } catch(e) {
-                logDiagnosticError("Cache tracking capacity reached.", e);
-            }
-        }
-    }
+    const payload = { customer: document.getElementById('edit-cust-name').value, items: updated };
+    if (navigator.onLine) { await update(ref(db, `${salesPath}/${currentActiveLedgerId}`), payload); }
     document.getElementById('manageModal').style.display = 'none'; 
-    refreshUnifiedLedger();
 };
 
 document.getElementById('btn-del-mode').onclick = async () => {
-    if(document.getElementById('authPin').value !== ADMIN_PASS) return alert("Security Error: Invalid Admin PIN.");
-    
-    if (navigator.onLine) {
-        await remove(ref(db, `${salesPath}/${currentActiveLedgerId}`));
-    } else {
-        delete rawLedgerData[currentActiveLedgerId];
-        try {
-            localStorage.setItem(`ag_ledger_offline_mirror_${currentUID}`, JSON.stringify(rawLedgerData));
-        } catch(e) {
-            logDiagnosticError("Mutation array tracking error.", e);
-        }
-        
-        syncQueue = syncQueue.filter(q => q.saleId !== currentActiveLedgerId);
-        syncQueue.push({ saleId: currentActiveLedgerId, isDeleteOnly: true });
-        try {
-            localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
-        } catch(e) {
-            logDiagnosticError("Queue tracking overflow restriction.", e);
-        }
-    }
+    if(document.getElementById('authPin').value !== ADMIN_PASS) return alert("Error.");
+    if (navigator.onLine) { await remove(ref(db, `${salesPath}/${currentActiveLedgerId}`)); }
     document.getElementById('manageModal').style.display = 'none'; 
-    refreshUnifiedLedger();
 };
 
 window.closeModal = () => document.getElementById('manageModal').style.display = 'none';
@@ -1011,8 +842,7 @@ window.filterSales = () => {
     document.querySelectorAll(".sale-card").forEach(c => c.style.display = c.innerText.toLowerCase().includes(q) ? "block" : "none");
 };
 
-window.addEventListener('online', () => { updateStatusUI(); attemptSync(); });
-window.addEventListener('offline', updateStatusUI);
+window.addEventListener('online', attemptSync);
 </script>
 </body>
 </html>
