@@ -81,6 +81,11 @@
     .history-item { font-size: 11px; color: #1f2937; padding: 8px 0; border-bottom: 1px dashed #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
     .history-meta { display: flex; flex-direction: column; }
     .history-meta small { font-size: 9px; color: var(--muted); font-weight: 600; }
+    
+    /* New diagnostics layout styles */
+    .diagnostic-panel { background: #fff5f5; border: 1px solid #fecaca; border-radius: 14px; padding: 12px; margin-bottom: 12px; display: none; }
+    .diagnostic-title { font-size: 11px; font-weight: 800; color: var(--error); text-transform: uppercase; display: flex; justify-content: space-between; }
+    .diagnostic-msg { font-size: 11px; margin-top: 5px; color: #7f1d1d; font-family: monospace; line-height: 1.4; }
 </style>
 </head>
 <body>
@@ -141,6 +146,14 @@
 </div>
 
 <div id="view-ledger" class="view-container">
+    <div id="offlineDiagnosticPanel" class="diagnostic-panel">
+        <div class="diagnostic-title">
+            <span>⚠️ Offline Resilience Alert</span>
+            <span id="diagnosticQuotaText">0 KB / 5120 KB</span>
+        </div>
+        <div id="diagnosticLogMessage" class="diagnostic-msg"></div>
+    </div>
+
     <div class="filter-section">
         <small style="font-weight:800; color:var(--muted)">DATA FILTERS</small>
         <div class="filter-grid">
@@ -285,19 +298,63 @@ window.onload = () => {
 
 onValue(ref(db, inventoryPath), snap => {
     firebaseInventory = snap.val() || {};
-    localStorage.setItem(`ag_stock_cache_${currentUID}`, JSON.stringify(firebaseInventory));
+    try {
+        localStorage.setItem(`ag_stock_cache_${currentUID}`, JSON.stringify(firebaseInventory));
+    } catch(e) {
+        logDiagnosticError("Inventory caching failure: Storage capacity reached.", e);
+    }
     populateDropdown();
 });
 
 onValue(ref(db, salesPath), snapshot => {
     cloudSalesBuffer = snapshot.val() || {};
-    localStorage.setItem(`ag_ledger_offline_mirror_${currentUID}`, JSON.stringify(cloudSalesBuffer));
+    try {
+        localStorage.setItem(`ag_ledger_offline_mirror_${currentUID}`, JSON.stringify(cloudSalesBuffer));
+        // Clear any storage errors if save succeeds
+        if (!navigator.onLine && Object.keys(cloudSalesBuffer).length === 0) {
+            // retain local mirror if offline fired blankly
+        } else {
+            hideDiagnosticError();
+        }
+    } catch (e) {
+        logDiagnosticError("CRITICAL: 10-Year historical data is too large to save for offline use! Browser LocalStorage quota limit (5MB) has been exceeded. Past historical records will not be visible when internet is off.", e);
+    }
     refreshUnifiedLedger();
 });
+
+function logDiagnosticError(message, err) {
+    const diagnosticPanel = document.getElementById('offlineDiagnosticPanel');
+    const diagnosticMsg = document.getElementById('diagnosticLogMessage');
+    const quotaText = document.getElementById('diagnosticQuotaText');
+    
+    if(diagnosticPanel && diagnosticMsg) {
+        diagnosticPanel.style.display = 'block';
+        diagnosticMsg.innerHTML = `<b>Error Trace:</b> ${message} <br><small style="opacity:0.7;">${err ? err.name + ": " + err.message : ""}</small>`;
+        
+        // Calculate current approximate storage usage
+        let totalStorageBytes = 0;
+        for (let key in localStorage) {
+            if (localStorage.hasOwnProperty(key)) {
+                totalStorageBytes += (localStorage[key].length * 2);
+            }
+        }
+        const usedKB = Math.round(totalStorageBytes / 1024);
+        if(quotaText) quotaText.innerText = `${usedKB} KB / 5120 KB Used`;
+    }
+}
+
+function hideDiagnosticError() {
+    const diagnosticPanel = document.getElementById('offlineDiagnosticPanel');
+    if(diagnosticPanel) diagnosticPanel.style.display = 'none';
+}
 
 function refreshUnifiedLedger() {
     const fallbackMirror = JSON.parse(localStorage.getItem(`ag_ledger_offline_mirror_${currentUID}`)) || {};
     rawLedgerData = { ...fallbackMirror, ...cloudSalesBuffer };
+    
+    if (!navigator.onLine && Object.keys(fallbackMirror).length === 0) {
+        logDiagnosticError("Offline Error: No historical mirror records found in local database. This happens if browser storage was wiped or data capacity was exceeded when last online.", null);
+    }
     
     syncQueue.forEach(qItem => { 
         if(qItem.saleId) {
@@ -479,7 +536,11 @@ window.processSale = () => {
         payments: [] 
     };
     syncQueue.push(trans);
-    localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
+    try {
+        localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
+    } catch(e) {
+        logDiagnosticError("Queue tracking failed. LocalStorage capacity reached.", e);
+    }
     refreshUnifiedLedger();
     openReceiptSummary([...cart]);
     resetFullForm();
@@ -835,7 +896,11 @@ document.getElementById('btn-add-payment').onclick = async () => {
         } else {
             if (rawLedgerData[currentActiveLedgerId]) {
                 rawLedgerData[currentActiveLedgerId].payments = newPayments;
-                localStorage.setItem(`ag_ledger_offline_mirror_${currentUID}`, JSON.stringify(rawLedgerData));
+                try {
+                    localStorage.setItem(`ag_ledger_offline_mirror_${currentUID}`, JSON.stringify(rawLedgerData));
+                } catch(e) {
+                    logDiagnosticError("Offline Update Failed: Ledger mirror capacity reached.", e);
+                }
                 
                 let matchingQueueItem = syncQueue.find(q => q.saleId === currentActiveLedgerId);
                 if (matchingQueueItem) {
@@ -847,7 +912,11 @@ document.getElementById('btn-add-payment').onclick = async () => {
                         isUpdateOnly: true
                     });
                 }
-                localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
+                try {
+                    localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
+                } catch(e) {
+                    logDiagnosticError("Queue update limit exceeded.", e);
+                }
             }
         }
         alert("Payment Recorded Successfully.");
@@ -882,7 +951,11 @@ document.getElementById('btn-save-changes').onclick = async () => {
     } else {
         if (rawLedgerData[currentActiveLedgerId]) {
             rawLedgerData[currentActiveLedgerId] = { ...rawLedgerData[currentActiveLedgerId], ...updatePayload };
-            localStorage.setItem(`ag_ledger_offline_mirror_${currentUID}`, JSON.stringify(rawLedgerData));
+            try {
+                localStorage.setItem(`ag_ledger_offline_mirror_${currentUID}`, JSON.stringify(rawLedgerData));
+            } catch(e) {
+                logDiagnosticError("Offline modification failed: Local mirror overflow.", e);
+            }
             
             let matchingQueueItem = syncQueue.find(q => q.saleId === currentActiveLedgerId);
             if (matchingQueueItem) {
@@ -894,7 +967,11 @@ document.getElementById('btn-save-changes').onclick = async () => {
                     isUpdateOnly: true
                 });
             }
-            localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
+            try {
+                localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
+            } catch(e) {
+                logDiagnosticError("Queue sync mirror limit exceeded.", e);
+            }
         }
     }
     document.getElementById('manageModal').style.display = 'none'; 
@@ -908,11 +985,19 @@ document.getElementById('btn-del-mode').onclick = async () => {
         await remove(ref(db, `${salesPath}/${currentActiveLedgerId}`));
     } else {
         delete rawLedgerData[currentActiveLedgerId];
-        localStorage.setItem(`ag_ledger_offline_mirror_${currentUID}`, JSON.stringify(rawLedgerData));
+        try {
+            localStorage.setItem(`ag_ledger_offline_mirror_${currentUID}`, JSON.stringify(rawLedgerData));
+        } catch(e) {
+            logDiagnosticError("LocalStorage mutation error.", e);
+        }
         
         syncQueue = syncQueue.filter(q => q.saleId !== currentActiveLedgerId);
         syncQueue.push({ saleId: currentActiveLedgerId, isDeleteOnly: true });
-        localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
+        try {
+            localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
+        } catch(e) {
+            logDiagnosticError("Sync Queue mutation overflow.", e);
+        }
     }
     document.getElementById('manageModal').style.display = 'none'; 
     refreshUnifiedLedger();
@@ -929,3 +1014,4 @@ window.addEventListener('offline', updateStatusUI);
 </script>
 </body>
 </html>
+
