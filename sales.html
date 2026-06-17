@@ -158,9 +158,9 @@
         <small style="font-weight:800; color:var(--muted)">DATA FILTERS</small>
         <div class="filter-grid">
             <select id="yearFilter" onchange="renderSales()">
-                <option value="all">All Years</option>
+                <option value="all" selected>All Years</option>
                 <option value="2025">2025</option>
-                <option value="2026" selected>2026</option>
+                <option value="2026">2026</option>
             </select>
             <select id="monthFilter" onchange="renderSales()">
                 <option value="all">Full Year View</option>
@@ -307,15 +307,16 @@ onValue(ref(db, inventoryPath), snap => {
 });
 
 onValue(ref(db, salesPath), snapshot => {
-    cloudSalesBuffer = snapshot.val() || {};
+    const snapVal = snapshot.val();
+    
+    if (!snapVal && !navigator.onLine) {
+        return; 
+    }
+
+    cloudSalesBuffer = snapVal || {};
     try {
         localStorage.setItem(`ag_ledger_offline_mirror_${currentUID}`, JSON.stringify(cloudSalesBuffer));
-        // Clear any storage errors if save succeeds
-        if (!navigator.onLine && Object.keys(cloudSalesBuffer).length === 0) {
-            // retain local mirror if offline fired blankly
-        } else {
-            hideDiagnosticError();
-        }
+        hideDiagnosticError();
     } catch (e) {
         logDiagnosticError("CRITICAL: 10-Year historical data is too large to save for offline use! Browser LocalStorage quota limit (5MB) has been exceeded. Past historical records will not be visible when internet is off.", e);
     }
@@ -331,7 +332,6 @@ function logDiagnosticError(message, err) {
         diagnosticPanel.style.display = 'block';
         diagnosticMsg.innerHTML = `<b>Error Trace:</b> ${message} <br><small style="opacity:0.7;">${err ? err.name + ": " + err.message : ""}</small>`;
         
-        // Calculate current approximate storage usage
         let totalStorageBytes = 0;
         for (let key in localStorage) {
             if (localStorage.hasOwnProperty(key)) {
@@ -396,11 +396,7 @@ window.validatePayment = () => {
     const qtyInput = document.getElementById('quantity');
     const priceInput = document.getElementById('price');
     
-    qtyInput.oninput = function() {
-        this.value = this.value.replace(/-/g, "");
-        if(this.value !== "" && parseFloat(this.value) <= 0) this.value = 1;
-        validatePayment();
-    };
+    if(qtyInput.value !== "" && parseFloat(qtyInput.value) <= 0) qtyInput.value = 1;
 
     const qty = parseFloat(qtyInput.value);
     const price = parseFloat(priceInput.value);
@@ -1014,4 +1010,3 @@ window.addEventListener('offline', updateStatusUI);
 </script>
 </body>
 </html>
-
