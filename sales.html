@@ -156,12 +156,12 @@
         <small style="font-weight:800; color:var(--muted)">DATA FILTERS</small>
         <div class="filter-grid">
             <select id="yearFilter" onchange="renderSales()">
-                <option value="all" selected>All Years</option>
+                <option value="all">All Years</option>
                 <option value="2025">2025</option>
-                <option value="2026">2026</option>
+                <option value="2026" selected>2026</option>
             </select>
             <select id="monthFilter" onchange="renderSales()">
-                <option value="all">Full Year View</option>
+                <option value="all" selected>Full Year View</option>
                 <option value="0">January</option><option value="1">February</option><option value="2">March</option>
                 <option value="3">April</option><option value="4">May</option><option value="5">June</option>
                 <option value="6">July</option><option value="7">August</option><option value="8">September</option>
@@ -254,7 +254,7 @@ let cart = [];
 let editIndex = -1;
 let currentSaleId = "SALE-" + Date.now(); 
 
-// INSTANT OFFLINE STRATEGY: Load both stock and ledger mirror frames into memory immediately on boot
+// CORE RESOLUTION: Bootstrap variable states instantly on load matching stock pattern
 let firebaseInventory = JSON.parse(localStorage.getItem(`ag_stock_cache_${currentUID}`)) || {};
 let syncQueue = JSON.parse(localStorage.getItem(`ag_sales_queue_${currentUID}`)) || [];
 let fallbackMirror = JSON.parse(localStorage.getItem(`ag_ledger_offline_mirror_${currentUID}`)) || {};
@@ -264,20 +264,13 @@ let cloudSalesBuffer = null;
 let openLedgerCard = null;
 let currentActiveLedgerId = null;
 
-// Safe runtime map to keep item object data isolated from destructive global evaluations
 const runtimeActiveLedgerSalesMap = new Map();
 
 const pdfOptions = {
     margin: [10, 5, 10, 5],
     filename: `JCorp_Official_Receipt_${Date.now()}.pdf`,
     image: { type: 'jpeg', quality: 1.0 },
-    html2canvas: { 
-        scale: 4, 
-        useCORS: true, 
-        letterRendering: true,
-        scrollX: 0,
-        scrollY: 0
-    },
+    html2canvas: { scale: 4, useCORS: true, letterRendering: true, scrollX: 0, scrollY: 0 },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', precision: 16 }
 };
 
@@ -297,7 +290,7 @@ window.toggleMainView = () => {
 window.onload = () => {
     populateDropdown();
     updateStatusUI();
-    refreshUnifiedLedger(); // Render historical records right away from fallbackMirror
+    refreshUnifiedLedger(); // Execute immediate presentation loop from fallbackMirror metrics
     if (navigator.onLine) attemptSync();
 };
 
@@ -314,9 +307,8 @@ onValue(ref(db, inventoryPath), snap => {
 onValue(ref(db, salesPath), snapshot => {
     const snapVal = snapshot.val();
     
-    // Fixed block: Never drop or exit execution loops if offline frame returns null/empty on startup
     if (!snapVal) {
-        if (!navigator.onLine) return;
+        if (!navigator.onLine) return; // Halt loop to maintain localized state frame
         cloudSalesBuffer = {};
     } else {
         cloudSalesBuffer = snapVal;
@@ -326,7 +318,7 @@ onValue(ref(db, salesPath), snapshot => {
         localStorage.setItem(`ag_ledger_offline_mirror_${currentUID}`, JSON.stringify(cloudSalesBuffer));
         hideDiagnosticError();
     } catch (e) {
-        logDiagnosticError("CRITICAL: 10-Year historical data is too large to save for offline use! Browser LocalStorage quota limit (5MB) has been exceeded.", e);
+        logDiagnosticError("CRITICAL: Storage capacity exceeded. Local representation cannot save.", e);
     }
     refreshUnifiedLedger();
 });
@@ -363,10 +355,6 @@ function refreshUnifiedLedger() {
         rawLedgerData = { ...fallbackMirror, ...cloudSalesBuffer };
     } else {
         rawLedgerData = { ...fallbackMirror };
-    }
-    
-    if (!navigator.onLine && Object.keys(rawLedgerData).length === 0) {
-        logDiagnosticError("Offline Error: No historical mirror records found in local database.", null);
     }
     
     syncQueue.forEach(qItem => { 
@@ -548,7 +536,7 @@ window.processSale = () => {
     try {
         localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
     } catch(e) {
-        logDiagnosticError("Queue tracking failed. LocalStorage capacity reached.", e);
+        logDiagnosticError("Queue submission threshold fault.", e);
     }
     refreshUnifiedLedger();
     openReceiptSummary([...cart]);
@@ -589,7 +577,7 @@ async function attemptSync() {
             syncQueue.shift();
             localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
         } catch (e) { 
-            console.error("Sync stepping breakdown item paused: ", e);
+            console.error("Sync stepping execution fault: ", e);
             break; 
         }
     }
@@ -755,7 +743,7 @@ window.nativeShare = async () => {
             window.shareReceipt();
         }
     } catch (err) {
-        console.error("Share failed:", err);
+        console.error("Share execution exception fallthrough:", err);
         window.shareReceipt();
     }
 };
@@ -913,7 +901,7 @@ document.getElementById('btn-add-payment').onclick = async () => {
                 try {
                     localStorage.setItem(`ag_ledger_offline_mirror_${currentUID}`, JSON.stringify(rawLedgerData));
                 } catch(e) {
-                    logDiagnosticError("Offline Update Failed: Ledger mirror capacity reached.", e);
+                    logDiagnosticError("Offline modification trace collision.", e);
                 }
                 
                 let matchingQueueItem = syncQueue.find(q => q.saleId === currentActiveLedgerId);
@@ -929,7 +917,7 @@ document.getElementById('btn-add-payment').onclick = async () => {
                 try {
                     localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
                 } catch(e) {
-                    logDiagnosticError("Queue update limit exceeded.", e);
+                    logDiagnosticError("Cache buffer ceiling error.", e);
                 }
             }
         }
@@ -968,7 +956,7 @@ document.getElementById('btn-save-changes').onclick = async () => {
             try {
                 localStorage.setItem(`ag_ledger_offline_mirror_${currentUID}`, JSON.stringify(rawLedgerData));
             } catch(e) {
-                logDiagnosticError("Offline modification failed: Local mirror overflow.", e);
+                logDiagnosticError("Mirror write restriction failure.", e);
             }
             
             let matchingQueueItem = syncQueue.find(q => q.saleId === currentActiveLedgerId);
@@ -984,7 +972,7 @@ document.getElementById('btn-save-changes').onclick = async () => {
             try {
                 localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
             } catch(e) {
-                logDiagnosticError("Queue sync mirror limit exceeded.", e);
+                logDiagnosticError("Cache tracking capacity reached.", e);
             }
         }
     }
@@ -1002,7 +990,7 @@ document.getElementById('btn-del-mode').onclick = async () => {
         try {
             localStorage.setItem(`ag_ledger_offline_mirror_${currentUID}`, JSON.stringify(rawLedgerData));
         } catch(e) {
-            logDiagnosticError("LocalStorage mutation error.", e);
+            logDiagnosticError("Mutation array tracking error.", e);
         }
         
         syncQueue = syncQueue.filter(q => q.saleId !== currentActiveLedgerId);
@@ -1010,7 +998,7 @@ document.getElementById('btn-del-mode').onclick = async () => {
         try {
             localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
         } catch(e) {
-            logDiagnosticError("Sync Queue mutation overflow.", e);
+            logDiagnosticError("Queue tracking overflow restriction.", e);
         }
     }
     document.getElementById('manageModal').style.display = 'none'; 
