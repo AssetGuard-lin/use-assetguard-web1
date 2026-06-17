@@ -245,7 +245,7 @@ let currentSaleId = "SALE-" + Date.now();
 let firebaseInventory = JSON.parse(localStorage.getItem(`ag_stock_cache_${currentUID}`)) || {};
 let syncQueue = JSON.parse(localStorage.getItem(`ag_sales_queue_${currentUID}`)) || [];
 let rawLedgerData = JSON.parse(localStorage.getItem(`ag_ledger_offline_mirror_${currentUID}`)) || {}; 
-let cloudSalesBuffer = {}; 
+let cloudSalesBuffer = JSON.parse(localStorage.getItem(`ag_ledger_offline_mirror_${currentUID}`)) || {}; 
 let openLedgerCard = null;
 let currentActiveLedgerId = null;
 
@@ -300,10 +300,16 @@ function refreshUnifiedLedger() {
     rawLedgerData = { ...fallbackMirror, ...cloudSalesBuffer };
     
     syncQueue.forEach(qItem => { 
-        rawLedgerData[qItem.saleId] = qItem; 
+        if(qItem.saleId) {
+            if (qItem.isDeleteOnly) {
+                delete rawLedgerData[qItem.saleId];
+            } else {
+                rawLedgerData[qItem.saleId] = qItem; 
+            }
+        }
     });
     
-    if(document.getElementById('view-ledger').classList.contains('active')) renderSales();
+    renderSales();
 }
 
 function populateDropdown() {
@@ -492,24 +498,38 @@ function resetFullForm() {
 
 async function attemptSync() {
     if(!navigator.onLine || syncQueue.length === 0) return;
-    while(syncQueue.length > 0) {
-        const trans = { ...syncQueue[0] };
-        delete trans.isPending;
+    let tempQueue = [...syncQueue];
+    for(let i = 0; i < tempQueue.length; i++) {
+        const trans = { ...tempQueue[i] };
+        const sID = trans.saleId;
         try {
-            for (let itm of trans.items) {
-                await runTransaction(ref(db, `${inventoryPath}/${itm.dbKey}/qty`), q => (q || 0) - itm.quantity);
+            if (trans.isDeleteOnly) {
+                await remove(ref(db, `${salesPath}/${sID}`));
+            } else if (trans.isUpdateOnly) {
+                delete trans.isUpdateOnly;
+                delete trans.isPending;
+                await update(ref(db, `${salesPath}/${sID}`), trans);
+            } else {
+                delete trans.isPending;
+                for (let itm of trans.items) {
+                    await runTransaction(ref(db, `${inventoryPath}/${itm.dbKey}/qty`), q => (q || 0) - itm.quantity);
+                }
+                await set(push(ref(db, salesPath)), trans);
             }
-            await set(push(ref(db, salesPath)), trans);
             syncQueue.shift();
             localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
-            refreshUnifiedLedger();
-        } catch (e) { break; }
+        } catch (e) { 
+            console.error("Sync stepping breakdown item paused: ", e);
+            break; 
+        }
     }
+    refreshUnifiedLedger();
     updateStatusUI();
 }
 
 function updateStatusUI() {
     const banner = document.getElementById('syncStatus');
+    if (!banner) return;
     if (!navigator.onLine) { banner.innerText = "Offline Mode"; banner.className = "status-offline"; banner.style.display = "block"; }
     else if (syncQueue.length > 0) { banner.innerText = "Syncing..."; banner.className = "status-syncing"; banner.style.display = "block"; }
     else banner.style.display = "none";
@@ -672,12 +692,19 @@ window.nativeShare = async () => {
 
 window.renderSales = () => {
     const container = document.getElementById('sales-container');
+    if (!container) return;
     const selectedMonth = document.getElementById('monthFilter').value;
     const selectedYear = document.getElementById('yearFilter').value;
     container.innerHTML = "";
+    
     let gQty=0, gTotal=0, gTax=0;
     const allSales = Object.keys(rawLedgerData).map(k => ({ id: k, ...rawLedgerData[k] }))
                      .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+                     
+    if(allSales.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--muted); font-weight:600;">No sales history items matched or mirrored locally.</div>`;
+    }
+
     allSales.forEach(s => {
         const date = new Date(s.timestamp);
         if (selectedYear !== "all" && date.getFullYear().toString() !== selectedYear) return;
@@ -714,13 +741,14 @@ window.renderSales = () => {
                         </div>
                     ` : ''}
                     <div style="display:flex; gap:8px; margin-top:12px;">
-                        <button class="btn btn-dark" style="flex:1;" onclick="openManager('${s.id}')">MANAGE / PAY</button>
-                        <button class="btn" style="flex:1; background:var(--primary); color:white;" onclick="reprintReceipt('${s.id}')">INVOICE</button>
+                        <button class="btn btn-dark" style="flex:1;" onclick="event.stopPropagation(); openManager('${s.id}')">MANAGE / PAY</button>
+                        <button class="btn" style="flex:1; background:var(--primary); color:white;" onclick="event.stopPropagation(); reprintReceipt('${s.id}')">INVOICE</button>
                     </div>
                 </div>
             </div>`);
         window["active_sale_"+s.id] = s;
     });
+    
     document.getElementById('stat-gross').innerText = `KES ${gTotal.toLocaleString()}`;
     document.getElementById('stat-tax').innerText = `KES ${gTax.toLocaleString()}`;
     document.getElementById('grand-qty-ledger').innerText = gQty;
@@ -896,7 +924,7 @@ window.filterSales = () => {
     document.querySelectorAll(".sale-card").forEach(c => c.style.display = c.innerText.toLowerCase().includes(q) ? "block" : "none");
 };
 
-window.addEventListener('online', attemptSync);
+window.addEventListener('online', () => { updateStatusUI(); attemptSync(); });
 window.addEventListener('offline', updateStatusUI);
 </script>
 </body>
