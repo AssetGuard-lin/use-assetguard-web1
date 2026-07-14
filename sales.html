@@ -246,9 +246,10 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const ADMIN_PASS = "1234";
 
-// Robust UID Resolution - Check query parameter, Kodular webview parameters, or localStorage fallback
+// Robust UID & Email Resolution 
 const urlParams = new URLSearchParams(window.location.search);
 let resolvedUID = urlParams.get('uid') || urlParams.get('user') || urlParams.get('currentUID') || urlParams.get('userId');
+let resolvedEmail = urlParams.get('email') || urlParams.get('user_email') || urlParams.get('username');
 
 if (!resolvedUID) {
     try {
@@ -259,6 +260,7 @@ if (!resolvedUID) {
                     try {
                         const parsed = JSON.parse(wvString);
                         resolvedUID = parsed.uid || parsed.userId || parsed.username || wvString;
+                        resolvedEmail = parsed.email || parsed.user_email || parsed.username || "";
                     } catch(e) {
                         resolvedUID = wvString;
                     }
@@ -272,8 +274,9 @@ if (!resolvedUID) {
     }
 }
 
-if (!resolvedUID) {
-    resolvedUID = localStorage.getItem("ag_active_uid");
+// Treat UID as email if it has an @ symbol and no explicit email is set yet
+if (resolvedUID && resolvedUID.includes('@') && !resolvedEmail) {
+    resolvedEmail = resolvedUID;
 }
 
 if (!resolvedUID || resolvedUID === "null" || resolvedUID === "undefined" || resolvedUID.trim() === "") {
@@ -282,6 +285,11 @@ if (!resolvedUID || resolvedUID === "null" || resolvedUID === "undefined" || res
 
 const currentUID = resolvedUID;
 localStorage.setItem("ag_active_uid", currentUID);
+
+if (resolvedEmail && resolvedEmail !== "null" && resolvedEmail !== "undefined" && resolvedEmail.trim() !== "") {
+    localStorage.setItem("ag_active_email", resolvedEmail);
+}
+const currentEmail = localStorage.getItem("ag_active_email") || "";
 
 // Construct exact user pathways
 const inventoryPath = `users/${currentUID}/inventory`;
@@ -322,7 +330,11 @@ window.toggleMainView = () => {
 window.onload = () => {
     const badge = document.getElementById('user-badge');
     if (badge) {
-        badge.innerText = `Active Session: ${currentUID}`;
+        if (currentEmail && currentEmail.includes('@')) {
+            badge.innerText = `Terminal: ${currentEmail}`;
+        } else {
+            badge.innerText = "Authorized Terminal"; // Elegantly hides raw hex/alphanumeric UID strings
+        }
     }
     populateDropdown();
     updateStatusUI();
@@ -368,7 +380,6 @@ onValue(ref(db, inventoryPath), snap => {
     populateDropdown();
 });
 
-// Listener cleanly assigns active user sales path directly instead of spreading old caches
 onValue(ref(db, salesPath), snapshot => {
     const snapVal = snapshot.val();
     rawLedgerData = snapVal || {};
