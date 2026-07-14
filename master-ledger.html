@@ -456,18 +456,18 @@
                         ${isAdmin && !r.isPending ? `<button class="admin-btn" onclick="event.stopPropagation(); deleteEntry('${r.path}')">DELETE</button>` : ''}
                     </div>
                     <div class="entry-val" style="color:var(--${r.type==='IN'?'success':'danger'})">
-                        <span class="val-amt">${r.type==='IN'?'+':'-'}${r.amt.toLocaleString()}</span>
+                        <span class="val-amt">${r.type==='IN'?'+Ksh ':'-Ksh '}${r.amt.toLocaleString()}</span>
                         <span class="val-type">CASH ${r.type}</span>
                     </div>
                 </div>`;
         });
 
-        document.getElementById('total-in').innerText = '$' + tin.toLocaleString();
-        document.getElementById('total-out').innerText = '$' + tout.toLocaleString();
+        document.getElementById('total-in').innerText = 'Ksh ' + tin.toLocaleString();
+        document.getElementById('total-out').innerText = 'Ksh ' + tout.toLocaleString();
         
         const netElement = document.getElementById('net-cash');
         const netAmt = tin - tout;
-        netElement.innerText = (netAmt >= 0 ? '+$' : '-$') + Math.abs(netAmt).toLocaleString();
+        netElement.innerText = (netAmt >= 0 ? '+Ksh ' : '-Ksh ') + Math.abs(netAmt).toLocaleString();
 
         renderCharts(tin, tout, catTotals);
         generateAlgorithmicAdvice(tin, tout, catTotals);
@@ -483,7 +483,7 @@
         document.getElementById('det-cat').innerText = item.cat;
         document.getElementById('det-sub').innerText = item.sub;
         document.getElementById('det-date').innerText = `${dt.toLocaleDateString('en-GB')} at ${dt.toLocaleTimeString()}`;
-        document.getElementById('det-amt').innerText = `${item.type === 'IN' ? '+' : '-'} $${item.amt.toLocaleString()}`;
+        document.getElementById('det-amt').innerText = `${item.type === 'IN' ? '+' : '-'} Ksh ${item.amt.toLocaleString()}`;
         document.getElementById('det-amt').style.color = item.type === 'IN' ? 'var(--success)' : 'var(--danger)';
         document.getElementById('det-type').innerText = `Cash Flow ${item.type}`;
         document.getElementById('det-status').innerText = item.isPending ? "Local Mirror Queue (Pending Synchronization)" : "Complete Decentralized Realtime Sync";
@@ -496,7 +496,7 @@
             itemsList.innerHTML = item.rawItems.map(i => `
                 <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px; padding-bottom:4px; border-bottom:1px dashed #e2e8f0;">
                     <span>${i.name || 'Item'} (x${i.qty || 1})</span>
-                    <strong style="color:var(--primary)">$${parseFloat(i.total || 0).toLocaleString()}</strong>
+                    <strong style="color:var(--primary)">Ksh ${parseFloat(i.total || 0).toLocaleString()}</strong>
                 </div>
             `).join('');
         } else if(item.notes) {
