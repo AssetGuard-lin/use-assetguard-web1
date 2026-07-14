@@ -235,7 +235,7 @@ import { getDatabase, ref, onValue, push, set, runTransaction, remove, update } 
 const firebaseConfig = {
     apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA",
     authDomain: "assetguard-c8c8c.firebaseapp.com",
-    databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com",
+    databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com/",
     projectId: "assetguard-c8c8c"
 };
 
@@ -294,7 +294,8 @@ window.onload = () => {
 
 async function deepSyncFirebase() {
     const baseURL = "https://assetguard-c8c8c-default-rtdb.firebaseio.com/";
-    const paths = ["sales.json", "users.json"];
+    // Strict user route path targeting only the active user ID
+    const paths = [`users/${currentUID}/sales.json`];
     let consolidatedSales = {}; 
 
     const extract = (data) => {
