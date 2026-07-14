@@ -1,618 +1,876 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AssetGuard Pro - Unified Terminal</title>
-    <!-- Tailwind CSS for modern, responsive UI -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- Dexie.js for offline-first IndexedDB storage -->
-    <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
-    <style>
-        @media print {
-            body * { visibility: hidden; }
-            #receiptModal, #receiptModal * { visibility: visible; }
-            #receiptModal { position: absolute; left: 0; top: 0; width: 100%; }
-            .no-print { display: none !important; }
-        }
-        /* Lock chart container aspects if rendering visual metrics */
-        .chart-axis-locked {
-            pointer-events: none;
-            user-select: none;
-        }
-    </style>
+<meta charset="utf-8">
+<title>AssetGuard Pro - Unified Terminal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+    :root { --primary: #0072CE; --dark: #001A35; --edit: #f59e0b; --light: #f8faff; --locked: #e2e8f0; --error: #ef4444; --success: #22c55e; --bg: #f4f6f9; --danger:#ef4444; --muted:#64748b; --warning: #f59e0b; }
+    body { font-family: 'Poppins', sans-serif; margin: 0; padding: 0; background: var(--bg); color: #1f2937; }
+    .header-nav { position: sticky; top: 0; display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 12px 20px; z-index: 3000; border-bottom: 1px solid #e2e8f0; }
+    .brand { font-weight: 800; font-size: 16px; color: var(--dark); }
+    .brand span { color: var(--primary); }
+    .toggle-view-btn { background: var(--dark); color: white; border: none; padding: 8px 16px; border-radius: 10px; font-weight: 700; font-size: 11px; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
+    .toggle-view-btn:hover { background: var(--primary); }
+    .view-container { display: none; padding: 15px; }
+    .view-container.active { display: block; }
+    .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid #f0f2f5; }
+    #syncStatus { display: none; text-align: center; padding: 8px; border-radius: 10px; margin-bottom: 15px; font-weight: 700; font-size: 11px; text-transform: uppercase; }
+    .status-offline { background: #fee2e2; color: var(--error); border: 1px solid #fecaca; }
+    .status-syncing { background: #fef3c7; color: #d97706; border: 1px solid #fde68a; }
+    h2 { text-align: center; color: var(--dark); margin-bottom: 20px; font-weight: 700; }
+    label { display: block; margin-top: 10px; font-weight: 700; color: var(--dark); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+    input, select { width: 100%; padding: 12px; margin-top: 5px; border: 2px solid #f0f2f5; border-radius: 10px; box-sizing: border-box; background: #f9fbff; transition: 0.3s; font-family: inherit; }
+    .valid-kenya { border-color: var(--success) !important; background: #f0fff4 !important; }
+    .invalid-kenya { border-color: var(--error) !important; background: #fff5f5 !important; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: #fdfeff; padding: 15px; border-radius: 15px; border: 1px solid #edf2f7; margin-bottom: 15px; }
+    .item-picker { background: #fff; padding: 15px; border-radius: 15px; border: 2px solid #f0f2f5; margin-bottom: 20px; position: relative; }
+    .stock-tag { float: right; font-size: 10px; background: #eef4ff; color: var(--primary); padding: 2px 8px; border-radius: 5px; font-weight: bold; }
+    .payment-extra { margin-top: 10px; display: none; flex-direction: column; gap: 8px; }
+    .btn-main { color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 15px; transition: 0.3s; }
+    .btn-main:disabled { background: #cbd5e1 !important; cursor: not-allowed; }
+    .cart-card { background: var(--light); border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-bottom: 15px; border-left: 5px solid var(--primary); position: relative; }
+    .cart-card-header { font-weight: 700; font-size: 16px; color: var(--dark); margin-bottom: 10px; }
+    .cart-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    .info-box { background: #fff; padding: 8px; border-radius: 8px; border: 1px solid #edf2f7; }
+    .info-box span { font-size: 9px; color: #64748b; font-weight: 700; text-transform: uppercase; display: block; }
+    .info-box p { margin: 0; font-size: 12px; font-weight: 600; color: var(--dark); }
+    .math-horizontal-box { background: #fff; padding: 10px; border-radius: 8px; border: 1px solid #edf2f7; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+    .math-item { font-size: 11px; color: #475569; }
+    .math-item b { color: var(--dark); }
+    .math-total-text { font-size: 15px; font-weight: 800; color: var(--primary); }
+    .cart-footer { margin-top: 12px; display: flex; justify-content: flex-end; gap: 8px; }
+    .btn-edit { background: #fef3c7; color: #d97706; border: none; padding: 6px 15px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600; }
+    .btn-del { background: #fee2e2; color: #ef4444; border: none; padding: 6px 15px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600; }
+    .totals-display { background: var(--dark); color: white; padding: 15px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+    .btn-sync { background: linear-gradient(135deg, var(--primary), #00d2ff); color: white; border: none; padding: 18px; border-radius: 12px; font-weight: 700; cursor: pointer; width: 100%; margin-top: 10px; font-size: 16px; }
+    .btn-sync:disabled { background: #94a3b8; cursor: not-allowed; }
+    .filter-section { background: #fff; padding: 12px; border-radius: 14px; margin-bottom: 12px; border: 1px solid #e2e8f0; }
+    .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+    .search-input { width:100%; padding:10px; border-radius:10px; border:1px solid #e2e8f0; font-family: inherit; font-size: 13px; outline: none; box-sizing: border-box; }
+    .stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+    .stat-card { background:#fff; padding:12px; border-radius:14px; border-left:4px solid var(--primary); }
+    .stat-card h4 { margin:0; font-size:10px; text-transform:uppercase; color:var(--muted); }
+    .stat-card p { margin:4px 0 0; font-size: 16px; font-weight:800; }
+    .sale-card { background:#fff; border-radius:16px; border:1px solid #e2e8f0; margin-bottom:10px; overflow:hidden; }
+    .sale-summary { padding:12px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; }
+    .sale-info h3 { margin:0; font-size:14px; color: var(--dark); }
+    .sale-info span { font-size:11px; color:var(--muted); font-weight: 600; }
+    .sale-total { font-weight:800; color: var(--primary); }
+    .sale-body { display:none; padding:10px 12px; border-top:1px solid #f1f5f9; background: #fafafa; }
+    .ledger-row { display:grid; grid-template-columns:30px 1fr 65px 75px 80px; padding:8px 0; font-size:10px; border-bottom: 1px solid #eee; align-items: center; }
+    .sticky-bar { position: fixed; bottom: 8px; left: 10px; right: 10px; background: var(--dark); color: white; padding: 8px 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; z-index: 100; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+    .sticky-bar small { font-size: 8px; opacity: 0.7; text-transform: uppercase; font-weight: 700; display: block; line-height: 1; }
+    .val-group { display: flex; flex-direction: column; }
+    #grand-qty-ledger { font-size: 13px; font-weight: 800; color: #fff; }
+    #grand-total-ledger { font-size: 15px; font-weight: 800; color: var(--primary); }
+    .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); align-items:center; justify-content:center; z-index: 4000; padding: 10px; }
+    .modal-box { background: white; max-width: 650px; width: 100%; border-radius: 20px; overflow: hidden; }
+    .modal-content { background:#fff; width:100%; max-width:420px; border-radius:18px; max-height:90vh; overflow:auto; padding: 20px; box-sizing: border-box; }
+    .edit-block { background: #f8fafc; padding: 10px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #e2e8f0; }
+    .edit-row { display: grid; grid-template-columns: 1fr 50px 60px 70px; gap: 6px; margin-top: 5px; }
+    .edit-row input { padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 11px; width:100%; box-sizing:border-box; }
+    .pin-area { margin: 15px 0; padding: 10px; background: #fff5f5; border-radius: 10px; text-align: center; border: 1px dashed var(--danger); }
+    .pin-input { width: 100px; text-align: center; font-size: 20px; letter-spacing: 4px; padding: 8px; border: 2px solid var(--danger); border-radius: 8px; outline: none; }
+    .btn { border:none; padding:12px; border-radius:10px; font-size:12px; font-weight:600; cursor:pointer; transition: 0.2s; }
+    .btn-dark { background:var(--dark); color:#fff; width: 100%; }
+    .btn-success { background:var(--success); color:#fff; width: 100%; }
+    .btn-del { background:var(--danger); color: #fff; width: 100%; }
+    .credit-tag { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 800; text-transform: uppercase; }
+    .history-item { font-size: 11px; color: #1f2937; padding: 8px 0; border-bottom: 1px dashed #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+    .history-meta { display: flex; flex-direction: column; }
+    .history-meta small { font-size: 9px; color: var(--muted); font-weight: 600; }
+    .diagnostic-panel { background: #fff5f5; border: 1px solid #fecaca; border-radius: 14px; padding: 12px; margin-bottom: 12px; display: none; }
+    .diagnostic-title { font-size: 11px; font-weight: 800; color: var(--error); text-transform: uppercase; display: flex; justify-content: space-between; }
+    .diagnostic-msg { font-size: 11px; margin-top: 5px; color: #7f1d1d; font-family: monospace; line-height: 1.4; }
+</style>
 </head>
-<body class="bg-gray-900 text-gray-100 min-h-screen font-sans antialiased">
+<body>
 
-    <!-- TOP NAVIGATION & STATUS BAR -->
-    <header class="border-b border-gray-800 bg-gray-950 p-4 sticky top-0 z-40 shadow-md">
-        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-3">
-                <div class="h-3 w-3 rounded-full bg-emerald-500 animate-pulse" id="syncIndicator" title="Sync Status"></div>
-                <h1 class="text-xl font-bold tracking-wider text-emerald-400">ASSETGUARD PRO</h1>
-                <span class="text-xs bg-gray-800 px-2.5 py-1 rounded-md border border-gray-700 text-gray-400 font-mono">v3.2-Terminal</span>
-            </div>
-            
-            <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
-                <button onclick="toggleAdminPanel()" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 text-sm font-medium rounded-lg border border-gray-700 transition flex items-center gap-2">
-                    🛡️ Admin Portal
-                </button>
-                <div id="connectionStatus" class="text-xs font-mono bg-emerald-950/50 border border-emerald-800 text-emerald-400 px-3 py-1.5 rounded-lg">
-                    ONLINE VIA SAFARICOM
+<header class="header-nav">
+    <div class="brand">AssetGuard <span>Terminal</span></div>
+    <button class="toggle-view-btn" id="toggle-btn" onclick="toggleMainView()">Sales Ledger</button>
+</header>
+
+<div id="view-terminal" class="view-container active">
+    <div class="container">
+        <div id="syncStatus"></div>
+        <div id="saleSection">
+            <h2>Sales Terminal</h2>
+            <div class="form-grid">
+                <div>
+                    <label>Customer Name</label>
+                    <input type="text" id="customer_name" value="Walk-in Customer" oninput="syncHeaderToCart(); validatePayment();">
                 </div>
-            </div>
-        </div>
-    </header>
-
-    <main class="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
-        
-        <!-- SYSTEM WARNINGS / MESSAGES -->
-        <div id="systemAlert" class="hidden p-4 rounded-xl border font-medium text-sm flex justify-between items-center">
-            <span id="alertMessage"></span>
-            <button onclick="this.parentElement.classList.add('hidden')" class="text-lg font-bold">&times;</button>
-        </div>
-
-        <!-- MAIN TERMINAL INTERFACE -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            <!-- LEFT & CENTER COLUMNS: TRANSACTION GENERATOR & LEDGER -->
-            <div class="lg:col-span-2 space-y-6">
-                
-                <!-- CART & TRANSACTION ENTRY FORM -->
-                <section class="bg-gray-950 border border-gray-800 rounded-xl p-5 shadow-sm">
-                    <h2 class="text-lg font-semibold text-gray-200 mb-4 flex items-center gap-2">
-                        🛒 Active Sales Terminal
-                    </h2>
-                    
-                    <form id="terminalForm" onsubmit="handleTransactionSubmit(event)" class="space-y-4">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Customer / Account Name</label>
-                                <input type="text" id="customerName" required class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-gray-100 focus:outline-none focus:border-emerald-500" placeholder="e.g., JCorp Logistics">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Payment Channel / Reference</label>
-                                <select id="paymentMethod" onchange="togglePaymentReferenceField()" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-gray-100 focus:outline-none focus:border-emerald-500">
-                                    <option value="Cash">Cash Payment</option>
-                                    <option value="M-Pesa">Safaricom M-Pesa Daraja</option>
-                                    <option value="Bank">Bank Wire / Transfer</option>
-                                    <option value="Credit">Store Credit / Outstanding</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div id="referenceWrapper" class="hidden">
-                            <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">M-Pesa Code / Reference ID</label>
-                            <input type="text" id="paymentReference" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-gray-100 focus:outline-none focus:border-emerald-500 uppercase font-mono" placeholder="e.g., RGX489DK01">
-                        </div>
-
-                        <!-- ITEM ENTRY ROW -->
-                        <div class="border-t border-gray-800 pt-4 mt-2">
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
-                                <div class="sm:col-span-1">
-                                    <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Item Description</label>
-                                    <input type="text" id="itemDesc" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-gray-100 focus:outline-none focus:border-emerald-500" placeholder="e.g., Red Oxide - 20L Jerrycan">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Unit Price (KES)</label>
-                                    <input type="number" id="itemPrice" min="0" step="0.01" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-gray-100 focus:outline-none focus:border-emerald-500" placeholder="0.00">
-                                </div>
-                                <div class="flex gap-2">
-                                    <div class="w-full">
-                                        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Qty</label>
-                                        <input type="number" id="itemQty" min="1" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-gray-100 focus:outline-none focus:border-emerald-500" placeholder="1">
-                                    </div>
-                                    <button type="button" onclick="addItemToCart()" class="bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-200 px-4 py-2 rounded-lg font-bold transition">
-                                        +
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- CURRENT CART LIST TABLE -->
-                        <div class="overflow-x-auto border border-gray-800 rounded-lg mt-3 bg-gray-900/50">
-                            <table class="w-full text-left text-xs font-mono">
-                                <thead class="bg-gray-900 text-gray-400 border-b border-gray-800">
-                                    <tr>
-                                        <th class="p-3">Item Description</th>
-                                        <th class="p-3 text-right">Unit Price</th>
-                                        <th class="p-3 text-center">Qty</th>
-                                        <th class="p-3 text-right">Subtotal</th>
-                                        <th class="p-3 text-center">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="cartTableBody">
-                                    <!-- Dynamic rows go here -->
-                                    <tr id="emptyCartRow"><td colspan="5" class="p-4 text-center text-gray-500 italic">No inventory items added to receipt scratchpad.</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <!-- CALCULATION BOX (Ensuring precise row aggregates) -->
-                        <div class="bg-gray-900 p-4 rounded-xl border border-gray-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                            <div>
-                                <span class="text-xs font-semibold text-gray-400 uppercase block tracking-wider">Calculated Order Total</span>
-                                <span class="text-2xl font-black font-mono text-emerald-400">KES <span id="cartRunningTotal">0.00</span></span>
-                            </div>
-                            <button type="submit" class="w-full sm:w-auto px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg shadow-md transition-all uppercase tracking-wide text-xs">
-                                📑 Finalize & Generate Receipt
-                            </button>
-                        </div>
-                    </form>
-                </section>
-
-                <!-- PERSISTED HISTORICAL TRANSACTION LEDGER -->
-                <section class="bg-gray-950 border border-gray-800 rounded-xl p-5 shadow-sm">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-lg font-semibold text-gray-200 flex items-center gap-2">
-                            📂 Local Transaction Ledger
-                        </h2>
-                        <span class="text-xs font-mono bg-gray-900 px-2.5 py-1 rounded border border-gray-800 text-gray-400" id="ledgerCount">0 Entries</span>
+                <div>
+                    <label>Payment Method</label>
+                    <select id="payment_status" onchange="togglePaymentExtra(); syncHeaderToCart();">
+                        <option value="Cash">Cash</option>
+                        <option value="M-Pesa">M-Pesa</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                        <option value="Credit">Credit</option>
+                    </select>
+                    <div id="payment_extra_container" class="payment-extra">
+                        <input type="text" id="mpesa_number" placeholder="M-Pesa Number" oninput="syncHeaderToCart(); validatePayment();">
+                        <input type="text" id="bank_details" placeholder="Bank Reference Code" oninput="syncHeaderToCart(); validatePayment();">
                     </div>
-                    
-                    <div class="overflow-x-auto border border-gray-800 rounded-lg bg-gray-900/30">
-                        <table class="w-full text-left text-xs font-mono">
-                            <thead class="bg-gray-900 text-gray-400 border-b border-gray-800">
-                                <tr>
-                                    <th class="p-3">Invoice / Timestamp</th>
-                                    <th class="p-3">Account / Customer</th>
-                                    <th class="p-3 text-center">Method</th>
-                                    <th class="p-3 text-right">Total Amount</th>
-                                    <th class="p-3 text-center">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="ledgerTableBody">
-                                <!-- Dynamic transactions from Dexie -->
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-            </div>
-
-            <!-- RIGHT COLUMN: REVENUE METRICS & SECURITY CONFIGURATION -->
-            <div class="space-y-6">
-                
-                <!-- METRICS METADATA BLOCK -->
-                <section class="bg-gray-950 border border-gray-800 rounded-xl p-5 shadow-sm">
-                    <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">
-                        📈 Terminal Revenue Metrics
-                    </h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
-                        <div class="bg-gray-900 p-4 rounded-lg border border-gray-800">
-                            <span class="text-xs font-medium text-gray-400 block mb-1">Validated Revenue</span>
-                            <span class="text-xl font-bold font-mono text-emerald-400">KES <span id="metricTotalRevenue">0.00</span></span>
-                        </div>
-                        <div class="bg-gray-900 p-4 rounded-lg border border-gray-800">
-                            <span class="text-xs font-medium text-gray-400 block mb-1">Outstanding Store Credit</span>
-                            <span class="text-xl font-bold font-mono text-amber-500">KES <span id="metricTotalCredit">0.00</span></span>
-                        </div>
-                    </div>
-                    
-                    <!-- Locked Scaling Configuration Grid Example -->
-                    <div class="mt-4 pt-4 border-t border-gray-800 text-[11px] text-gray-500 font-mono flex justify-between chart-axis-locked">
-                        <span>Axis Scaling: [Locked X/Y]</span>
-                        <span>Scope: Current Accounting Cycle</span>
-                    </div>
-                </section>
-
-                <!-- ADMINISTRATION & BACKEND CONFIGURATION -->
-                <section id="adminPortal" class="bg-gray-950 border border-gray-800 rounded-xl p-5 shadow-sm hidden">
-                    <h2 class="text-sm font-semibold text-red-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                        🔒 Secure Control Panel
-                    </h2>
-                    
-                    <div id="adminAuthBlock" class="space-y-3">
-                        <div>
-                            <label class="block text-xs text-gray-400 font-mono mb-1">Enter Master Administration PIN</label>
-                            <input type="password" id="adminPin" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-gray-100 font-mono text-center tracking-widest text-sm focus:outline-none focus:border-red-500" placeholder="••••">
-                        </div>
-                        <button type="button" onclick="verifyAdminAccess()" class="w-full py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 text-xs font-bold rounded-lg transition uppercase">
-                            Verify Access Credentials
-                        </button>
-                    </div>
-
-                    <div id="adminControlsBlock" class="hidden space-y-4">
-                        <div class="p-3 bg-red-950/20 border border-red-900/50 rounded-lg text-xs text-red-400">
-                            Authenticated Configuration Session Active.
-                        </div>
-                        <div class="space-y-2">
-                            <button onclick="purgeLocalLedger()" class="w-full text-left px-3 py-2 bg-red-900/20 hover:bg-red-900/30 border border-red-800/60 rounded-lg text-xs font-mono text-red-300 transition">
-                                ⚠️ Clear Local Terminal Ledger
-                            </button>
-                            <button onclick="forceCloudDeepSync()" class="w-full text-left px-3 py-2 bg-emerald-900/20 hover:bg-emerald-900/30 border border-emerald-800/60 rounded-lg text-xs font-mono text-emerald-300 transition">
-                                🔄 Force Firebase Deep Sync Execution
-                            </button>
-                        </div>
-                    </div>
-                </section>
-            </div>
-        </div>
-    </main>
-
-    <!-- TRANSACTION RECEIPT MODAL FRAME -->
-    <div id="receiptModal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 hidden no-print backdrop-blur-sm">
-        <div class="bg-white text-gray-900 w-full max-w-md rounded-xl shadow-2xl p-6 relative flex flex-col max-h-[90vh]">
-            
-            <!-- MODAL CONTROL ACTIONS (Hidden on Native Print Layouts) -->
-            <div class="flex justify-between items-center border-b border-gray-200 pb-3 mb-4 no-print">
-                <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider font-mono">System Document View</h3>
-                <div class="flex items-center gap-2">
-                    <button onclick="window.print()" class="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs font-bold font-mono text-gray-700 transition" title="Print/Save PDF">🖨️ Print</button>
-                    <button onclick="closeReceiptModal()" class="p-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-xs font-bold font-mono transition">✕ Close</button>
                 </div>
             </div>
 
-            <!-- RAW RECEIPT PRINT DOMAIN -->
-            <div id="printableReceiptContents" class="overflow-y-auto pr-1 flex-1 text-sm font-mono leading-relaxed">
-                <!-- Receipt Header -->
-                <div class="text-center space-y-1 border-b border-dashed border-gray-400 pb-4">
-                    <h4 class="text-xl font-black tracking-tight uppercase">ASSETGUARD PRO TERMINAL</h4>
-                    <p class="text-xs font-bold text-gray-600">Enterprise Asset & Inventory Management</p>
-                    <p class="text-[11px] text-gray-500 font-medium">Nakuru Operational Hub, Kenya</p>
-                    <div class="text-[11px] text-gray-600 font-bold mt-2 pt-1 border-t border-gray-200">
-                        Invoice ID: <span id="rcptInvoiceId">--</span><br>
-                        Timestamp: <span id="rcptTimestamp">--</span>
-                    </div>
+            <div class="item-picker">
+                <span id="stock_display" class="stock-tag">STOCK: --</span>
+                <label>Select Stock Item</label>
+                <select id="product_stock" onchange="updateStockDisplay(); validatePayment();">
+                    <option value="" disabled selected>-- Choose Item --</option>
+                </select>
+                <div style="display: flex; gap: 10px; margin-top: 5px;">
+                    <div style="flex: 2;"><label>Price (Excl. VAT)</label><input type="number" id="price" oninput="validatePayment()"></div>
+                    <div style="flex: 1;"><label>Qty</label><input type="number" id="quantity" value="1" oninput="validatePayment()"></div>
+                    <div style="flex: 1;"><label>VAT %</label><input type="number" id="vat_rate" value="16" oninput="validatePayment()"></div>
                 </div>
-
-                <!-- Receipt Body Context -->
-                <div class="my-4 space-y-1 text-xs">
-                    <p><span class="font-bold text-gray-600">Account Client:</span> <span id="rcptClientName" class="font-black">--</span></p>
-                    <p><span class="font-bold text-gray-600">Payment Engine:</span> <span id="rcptPaymentMethod" class="font-bold uppercase">--</span></p>
-                    <p id="rcptRefRow" class="hidden"><span class="font-bold text-gray-600">System Ref ID:</span> <span id="rcptRefId" class="font-bold text-gray-800">--</span></p>
-                </div>
-
-                <!-- Cart Grid Render -->
-                <table class="w-full text-left text-xs my-4 border-b border-dashed border-gray-400">
-                    <thead>
-                        <tr class="border-b border-gray-300 text-gray-600 font-bold">
-                            <th class="py-1">Description</th>
-                            <th class="py-1 text-center">Qty</th>
-                            <th class="py-1 text-right">Subtotal</th>
-                        </tr>
-                    </thead>
-                    <tbody id="rcptItemsBody">
-                        <!-- Dynamic Receipt Item Rows -->
-                    </tbody>
-                </table>
-
-                <!-- Receipt Aggregate Summary -->
-                <div class="space-y-1 text-right text-xs pr-1 border-b border-dashed border-gray-400 pb-4">
-                    <div><span class="font-bold text-gray-600">Subtotal calculation:</span> KES <span id="rcptSubtotal">0.00</span></div>
-                    <div><span class="font-bold text-gray-600">Tax Matrix (0% Excluded):</span> KES 0.00</div>
-                    <div class="text-sm font-black pt-1 flex justify-end gap-2 text-gray-900">
-                        <span id="rcptTotalLabel">Grand Total:</span> 
-                        <span>KES <span id="rcptGrandTotal">0.00</span></span>
-                    </div>
-                </div>
-
-                <!-- ========================================== -->
-                <!-- SIGNATURES COMPONENT                       -->
-                <!-- Modern, print-optimized dual signature block -->
-                <!-- ========================================== -->
-                <div style="display: flex; justify-content: space-between; margin-top: 35px; padding: 10px 0; page-break-inside: avoid; gap: 30px;">
-                    <div style="flex: 1; text-align: center;">
-                        <div style="border-bottom: 1.2px solid #333; height: 45px; margin-bottom: 6px;"></div>
-                        <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #444; letter-spacing: 0.5px; font-family: monospace;">Customer Sign</span>
-                    </div>
-                    <div style="flex: 1; text-align: center;">
-                        <div style="border-bottom: 1.2px solid #333; height: 45px; margin-bottom: 6px;"></div>
-                        <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #444; letter-spacing: 0.5px; font-family: monospace;">Seller Sign</span>
-                    </div>
-                </div>
-                <!-- ========================================== -->
-
-                <!-- System Document Footer Label -->
-                <div class="text-center text-[10px] text-gray-500 mt-6 pt-4 border-t border-gray-100 italic space-y-1">
-                    <p>Processed via local authenticated secure terminal node.</p>
-                    <p class="font-bold font-mono text-gray-400">Thank you for your valued business partnership.</p>
-                </div>
+                <button class="btn-main" id="addBtn" onclick="addToCart()" style="background:var(--dark);" disabled>Add to Sale</button>
             </div>
 
+            <div id="cart-section"></div>
+
+            <div class="totals-display">
+                <span style="font-size: 11px; opacity: 0.8;">GRAND TOTAL (VAT ADDED)</span>
+                <span id="grand-total-terminal" style="font-size: 22px; font-weight: 700;">KES 0.00</span>
+            </div>
+            <button class="btn-sync" id="processBtn" onclick="processSale()">Confirm Sale & Sync Cloud</button>
         </div>
     </div>
+</div>
 
-    <!-- DATA ARTIFACT ARCHITECTURE & RUNTIME ENGINE -->
-    <script>
-        // Initialize local relational engine via Dexie.js
-        const db = new Dexie("AssetGuardProDB");
-        db.version(1).stores({
-            transactions: 'id, timestamp, customerName, paymentMethod, paymentReference, items, subtotal, totalAmount, syncStatus'
+<div id="view-ledger" class="view-container">
+    <div id="offlineDiagnosticPanel" class="diagnostic-panel">
+        <div class="diagnostic-title">
+            <span>⚠️ Offline Resilience Alert</span>
+            <span id="diagnosticQuotaText">0 KB / 5120 KB</span>
+        </div>
+        <div id="diagnosticLogMessage" class="diagnostic-msg"></div>
+    </div>
+
+    <div class="filter-section">
+        <small style="font-weight:800; color:var(--muted)">DATA FILTERS</small>
+        <div class="filter-grid">
+            <select id="yearFilter" onchange="renderSales()">
+                <option value="all">All Years</option>
+                <option value="2025">2025</option>
+                <option value="2026" selected>2026</option>
+            </select>
+            <select id="monthFilter" onchange="renderSales()">
+                <option value="all" selected>Full Year View</option>
+                <option value="0">January</option><option value="1">February</option><option value="2">March</option>
+                <option value="3">April</option><option value="4">May</option><option value="5">June</option>
+                <option value="6">July</option><option value="7">August</option><option value="8">September</option>
+                <option value="9">October</option><option value="10">November</option><option value="11">December</option>
+            </select>
+        </div>
+    </div>
+    <input class="search-input" placeholder="Search customer or product..." onkeyup="filterSales()" id="searchInput">
+    <div class="stats-grid" style="margin-top: 12px;">
+        <div class="stat-card"><h4>Gross Revenue</h4><p id="stat-gross">KES 0</p></div>
+        <div class="stat-card" style="border-left-color:var(--danger)"><h4>Total VAT (16%)</h4><p id="stat-tax">KES 0</p></div>
+    </div>
+    <div id="sales-container"></div>
+    <div class="sticky-bar">
+        <div class="val-group"><small>Qty</small><div id="grand-qty-ledger">0</div></div>
+        <div class="val-group" style="text-align: right;"><small>Grand Total (Inc. VAT)</small><div id="grand-total-ledger">KES 0.00</div></div>
+    </div>
+</div>
+
+<div id="receiptModal" class="modal">
+    <div class="modal-box">
+        <div id="receipt-area" style="padding:0px; background:#fff; font-family:'Plus Jakarta Sans', sans-serif; color:#000; overflow: auto; max-height: 70vh;"></div>
+        <div style="padding:20px; background:#f8fafc; border-top: 1px solid #e2e8f0; display:flex; flex-direction: column; gap:10px;">
+            <div style="display:flex; gap:10px;">
+                <button class="btn-main" style="background:var(--primary); margin:0; flex:1;" onclick="shareReceipt()">Download PDF</button>
+                <button class="btn-main" style="background:#25D366; margin:0; flex:1;" onclick="nativeShare()">Share Receipt</button>
+            </div>
+            <button class="btn-main" style="background:var(--muted); margin:0;" onclick="closeReceipt()">Close</button>
+        </div>
+    </div>
+</div>
+
+<div id="manageModal" class="modal">
+    <div class="modal-content">
+        <h3 style="margin:0 0 15px 0; font-size: 16px;">Update Transaction</h3>
+        
+        <div id="credit-payment-block" style="display:none; background:#f0f7ff; padding:15px; border-radius:12px; margin-bottom:15px; border:1px solid #d0e1fd;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                <span style="font-size:10px; font-weight:800; color:var(--primary);">CREDIT BALANCE</span>
+                <b id="credit-bal-text" style="color:var(--dark);">KES 0.00</b>
+            </div>
+            <div id="payment-history-list" style="max-height:120px; overflow:auto; margin-bottom:10px; background:white; padding:8px; border-radius:6px; border:1px solid #e2e8f0;"></div>
+            <div style="display:grid; grid-template-columns: 1fr 80px; gap:8px;">
+                <input type="number" id="manual-pay-amt" placeholder="Amount to Pay" style="background:white; border-color:var(--primary); padding:8px; font-size:12px;">
+                <button id="btn-add-payment" class="btn btn-dark" style="padding:8px; font-size:10px;">ADD PAY</button>
+            </div>
+        </div>
+
+        <label style="font-size:10px;font-weight:800; color: var(--muted)">CUSTOMER NAME</label>
+        <input type="text" id="edit-cust-name" class="search-input" style="margin-bottom: 10px;">
+        <label style="font-size:10px;font-weight:800; color: var(--muted)">PAYMENT REFERENCE</label>
+        <input type="text" id="edit-pay-ref" class="search-input" style="margin-bottom: 15px;">
+        <div id="edit-items-container"></div>
+        <div class="pin-area">
+            <small style="display:block; margin-bottom:5px; font-weight:800; color:var(--danger)">ADMIN PIN REQUIRED</small>
+            <input type="password" id="authPin" class="pin-input" maxlength="4" placeholder="****">
+        </div>
+        <div style="display:flex; flex-direction: column; gap: 8px;">
+            <button id="btn-save-changes" class="btn btn-success">Update Record</button>
+            <button id="btn-del-mode" class="btn btn-del">Delete Transaction</button>
+            <button onclick="closeModal()" class="btn btn-dark" style="background: var(--muted)">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getDatabase, ref, onValue, push, set, runTransaction, remove, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA",
+    authDomain: "assetguard-c8c8c.firebaseapp.com",
+    databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com",
+    projectId: "assetguard-c8c8c"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const ADMIN_PASS = "1234";
+
+let currentUID = localStorage.getItem("ag_active_uid");
+if (!currentUID || currentUID === "null") {
+    currentUID = "global_terminal_user";
+    localStorage.setItem("ag_active_uid", currentUID);
+}
+
+const inventoryPath = `users/${currentUID}/inventory`;
+const salesPath = `users/${currentUID}/sales`;
+
+let cart = [];
+let editIndex = -1;
+
+let firebaseInventory = JSON.parse(localStorage.getItem(`ag_stock_cache_${currentUID}`)) || {};
+let syncQueue = JSON.parse(localStorage.getItem(`ag_sales_queue_${currentUID}`)) || [];
+let rawLedgerData = JSON.parse(localStorage.getItem(`ag_ledger_cache_${currentUID}`)) || {}; 
+let openLedgerCard = null;
+let currentActiveLedgerId = null;
+
+const runtimeActiveLedgerSalesMap = new Map();
+
+const pdfOptions = {
+    margin: [10, 5, 10, 5],
+    filename: `JCorp_Official_Receipt_${Date.now()}.pdf`,
+    image: { type: 'jpeg', quality: 1.0 },
+    html2canvas: { scale: 4, useCORS: true, letterRendering: true, scrollX: 0, scrollY: 0 },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', precision: 16 }
+};
+
+window.toggleMainView = () => {
+    const term = document.getElementById('view-terminal');
+    const ledg = document.getElementById('view-ledger');
+    const btn = document.getElementById('toggle-btn');
+    if(term.classList.contains('active')) {
+        term.classList.remove('active'); ledg.classList.add('active');
+        btn.innerText = "Back to Terminal"; renderSales();
+    } else {
+        ledg.classList.remove('active'); term.classList.add('active');
+        btn.innerText = "Sales Ledger";
+    }
+};
+
+window.onload = () => {
+    populateDropdown();
+    updateStatusUI();
+    renderSales(); 
+    deepSyncFirebase();
+    if (navigator.onLine) attemptSync();
+};
+
+async function deepSyncFirebase() {
+    const baseURL = "https://assetguard-c8c8c-default-rtdb.firebaseio.com/";
+    const paths = ["sales.json", "users.json"];
+    let consolidatedSales = {}; 
+
+    const extract = (data) => {
+        if (!data || typeof data !== 'object') return;
+        Object.keys(data).forEach(key => {
+            const entry = data[key];
+            if (entry && entry.items && entry.timestamp && entry.saleId) {
+                consolidatedSales[entry.saleId] = entry; 
+            } else if (typeof entry === 'object') {
+                extract(entry);
+            }
         });
+    };
 
-        // Application state structures
-        let activeCart = [];
-        const MASTER_ADMIN_PIN = "1994"; // System Admin Validation Lock
+    try {
+        for (const path of paths) {
+            const res = await fetch(baseURL + path);
+            const data = await res.json();
+            extract(data);
+        }
+        if(Object.keys(consolidatedSales).length > 0) {
+            rawLedgerData = consolidatedSales;
+            localStorage.setItem(`ag_ledger_cache_${currentUID}`, JSON.stringify(rawLedgerData));
+            renderSales();
+        }
+    } catch (e) { console.error("Deep Sync Failed", e); }
+}
 
-        // System Startup Initialization Execution
-        window.addEventListener('DOMContentLoaded', async () => {
-            await renderLedgerFromStorage();
-            togglePaymentReferenceField();
-        });
+onValue(ref(db, inventoryPath), snap => {
+    firebaseInventory = snap.val() || {};
+    localStorage.setItem(`ag_stock_cache_${currentUID}`, JSON.stringify(firebaseInventory));
+    populateDropdown();
+});
 
-        function togglePaymentReferenceField() {
-            const method = document.getElementById('paymentMethod').value;
-            const target = document.getElementById('referenceWrapper');
-            if (method === 'M-Pesa' || method === 'Bank') {
-                target.classList.remove('hidden');
-                document.getElementById('paymentReference').setAttribute('required', 'required');
+onValue(ref(db, salesPath), snapshot => {
+    const snapVal = snapshot.val();
+    if (snapVal) {
+        rawLedgerData = { ...rawLedgerData, ...snapVal };
+        localStorage.setItem(`ag_ledger_cache_${currentUID}`, JSON.stringify(rawLedgerData));
+        renderSales();
+    }
+});
+
+function populateDropdown() {
+    const ps = document.getElementById('product_stock');
+    if(!ps) return;
+    ps.innerHTML = '<option value="" disabled selected>-- Choose Item --</option>';
+    Object.keys(firebaseInventory).forEach(k => {
+        let o = document.createElement('option');
+        o.value = k; o.innerText = firebaseInventory[k].name;
+        ps.appendChild(o);
+    });
+}
+
+window.updateStockDisplay = () => {
+    const k = document.getElementById('product_stock').value;
+    if(k && firebaseInventory[k]) {
+        document.getElementById('stock_display').innerText = `STOCK: ${firebaseInventory[k].qty}`;
+        document.getElementById('price').value = firebaseInventory[k].salePrice;
+    }
+};
+
+window.validatePayment = () => {
+    const method = document.getElementById('payment_status').value;
+    const mpesa = document.getElementById('mpesa_number');
+    const bank = document.getElementById('bank_details');
+    const product = document.getElementById('product_stock').value;
+    const qtyInput = document.getElementById('quantity');
+    const priceInput = document.getElementById('price');
+    
+    if(qtyInput.value !== "" && parseFloat(qtyInput.value) <= 0) qtyInput.value = 1;
+
+    const qty = parseFloat(qtyInput.value);
+    const price = parseFloat(priceInput.value);
+
+    let paymentOk = true;
+    if (method === 'M-Pesa') {
+        paymentOk = /^(07|01)\d{8}$/.test(mpesa.value) || /^\+254\d{9}$/.test(mpesa.value);
+        mpesa.className = mpesa.value === "" ? "" : (paymentOk ? 'valid-kenya' : 'invalid-kenya');
+    } else if (method === 'Bank Transfer') {
+        paymentOk = bank.value.length >= 5;
+        bank.className = bank.value === "" ? "" : (paymentOk ? 'valid-kenya' : 'invalid-kenya');
+    }
+    
+    document.getElementById('addBtn').disabled = !(paymentOk && product && qty > 0 && price > 0);
+};
+
+window.togglePaymentExtra = () => {
+    const m = document.getElementById('payment_status').value;
+    const container = document.getElementById('payment_extra_container');
+    container.style.display = (m === 'M-Pesa' || m === 'Bank Transfer') ? 'flex' : 'none';
+    document.getElementById('mpesa_number').style.display = (m === 'M-Pesa') ? 'block' : 'none';
+    document.getElementById('bank_details').style.display = (m === 'Bank Transfer') ? 'block' : 'none';
+};
+
+function lockInputs(l) { 
+    ['customer_name', 'payment_status', 'mpesa_number', 'bank_details'].forEach(id => {
+        document.getElementById(id).disabled = l;
+    });
+}
+
+window.syncHeaderToCart = () => {
+    const name = document.getElementById('customer_name').value;
+    const method = document.getElementById('payment_status').value;
+    const mpesa = document.getElementById('mpesa_number').value;
+    const bank = document.getElementById('bank_details').value;
+    if(cart.length > 0) {
+        cart = cart.map(item => ({ ...item, customer: name, payment: method, mpesa: mpesa, bank: bank }));
+        updateCartUI();
+    }
+};
+
+window.addToCart = () => {
+    const k = document.getElementById('product_stock').value;
+    const qty = parseFloat(document.getElementById('quantity').value);
+    const prc = parseFloat(document.getElementById('price').value);
+    const vRate = parseFloat(document.getElementById('vat_rate').value);
+
+    if(qty <= 0 || isNaN(qty)) return alert("Quantity must be a positive number.");
+
+    const sub = prc * qty;
+    const vAmt = sub * (vRate / 100);
+
+    const newItem = {
+        dbKey: k, product: firebaseInventory[k].name, price: prc, quantity: qty,
+        vatRate: vRate, vatAmount: vAmt.toFixed(2), total: (sub + vAmt).toFixed(2),
+        customer: document.getElementById('customer_name').value,
+        payment: document.getElementById('payment_status').value,
+        mpesa: document.getElementById('mpesa_number').value || "",
+        bank: document.getElementById('bank_details').value || ""
+    };
+
+    if(editIndex > -1) { cart[editIndex] = newItem; editIndex = -1; document.getElementById('addBtn').innerText = "Add to Sale"; }
+    else { cart.push(newItem); }
+    
+    syncHeaderToCart(); lockInputs(true); resetItemFields();
+};
+
+function resetItemFields() {
+    document.getElementById('product_stock').value = "";
+    document.getElementById('stock_display').innerText = "STOCK: --";
+    document.getElementById('price').value = "";
+    document.getElementById('quantity').value = "1";
+    document.getElementById('addBtn').disabled = true;
+}
+
+function updateCartUI() {
+    const section = document.getElementById('cart-section');
+    section.innerHTML = "";
+    let grand = 0;
+    cart.forEach((item, i) => {
+        grand += parseFloat(item.total);
+        const refText = (item.payment === 'M-Pesa') ? item.mpesa : (item.payment === 'Bank Transfer' ? item.bank : "-");
+        section.innerHTML += `
+            <div class="cart-card">
+                <div class="cart-card-header">${item.product}</div>
+                <div class="cart-info-grid">
+                    <div class="info-box"><span>Customer</span><p>${item.customer}</p></div>
+                    <div class="info-box"><span>${item.payment} Ref</span><p>${refText}</p></div>
+                </div>
+                <div class="math-horizontal-box">
+                    <div class="math-item">Price: <b>${item.price}</b></div>
+                    <div class="math-item">Qty: <b>${item.quantity}</b></div>
+                    <div class="math-item">VAT: <b>${item.vatAmount}</b></div>
+                    <div class="math-total-text">KES ${parseFloat(item.total).toLocaleString()}</div>
+                </div>
+                <div class="cart-footer">
+                    <button class="btn-edit" onclick="editCart(${i})">Edit</button>
+                    <button class="btn-del" onclick="removeCart(${i})">Remove</button>
+                </div>
+            </div>`;
+    });
+    document.getElementById('grand-total-terminal').innerText = "KES " + grand.toLocaleString();
+}
+
+window.editCart = (i) => {
+    editIndex = i; lockInputs(false);
+    const itm = cart[i];
+    document.getElementById('customer_name').value = itm.customer;
+    document.getElementById('payment_status').value = itm.payment;
+    togglePaymentExtra();
+    document.getElementById('mpesa_number').value = itm.mpesa;
+    document.getElementById('bank_details').value = itm.bank;
+    document.getElementById('product_stock').value = itm.dbKey;
+    document.getElementById('price').value = itm.price;
+    document.getElementById('quantity').value = itm.quantity;
+    document.getElementById('addBtn').innerText = "Update Item";
+    document.getElementById('addBtn').disabled = false;
+};
+
+window.removeCart = (i) => { cart.splice(i, 1); if(!cart.length) lockInputs(false); updateCartUI(); };
+
+window.processSale = () => {
+    if(!cart.length) return;
+    
+    const btn = document.getElementById('processBtn');
+    btn.disabled = true;
+    btn.innerText = "Processing...";
+
+    const uniqueSaleId = "SALE-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
+
+    const trans = {
+        saleId: uniqueSaleId,
+        customer: cart[0].customer,
+        payment: cart[0].payment,
+        mpesa: cart[0].mpesa || "",
+        bank: cart[0].bank || "",
+        timestamp: new Date().toISOString(),
+        items: cart,
+        payments: [] 
+    };
+    
+    syncQueue.push(trans);
+    localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
+    openReceiptSummary([...cart]);
+    resetFullForm();
+    attemptSync();
+};
+
+function resetFullForm() {
+    cart = []; 
+    editIndex = -1; 
+    updateCartUI();
+    document.getElementById('customer_name').value = "Walk-in Customer";
+    document.getElementById('payment_status').value = "Cash";
+    document.getElementById('mpesa_number').value = "";
+    document.getElementById('bank_details').value = "";
+    togglePaymentExtra(); 
+    lockInputs(false); 
+    resetItemFields();
+    
+    const btn = document.getElementById('processBtn');
+    btn.disabled = false;
+    btn.innerText = "Confirm Sale & Sync Cloud";
+}
+
+async function attemptSync() {
+    if(!navigator.onLine || syncQueue.length === 0) return;
+    let tempQueue = [...syncQueue];
+    for(let i = 0; i < tempQueue.length; i++) {
+        const trans = { ...tempQueue[i] };
+        const sID = trans.saleId;
+        try {
+            if (trans.isDeleteOnly) {
+                await remove(ref(db, `${salesPath}/${sID}`));
+            } else if (trans.isUpdateOnly) {
+                delete trans.isUpdateOnly;
+                await update(ref(db, `${salesPath}/${sID}`), trans);
             } else {
-                target.classList.add('hidden');
-                document.getElementById('paymentReference').removeAttribute('required');
-            }
-        }
-
-        function addItemToCart() {
-            const desc = document.getElementById('itemDesc').value.trim();
-            const price = parseFloat(document.getElementById('itemPrice').value);
-            const qty = parseInt(document.getElementById('itemQty').value);
-
-            if (!desc || isNaN(price) || isNaN(qty) || price < 0 || qty < 1) {
-                showSystemAlert("Please provide valid item description parameters.", "bg-amber-950/40 border-amber-800 text-amber-400");
-                return;
-            }
-
-            const subtotal = price * qty;
-            activeCart.push({ id: Date.now() + Math.random(), desc, price, qty, subtotal });
-            
-            // Wipe scratchpad items view inputs
-            document.getElementById('itemDesc').value = '';
-            document.getElementById('itemPrice').value = '';
-            document.getElementById('itemQty').value = '1';
-
-            refreshCartUI();
-        }
-
-        function removeItemFromCart(id) {
-            activeCart = activeCart.filter(item => item.id !== id);
-            refreshCartUI();
-        }
-
-        function refreshCartUI() {
-            const tbody = document.getElementById('cartTableBody');
-            const runningTotalDisplay = document.getElementById('cartRunningTotal');
-            
-            tbody.innerHTML = '';
-            
-            if (activeCart.length === 0) {
-                tbody.appendChild(document.getElementById('emptyCartRow') || createEmptyRowPlaceholder());
-                runningTotalDisplay.innerText = "0.00";
-                return;
-            }
-
-            let computedAccumulator = 0;
-            activeCart.forEach(item => {
-                computedAccumulator += item.subtotal;
-                const row = document.createElement('tr');
-                row.className = "border-b border-gray-800 hover:bg-gray-900/60 transition";
-                row.innerHTML = `
-                    <td class="p-3 font-medium text-gray-300">${item.desc}</td>
-                    <td class="p-3 text-right font-mono text-gray-400">${item.price.toFixed(2)}</td>
-                    <td class="p-3 text-center font-mono font-bold">${item.qty}</td>
-                    <td class="p-3 text-right font-mono font-bold text-gray-200">${item.subtotal.toFixed(2)}</td>
-                    <td class="p-3 text-center">
-                        <button type="button" onclick="removeItemFromCart(${item.id})" class="text-red-400 hover:text-red-300 font-bold px-2 py-0.5 rounded transition">✕</button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-
-            // Set aggregate calculations exactly from current row instances
-            runningTotalDisplay.innerText = computedAccumulator.toFixed(2);
-        }
-
-        function createEmptyRowPlaceholder() {
-            const tr = document.createElement('tr');
-            tr.id = "emptyCartRow";
-            tr.innerHTML = `<td colspan="5" class="p-4 text-center text-gray-500 italic">No inventory items added to receipt scratchpad.</td>`;
-            return tr;
-        }
-
-        async function handleTransactionSubmit(e) {
-            e.preventDefault();
-
-            if (activeCart.length === 0) {
-                showSystemAlert("The terminal scratchpad cart is completely empty. Cannot process empty ledger logs.", "bg-red-950/40 border-red-800 text-red-400");
-                return;
-            }
-
-            const customerName = document.getElementById('customerName').value.trim();
-            const paymentMethod = document.getElementById('paymentMethod').value;
-            const paymentReference = document.getElementById('paymentReference').value.trim();
-
-            let targetCalculatedAggregate = 0;
-            activeCart.forEach(i => targetCalculatedAggregate += i.subtotal);
-
-            const transactionRecord = {
-                id: "AGP-" + Math.floor(100000 + Math.random() * 900000),
-                timestamp: new Date().toISOString(),
-                customerName,
-                paymentMethod,
-                paymentReference: (paymentMethod === 'M-Pesa' || paymentMethod === 'Bank') ? paymentReference : 'N/A',
-                items: JSON.parse(JSON.stringify(activeCart)),
-                subtotal: targetCalculatedAggregate,
-                totalAmount: targetCalculatedAggregate,
-                syncStatus: 'pending'
-            };
-
-            // Write transactional entry to Dexie IndexedDB
-            await db.transactions.add(transactionRecord);
-            
-            // Reset fields
-            activeCart = [];
-            document.getElementById('customerName').value = '';
-            document.getElementById('paymentReference').value = '';
-            refreshCartUI();
-            
-            await renderLedgerFromStorage();
-            triggerBackgroundFirebaseSyncStub(transactionRecord);
-            launchReceiptModal(transactionRecord);
-        }
-
-        async function renderLedgerFromStorage() {
-            const transactions = await db.transactions.orderBy('timestamp').reverse().toArray();
-            const tbody = document.getElementById('ledgerTableBody');
-            tbody.innerHTML = '';
-
-            document.getElementById('ledgerCount').innerText = `${transactions.length} Entries`;
-
-            let cumulativeRevenue = 0;
-            let cumulativeOutstandingCredit = 0;
-
-            if (transactions.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-500 italic">No transactional records verified in this local terminal partition.</td></tr>`;
-                document.getElementById('metricTotalRevenue').innerText = "0.00";
-                document.getElementById('metricTotalCredit').innerText = "0.00";
-                return;
-            }
-
-            transactions.forEach(tx => {
-                if (tx.paymentMethod === 'Credit') {
-                    cumulativeOutstandingCredit += tx.totalAmount;
-                } else {
-                    cumulativeRevenue += tx.totalAmount;
+                for (let itm of trans.items) {
+                    await runTransaction(ref(db, `${inventoryPath}/${itm.dbKey}/qty`), q => (q || 0) - itm.quantity);
                 }
+                await set(ref(db, `${salesPath}/${sID}`), trans); 
+            }
+            syncQueue.shift();
+            localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
+        } catch (e) { break; }
+    }
+    updateStatusUI();
+}
 
-                // Explicit requirement: Credit must show 'Credit' and not 'Paid'
-                const methodBadgeClass = tx.paymentMethod === 'Credit' 
-                    ? 'bg-amber-950/60 text-amber-400 border-amber-800/80' 
-                    : 'bg-emerald-950/60 text-emerald-400 border-emerald-800/80';
+function updateStatusUI() {
+    const banner = document.getElementById('syncStatus');
+    if (!banner) return;
+    if (!navigator.onLine) { banner.innerText = "Offline Mode"; banner.className = "status-offline"; banner.style.display = "block"; }
+    else if (syncQueue.length > 0) { banner.innerText = "Syncing..."; banner.className = "status-syncing"; banner.style.display = "block"; }
+    else banner.style.display = "none";
+}
 
-                const displayMethodText = tx.paymentMethod === 'Credit' ? 'CREDIT' : tx.paymentMethod;
+window.openReceiptSummary = (items) => {
+    generateReceiptContent(items[0].customer, items[0].payment, items[0].mpesa || items[0].bank || "", items, new Date().toISOString());
+    document.getElementById('receiptModal').style.display = 'flex';
+};
 
-                const row = document.createElement('tr');
-                row.className = "border-b border-gray-800 hover:bg-gray-900/40 transition text-gray-300";
-                row.innerHTML = `
-                    <td class="p-3 font-mono">
-                        <span class="block text-gray-100 font-bold">${tx.id}</span>
-                        <span class="text-[10px] text-gray-500">${new Date(tx.timestamp).toLocaleString()}</span>
-                    </td>
-                    <td class="p-3 font-bold text-gray-200">${tx.customerName}</td>
-                    <td class="p-3 text-center">
-                        <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${methodBadgeClass}">${displayMethodText}</span>
-                    </td>
-                    <td class="p-3 text-right font-mono font-bold text-gray-100">${tx.totalAmount.toFixed(2)}</td>
-                    <td class="p-3 text-center">
-                        <button onclick='viewHistoricalReceipt(${JSON.stringify(tx)})' class="px-2.5 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded border border-gray-700 transition font-bold">👁️ View</button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
+window.reprintReceipt = (id) => {
+    const sale = runtimeActiveLedgerSalesMap.get(id);
+    if (!sale) return;
+    generateReceiptContent(sale.customer, sale.payment, sale.mpesa || sale.bank || "", sale.items, sale.timestamp, sale.payments);
+    document.getElementById('receiptModal').style.display = 'flex';
+};
 
-            // Render exact cumulative metrics calculated directly from records loop
-            document.getElementById('metricTotalRevenue').innerText = cumulativeRevenue.toFixed(2);
-            document.getElementById('metricTotalCredit').innerText = cumulativeOutstandingCredit.toFixed(2);
+function generateReceiptContent(customer, payment, reference, items, timestamp, partialPayments = []) {
+    const dateObj = new Date(timestamp);
+    const dateStr = dateObj.toLocaleDateString();
+    const timeStr = dateObj.toLocaleTimeString();
+    let subTotal = 0;
+    let totalTax = 0;
+    
+    let tableRows = items.map(s => {
+        const lineSub = parseFloat(s.price) * parseFloat(s.quantity);
+        subTotal += lineSub;
+        totalTax += parseFloat(s.vatAmount);
+        return `<tr style="border-bottom: 1px solid #f1f5f9;">
+            <td style="padding:12px 0; font-size:11px;">${s.product}</td>
+            <td style="text-align:center; font-size:11px;">${s.quantity}</td>
+            <td style="text-align:center; font-size:11px;">${parseFloat(s.price).toLocaleString()}</td>
+            <td style="text-align:center; font-size:11px;">${s.vatRate}%</td>
+            <td style="text-align:right; font-size:11px; font-weight:700;">${parseFloat(s.total).toLocaleString()}</td>
+        </tr>`;
+    }).join('');
+
+    const grandTotal = subTotal + totalTax;
+    const paidSoFar = (partialPayments || []).reduce((acc, p) => acc + parseFloat(p.amount), 0);
+    const balance = grandTotal - paidSoFar;
+
+    const isCredit = (payment === "Credit");
+    let statusText = isCredit ? "CREDIT" : "PAID";
+    if(isCredit && balance <= 0) statusText = "PAID (CREDIT SETTLED)";
+    const statusColor = (isCredit && balance > 0) ? "#f59e0b" : "#22c55e";
+
+    let paymentHistoryRows = "";
+    if (isCredit && partialPayments && partialPayments.length > 0) {
+        paymentHistoryRows = partialPayments.map(p => {
+            const pDate = new Date(p.date);
+            return `
+            <div style="display:flex; justify-content:space-between; padding:4px 0; font-size:10px; border-bottom:1px dashed #e2e8f0;">
+                <span style="color:#64748b;">${pDate.toLocaleDateString()} ${pDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                <b style="color:#22c55e;">KES ${parseFloat(p.amount).toLocaleString()}</b>
+            </div>`;
+        }).join('');
+    }
+
+    document.getElementById('receipt-area').innerHTML = `
+        <div id="receipt-content" style="background:#ffffff; color:#000000; padding:30px; border: 1px solid #f0f2f5; min-height: 280mm; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:30px;">
+                    <div>
+                        <b style="font-size:24px; color:#0072CE;">JCorp Ltd</b><br>
+                        <small style="color:#0072CE; font-size:10px; font-weight:700; text-transform:uppercase;">Industrial Solutions & Automotive Coatings</small>
+                    </div>
+                    <div style="text-align:right; font-size:10px; line-height:1.6; color:#64748b;">
+                        INVOICE NO: <b>${timestamp.split('-').pop().substring(0,8).toUpperCase()}</b><br>
+                        DATE: <b>${dateStr}</b><br>
+                        TIME: <b>${timeStr}</b>
+                    </div>
+                </div>
+
+                <div style="background:#f1f5f9; padding:12px 20px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+                    <b style="font-size:13px; text-transform:uppercase; letter-spacing:1px; color:#001A35;">OFFICIAL SALES RECEIPT</b>
+                    <b style="color:${statusColor}; font-size:13px;">${statusText}</b>
+                </div>
+
+                <div style="margin-bottom:25px;">
+                    <small style="font-size:9px; font-weight:800; color:#94a3b8; text-transform:uppercase;">Customer Details</small><br>
+                    <b style="font-size:13px; color:#001A35;">${customer}</b><br>
+                    <span style="font-size:10px; color:#64748b;">Payment Method: ${payment} ${reference}</span>
+                </div>
+
+                <table style="width:100%; border-collapse:collapse; margin-bottom:30px;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #0072CE; text-align:left; color:#94a3b8; font-size:9px; text-transform:uppercase; font-weight:800;">
+                            <th style="padding:10px 0;">Description</th>
+                            <th style="text-align:center;">Qty</th>
+                            <th style="text-align:center;">Unit Price</th>
+                            <th style="text-align:center;">Vat</th>
+                            <th style="text-align:right;">Total (KES)</th>
+                        </tr>
+                    </thead>
+                    <tbody>${tableRows}</tbody>
+                </table>
+
+                <div style="display:flex; justify-content:flex-end;">
+                    <div style="width:250px; text-align:right;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:11px;">
+                            <span style="color:#64748b;">Invoice Total</span>
+                            <b>${grandTotal.toLocaleString()}</b>
+                        </div>
+                        ${isCredit && paymentHistoryRows ? `
+                            <div style="text-align:left; margin:10px 0; border:1px solid #e2e8f0; border-radius:6px; padding:8px; background:#fafafa;">
+                                <small style="font-size:8px; font-weight:800; color:#64748b; text-transform:uppercase; display:block; margin-bottom:5px;">Transaction History</small>
+                                ${paymentHistoryRows}
+                            </div>
+                        ` : ''}
+                        ${isCredit ? `
+                            <div style="border-top:2px solid #0072CE; padding-top:12px; display:flex; justify-content:space-between; align-items:center;">
+                                <b style="color:#ef4444; font-size:14px;">Balance Due</b>
+                                <b style="color:#ef4444; font-size:18px;">KES ${balance.toLocaleString()}</b>
+                            </div>
+                        ` : `
+                            <div style="border-top:2px solid #0072CE; padding-top:12px; display:flex; justify-content:space-between; align-items:center;">
+                                <b style="color:#0072CE; font-size:14px;">Amount Paid</b>
+                                <b style="color:#0072CE; font-size:18px;">KES ${grandTotal.toLocaleString()}</b>
+                            </div>
+                        `}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Two Signatures Area Section -->
+            <div style="display:flex; justify-content:space-between; margin-top:60px; padding-top:20px;">
+                <div style="width:220px; text-align:left;">
+                    <div style="border-bottom:1px solid #000000; width:100%; height:35px;"></div>
+                    <small style="font-size:10px; font-weight:800; color:#64748b; text-transform:uppercase; display:block; margin-top:5px; letter-spacing:0.5px;">${isCredit ? 'Creditor Signature' : 'Customer Signature'}</small>
+                </div>
+                <div style="width:220px; text-align:left;">
+                    <div style="border-bottom:1px solid #000000; width:100%; height:35px;"></div>
+                    <small style="font-size:10px; font-weight:800; color:#64748b; text-transform:uppercase; display:block; margin-top:5px; letter-spacing:0.5px;">Authorized Seller</small>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+window.closeReceipt = () => document.getElementById('receiptModal').style.display = 'none';
+window.shareReceipt = () => { const element = document.getElementById('receipt-area'); html2pdf().set(pdfOptions).from(element).save(); };
+
+window.nativeShare = async () => {
+    const element = document.getElementById('receipt-area');
+    try {
+        const pdfBlob = await html2pdf().set(pdfOptions).from(element).outputPdf('blob');
+        const file = new File([pdfBlob], `JCorp_Receipt.pdf`, { type: 'application/pdf' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({ files: [file], title: 'JCorp Official Receipt', text: `Official transaction receipt from JCorp Ltd.` });
+        } else {
+            window.shareReceipt();
         }
+    } catch (err) {
+        window.shareReceipt();
+    }
+};
 
-        function viewHistoricalReceipt(txRecord) {
-            launchReceiptModal(txRecord);
-        }
+window.renderSales = () => {
+    const container = document.getElementById('sales-container');
+    if (!container) return;
+    const selectedMonth = document.getElementById('monthFilter').value;
+    const selectedYear = document.getElementById('yearFilter').value;
+    container.innerHTML = "";
+    runtimeActiveLedgerSalesMap.clear();
+    
+    let gQty=0, gTotal=0, gTax=0;
+    const allSales = Object.keys(rawLedgerData).map(k => ({ id: k, ...rawLedgerData[k] }))
+                     .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+                     
+    if(allSales.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--muted); font-weight:600;">No sales history found.</div>`;
+    }
 
-        function launchReceiptModal(tx) {
-            document.getElementById('rcptInvoiceId').innerText = tx.id;
-            document.getElementById('rcptTimestamp').innerText = new Date(tx.timestamp).toLocaleString();
-            document.getElementById('rcptClientName').innerText = tx.customerName;
+    allSales.forEach(s => {
+        if (!s.timestamp || !s.items) return;
+        const date = new Date(s.timestamp);
+        if (selectedYear !== "all" && date.getFullYear().toString() !== selectedYear) return;
+        if (selectedMonth !== "all" && date.getMonth().toString() !== selectedMonth) return;
+        
+        let saleTotal = 0, saleQty = 0, saleTax = 0;
+        const rows = s.items.map(i => {
+            saleTotal += parseFloat(i.total || 0); saleQty += parseFloat(i.quantity || 0); saleTax += parseFloat(i.vatAmount || 0);
+            return `<div class="ledger-row"><div><b>${i.quantity}</b></div><div style="padding-right: 4px;">${i.product}</div><div style="color:var(--muted)">@${i.price}</div><div style="color:var(--danger); font-size:9px;">V:${i.vatRate}%</div><div style="text-align:right; font-weight: 800;">KES ${parseFloat(i.total).toLocaleString()}</div></div>`;
+        }).join('');
+        
+        const isCredit = (s.payment === "Credit");
+        const paidSoFar = (s.payments || []).reduce((acc, p) => acc + parseFloat(p.amount || 0), 0);
+        const bal = saleTotal - paidSoFar;
+        
+        gQty += saleQty; gTotal += saleTotal; gTax += saleTax;
+        
+        container.insertAdjacentHTML('beforeend', `
+            <div class="sale-card">
+                <div class="sale-summary" onclick="toggleLedgerCard('${s.id}')">
+                    <div class="sale-info">
+                        <h3>${s.customer} ${isCredit ? `<span class="credit-tag">Credit ${bal > 0 ? '(Pending)' : '(Settled)'}</span>` : ''}</h3>
+                        <span>${date.toLocaleDateString()}</span>
+                    </div>
+                    <div class="sale-total">KES ${saleTotal.toLocaleString()}</div>
+                </div>
+                <div class="sale-body" id="body-${s.id}">
+                    <div style="font-size: 10px; color: var(--muted); margin-bottom: 8px; font-weight: 800;">PAYMENT: ${s.payment} ${s.mpesa || s.bank || ""}</div>
+                    ${rows}
+                    ${isCredit ? `
+                        <div style="margin-top:10px; background:#fff7ed; padding:8px; border-radius:8px; border:1px solid #ffedd5; display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:11px; font-weight:800; color:#c2410c;">REMAINING BALANCE:</span>
+                            <b style="color:var(--danger); font-size:14px;">KES ${bal.toLocaleString()}</b>
+                        </div>
+                    ` : ''}
+                    <div style="display:flex; gap:8px; margin-top:12px;">
+                        <button class="btn btn-dark" style="flex:1;" onclick="event.stopPropagation(); openManager('${s.id}')">MANAGE / PAY</button>
+                        <button class="btn" style="flex:1; background:var(--primary); color:white;" onclick="event.stopPropagation(); reprintReceipt('${s.id}')">INVOICE</button>
+                    </div>
+                </div>
+            </div>`);
             
-            // Enforcing distinct contextual labeling rule adjustments
-            const labelElement = document.getElementById('rcptTotalLabel');
-            if (tx.paymentMethod === 'Credit') {
-                document.getElementById('rcptPaymentMethod').innerText = "STORE CREDIT BALANCE";
-                labelElement.innerText = "Credit Balance Outstanding:";
-                labelElement.className = "text-sm font-black pt-1 flex justify-end gap-2 text-amber-700";
-            } else {
-                document.getElementById('rcptPaymentMethod').innerText = tx.paymentMethod + " ACCOUNT";
-                labelElement.innerText = "Grand Total Paid:";
-                labelElement.className = "text-sm font-black pt-1 flex justify-end gap-2 text-emerald-800";
-            }
+        runtimeActiveLedgerSalesMap.set(s.id, s);
+    });
+    
+    document.getElementById('stat-gross').innerText = `KES ${gTotal.toLocaleString()}`;
+    document.getElementById('stat-tax').innerText = `KES ${gTax.toLocaleString()}`;
+    document.getElementById('grand-qty-ledger').innerText = gQty;
+    document.getElementById('grand-total-ledger').innerText = `KES ${gTotal.toLocaleString()}`;
+};
 
-            const refRow = document.getElementById('rcptRefRow');
-            if (tx.paymentMethod === 'M-Pesa' || tx.paymentMethod === 'Bank') {
-                refRow.classList.remove('hidden');
-                document.getElementById('rcptRefId').innerText = tx.paymentReference;
-            } else {
-                refRow.classList.add('hidden');
-            }
+window.toggleLedgerCard = id => {
+    const body = document.getElementById("body-"+id);
+    if(openLedgerCard && openLedgerCard !== id) {
+        const prev = document.getElementById("body-"+openLedgerCard);
+        if(prev) prev.style.display = "none";
+    }
+    const isOpen = body.style.display === "block";
+    body.style.display = isOpen ? "none" : "block";
+    openLedgerCard = isOpen ? null : id;
+};
 
-            const itemsBody = document.getElementById('rcptItemsBody');
-            itemsBody.innerHTML = '';
-            tx.items.forEach(i => {
-                const tr = document.createElement('tr');
-                tr.className = "text-gray-800 text-xs border-b border-gray-100";
-                tr.innerHTML = `
-                    <td class="py-1.5 pr-2 font-medium">${i.desc}</td>
-                    <td class="py-1.5 text-center font-bold">${i.qty}</td>
-                    <td class="py-1.5 text-right font-bold font-mono">${i.subtotal.toFixed(2)}</td>
-                `;
-                itemsBody.appendChild(tr);
-            });
+window.openManager = id => {
+    currentActiveLedgerId = id;
+    const s = runtimeActiveLedgerSalesMap.get(id);
+    if (!s) return;
+    document.getElementById('edit-cust-name').value = s.customer;
+    document.getElementById('edit-pay-ref').value = s.mpesa || s.bank || "";
+    document.getElementById('authPin').value = "";
+    document.getElementById('manual-pay-amt').value = "";
+    
+    const isCredit = (s.payment === "Credit");
+    const creditBlock = document.getElementById('credit-payment-block');
+    if (isCredit) {
+        creditBlock.style.display = 'block';
+        const saleTotal = s.items.reduce((acc, i) => acc + parseFloat(i.total || 0), 0);
+        const paidSoFar = (s.payments || []).reduce((acc, p) => acc + parseFloat(p.amount || 0), 0);
+        const bal = saleTotal - paidSoFar;
+        document.getElementById('credit-bal-text').innerText = `KES ${bal.toLocaleString()}`;
+        
+        const historyList = document.getElementById('payment-history-list');
+        historyList.innerHTML = (s.payments || []).map(p => {
+            const d = new Date(p.date);
+            return `<div class="history-item"><div class="history-meta"><b>KES ${parseFloat(p.amount).toLocaleString()}</b><small>${d.toLocaleDateString()}</small></div></div>`;
+        }).join('') || '<small style="color:var(--muted); font-style:italic;">No payments yet.</small>';
+    } else { creditBlock.style.display = 'none'; }
 
-            document.getElementById('rcptSubtotal').innerText = tx.totalAmount.toFixed(2);
-            document.getElementById('rcptGrandTotal').innerText = tx.totalAmount.toFixed(2);
+    document.getElementById('edit-items-container').innerHTML = s.items.map((item, idx) => `
+        <div class="edit-block" data-index="${idx}">
+            <div class="edit-row">
+                <input type="text" value="${item.product}" class="item-prod" readonly>
+                <input type="number" value="${item.quantity}" class="item-qty">
+                <input type="number" value="${item.price}" class="item-price">
+                <input type="number" value="${item.vatRate}" class="item-vrate">
+            </div>
+        </div>`).join('');
+    document.getElementById('manageModal').style.display = 'flex';
+};
 
-            document.getElementById('receiptModal').classList.remove('hidden');
-        }
+document.getElementById('btn-add-payment').onclick = async () => {
+    const amt = parseFloat(document.getElementById('manual-pay-amt').value);
+    if (!amt || amt <= 0 || document.getElementById('authPin').value !== ADMIN_PASS) return alert("Error.");
+    const s = runtimeActiveLedgerSalesMap.get(currentActiveLedgerId);
+    const newPayments = s.payments || [];
+    newPayments.push({ amount: amt, date: new Date().toISOString() });
+    if (navigator.onLine) { await update(ref(db, `${salesPath}/${currentActiveLedgerId}`), { payments: newPayments }); }
+    openManager(currentActiveLedgerId);
+};
 
-        function closeReceiptModal() {
-            document.getElementById('receiptModal').classList.add('hidden');
-        }
+document.getElementById('btn-save-changes').onclick = async () => {
+    if(document.getElementById('authPin').value !== ADMIN_PASS) return alert("Error.");
+    const s = runtimeActiveLedgerSalesMap.get(currentActiveLedgerId);
+    const updated = [];
+    document.querySelectorAll('.edit-block').forEach((block, idx) => {
+        const q = parseFloat(block.querySelector('.item-qty').value);
+        const p = parseFloat(block.querySelector('.item-price').value);
+        const vr = parseFloat(block.querySelector('.item-vrate').value);
+        const sub = q * p; const vat = sub * (vr/100);
+        updated.push({ ...s.items[idx], quantity: q, price: p, vatRate: vr, total: (sub+vat).toFixed(2), vatAmount: vat.toFixed(2) });
+    });
+    const payload = { customer: document.getElementById('edit-cust-name').value, items: updated };
+    if (navigator.onLine) { await update(ref(db, `${salesPath}/${currentActiveLedgerId}`), payload); }
+    document.getElementById('manageModal').style.display = 'none'; 
+};
 
-        function toggleAdminPanel() {
-            const panel = document.getElementById('adminPortal');
-            panel.classList.toggle('hidden');
-        }
+document.getElementById('btn-del-mode').onclick = async () => {
+    if(document.getElementById('authPin').value !== ADMIN_PASS) return alert("Error.");
+    if (navigator.onLine) { await remove(ref(db, `${salesPath}/${currentActiveLedgerId}`)); }
+    document.getElementById('manageModal').style.display = 'none'; 
+};
 
-        function verifyAdminAccess() {
-            const pin = document.getElementById('adminPin').value;
-            if (pin === MASTER_ADMIN_PIN) {
-                document.getElementById('adminAuthBlock').classList.add('hidden');
-                document.getElementById('adminControlsBlock').classList.remove('hidden');
-                showSystemAlert("Administrative privileges authenticated successfully.", "bg-emerald-950/40 border-emerald-800 text-emerald-400");
-            } else {
-                showSystemAlert("Invalid master administration PIN access denied.", "bg-red-950/40 border-red-800 text-red-400");
-                document.getElementById('adminPin').value = '';
-            }
-        }
+window.closeModal = () => document.getElementById('manageModal').style.display = 'none';
+window.filterSales = () => {
+    const q = document.getElementById("searchInput").value.toLowerCase();
+    document.querySelectorAll(".sale-card").forEach(c => c.style.display = c.innerText.toLowerCase().includes(q) ? "block" : "none");
+};
 
-        async function purgeLocalLedger() {
-            if (confirm("Are you absolutely sure you want to completely erase the local database ledger? This cannot be undone.")) {
-                await db.transactions.clear();
-                showSystemAlert("Local storage ledger has been securely purged.", "bg-red-950/40 border-red-800 text-red-400");
-                await renderLedgerFromStorage();
-            }
-        }
-
-        // Deep-sync structural integrity preservation engine (Firebase synchronization stub layer)
-        function triggerBackgroundFirebaseSyncStub(txRecord) {
-            console.log(`[Firebase Engine] Initializing deep sync routing schema packet validation for item: ${txRecord.id}`);
-            setTimeout(async () => {
-                await db.transactions.update(txRecord.id, { syncStatus: 'synchronized' });
-                document.getElementById('syncIndicator').className = "h-3 w-3 rounded-full bg-emerald-500 shadow-sm";
-                console.log(`[Firebase Engine] Deep sync successful for data block context: ${txRecord.id}`);
-            }, 1200);
-        }
-
-        async function forceCloudDeepSync() {
-            document.getElementById('syncIndicator').className = "h-3 w-3 rounded-full bg-amber-500 animate-spin";
-            const pendingTx = await db.transactions.where('syncStatus').equals('pending').toArray();
-            
-            if (pendingTx.length === 0) {
-                setTimeout(() => {
-                    document.getElementById('syncIndicator').className = "h-3 w-3 rounded-full bg-emerald-500";
-                    showSystemAlert("All local data records are already synchronized with Firebase production cloud nodes.", "bg-emerald-950/40 border-emerald-800 text-emerald-400");
-                }, 800);
-                return;
-            }
-
-            pendingTx.forEach(tx => triggerBackgroundFirebaseSyncStub(tx));
-            showSystemAlert(`Forced synchronizer pipeline running for ${pendingTx.length} local ledger records.`, "bg-emerald-950/40 border-emerald-800 text-emerald-400");
-        }
-
-        function showSystemAlert(msg, classes) {
-            const box = document.getElementById('systemAlert');
-            box.className = `p-4 rounded-xl border font-medium text-sm flex justify-between items-center ${classes}`;
-            document.getElementById('alertMessage').innerText = msg;
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-    </script>
+window.addEventListener('online', attemptSync);
+</script>
 </body>
 </html>
