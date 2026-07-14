@@ -315,11 +315,144 @@
         const currentUID = localStorage.getItem("ag_active_uid") || "global_user";
         const cloudPath = `users/${currentUID}/expenses`;
 
-        let ledgerCache = JSON.parse(localStorage.getItem(`ag_exp_cache_${currentUID}`)) || {};
-        let syncQueue = JSON.parse(localStorage.getItem(`ag_exp_queue_${currentUID}`)) || [];
+        let ledgerCache = {};
         let pendingDeleteId = null;
         let drillChart = null;
         let activeAnalysisId = null;
+
+        // --- PER-USER OFFLINE STORAGE (IndexedDB) ---
+        const idbRequest = indexedDB.open(`AssetGuard_Expenses_${currentUID}`, 1);
+        idbRequest.onupgradeneeded = e => e.target.result.createObjectStore("expenses", { keyPath: "id" });
+
+        // Helper to save/update a single expense locally
+        const localSaveSingle = (expense) => {
+            return new Promise((resolve) => {
+                if (!idbRequest.result) return resolve();
+                const tx = idbRequest.result.transaction("expenses", "readwrite");
+                const store = tx.objectStore("expenses");
+                store.put(expense);
+                tx.oncomplete = () => resolve();
+            });
+        };
+
+        // Helper to load experiences from IndexedDB and render them
+        const loadAndRenderLocal = () => {
+            return new Promise((resolve) => {
+                if (!idbRequest.result) return resolve();
+                const tx = idbRequest.result.transaction("expenses", "readonly");
+                tx.objectStore("expenses").getAll().onsuccess = e => {
+                    const list = e.target.result;
+                    // Format matching original JSON-like ledgerCache representation
+                    ledgerCache = {};
+                    list.forEach(item => {
+                        ledgerCache[item.id] = item;
+                    });
+                    renderTable();
+                    resolve();
+                };
+            });
+        };
+
+        // Sync Engine: Pushes pending local modifications/deletions to Realtime DB
+        async function syncUnsyncedExpenses() {
+            if (!idbRequest.result) return;
+
+            const tx = idbRequest.result.transaction("expenses", "readonly");
+            tx.objectStore("expenses").getAll().onsuccess = async (e) => {
+                const allItems = e.target.result;
+                const unsynced = allItems.filter(item => item.synced === false && !item.deleted);
+                const toDelete = allItems.filter(item => item.deleted === true);
+
+                // 1. Process local updates/insertions
+                for (const item of unsynced) {
+                    try {
+                        await update(ref(db, `${cloudPath}/${item.id}`), {
+                            id: item.id,
+                            expense_name: item.expense_name,
+                            category: item.category,
+                            amount: item.amount,
+                            expense_date: item.expense_date,
+                            payment_method: item.payment_method,
+                            mpesa_ref: item.mpesa_ref,
+                            bank_ref: item.bank_ref,
+                            creditor_name: item.creditor_name,
+                            debtor_phone: item.debtor_phone,
+                            debt_reason: item.debt_reason,
+                            interest_rate: item.interest_rate,
+                            timestamp: item.timestamp
+                        });
+                        item.synced = true;
+                        await localSaveSingle(item);
+                    } catch (err) {
+                        console.log("Sync skipped/failed for expense ID: ", item.id, err);
+                    }
+                }
+
+                // 2. Process local pending deletions
+                for (const item of toDelete) {
+                    try {
+                        await remove(ref(db, `${cloudPath}/${item.id}`));
+                        if (idbRequest.result) {
+                            const delTx = idbRequest.result.transaction("expenses", "readwrite");
+                            delTx.objectStore("expenses").delete(item.id);
+                        }
+                    } catch (err) {
+                        console.log("Sync delete failed for expense ID: ", item.id, err);
+                    }
+                }
+
+                if (unsynced.length > 0 || toDelete.length > 0) {
+                    loadAndRenderLocal();
+                }
+            };
+        }
+
+        idbRequest.onsuccess = () => {
+            loadAndRenderLocal();
+            syncUnsyncedExpenses();
+
+            // Listen for remote modifications with transactional offline protection
+            onValue(ref(db, cloudPath), (snap) => {
+                const serverData = snap.val() || {};
+
+                if (!idbRequest.result) return;
+
+                const tx = idbRequest.result.transaction("expenses", "readwrite");
+                const store = tx.objectStore("expenses");
+
+                store.getAll().onsuccess = (e) => {
+                    const localList = e.target.result;
+                    const unsyncedItems = localList.filter(item => item.synced === false);
+                    const deletedItems = localList.filter(item => item.deleted === true);
+
+                    // Drop stale state tracking before applying fresh cloud updates
+                    const clearTx = idbRequest.result.transaction("expenses", "readwrite");
+                    const clearStore = clearTx.objectStore("expenses");
+                    clearStore.clear();
+
+                    // Apply cloud synchronization values (unless locally marked deleted)
+                    Object.entries(serverData).forEach(([id, val]) => {
+                        if (!deletedItems.some(di => di.id === id)) {
+                            clearStore.put({ id, ...val, synced: true, deleted: false });
+                        }
+                    });
+
+                    // Retain un-replicated local additions or modifications
+                    unsyncedItems.forEach(item => {
+                        clearStore.put(item);
+                    });
+
+                    // Retain unsynced soft-deletions
+                    deletedItems.forEach(item => {
+                        clearStore.put(item);
+                    });
+
+                    clearTx.oncomplete = () => {
+                        loadAndRenderLocal();
+                    };
+                };
+            });
+        };
 
         window.showToast = () => { const t = document.getElementById('toast'); t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2000); };
         
@@ -404,7 +537,7 @@
             let debtCount = 0;
 
             Object.values(ledgerCache).forEach(item => {
-                if (item && item.payment_method === 'Debt' && item.debtor_phone === queryPhone) {
+                if (item && item.payment_method === 'Debt' && item.debtor_phone === queryPhone && !item.deleted) {
                     if (isEdit && item.id === document.getElementById('editId').value) return;
                     const principal = parseFloat(item.amount || 0);
                     const rate = parseFloat(item.interest_rate || 0);
@@ -594,21 +727,7 @@
             window.print();
         };
 
-        async function attemptSync() {
-            if (!navigator.onLine || syncQueue.length === 0) return;
-            for (let i = 0; i < syncQueue.length; i++) {
-                const item = syncQueue[i];
-                try {
-                    if (item.isDelete) { await remove(ref(db, `${cloudPath}/${item.id}`)); }
-                    else { await update(ref(db, `${cloudPath}/${item.id}`), item); }
-                    syncQueue.splice(i, 1);
-                    localStorage.setItem(`ag_exp_queue_${currentUID}`, JSON.stringify(syncQueue));
-                    i--;
-                } catch(e) { break; }
-            }
-        }
-
-        document.getElementById('expenseForm').onsubmit = (e) => {
+        document.getElementById('expenseForm').onsubmit = async (e) => {
             e.preventDefault();
             const id = document.getElementById('editId').value || `exp_${Date.now()}`;
             const entry = {
@@ -624,12 +743,14 @@
                 debtor_phone: document.getElementById('debtor_phone').value,
                 debt_reason: document.getElementById('debt_reason').value,
                 interest_rate: document.getElementById('interest_rate').value || "0",
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                synced: false,
+                deleted: false
             };
-            ledgerCache[id] = entry;
-            syncQueue.push(entry);
-            localStorage.setItem(`ag_exp_cache_${currentUID}`, JSON.stringify(ledgerCache));
-            localStorage.setItem(`ag_exp_queue_${currentUID}`, JSON.stringify(syncQueue));
+
+            // Safely stash in IndexedDB immediately for instant offline UI responsiveness
+            await localSaveSingle(entry);
+            await loadAndRenderLocal();
             
             document.getElementById('expenseForm').reset();
             document.getElementById('payment_extra_container').style.display = 'none';
@@ -637,8 +758,30 @@
             document.getElementById('expense_date').value = now.toISOString().slice(0, 16);
             
             showToast();
-            renderTable();
-            attemptSync();
+            
+            // Try updating live cloud record, then toggle synced flag upon resolution
+            try {
+                await update(ref(db, `${cloudPath}/${id}`), {
+                    id: entry.id,
+                    expense_name: entry.expense_name,
+                    category: entry.category,
+                    amount: entry.amount,
+                    expense_date: entry.expense_date,
+                    payment_method: entry.payment_method,
+                    mpesa_ref: entry.mpesa_ref,
+                    bank_ref: entry.bank_ref,
+                    creditor_name: entry.creditor_name,
+                    debtor_phone: entry.debtor_phone,
+                    debt_reason: entry.debt_reason,
+                    interest_rate: entry.interest_rate,
+                    timestamp: entry.timestamp
+                });
+                entry.synced = true;
+                await localSaveSingle(entry);
+                await loadAndRenderLocal();
+            } catch(err) {
+                console.log("Offline: Expense saved locally. Will sync when connection is restored.");
+            }
         };
 
         window.renderTable = () => {
@@ -651,7 +794,7 @@
             
             sortedKeys.forEach(key => {
                 const item = ledgerCache[key];
-                if (!item) return;
+                if (!item || item.deleted) return;
                 const d = new Date(item.expense_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' });
                 
                 if((item.expense_name.toLowerCase().includes(search) || item.category.toLowerCase().includes(search)) && (!filterDate || item.expense_date.includes(filterDate))) {
@@ -739,7 +882,7 @@
         window.openAnalysis = (id) => {
             activeAnalysisId = id;
             const item = ledgerCache[id];
-            const matches = Object.values(ledgerCache).filter(i => i.expense_name === item.expense_name);
+            const matches = Object.values(ledgerCache).filter(i => i.expense_name === item.expense_name && !i.deleted);
             const itemTotal = matches.reduce((a,b) => a+parseFloat(b.amount), 0);
             
             document.getElementById('analysisTitle').innerText = item.expense_name;
@@ -810,7 +953,7 @@
             if (!activeAnalysisId || !ledgerCache[activeAnalysisId]) return;
             const item = ledgerCache[activeAnalysisId];
             const matches = Object.values(ledgerCache)
-                .filter(i => i.expense_name === item.expense_name)
+                .filter(i => i.expense_name === item.expense_name && !i.deleted)
                 .sort((a, b) => b.timestamp - a.timestamp);
 
             const container = document.getElementById('freqListContent');
@@ -868,7 +1011,7 @@
             document.getElementById('editModal').style.display = 'flex';
         };
 
-        window.confirmEdit = () => {
+        window.confirmEdit = async () => {
             const id = document.getElementById('editId').value;
             const updated = { 
                 id, 
@@ -883,37 +1026,64 @@
                 debtor_phone: document.getElementById('edit_debtor_phone').value,
                 debt_reason: document.getElementById('edit_debt_reason').value,
                 interest_rate: document.getElementById('edit_interest_rate').value || "0",
-                timestamp: Date.now() 
+                timestamp: Date.now(),
+                synced: false,
+                deleted: false
             };
-            ledgerCache[id] = updated;
-            syncQueue.push(updated);
-            localStorage.setItem(`ag_exp_cache_${currentUID}`, JSON.stringify(ledgerCache));
-            localStorage.setItem(`ag_exp_queue_${currentUID}`, JSON.stringify(syncQueue));
-            
+
+            // Commit locally first
+            await localSaveSingle(updated);
+            await loadAndRenderLocal();
             document.getElementById('editModal').style.display = 'none';
-            renderTable();
-            attemptSync();
+
+            // Attempt online sync
+            try {
+                await update(ref(db, `${cloudPath}/${id}`), {
+                    id: updated.id,
+                    expense_date: updated.expense_date,
+                    expense_name: updated.expense_name,
+                    category: updated.category,
+                    amount: updated.amount,
+                    payment_method: updated.payment_method,
+                    mpesa_ref: updated.mpesa_ref,
+                    bank_ref: updated.bank_ref,
+                    creditor_name: updated.creditor_name,
+                    debtor_phone: updated.debtor_phone,
+                    debt_reason: updated.debt_reason,
+                    interest_rate: updated.interest_rate,
+                    timestamp: updated.timestamp
+                });
+                updated.synced = true;
+                await localSaveSingle(updated);
+                await loadAndRenderLocal();
+            } catch(err) {
+                console.log("Offline: Modification stored locally. Queue active.");
+            }
         };
 
         window.promptDelete = (id) => { pendingDeleteId = id; document.getElementById('deleteModal').style.display = 'flex'; };
-        window.executeDelete = () => {
-            delete ledgerCache[pendingDeleteId];
-            syncQueue.push({ id: pendingDeleteId, isDelete: true });
-            localStorage.setItem(`ag_exp_cache_${currentUID}`, JSON.stringify(ledgerCache));
-            localStorage.setItem(`ag_exp_queue_${currentUID}`, JSON.stringify(syncQueue));
-            document.getElementById('deleteModal').style.display = 'none';
-            renderTable();
-            attemptSync();
-        };
+        
+        window.executeDelete = async () => {
+            const item = ledgerCache[pendingDeleteId];
+            if (!item) return;
 
-        onValue(ref(db, cloudPath), (snap) => {
-            const serverData = snap.val() || {};
-            let combined = { ...serverData };
-            syncQueue.forEach(item => item.isDelete ? delete combined[item.id] : combined[item.id] = item);
-            ledgerCache = combined;
-            localStorage.setItem(`ag_exp_cache_${currentUID}`, JSON.stringify(ledgerCache));
-            renderTable();
-        });
+            item.deleted = true;
+            item.synced = false;
+            
+            await localSaveSingle(item);
+            await loadAndRenderLocal();
+            document.getElementById('deleteModal').style.display = 'none';
+
+            try {
+                await remove(ref(db, `${cloudPath}/${pendingDeleteId}`));
+                if (idbRequest.result) {
+                    const tx = idbRequest.result.transaction("expenses", "readwrite");
+                    tx.objectStore("expenses").delete(pendingDeleteId);
+                }
+            } catch (e) {
+                console.log("Offline: Local soft deletion logged. Synchronization pending online state.");
+            }
+        };
 
         window.handleSecurity = () => {
             const isUnlocked = (document.getElementById('masterPin').value === "1234");
@@ -926,8 +1096,7 @@
         
         const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
         document.getElementById('expense_date').value = now.toISOString().slice(0, 16);
-        window.addEventListener('online', attemptSync);
-        renderTable();
+        window.addEventListener('online', syncUnsyncedExpenses);
     </script>
 </body>
 </html>
