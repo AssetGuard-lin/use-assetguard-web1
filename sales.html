@@ -246,7 +246,6 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const ADMIN_PASS = "1234";
 
-// Robust UID Resolution - Check query parameter, Kodular webview parameters, or localStorage fallback
 const urlParams = new URLSearchParams(window.location.search);
 let resolvedUID = urlParams.get('uid') || urlParams.get('user') || urlParams.get('currentUID') || urlParams.get('userId');
 
@@ -283,7 +282,6 @@ if (!resolvedUID || resolvedUID === "null" || resolvedUID === "undefined" || res
 const currentUID = resolvedUID;
 localStorage.setItem("ag_active_uid", currentUID);
 
-// Construct exact user pathways
 const inventoryPath = `users/${currentUID}/inventory`;
 const salesPath = `users/${currentUID}/sales`;
 
@@ -368,7 +366,6 @@ onValue(ref(db, inventoryPath), snap => {
     populateDropdown();
 });
 
-// Listener cleanly assigns active user sales path directly instead of spreading old caches
 onValue(ref(db, salesPath), snapshot => {
     const snapVal = snapshot.val();
     rawLedgerData = snapVal || {};
@@ -547,8 +544,21 @@ window.processSale = () => {
     
     syncQueue.push(trans);
     localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
+    
+    // Deduct stock locally immediately to prevent multi-sales
+    cart.forEach(itm => {
+        if (firebaseInventory[itm.dbKey]) {
+            firebaseInventory[itm.dbKey].qty = Math.max(0, firebaseInventory[itm.dbKey].qty - itm.quantity);
+        }
+    });
+    localStorage.setItem(`ag_stock_cache_${currentUID}`, JSON.stringify(firebaseInventory));
+    populateDropdown();
+
     openReceiptSummary([...cart]);
     resetFullForm();
+    
+    // Instantly render changes on the UI Ledger
+    renderSales();
     attemptSync();
 };
 
@@ -572,6 +582,9 @@ function resetFullForm() {
 async function attemptSync() {
     if(!navigator.onLine || syncQueue.length === 0) return;
     let tempQueue = [...syncQueue];
+    const diagPanel = document.getElementById('offlineDiagnosticPanel');
+    const diagLog = document.getElementById('diagnosticLogMessage');
+    
     for(let i = 0; i < tempQueue.length; i++) {
         const trans = { ...tempQueue[i] };
         const sID = trans.saleId;
@@ -583,13 +596,40 @@ async function attemptSync() {
                 await update(ref(db, `${salesPath}/${sID}`), trans);
             } else {
                 for (let itm of trans.items) {
-                    await runTransaction(ref(db, `${inventoryPath}/${itm.dbKey}/qty`), q => (q || 0) - itm.quantity);
+                    try {
+                        await runTransaction(ref(db, `${inventoryPath}/${itm.dbKey}/qty`), q => {
+                            if (q === null) return 0;
+                            return Math.max(0, q - itm.quantity);
+                        });
+                    } catch (transErr) {
+                        // Resilient Fallback to standard write if transactions are network-locked
+                        const snap = await fetch(`https://assetguard-c8c8c-default-rtdb.firebaseio.com/${inventoryPath}/${itm.dbKey}/qty.json`);
+                        const currentQty = await snap.json() || 0;
+                        await set(ref(db, `${inventoryPath}/${itm.dbKey}/qty`), Math.max(0, currentQty - itm.quantity));
+                    }
                 }
                 await set(ref(db, `${salesPath}/${sID}`), trans); 
             }
             syncQueue.shift();
             localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
-        } catch (e) { break; }
+            
+            // Move newly synced transaction into raw ledger cache
+            if (!trans.isDeleteOnly) {
+                rawLedgerData[sID] = trans;
+                localStorage.setItem(`ag_ledger_cache_${currentUID}`, JSON.stringify(rawLedgerData));
+            } else {
+                delete rawLedgerData[sID];
+                localStorage.setItem(`ag_ledger_cache_${currentUID}`, JSON.stringify(rawLedgerData));
+            }
+            renderSales();
+        } catch (e) { 
+            console.error("Sync error caught: ", e);
+            if (diagPanel && diagLog) {
+                diagPanel.style.display = "block";
+                diagLog.innerText = `Sync failed: ${e.message || e}. Will retry when connection stabilizes.`;
+            }
+            break; 
+        }
     }
     updateStatusUI();
 }
@@ -767,7 +807,22 @@ window.renderSales = () => {
     runtimeActiveLedgerSalesMap.clear();
     
     let gQty=0, gTotal=0, gTax=0;
-    const allSales = Object.keys(rawLedgerData).map(k => ({ id: k, ...rawLedgerData[k] }))
+    
+    // Unify synchronized remote data with local pending offline queue records
+    const combinedSales = { ...rawLedgerData };
+    syncQueue.forEach(item => {
+        if (item.isDeleteOnly) {
+            delete combinedSales[item.saleId];
+        } else if (item.isUpdateOnly) {
+            if (combinedSales[item.saleId]) {
+                combinedSales[item.saleId] = { ...combinedSales[item.saleId], ...item, isPending: true };
+            }
+        } else {
+            combinedSales[item.saleId] = { ...item, isPending: true };
+        }
+    });
+    
+    const allSales = Object.keys(combinedSales).map(k => ({ id: k, ...combinedSales[k] }))
                      .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
                      
     if(allSales.length === 0) {
@@ -792,11 +847,14 @@ window.renderSales = () => {
         
         gQty += saleQty; gTotal += saleTotal; gTax += saleTax;
         
+        const isPending = !!s.isPending;
+        const pendingBadge = isPending ? `<span style="background: #fef3c7; color: #d97706; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 800; text-transform: uppercase; margin-left: 5px;">Syncing...</span>` : '';
+        
         container.insertAdjacentHTML('beforeend', `
-            <div class="sale-card">
+            <div class="sale-card" style="${isPending ? 'border-left: 4px solid var(--warning);' : ''}">
                 <div class="sale-summary" onclick="toggleLedgerCard('${s.id}')">
                     <div class="sale-info">
-                        <h3>${s.customer} ${isCredit ? `<span class="credit-tag">Credit ${bal > 0 ? '(Pending)' : '(Settled)'}</span>` : ''}</h3>
+                        <h3>${s.customer} ${isCredit ? `<span class="credit-tag">Credit ${bal > 0 ? '(Pending)' : '(Settled)'}</span>` : ''}${pendingBadge}</h3>
                         <span>${date.toLocaleDateString()}</span>
                     </div>
                     <div class="sale-total">KES ${saleTotal.toLocaleString()}</div>
@@ -811,7 +869,7 @@ window.renderSales = () => {
                         </div>
                     ` : ''}
                     <div style="display:flex; gap:8px; margin-top:12px;">
-                        <button class="btn btn-dark" style="flex:1;" onclick="event.stopPropagation(); openManager('${s.id}')">MANAGE / PAY</button>
+                        <button class="btn btn-dark" style="flex:1;" onclick="event.stopPropagation(); openManager('${s.id}')" ${isPending ? 'disabled' : ''}>MANAGE / PAY</button>
                         <button class="btn" style="flex:1; background:var(--primary); color:white;" onclick="event.stopPropagation(); reprintReceipt('${s.id}')">INVOICE</button>
                     </div>
                 </div>
