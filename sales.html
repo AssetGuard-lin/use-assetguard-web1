@@ -79,6 +79,7 @@
     .btn-success { background:var(--success); color:#fff; width: 100%; }
     .btn-del { background:var(--danger); color: #fff; width: 100%; }
     .credit-tag { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 800; text-transform: uppercase; }
+    .pending-tag { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 800; text-transform: uppercase; margin-left: 5px; }
     .history-item { font-size: 11px; color: #1f2937; padding: 8px 0; border-bottom: 1px dashed #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
     .history-meta { display: flex; flex-direction: column; }
     .history-meta small { font-size: 9px; color: var(--muted); font-weight: 600; }
@@ -157,9 +158,9 @@
         <small style="font-weight:800; color:var(--muted)">DATA FILTERS</small>
         <div class="filter-grid">
             <select id="yearFilter" onchange="renderSales()">
-                <option value="all">All Years</option>
+                <option value="all" selected>All Years</option>
                 <option value="2025">2025</option>
-                <option value="2026" selected>2026</option>
+                <option value="2026">2026</option>
             </select>
             <select id="monthFilter" onchange="renderSales()">
                 <option value="all" selected>Full Year View</option>
@@ -190,7 +191,7 @@
                 <button class="btn-main" style="background:var(--primary); margin:0; flex:1;" onclick="shareReceipt()">Download PDF</button>
                 <button class="btn-main" style="background:#25D366; margin:0; flex:1;" onclick="nativeShare()">Share Receipt</button>
             </div>
-            <button class="btn-main" style="background:var(--muted); margin:0;" onclick="closeReceipt()">Close</button>
+            <button class="btn-main" style="background:#var(--muted); margin:0;" onclick="closeReceipt()">Close</button>
         </div>
     </div>
 </div>
@@ -490,12 +491,10 @@ window.removeCart = (i) => { cart.splice(i, 1); if(!cart.length) lockInputs(fals
 window.processSale = () => {
     if(!cart.length) return;
     
-    // Disable button to prevent double-click
     const btn = document.getElementById('processBtn');
     btn.disabled = true;
     btn.innerText = "Processing...";
 
-    // Generate unique ID at exact moment of processing
     const uniqueSaleId = "SALE-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
 
     const trans = {
@@ -514,6 +513,7 @@ window.processSale = () => {
     openReceiptSummary([...cart]);
     resetFullForm();
     attemptSync();
+    renderSales();
 };
 
 function resetFullForm() {
@@ -556,6 +556,7 @@ async function attemptSync() {
         } catch (e) { break; }
     }
     updateStatusUI();
+    renderSales();
 }
 
 function updateStatusUI() {
@@ -587,7 +588,6 @@ function generateReceiptContent(customer, payment, reference, items, timestamp, 
     
     let tableRows = items.map(s => {
         const lineSub = parseFloat(s.price) * parseFloat(s.quantity);
-        subTotal += lineSub;
         totalTax += parseFloat(s.vatAmount);
         return `<tr style="border-bottom: 1px solid #f1f5f9;">
             <td style="padding:12px 0; font-size:11px;">${s.product}</td>
@@ -598,7 +598,7 @@ function generateReceiptContent(customer, payment, reference, items, timestamp, 
         </tr>`;
     }).join('');
 
-    const grandTotal = subTotal + totalTax;
+    const grandTotal = items.reduce((acc, i) => acc + parseFloat(i.total), 0);
     const paidSoFar = (partialPayments || []).reduce((acc, p) => acc + parseFloat(p.amount), 0);
     const balance = grandTotal - paidSoFar;
 
@@ -682,6 +682,15 @@ function generateReceiptContent(customer, payment, reference, items, timestamp, 
                     `}
                 </div>
             </div>
+            
+            <div style="margin-top: 50px; display: flex; justify-content: space-between; gap: 40px; padding-top: 20px;">
+                <div style="flex: 1; text-align: center;">
+                    <div style="border-top: 1px solid #000; padding-top: 5px; font-size: 10px; font-weight: 700;">CUSTOMER SIGNATURE</div>
+                </div>
+                <div style="flex: 1; text-align: center;">
+                    <div style="border-top: 1px solid #000; padding-top: 5px; font-size: 10px; font-weight: 700;">SELLER SIGNATURE</div>
+                </div>
+            </div>
         </div>
     `;
 }
@@ -707,45 +716,79 @@ window.nativeShare = async () => {
 window.renderSales = () => {
     const container = document.getElementById('sales-container');
     if (!container) return;
+    
     const selectedMonth = document.getElementById('monthFilter').value;
     const selectedYear = document.getElementById('yearFilter').value;
-    container.innerHTML = "";
-    runtimeActiveLedgerSalesMap.clear();
     
-    let gQty=0, gTotal=0, gTax=0;
-    const allSales = Object.keys(rawLedgerData).map(k => ({ id: k, ...rawLedgerData[k] }))
+    container.innerHTML = "";
+    if (typeof runtimeActiveLedgerSalesMap !== 'undefined') {
+        runtimeActiveLedgerSalesMap.clear();
+    }
+    
+    let gQty = 0;
+    let gTotal = 0;
+    let gTax = 0;
+    
+    const dbSales = Object.keys(rawLedgerData).map(k => ({ id: k, ...rawLedgerData[k] }));
+    const pendingSales = syncQueue.filter(s => !s.isDeleteOnly).map(s => ({ ...s, isPending: true }));
+    
+    const allSales = [...dbSales, ...pendingSales]
+                     .filter((v,i,a) => a.findIndex(t => t.saleId === v.saleId) === i)
                      .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
                      
     if(allSales.length === 0) {
         container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--muted); font-weight:600;">No sales history found.</div>`;
+        return;
     }
 
     allSales.forEach(s => {
-        if (!s.timestamp || !s.items) return;
+        if (!s.timestamp || !s.items || !Array.isArray(s.items)) return;
+        
         const date = new Date(s.timestamp);
         if (selectedYear !== "all" && date.getFullYear().toString() !== selectedYear) return;
         if (selectedMonth !== "all" && date.getMonth().toString() !== selectedMonth) return;
         
-        let saleTotal = 0, saleQty = 0, saleTax = 0;
+        let saleTotal = 0; 
+        let saleQty = 0; 
+        let saleTax = 0;
+        
         const rows = s.items.map(i => {
-            saleTotal += parseFloat(i.total || 0); saleQty += parseFloat(i.quantity || 0); saleTax += parseFloat(i.vatAmount || 0);
-            return `<div class="ledger-row"><div><b>${i.quantity}</b></div><div style="padding-right: 4px;">${i.product}</div><div style="color:var(--muted)">@${i.price}</div><div style="color:var(--danger); font-size:9px;">V:${i.vatRate}%</div><div style="text-align:right; font-weight: 800;">KES ${parseFloat(i.total).toLocaleString()}</div></div>`;
+            const qty = parseFloat(i.quantity || 0);
+            const price = parseFloat(i.price || 0);
+            const vatRate = parseFloat(i.vatRate || 0);
+            const net = price * qty;
+            const tax = net * (vatRate / 100);
+            const total = net + tax;
+            
+            saleTotal += total;
+            saleQty += qty;
+            saleTax += tax;
+            
+            return `<div class="ledger-row">
+                <div><b>${qty}</b></div>
+                <div style="padding-right: 4px;">${i.product}</div>
+                <div style="color:var(--muted)">@${price.toLocaleString()}</div>
+                <div style="color:var(--danger); font-size:9px;">V:${vatRate}%</div>
+                <div style="text-align:right; font-weight: 800;">KES ${total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            </div>`;
         }).join('');
+        
+        gQty += saleQty; 
+        gTotal += saleTotal; 
+        gTax += saleTax;
         
         const isCredit = (s.payment === "Credit");
         const paidSoFar = (s.payments || []).reduce((acc, p) => acc + parseFloat(p.amount || 0), 0);
         const bal = saleTotal - paidSoFar;
         
-        gQty += saleQty; gTotal += saleTotal; gTax += saleTax;
-        
         container.insertAdjacentHTML('beforeend', `
             <div class="sale-card">
                 <div class="sale-summary" onclick="toggleLedgerCard('${s.id}')">
                     <div class="sale-info">
-                        <h3>${s.customer} ${isCredit ? `<span class="credit-tag">Credit ${bal > 0 ? '(Pending)' : '(Settled)'}</span>` : ''}</h3>
+                        <h3>${s.customer} ${s.isPending ? '<span class="pending-tag">Sync Pending</span>' : ''} ${isCredit ? `<span class="credit-tag">Credit ${bal > 0 ? '(Pending)' : '(Settled)'}</span>` : ''}</h3>
                         <span>${date.toLocaleDateString()}</span>
                     </div>
-                    <div class="sale-total">KES ${saleTotal.toLocaleString()}</div>
+                    <div class="sale-total">KES ${saleTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
                 </div>
                 <div class="sale-body" id="body-${s.id}">
                     <div style="font-size: 10px; color: var(--muted); margin-bottom: 8px; font-weight: 800;">PAYMENT: ${s.payment} ${s.mpesa || s.bank || ""}</div>
@@ -763,13 +806,19 @@ window.renderSales = () => {
                 </div>
             </div>`);
             
-        runtimeActiveLedgerSalesMap.set(s.id, s);
+        if (typeof runtimeActiveLedgerSalesMap !== 'undefined') {
+            runtimeActiveLedgerSalesMap.set(s.id, s);
+        }
     });
     
-    document.getElementById('stat-gross').innerText = `KES ${gTotal.toLocaleString()}`;
-    document.getElementById('stat-tax').innerText = `KES ${gTax.toLocaleString()}`;
-    document.getElementById('grand-qty-ledger').innerText = gQty;
-    document.getElementById('grand-total-ledger').innerText = `KES ${gTotal.toLocaleString()}`;
+    if(document.getElementById('stat-gross')) 
+        document.getElementById('stat-gross').innerText = `KES ${gTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    if(document.getElementById('stat-tax')) 
+        document.getElementById('stat-tax').innerText = `KES ${gTax.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    if(document.getElementById('grand-qty-ledger')) 
+        document.getElementById('grand-qty-ledger').innerText = gQty;
+    if(document.getElementById('grand-total-ledger')) 
+        document.getElementById('grand-total-ledger').innerText = `KES ${gTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
 };
 
 window.toggleLedgerCard = id => {
