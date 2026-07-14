@@ -84,13 +84,16 @@
     .history-meta small { font-size: 9px; color: var(--muted); font-weight: 600; }
     .diagnostic-panel { background: #fff5f5; border: 1px solid #fecaca; border-radius: 14px; padding: 12px; margin-bottom: 12px; display: none; }
     .diagnostic-title { font-size: 11px; font-weight: 800; color: var(--error); text-transform: uppercase; display: flex; justify-content: space-between; }
-    .diagnostic-msg { font-size: 11px; margin-top: 5px; color: #7f1d1d; font-family: monospace; line-height: 1.4; }
+    .diagnostic-log { font-size: 11px; margin-top: 5px; color: #7f1d1d; font-family: monospace; line-height: 1.4; }
 </style>
 </head>
 <body>
 
 <header class="header-nav">
-    <div class="brand">AssetGuard <span>Terminal</span></div>
+    <div class="brand">
+        AssetGuard <span>Terminal</span>
+        <span id="user-badge" style="display:block; font-size:10px; color:var(--muted); font-weight:600; margin-top:2px;">Detecting Session...</span>
+    </div>
     <button class="toggle-view-btn" id="toggle-btn" onclick="toggleMainView()">Sales Ledger</button>
 </header>
 
@@ -150,7 +153,7 @@
             <span>⚠️ Offline Resilience Alert</span>
             <span id="diagnosticQuotaText">0 KB / 5120 KB</span>
         </div>
-        <div id="diagnosticLogMessage" class="diagnostic-msg"></div>
+        <div id="diagnosticLogMessage" class="diagnostic-log"></div>
     </div>
 
     <div class="filter-section">
@@ -243,12 +246,44 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const ADMIN_PASS = "1234";
 
-let currentUID = localStorage.getItem("ag_active_uid");
-if (!currentUID || currentUID === "null") {
-    currentUID = "global_terminal_user";
-    localStorage.setItem("ag_active_uid", currentUID);
+// Robust UID Resolution - Check query parameter, Kodular webview parameters, or localStorage fallback
+const urlParams = new URLSearchParams(window.location.search);
+let resolvedUID = urlParams.get('uid') || urlParams.get('user') || urlParams.get('currentUID') || urlParams.get('userId');
+
+if (!resolvedUID) {
+    try {
+        if (window.AppInventor && typeof window.AppInventor.getWebViewString === 'function') {
+            const wvString = window.AppInventor.getWebViewString();
+            if (wvString && wvString !== "undefined" && wvString !== "null" && wvString.trim() !== "") {
+                if (wvString.startsWith('{') || wvString.startsWith('[')) {
+                    try {
+                        const parsed = JSON.parse(wvString);
+                        resolvedUID = parsed.uid || parsed.userId || parsed.username || wvString;
+                    } catch(e) {
+                        resolvedUID = wvString;
+                    }
+                } else {
+                    resolvedUID = wvString;
+                }
+            }
+        }
+    } catch(e) {
+        console.error("WebViewString capture failed", e);
+    }
 }
 
+if (!resolvedUID) {
+    resolvedUID = localStorage.getItem("ag_active_uid");
+}
+
+if (!resolvedUID || resolvedUID === "null" || resolvedUID === "undefined" || resolvedUID.trim() === "") {
+    resolvedUID = "global_terminal_user";
+}
+
+const currentUID = resolvedUID;
+localStorage.setItem("ag_active_uid", currentUID);
+
+// Construct exact user pathways
 const inventoryPath = `users/${currentUID}/inventory`;
 const salesPath = `users/${currentUID}/sales`;
 
@@ -285,6 +320,10 @@ window.toggleMainView = () => {
 };
 
 window.onload = () => {
+    const badge = document.getElementById('user-badge');
+    if (badge) {
+        badge.innerText = `Active Session: ${currentUID}`;
+    }
     populateDropdown();
     updateStatusUI();
     renderSales(); 
@@ -294,7 +333,6 @@ window.onload = () => {
 
 async function deepSyncFirebase() {
     const baseURL = "https://assetguard-c8c8c-default-rtdb.firebaseio.com/";
-    // Strict user route path targeting only the active user ID
     const paths = [`users/${currentUID}/sales.json`];
     let consolidatedSales = {}; 
 
@@ -330,13 +368,12 @@ onValue(ref(db, inventoryPath), snap => {
     populateDropdown();
 });
 
+// Listener cleanly assigns active user sales path directly instead of spreading old caches
 onValue(ref(db, salesPath), snapshot => {
     const snapVal = snapshot.val();
-    if (snapVal) {
-        rawLedgerData = { ...rawLedgerData, ...snapVal };
-        localStorage.setItem(`ag_ledger_cache_${currentUID}`, JSON.stringify(rawLedgerData));
-        renderSales();
-    }
+    rawLedgerData = snapVal || {};
+    localStorage.setItem(`ag_ledger_cache_${currentUID}`, JSON.stringify(rawLedgerData));
+    renderSales();
 });
 
 function populateDropdown() {
@@ -682,7 +719,6 @@ function generateReceiptContent(customer, payment, reference, items, timestamp, 
                 </div>
             </div>
 
-            <!-- Signatures Area (Robust Table Structure for PDF Canvas Safety) -->
             <table style="width:100%; margin-top:15px; border-collapse:collapse; border:none;">
                 <tr>
                     <td style="width:45%; text-align:left; vertical-align:bottom; border:none; padding:0;">
