@@ -2,183 +2,225 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Purchase Hub | AssetGuard</title>
+    <title>AssetGuard Pro | Purchase Terminal</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #0072CE; --dark: #001A35; --bg: #f4f6f9; --danger: #ef4444; --success: #10b981; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); color: #1f2937; margin: 0; padding: 15px; }
-
-        .container { max-width: 450px; margin: 0 auto; }
-        .navbar { background: white; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-radius: 16px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
-        
-        .entry-card { background: white; padding: 30px; border-radius: 24px; border: 1px solid #e2e8f0; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-top: 6px solid var(--primary); }
-        h2 { color: var(--dark); margin: 0 0 20px; font-weight: 800; font-size: 20px; text-align: center; }
-        
-        .form-group { margin-bottom: 20px; }
-        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        
-        label { font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 8px; display: block; letter-spacing: 0.5px; }
-        input, select { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #e2e8f0; background: #f8fafc; font-size: 14px; font-weight: 600; outline: none; }
-        
-        .submit-btn { width: 100%; padding: 16px; background: var(--dark); color: white; border: none; border-radius: 14px; font-weight: 800; font-size: 14px; cursor: pointer; text-transform: uppercase; }
-
-        /* --- MODERN MODALS --- */
-        .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,26,53,0.4); z-index: 3000; align-items: center; justify-content: center; backdrop-filter: blur(6px); padding: 20px; }
-        .modal-box { background: white; padding: 30px; border-radius: 28px; width: 100%; max-width: 320px; text-align: center; }
-        .modal-box input { margin: 20px 0; text-align: center; letter-spacing: 8px; font-size: 20px; }
-        
-        #toast { display: none; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--success); color: white; padding: 12px 24px; border-radius: 50px; font-weight: 800; z-index: 4000; }
-        #errorMsg { color: var(--danger); font-size: 12px; font-weight: 800; display: none; margin-bottom: 10px; }
-
-        /* --- HISTORY --- */
-        #historyOverlay { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 2000; overflow-y: auto; }
-        details { background: white; border-radius: 16px; border: 1px solid #e2e8f0; margin-bottom: 10px; padding: 16px; }
-        .details-list { margin-top: 15px; padding-top: 15px; border-top: 1px solid #f1f5f9; font-size: 13px; color: #64748b; display: flex; flex-direction: column; gap: 8px; }
-        .btn-act { border: none; padding: 8px 16px; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 10px; }
+        :root { --primary: #059669; --danger: #e11d48; --dark: #064e3b; --bg: #f8fafc; --text: #1e293b; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 0; }
+        .navbar { background: white; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 100; }
+        .view-container { display: none; padding: 20px; max-width: 450px; margin: 0 auto; }
+        .view-container.active { display: block; }
+        .toggle-btn { background: var(--dark); color: white; border: none; padding: 8px 16px; border-radius: 10px; font-weight: 700; font-size: 11px; cursor: pointer; text-transform: uppercase; }
+        .card { background: white; padding: 20px; border-radius: 16px; border: 1px solid #e2e8f0; margin-bottom: 16px; }
+        .summary-card { background: var(--dark); color: white; padding: 20px; border-radius: 16px; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        .row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        label { font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px; display: block; }
+        input, select { width: 100%; padding: 12px; border-radius: 10px; border: 2px solid #f1f5f9; background: #f8fafc; font-size: 14px; font-weight: 600; outline: none; box-sizing: border-box; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal { background: white; padding: 25px; border-radius: 20px; width: 280px; text-align: center; }
+        .btn-small { padding: 10px 20px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; font-size: 12px; color: white; }
+        .history-item { background: white; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .detail-row { display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="navbar">
-            <div style="font-weight: 800;">PURCHASE LOG</div>
-            <button onclick="toggleHistory(true)" style="background:none; border:none; color:var(--primary); font-weight:800; cursor:pointer;">HISTORY</button>
+    <div id="pinModal" class="modal-overlay">
+        <div class="modal">
+            <h3 style="margin-top:0;">Secure Access</h3>
+            <input type="password" id="pinInput" placeholder="PIN" maxlength="4" style="text-align:center; font-size: 20px; letter-spacing: 5px;">
+            <div id="pinError" style="color:var(--danger); font-size:11px; margin-top:10px; font-weight:700;"></div>
+            <div style="display:flex; gap:10px; justify-content:center; margin-top:15px;">
+                <button class="btn-small" style="background:#64748b;" onclick="closePinModal()">Cancel</button>
+                <button class="btn-small" style="background:var(--primary);" onclick="submitPin()">Submit</button>
+            </div>
         </div>
+    </div>
+    
+    <header class="navbar">
+        <div style="font-size: 12px; font-weight: 800; color: var(--dark);">PURCHASE TERMINAL</div>
+        <button class="toggle-btn" id="toggleViewBtn" onclick="toggleView()">View Ledger</button>
+    </header>
 
-        <div class="entry-card">
-            <h2 id="formTitle">New Purchase</h2>
+    <div id="view-entry" class="view-container active">
+        <div class="card">
+            <h2 id="formTitle" style="margin-top:0; font-size: 18px;">New Purchase Entry</h2>
             <form id="purchaseForm">
-                <input type="hidden" id="edit_id">
-                <div class="form-group"><label>Date</label><input type="datetime-local" id="purchase_date" required></div>
+                <input type="hidden" id="editId">
                 <div class="form-group"><label>Item Name</label><input type="text" id="item_name" required></div>
                 <div class="form-group"><label>Supplier</label><input type="text" id="supplier" required></div>
-                <div class="row">
+                <div class="row" style="grid-template-columns: 1fr 1fr;">
                     <div class="form-group"><label>Quantity</label><input type="number" id="qty" required></div>
-                    <div class="form-group"><label>Unit</label><select id="unit"><option>kg</option><option>gms</option><option>pcs</option><option>liters</option></select></div>
+                    <div class="form-group"><label>Unit</label><select id="unit"><option value="kg">kg</option><option value="pcs">pcs</option><option value="liters">liters</option></select></div>
                 </div>
                 <div class="form-group"><label>Total Cost (KES)</label><input type="number" id="amount" step="0.01" required></div>
-                <button type="submit" id="submitBtn" class="submit-btn">Record Purchase</button>
+                <button type="submit" id="submitBtn" class="btn-small" style="background:var(--primary); width:100%; padding:15px; font-size: 14px;">Record Purchase</button>
             </form>
         </div>
     </div>
 
-    <div id="toast">Saved Successfully!</div>
-
-    <div id="actionModal" class="modal-bg">
-        <div class="modal-box">
-            <h4 id="modalTitle">Admin PIN Required</h4>
-            <div id="errorMsg">Incorrect PIN. Please try again.</div>
-            <input type="password" id="modalInput" maxlength="4" placeholder="••••">
-            <div style="display:flex; gap:10px;">
-                <button class="btn-act" style="flex:1; background:#f1f5f9" onclick="closeModal()">CANCEL</button>
-                <button class="btn-act" style="flex:1; background:var(--primary); color:white" onclick="handleAction()">CONFIRM</button>
-            </div>
+    <div id="view-ledger" class="view-container">
+        <div class="summary-card">
+            <label style="color:rgba(255,255,255,0.6)">Total Spending</label>
+            <div id="totalSpend" style="font-size: 28px; font-weight: 800;">KES 0.00</div>
         </div>
+        <div class="form-group"><label>Search Supplier</label><input type="text" id="searchSupplier" placeholder="Search..." oninput="refreshLedger()"></div>
+        <div id="historyList"></div>
     </div>
 
-    <div id="historyOverlay">
-        <div style="padding: 20px; background: white; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 100;">
-            <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><strong>HISTORY</strong><button onclick="toggleHistory(false)" class="btn-act">CLOSE</button></div>
-            <input type="text" id="histSearch" style="width:100%; padding:14px; border-radius:12px; border:1px solid #e2e8f0; box-sizing: border-box;" placeholder="Search by supplier name..." oninput="filterHistory()">
+    <div id="view-detail" class="view-container">
+        <div class="card">
+            <div id="detailContent" style="margin-top:20px;"></div>
+            <div style="display:flex; gap:10px; justify-content:center; margin-top:30px;">
+                <button class="btn-small" style="background:#fee2e2; color:#e11d48;" id="delBtn">Delete</button>
+                <button class="btn-small" style="background:#e2e8f0; color:#1e293b;" id="editBtn">Edit</button>
+            </div>
+            <button class="btn-small" style="background:transparent; color:#94a3b8; border:1px solid #e2e8f0; margin-top:30px; width:100%;" onclick="showView('view-ledger')">Back to Ledger</button>
         </div>
-        <div id="historyList" style="padding: 15px;"></div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue, remove, get, child } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+        import { getDatabase, ref, onValue, set, remove, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
-        const db = getDatabase(initializeApp({ databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com" }));
-        const currentUID = localStorage.getItem("ag_active_uid");
+        const app = initializeApp({ databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com" });
+        const db = getDatabase(app);
+        const currentUID = localStorage.getItem("ag_active_uid") || "global_user";
         const cloudPath = `users/${currentUID}/purchases`;
+        const ADMIN_PASS = "1234";
+
+        let ledgerCache = JSON.parse(localStorage.getItem(`ag_purchase_cache_${currentUID}`)) || {};
+        let syncQueue = JSON.parse(localStorage.getItem(`ag_purchase_queue_${currentUID}`)) || [];
+
+        window.showView = (id) => {
+            document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.getElementById('toggleViewBtn').innerText = (id === 'view-ledger') ? "New Entry" : "View Ledger";
+        };
+        window.toggleView = () => (document.getElementById('view-entry').classList.contains('active')) ? showView('view-ledger') : showView('view-entry');
         
-        let pendingAction = null, selectedId = null;
+        window.closePinModal = () => {
+            document.getElementById('pinModal').style.display = 'none';
+            document.getElementById('pinError').innerText = "";
+        };
 
-        window.toggleHistory = (show) => { document.getElementById('historyOverlay').style.display = show ? 'block' : 'none'; };
-        window.closeModal = () => { document.getElementById('actionModal').style.display = 'none'; document.getElementById('errorMsg').style.display = 'none'; };
-        const showToast = () => { const t = document.getElementById('toast'); t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2000); };
+        async function attemptSync() {
+            if (!navigator.onLine || syncQueue.length === 0) return;
+            for (let i = 0; i < syncQueue.length; i++) {
+                const item = syncQueue[i];
+                try {
+                    if (item.isDelete) { await remove(ref(db, `${cloudPath}/${item.id}`)); }
+                    else { await update(ref(db, `${cloudPath}/${item.id}`), item); }
+                    syncQueue.splice(i, 1);
+                    i--;
+                    localStorage.setItem(`ag_purchase_queue_${currentUID}`, JSON.stringify(syncQueue));
+                } catch(e) { break; }
+            }
+        }
 
-        window.filterHistory = () => {
-            const query = document.getElementById('histSearch').value.toLowerCase();
-            document.querySelectorAll('details').forEach(d => {
-                const supplierName = d.querySelector('summary div').innerText.toLowerCase();
-                d.style.display = supplierName.includes(query) ? 'block' : 'none';
+        window.refreshLedger = () => {
+            const list = document.getElementById('historyList');
+            const search = document.getElementById('searchSupplier').value.toLowerCase();
+            let total = 0;
+            let htmlBuffer = '';
+            const sortedKeys = Object.keys(ledgerCache).sort((a,b) => (ledgerCache[b].timestamp || 0) - (ledgerCache[a].timestamp || 0));
+            
+            sortedKeys.forEach(key => {
+                const val = ledgerCache[key];
+                if (val && val.supplier && val.supplier.toLowerCase().includes(search)) {
+                    total += parseFloat(val.amount || 0);
+                    htmlBuffer += `<div class="history-item" onclick="viewDetails('${key}')"><div><b>${val.item_name}</b><br><small>${val.supplier}</small></div><div><b>KES ${parseFloat(val.amount).toLocaleString()}</b></div></div>`;
+                }
             });
+            list.innerHTML = htmlBuffer;
+            document.getElementById('totalSpend').innerText = `KES ${total.toLocaleString()}`;
         };
 
-        window.handleAction = async () => {
-            if(document.getElementById('modalInput').value === "1234") {
-                document.getElementById('errorMsg').style.display = 'none';
-                closeModal();
-                await pendingAction(selectedId);
-                document.getElementById('modalInput').value = "";
-            } else { document.getElementById('errorMsg').style.display = 'block'; }
-        };
-
-        onValue(ref(db, cloudPath), (snap) => {
-            const data = snap.val() || {};
-            document.getElementById('historyList').innerHTML = Object.values(data).reverse().map(p => `
-                <details>
-                    <summary style="display:block;">
-                        <div style="font-weight: 800; font-size: 15px;">${p.supplier}</div>
-                        <div style="color:var(--primary); font-weight: 700; margin-top: 4px;">KES ${p.amount}</div>
-                    </summary>
-                    <div class="details-list">
-                        <div><strong>Item Supplied:</strong> ${p.item_name}</div>
-                        <div><strong>Total VAT (16%):</strong> KES ${(p.amount * 0.16).toFixed(2)}</div>
-                        <div><strong>Quantity:</strong> ${p.quantity} ${p.unit}</div>
-                        <div><strong>Date:</strong> ${new Date(p.purchase_date).toLocaleString()}</div>
-                        <div style="display:flex; gap:10px; margin-top:5px;">
-                            <button class="btn-act" style="background:#e0f2fe; flex:1" onclick="editItem('${p.id}')">EDIT</button>
-                            <button class="btn-act" style="background:#fee2e2; flex:1" onclick="deleteItem('${p.id}')">DELETE</button>
-                        </div>
-                    </div>
-                </details>
-            `).join('');
-        });
-
-        window.editItem = (id) => {
-            selectedId = id;
-            document.getElementById('modalTitle').innerText = "Enter PIN to Edit";
-            pendingAction = async (id) => {
-                const p = (await get(child(ref(db), `${cloudPath}/${id}`))).val();
-                document.getElementById('edit_id').value = id;
-                document.getElementById('item_name').value = p.item_name;
-                document.getElementById('supplier').value = p.supplier;
-                document.getElementById('qty').value = p.quantity;
-                document.getElementById('amount').value = p.amount;
-                document.getElementById('purchase_date').value = p.purchase_date; // Preserves time
-                document.getElementById('formTitle').innerText = "Edit Purchase";
-                toggleHistory(false);
+        window.viewDetails = (id) => {
+            const item = ledgerCache[id];
+            if(!item) return;
+            document.getElementById('detailContent').innerHTML = `<div class="detail-row"><label>Item</label><b>${item.item_name}</b></div><div class="detail-row"><label>Supplier</label><b>${item.supplier}</b></div><div class="detail-row"><label>Cost</label><b>KES ${parseFloat(item.amount).toLocaleString()}</b></div>`;
+            
+            document.getElementById('delBtn').onclick = () => {
+                document.getElementById('pinModal').style.display = 'flex';
+                window.submitPin = () => {
+                    if(document.getElementById('pinInput').value === ADMIN_PASS) {
+                        delete ledgerCache[id];
+                        syncQueue.push({ id, isDelete: true });
+                        localStorage.setItem(`ag_purchase_cache_${currentUID}`, JSON.stringify(ledgerCache));
+                        localStorage.setItem(`ag_purchase_queue_${currentUID}`, JSON.stringify(syncQueue));
+                        refreshLedger();
+                        attemptSync();
+                        showView('view-ledger');
+                        closePinModal();
+                    } else { document.getElementById('pinError').innerText = "incorrect pin"; }
+                };
             };
-            document.getElementById('actionModal').style.display = 'flex';
+            
+            document.getElementById('editBtn').onclick = () => {
+                document.getElementById('pinModal').style.display = 'flex';
+                window.submitPin = () => {
+                    if(document.getElementById('pinInput').value === ADMIN_PASS) {
+                        document.getElementById('editId').value = id;
+                        document.getElementById('item_name').value = item.item_name;
+                        document.getElementById('supplier').value = item.supplier;
+                        document.getElementById('qty').value = item.quantity;
+                        document.getElementById('amount').value = item.amount;
+                        document.getElementById('unit').value = item.unit;
+                        document.getElementById('formTitle').innerText = "Edit Entry";
+                        showView('view-entry');
+                        closePinModal();
+                    } else { document.getElementById('pinError').innerText = "incorrect pin"; }
+                };
+            };
+            showView('view-detail');
         };
 
-        window.deleteItem = (id) => {
-            selectedId = id;
-            document.getElementById('modalTitle').innerText = "Enter PIN to Delete";
-            pendingAction = async (id) => { await remove(ref(db, `${cloudPath}/${id}`)); };
-            document.getElementById('actionModal').style.display = 'flex';
-        };
-
-        document.getElementById('purchaseForm').addEventListener('submit', async (e) => {
+        document.getElementById('purchaseForm').onsubmit = (e) => {
             e.preventDefault();
-            const id = document.getElementById('edit_id').value || "pur_" + Date.now();
-            await set(ref(db, `${cloudPath}/${id}`), {
-                id, item_name: document.getElementById('item_name').value,
-                supplier: document.getElementById('supplier').value,
-                quantity: document.getElementById('qty').value,
-                unit: document.getElementById('unit').value,
-                amount: document.getElementById('amount').value,
-                purchase_date: document.getElementById('purchase_date').value,
-                timestamp: Date.now()
-            });
+            const id = document.getElementById('editId').value || `pur_${Date.now()}`;
+            const entry = { id, item_name: document.getElementById('item_name').value, supplier: document.getElementById('supplier').value, quantity: document.getElementById('qty').value, amount: document.getElementById('amount').value, unit: document.getElementById('unit').value, timestamp: Date.now() };
+            
+            ledgerCache[id] = entry;
+            syncQueue.push(entry);
+            localStorage.setItem(`ag_purchase_cache_${currentUID}`, JSON.stringify(ledgerCache));
+            localStorage.setItem(`ag_purchase_queue_${currentUID}`, JSON.stringify(syncQueue));
+            
             document.getElementById('purchaseForm').reset();
-            document.getElementById('edit_id').value = "";
-            document.getElementById('formTitle').innerText = "New Purchase";
-            showToast();
+            document.getElementById('editId').value = "";
+            document.getElementById('formTitle').innerText = "New Purchase Entry";
+            
+            refreshLedger();
+            showView('view-ledger');
+            attemptSync();
+        };
+
+        // FIXED: Merge Logic in onValue listener
+        onValue(ref(db, cloudPath), (snap) => {
+            const serverData = snap.val() || {};
+            
+            // 1. Start with the server's data as the base
+            let combined = { ...serverData };
+            
+            // 2. Re-apply any pending items that haven't synced to the server yet
+            // This ensures offline entries remain visible even if the server hasn't seen them yet.
+            syncQueue.forEach(item => {
+                if (item.isDelete) {
+                    delete combined[item.id];
+                } else {
+                    combined[item.id] = item;
+                }
+            });
+            
+            ledgerCache = combined;
+            localStorage.setItem(`ag_purchase_cache_${currentUID}`, JSON.stringify(ledgerCache));
+            refreshLedger();
         });
+
+        window.addEventListener('online', attemptSync);
+        refreshLedger();
     </script>
 </body>
 </html>
