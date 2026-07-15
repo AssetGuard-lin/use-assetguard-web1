@@ -3,209 +3,872 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>App Settings</title>
-    <!-- ... (Keep your existing CSS styles exactly as they are) ... -->
+    <title>AssetGuard Pro - Settings Terminal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --bg-color: #f4f6f8; --card-bg: #ffffff; --text-main: #1e293b; --text-muted: #64748b; --primary: #0284c7; --danger: #ef4444; --border: #e2e8f0; --header-bg: #ffffff; }
-        [data-theme="dark"] { --bg-color: #0f172a; --card-bg: #1e293b; --text-main: #f8fafc; --text-muted: #94a3b8; --primary: #38bdf8; --danger: #f87171; --border: #334155; --header-bg: #1e293b; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); transition: background-color 0.3s ease; padding-bottom: 50px; }
-        header { position: sticky; top: 0; z-index: 100; background-color: var(--header-bg); border-bottom: 1px solid var(--border); padding: 15px 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .container { padding: 15px; max-width: 600px; margin: 0 auto; }
-        .card { background-color: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 15px; border: 1px solid var(--border); }
-        .card-header { font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 15px; font-weight: 700; letter-spacing: 0.5px; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px; }
-        .form-control { width: 100%; padding: 12px; background-color: var(--bg-color); border: 1px solid var(--border); color: var(--text-main); border-radius: 8px; font-size: 1rem; }
-        .form-control:disabled { opacity: 0.7; cursor: not-allowed; }
-        .profile-photo-container { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; }
-        .profile-photo { width: 90px; height: 90px; border-radius: 50%; background-color: var(--border); object-fit: cover; margin-bottom: 10px; border: 2px solid var(--primary); }
-        .file-upload-btn { color: var(--primary); font-size: 0.9rem; font-weight: 600; cursor: pointer; display: none; }
-        input[type="file"] { display: none; }
-        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
-        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--border); transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .3s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--primary); }
-        input:checked + .slider:before { transform: translateX(22px); }
-        .btn-action { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 10px; color: white; background-color: var(--primary); }
-        .btn-danger { background-color: var(--danger); }
-        .hidden-area { display: none; margin-top: 15px; border-top: 1px dashed var(--border); padding-top: 15px; }
+        :root {
+            --primary: #0072CE;
+            --primary-light: #e6f0fa;
+            --dark: #001A35;
+            --bg: #f8f9fc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --danger: #ef4444;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --shadow: 0 10px 25px -5px rgba(0, 26, 53, 0.05), 0 8px 10px -6px rgba(0, 26, 53, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 0;
+        }
+
+        /* Standalone App Container */
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--card-bg);
+            min-height: 100vh;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.03);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Header Navigation */
+        .app-header {
+            position: sticky;
+            top: 0;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+            z-index: 100;
+        }
+
+        .header-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-title span {
+            color: var(--primary);
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: 0.2s;
+        }
+
+        .back-btn:active {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        /* Settings Scroll Area */
+        .settings-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding-bottom: 100px; /* Space for sticky bottom button */
+        }
+
+        /* Live Brand Card Preview */
+        .preview-card-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .section-label {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+        }
+
+        .brand-preview-card {
+            background: linear-gradient(135deg, var(--dark) 0%, #002d5c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: var(--radius-lg);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0, 26, 53, 0.15);
+        }
+
+        .brand-preview-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0,114,206,0.2) 0%, rgba(0,0,0,0) 70%);
+            pointer-events: none;
+        }
+
+        .card-header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .card-identity h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .card-identity p {
+            font-size: 10px;
+            opacity: 0.8;
+            font-weight: 500;
+            margin-top: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card-logo-slot {
+            width: 42px;
+            height: 42px;
+            border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .card-logo-slot img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .preview-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 100px;
+            font-size: 8px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            align-self: flex-start;
+            margin-top: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Setting Forms Group */
+        .input-group {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-field label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--dark);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-field input[type="text"],
+        .form-field input[type="password"] {
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 12px 14px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            outline: none;
+            transition: 0.2s;
+            background: #fafbfe;
+            color: var(--text-main);
+        }
+
+        .form-field input:focus {
+            border-color: var(--primary);
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(0, 114, 206, 0.1);
+        }
+
+        /* File Upload Block */
+        .logo-upload-area {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+            background: #fafbfe;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+        }
+
+        .logo-upload-area:hover, .logo-upload-area:active {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .logo-upload-area input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .upload-icon {
+            color: var(--primary);
+        }
+
+        .upload-text b {
+            color: var(--primary);
+            font-size: 12px;
+        }
+
+        .upload-text p {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* Sticky Footer Controls */
+        .settings-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 12px;
+            z-index: 100;
+        }
+
+        .btn {
+            flex: 1;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 700;
+            padding: 14px;
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:active {
+            background: #00569e;
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: var(--text-muted);
+        }
+
+        .btn-secondary:active {
+            background: #e2e8f0;
+        }
+
+        /* KEYPAD LOCK SCREEN OVERLAY */
+        .pin-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--dark);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 40px 30px;
+            color: white;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .pin-header {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .pin-logo {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+        }
+
+        .pin-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .pin-header p {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 6px;
+        }
+
+        /* Indicators */
+        .pin-dots {
+            display: flex;
+            gap: 16px;
+            margin: 30px 0;
+        }
+
+        .dot {
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transition: 0.15s;
+        }
+
+        .dot.filled {
+            background: var(--primary);
+            border-color: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .dot.error {
+            background: var(--danger);
+            border-color: var(--danger);
+            box-shadow: 0 0 10px var(--danger);
+        }
+
+        /* Custom Keypad Grid */
+        .keypad-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            width: 100%;
+            max-width: 320px;
+            margin-bottom: 20px;
+        }
+
+        .key-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: white;
+            font-family: inherit;
+            font-size: 22px;
+            font-weight: 600;
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            transition: 0.1s;
+        }
+
+        .key-btn:active {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(0.92);
+        }
+
+        .key-btn.transparent {
+            background: none;
+            border: none;
+        }
+
+        .key-btn.transparent:active {
+            background: none;
+            transform: none;
+        }
+
+        /* Alert Toast */
+        .toast {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--dark);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 700;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 3000;
+            opacity: 0;
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* Shake Keyframes for Error */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+
+        .shake {
+            animation: shake 0.3s ease-in-out;
+        }
     </style>
 </head>
 <body>
 
-    <header><h1>System Settings</h1></header>
+<div class="app-container">
 
-    <div class="container">
-        <div class="card">
-            <div class="card-header">Profile & Business</div>
-            <div class="profile-photo-container">
-                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2NjYyI+PHBhdGggZD0iTTEyIDEyYzIuMjEgMCA0LTEuNzkgNC00czEuNzktNCA0LTRzLTQgMS43OS00IDRzMS43OSA0IDQgNHptMCAyYy0yLjY3IDAtOCAxLjM0LTggNHYyYTEgMSAwIDAgMCAxIDFoMTRhMSAxIDAgMCAwIDEtMXYtMmMwLTIuNjYtNS4zMy00LTgtNHoiLz48L3N2Zz4=" id="previewPhoto" class="profile-photo">
-                <label class="file-upload-btn" id="uploadLabel" for="photoUpload">Update Photo</label>
-                <input type="file" id="photoUpload" accept="image/*">
+    <!-- PIN Screen Overlay -->
+    <div id="pinScreen" class="pin-overlay">
+        <div class="pin-header">
+            <div class="pin-logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
             </div>
-            <div class="form-group"><label>Full Name</label><input type="text" id="ownerName" class="form-control profile-input" disabled></div>
-            <div class="form-group"><label>Professional Role</label><input type="text" id="ownerRole" class="form-control profile-input" disabled></div>
-            <div class="form-group"><label>Business Name</label><input type="text" id="businessName" class="form-control profile-input" disabled></div>
-            <div class="form-group"><label>Tagline</label><input type="text" id="businessTagline" class="form-control profile-input" disabled></div>
-            
-            <button class="btn-action" id="editProfileBtn" onclick="toggleEditMode()">Edit Settings</button>
+            <h2>Secure Configuration</h2>
+            <p id="pinInstructions">Enter Admin PIN to access settings</p>
         </div>
 
-        <div class="card">
-            <div class="card-header">Security Credentials</div>
-            <div class="form-group"><label>Current Password</label><input type="password" id="currentPass" class="form-control"></div>
-            <div id="passwordFields" class="hidden-area">
-                <div class="form-group"><label>New Password</label><input type="password" id="newPass" class="form-control"></div>
-                <div class="form-group"><label>Confirm New</label><input type="password" id="confirmPass" class="form-control"></div>
-                <button class="btn-action" onclick="changePassword()">Save New Password</button>
-            </div>
+        <div class="pin-dots" id="pinDots">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
         </div>
 
-        <div class="card">
-            <div class="card-header">System & API Preferences</div>
-            <div class="form-group"><label>Primary API Key</label><input type="password" id="apiKey" class="form-control" disabled></div>
-            <div class="form-group"><label>Unlock API Access</label><input type="password" id="apiVerificationPass" class="form-control"></div>
-            <div id="apiControls" class="hidden-area">
-                <button class="btn-action" onclick="saveApiKey()">Save Changes</button>
-                <button class="btn-action btn-danger" onclick="deleteApiKey()">Delete Key</button>
-            </div>
+        <div class="keypad-grid">
+            <button class="key-btn" onclick="pressPinKey('1')">1</button>
+            <button class="key-btn" onclick="pressPinKey('2')">2</button>
+            <button class="key-btn" onclick="pressPinKey('3')">3</button>
+            <button class="key-btn" onclick="pressPinKey('4')">4</button>
+            <button class="key-btn" onclick="pressPinKey('5')">5</button>
+            <button class="key-btn" onclick="pressPinKey('6')">6</button>
+            <button class="key-btn" onclick="pressPinKey('7')">7</button>
+            <button class="key-btn" onclick="pressPinKey('8')">8</button>
+            <button class="key-btn" onclick="pressPinKey('9')">9</button>
+            <button class="key-btn transparent" style="font-size:12px; font-weight:700; text-transform:uppercase; opacity:0.7;" onclick="clearPin()">Clear</button>
+            <button class="key-btn" onclick="pressPinKey('0')">0</button>
+            <button class="key-btn transparent" onclick="backspacePin()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>
+            </button>
         </div>
-
-        <div class="card">
-            <div class="card-header">General App Preferences</div>
-            <div class="setting-row"><span>Dark Mode</span>
-                <label class="switch"><input type="checkbox" id="darkModeToggle"><span class="slider"></span></label>
-            </div>
-        </div>
+        <div style="height: 10px;"></div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-        import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    <!-- Main Navigation Header -->
+    <header class="app-header">
+        <button class="back-btn" onclick="exitPortal()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        </button>
+        <div class="header-title">
+            AssetGuard <span>Settings</span>
+        </div>
+        <div style="width: 20px;"></div> <!-- Spacer for balance -->
+    </header>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA",
-            authDomain: "assetguard-c8c8c.firebaseapp.com",
-            databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com/",
-            projectId: "assetguard-c8c8c"
-        };
+    <!-- Main Settings Form Area -->
+    <main class="settings-content">
+        
+        <!-- Live Invoice Header Mockup Card -->
+        <div class="preview-card-wrap">
+            <span class="section-label">Branding Visualizer</span>
+            <div class="brand-preview-card">
+                <div class="card-header-flex">
+                    <div class="card-identity">
+                        <h3 id="prevName">JCorp Kenya Inc</h3>
+                        <p id="prevTag">Transformation you need</p>
+                    </div>
+                    <div class="card-logo-slot">
+                        <img id="prevLogo" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='42' height='42' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='1.5'><path d='M4.5 16.5c-1.5 1.26-2.5 3.19-2.5 5.5h20c0-2.31-1-4.24-2.5-5.5' /><circle cx='12' cy='8' r='5' /></svg>" alt="Logo">
+                    </div>
+                </div>
+                <div class="preview-badge">
+                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="color:#22c55e;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    Live Preview
+                </div>
+            </div>
+        </div>
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        <!-- Section: Business Details -->
+        <div class="form-field-wrap">
+            <span class="section-label" style="display:block; margin-bottom: 8px;">Corporate Settings</span>
+            <div class="input-group">
+                <div class="form-field">
+                    <label>Business Identity Name</label>
+                    <input type="text" id="businessNameInput" placeholder="Enter Business Name" oninput="updatePreviewCard()">
+                </div>
+                <div class="form-field">
+                    <label>Corporate Tagline / Address</label>
+                    <input type="text" id="taglineInput" placeholder="Enter Tagline/Address" oninput="updatePreviewCard()">
+                </div>
+            </div>
+        </div>
 
-        // This is the bridge path that both apps will use
-        const SHARED_PATH = "company_info/businessProfile";
+        <!-- Section: Corporate Emblem -->
+        <div class="form-field-wrap">
+            <span class="section-label" style="display:block; margin-bottom: 8px;">Corporate Emblem</span>
+            <div class="input-group">
+                <div class="logo-upload-area">
+                    <input type="file" id="logoFileInput" accept="image/*" onchange="processLogoFile(this)">
+                    <div class="upload-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx='8.5' cy='8.5' r='1.5'></circle><polyline points='21 15 16 10 5 21'></polyline></svg>
+                    </div>
+                    <div class="upload-text">
+                        <b>Upload Corporate Logo</b>
+                        <p>Select an image from your device</p>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        window.onload = async () => {
-            // Load LocalStorage defaults
-            document.getElementById('ownerName').value = localStorage.getItem('ownerName') || '';
-            document.getElementById('ownerRole').value = localStorage.getItem('ownerRole') || '';
-            document.getElementById('businessName').value = localStorage.getItem('businessName') || '';
-            document.getElementById('businessTagline').value = localStorage.getItem('businessTagline') || '';
-            document.getElementById('apiKey').value = localStorage.getItem('apiKey') || '';
-            
-            if(localStorage.getItem('theme') === 'dark') { 
-                document.body.setAttribute('data-theme','dark'); 
-                document.getElementById('darkModeToggle').checked = true; 
-            }
+        <!-- Section: Protection Security Pin -->
+        <div class="form-field-wrap">
+            <span class="section-label" style="display:block; margin-bottom: 8px;">Terminal Protection Security</span>
+            <div class="input-group">
+                <div class="form-field">
+                    <label>Update Admin PIN (4 Digits)</label>
+                    <input type="password" id="pinSettingInput" maxlength="4" placeholder="Enter 4-digit security PIN" pattern="[0-9]*" inputmode="numeric">
+                </div>
+            </div>
+        </div>
 
-            // Sync from Cloud
-            const snapshot = await get(ref(db, SHARED_PATH));
-            if (snapshot.exists()) {
-                const data = snapshot.val();
-                if(data.ownerName) document.getElementById('ownerName').value = data.ownerName;
-                if(data.ownerRole) document.getElementById('ownerRole').value = data.ownerRole;
-                if(data.businessName) document.getElementById('businessName').value = data.businessName;
-                if(data.tagline) document.getElementById('businessTagline').value = data.tagline;
-            }
-        };
+    </main>
 
-        let isEditing = false;
-        window.toggleEditMode = async function() {
-            const btn = document.getElementById('editProfileBtn');
-            const inputs = document.querySelectorAll('.profile-input');
-            const uploadLabel = document.getElementById('uploadLabel');
+    <!-- App Fixed Footer Buttons -->
+    <footer class="settings-footer">
+        <button class="btn btn-secondary" onclick="exitPortal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveConfiguration()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+            Save Settings
+        </button>
+    </footer>
 
-            if (!isEditing) {
-                inputs.forEach(i => i.disabled = false);
-                uploadLabel.style.display = 'block';
-                btn.innerText = 'Save All Profile Updates';
-                btn.style.backgroundColor = '#22c55e';
-                isEditing = true;
-            } else {
-                await saveProfile();
-                inputs.forEach(i => i.disabled = true);
-                uploadLabel.style.display = 'none';
-                btn.innerText = 'Edit Settings';
-                btn.style.backgroundColor = 'var(--primary)';
-                isEditing = false;
-            }
-        }
+</div>
 
-        async function saveProfile() {
-            const profileData = {
-                ownerName: document.getElementById('ownerName').value,
-                ownerRole: document.getElementById('ownerRole').value,
-                businessName: document.getElementById('businessName').value,
-                tagline: document.getElementById('businessTagline').value
-            };
+<!-- Toast Box -->
+<div id="toastBox" class="toast">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="color: var(--success);"><polyline points="20 6 9 17 4 12"></polyline></svg>
+    <span id="toastText">Settings Updated Successfully</span>
+</div>
 
-            // Save to LocalStorage
-            localStorage.setItem('ownerName', profileData.ownerName);
-            localStorage.setItem('ownerRole', profileData.ownerRole);
-            localStorage.setItem('businessName', profileData.businessName);
-            localStorage.setItem('businessTagline', profileData.tagline);
+<script>
+    // System Global States
+    let currentUID = "global_terminal_user";
+    let loadedSettings = {
+        businessName: "JCorp Kenya Inc",
+        tagline: "Transformation you need",
+        logoUrl: "",
+        adminPin: "0000"
+    };
+    
+    let activePinBuffer = "";
+    
+    // Auto Initialization on DOM Load
+    window.onload = function() {
+        resolveUserIdentity();
+        loadLocalSettings();
+        initializeVerificationMode();
+    };
 
-            // Sync to Shared Cloud Path
+    // Determine current user session (supports URL parameters, WebView inputs, and standard local terminal caches)
+    function resolveUserIdentity() {
+        const urlParams = new URLSearchParams(window.location.search);
+        let resolved = urlParams.get('uid') || urlParams.get('user') || urlParams.get('userId');
+        
+        if (!resolved) {
             try {
-                await set(ref(db, SHARED_PATH), profileData);
-                alert('Profile saved and synced to cloud.');
+                if (window.AppInventor && typeof window.AppInventor.getWebViewString === 'function') {
+                    const appString = window.AppInventor.getWebViewString();
+                    if (appString && appString !== "undefined" && appString !== "null" && appString.trim() !== "") {
+                        resolved = appString;
+                    }
+                }
             } catch (e) {
-                alert('Saved locally, but could not sync to cloud: ' + e.message);
+                console.warn("Could not inspect native container metadata context.", e);
             }
         }
+        
+        if (!resolved) {
+            resolved = localStorage.getItem("ag_active_uid");
+        }
+        
+        if (resolved && resolved.trim() !== "") {
+            currentUID = resolved;
+            localStorage.setItem("ag_active_uid", currentUID);
+        }
+    }
 
-        // ... (Password, API, and Theme logic stays as your original)
-        document.getElementById('currentPass').addEventListener('input', (e) => {
-            document.getElementById('passwordFields').style.display = (e.target.value === (localStorage.getItem('appPassword') || '1234')) ? 'block' : 'none';
-        });
-
-        document.getElementById('apiVerificationPass').addEventListener('input', (e) => {
-            const isUnlocked = (e.target.value === (localStorage.getItem('appPassword') || '1234'));
-            document.getElementById('apiControls').style.display = isUnlocked ? 'block' : 'none';
-            document.getElementById('apiKey').disabled = !isUnlocked;
-            document.getElementById('apiKey').type = isUnlocked ? 'text' : 'password';
-        });
-
-        window.changePassword = function() {
-            const p1 = document.getElementById('newPass').value;
-            const p2 = document.getElementById('confirmPass').value;
-            if(p1 === p2 && p1.length > 3) {
-                localStorage.setItem('appPassword', p1);
-                alert('Password updated!');
-            } else { alert('Passwords mismatch or too short'); }
+    // Load Local Settings matching Unified Terminal Cache Schema
+    function loadLocalSettings() {
+        const cacheKey = `ag_profile_cache_${currentUID}`;
+        const cachedData = localStorage.getItem(cacheKey);
+        
+        if (cachedData) {
+            try {
+                const parsed = JSON.parse(cachedData);
+                loadedSettings = { ...loadedSettings, ...parsed };
+                // Ensure there is always a valid PIN fallback
+                if (!loadedSettings.adminPin) {
+                    loadedSettings.adminPin = "0000";
+                }
+            } catch (e) {
+                console.error("Cache reconstruction failed. Reverting to factory config defaults.", e);
+            }
+        } else {
+            // Apply fresh defaults directly to UI & local storage if blank
+            localStorage.setItem(cacheKey, JSON.stringify(loadedSettings));
         }
 
-        window.saveApiKey = function() {
-            localStorage.setItem('apiKey', document.getElementById('apiKey').value);
-            alert('API Key Saved');
-            location.reload();
+        // Map configuration data to input fields
+        document.getElementById('businessNameInput').value = loadedSettings.businessName;
+        document.getElementById('taglineInput').value = loadedSettings.tagline;
+        document.getElementById('pinSettingInput').value = loadedSettings.adminPin;
+        
+        updatePreviewCard();
+    }
+
+    // Refresh Visual Preview Element Dynamic State
+    function updatePreviewCard() {
+        const nameVal = document.getElementById('businessNameInput').value || "JCorp Kenya Inc";
+        const tagVal = document.getElementById('taglineInput').value || "Transformation you need";
+        
+        document.getElementById('prevName').innerText = nameVal;
+        document.getElementById('prevTag').innerText = tagVal;
+        
+        const previewLogoImg = document.getElementById('prevLogo');
+        if (loadedSettings.logoUrl && loadedSettings.logoUrl !== "") {
+            previewLogoImg.src = loadedSettings.logoUrl;
+        } else {
+            // Default SVG Avatar placeholder
+            previewLogoImg.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='42' height='42' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='1.5'><path d='M4.5 16.5c-1.5 1.26-2.5 3.19-2.5 5.5h20c0-2.31-1-4.24-2.5-5.5' /><circle cx='12' cy='8' r='5' /></svg>";
+        }
+    }
+
+    // Process Logo File upload natively into Base64 for offline local cache resilience
+    function processLogoFile(uploader) {
+        const emblem = uploader.files[0];
+        if (emblem) {
+            const parser = new FileReader();
+            parser.onload = function(e) {
+                loadedSettings.logoUrl = e.target.result;
+                updatePreviewCard();
+            };
+            parser.readAsDataURL(emblem);
+        }
+    }
+
+    // Keypad Logic System
+    function initializeVerificationMode() {
+        activePinBuffer = "";
+        drawPinDots();
+        document.getElementById('pinScreen').style.display = "flex";
+    }
+
+    function pressPinKey(digit) {
+        if (activePinBuffer.length < 4) {
+            activePinBuffer += digit;
+            drawPinDots();
+            
+            if (activePinBuffer.length === 4) {
+                // Execute security confirmation check
+                setTimeout(evaluateSecurityCode, 150);
+            }
+        }
+    }
+
+    function clearPin() {
+        activePinBuffer = "";
+        drawPinDots();
+    }
+
+    function backspacePin() {
+        activePinBuffer = activePinBuffer.slice(0, -1);
+        drawPinDots();
+    }
+
+    function drawPinDots() {
+        const dots = document.getElementById('pinDots').children;
+        for (let i = 0; i < dots.length; i++) {
+            if (i < activePinBuffer.length) {
+                dots[i].classList.add('filled');
+            } else {
+                dots[i].classList.remove('filled');
+            }
+            dots[i].classList.remove('error');
+        }
+    }
+
+    function evaluateSecurityCode() {
+        const targetPin = loadedSettings.adminPin || "0000";
+        const dotsContainer = document.getElementById('pinDots');
+        
+        if (activePinBuffer === targetPin) {
+            // Dismiss authentication overlay
+            document.getElementById('pinScreen').style.opacity = "0";
+            setTimeout(() => {
+                document.getElementById('pinScreen').style.display = "none";
+            }, 300);
+        } else {
+            // Flash red on incorrect PIN and play a shake animation
+            dotsContainer.classList.add('shake');
+            const dots = dotsContainer.children;
+            for (let i = 0; i < dots.length; i++) {
+                dots[i].classList.add('error');
+            }
+            
+            // Render instructions label with an error message
+            const promptLabel = document.getElementById('pinInstructions');
+            promptLabel.innerText = "Incorrect PIN. Please try again.";
+            promptLabel.style.color = "var(--danger)";
+            
+            setTimeout(() => {
+                dotsContainer.classList.remove('shake');
+                activePinBuffer = "";
+                drawPinDots();
+                promptLabel.innerText = "Enter Admin PIN to access settings";
+                promptLabel.style.color = "rgba(255, 255, 255, 0.6)";
+            }, 1000);
+        }
+    }
+
+    // Save configuration settings
+    function saveConfiguration() {
+        const finalPin = document.getElementById('pinSettingInput').value;
+        
+        if (!/^\d{4}$/.test(finalPin)) {
+            alert("Admin Protection PIN must be exactly 4 digits!");
+            return;
         }
 
-        window.deleteApiKey = function() {
-            localStorage.removeItem('apiKey');
-            document.getElementById('apiKey').value = '';
-            alert('API Key Deleted');
-            location.reload();
+        loadedSettings.businessName = document.getElementById('businessNameInput').value;
+        loadedSettings.tagline = document.getElementById('taglineInput').value;
+        loadedSettings.adminPin = finalPin;
+
+        const cacheKey = `ag_profile_cache_${currentUID}`;
+        localStorage.setItem(cacheKey, JSON.stringify(loadedSettings));
+
+        // Push settings update through WebView string for native container frameworks (e.g., Kodular)
+        try {
+            if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
+                window.AppInventor.setWebViewString(JSON.stringify({
+                    action: "settings_updated",
+                    uid: currentUID,
+                    data: loadedSettings
+                }));
+            }
+        } catch (e) {
+            console.warn("Could not sync with native AppInventor state manager context.", e);
         }
 
-        document.getElementById('darkModeToggle').addEventListener('change', (e) => {
-            if(e.target.checked) { document.body.setAttribute('data-theme','dark'); localStorage.setItem('theme','dark'); }
-            else { document.body.removeAttribute('data-theme'); localStorage.setItem('theme','light'); }
-        });
-    </script>
+        // Show a polished toast notification
+        triggerToast("Branding & Protection Settings Updated");
+        
+        // Return back to security verification after saving to protect changes
+        setTimeout(() => {
+            initializeVerificationMode();
+        }, 1200);
+    }
+
+    // Trigger Modern Custom Toast
+    function triggerToast(msg) {
+        const box = document.getElementById('toastBox');
+        document.getElementById('toastText').innerText = msg;
+        box.classList.add('show');
+        setTimeout(() => {
+            box.classList.remove('show');
+        }, 2500);
+    }
+
+    // Handshake back to Terminal UI
+    function exitPortal() {
+        // Direct Web redirect fallback or history back action
+        if (window.history.length > 1) {
+            window.history.back();
+        } else {
+            alert("Portal interface complete. Navigate back to Terminal console.");
+        }
+    }
+</script>
 </body>
 </html>
