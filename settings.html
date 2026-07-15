@@ -62,8 +62,7 @@
     <header><h1>System Settings</h1></header>
 
     <div class="container">
-        
-        <!-- 1. Owner Profile & Business (Editable Toggle) -->
+        <!-- 1. Owner Profile & Business -->
         <div class="card">
             <div class="card-header">Profile & Business</div>
             <div class="profile-photo-container">
@@ -110,34 +109,57 @@
         </div>
     </div>
 
-    <script>
-        // Load Data
-        window.onload = () => {
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA",
+            authDomain: "assetguard-c8c8c.firebaseapp.com",
+            databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com/",
+            projectId: "assetguard-c8c8c"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Capture UID from URL (e.g., Settings.html?uid=User123)
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentUID = urlParams.get('uid') || "global_terminal_user";
+
+        // Load Data on Startup
+        window.onload = async () => {
+            // Load LocalStorage defaults
             document.getElementById('ownerName').value = localStorage.getItem('ownerName') || '';
             document.getElementById('ownerRole').value = localStorage.getItem('ownerRole') || '';
-            document.getElementById('businessName').value = localStorage.getItem('businessName') || '';
-            document.getElementById('businessTagline').value = localStorage.getItem('businessTagline') || '';
             document.getElementById('apiKey').value = localStorage.getItem('apiKey') || '';
             if(localStorage.getItem('theme') === 'dark') { document.body.setAttribute('data-theme','dark'); document.getElementById('darkModeToggle').checked = true; }
+
+            // Sync Firebase for Business Profile
+            const profileRef = ref(db, `users/${currentUID}/profile`);
+            const snapshot = await get(profileRef);
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                document.getElementById('businessName').value = data.businessName || '';
+                document.getElementById('businessTagline').value = data.tagline || '';
+            }
         };
 
         // --- Profile Edit Toggle ---
         let isEditing = false;
-        function toggleEditMode() {
+        window.toggleEditMode = async function() {
             const btn = document.getElementById('editProfileBtn');
             const inputs = document.querySelectorAll('.profile-input');
             const uploadLabel = document.getElementById('uploadLabel');
 
             if (!isEditing) {
-                // Enter Edit Mode
                 inputs.forEach(i => i.disabled = false);
                 uploadLabel.style.display = 'block';
                 btn.innerText = 'Save All Profile Updates';
-                btn.style.backgroundColor = '#22c55e'; // Green for save
+                btn.style.backgroundColor = '#22c55e';
                 isEditing = true;
             } else {
-                // Save and Exit Edit Mode
-                saveProfile();
+                await saveProfile();
                 inputs.forEach(i => i.disabled = true);
                 uploadLabel.style.display = 'none';
                 btn.innerText = 'Edit Settings';
@@ -146,12 +168,26 @@
             }
         }
 
-        function saveProfile() {
+        async function saveProfile() {
+            const bName = document.getElementById('businessName').value;
+            const bTagline = document.getElementById('businessTagline').value;
+
+            // Save locally
             localStorage.setItem('ownerName', document.getElementById('ownerName').value);
             localStorage.setItem('ownerRole', document.getElementById('ownerRole').value);
-            localStorage.setItem('businessName', document.getElementById('businessName').value);
-            localStorage.setItem('businessTagline', document.getElementById('businessTagline').value);
-            alert('Profile saved successfully.');
+            localStorage.setItem('businessName', bName);
+            localStorage.setItem('businessTagline', bTagline);
+
+            // Save to Firebase
+            try {
+                await set(ref(db, `users/${currentUID}/profile`), {
+                    businessName: bName,
+                    tagline: bTagline
+                });
+                alert('Profile saved successfully to local and cloud.');
+            } catch (e) {
+                alert('Profile saved locally, but cloud sync failed: ' + e.message);
+            }
         }
 
         // --- Existing Security & API Logic ---
@@ -166,7 +202,7 @@
             document.getElementById('apiKey').type = isUnlocked ? 'text' : 'password';
         });
 
-        function changePassword() {
+        window.changePassword = function() {
             const p1 = document.getElementById('newPass').value;
             const p2 = document.getElementById('confirmPass').value;
             if(p1 === p2 && p1.length > 3) {
@@ -175,13 +211,13 @@
             } else { alert('Passwords mismatch or too short'); }
         }
 
-        function saveApiKey() {
+        window.saveApiKey = function() {
             localStorage.setItem('apiKey', document.getElementById('apiKey').value);
             alert('API Key Saved');
             location.reload();
         }
 
-        function deleteApiKey() {
+        window.deleteApiKey = function() {
             localStorage.removeItem('apiKey');
             document.getElementById('apiKey').value = '';
             alert('API Key Deleted');
