@@ -10,7 +10,7 @@
     :root { --primary: #0072CE; --dark: #001A35; --edit: #f59e0b; --light: #f8faff; --locked: #e2e8f0; --error: #ef4444; --success: #22c55e; --bg: #f4f6f9; --danger:#ef4444; --muted:#64748b; --warning: #f59e0b; }
     body { font-family: 'Poppins', sans-serif; margin: 0; padding: 0; background: var(--bg); color: #1f2937; }
     .header-nav { position: sticky; top: 0; display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 12px 20px; z-index: 3000; border-bottom: 1px solid #e2e8f0; }
-    .brand { font-weight: 800; font-size: 16px; color: var(--dark); }
+    .brand { font-weight: 800; font-size: 16px; color: var(--dark); cursor: pointer; }
     .brand span { color: var(--primary); }
     .toggle-view-btn { background: var(--dark); color: white; border: none; padding: 8px 16px; border-radius: 10px; font-weight: 700; font-size: 11px; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
     .toggle-view-btn:hover { background: var(--primary); }
@@ -88,7 +88,7 @@
 <body>
 
 <header class="header-nav">
-    <div class="brand">
+    <div class="brand" onclick="promptPin('settings')">
         AssetGuard <span>Terminal</span>
         <span id="user-badge" style="display:none; font-size:10px; color:var(--muted); font-weight:600; margin-top:2px;">Detecting Session...</span>
     </div>
@@ -191,7 +191,7 @@
                 <button class="btn-main" style="background:var(--primary); margin:0; flex:1;" onclick="shareReceipt()">Download PDF</button>
                 <button class="btn-main" style="background:#25D366; margin:0; flex:1;" onclick="nativeShare()">Share Receipt</button>
             </div>
-            <button class="btn-main" style="background:var(--muted); margin:0;" onclick="closeReceipt()">Close</button>
+            <button class="btn-main" style="background:#64748b; margin:0;" onclick="closeReceipt()">Close</button>
         </div>
     </div>
 </div>
@@ -222,6 +222,41 @@
             <button id="btn-del-mode" class="btn btn-del">Delete Transaction</button>
             <button onclick="closeModal()" class="btn btn-dark" style="background: var(--muted)">Cancel</button>
         </div>
+    </div>
+</div>
+
+<div id="settingsModal" class="modal">
+    <div class="modal-content">
+        <h3 style="margin:0 0 15px 0; font-size: 16px;">Business Profile</h3>
+        <label>Business Name</label>
+        <input type="text" id="set-name" class="search-input">
+        <label>Tagline / Address</label>
+        <input type="text" id="set-tagline" class="search-input">
+        
+        <!-- Added dynamic Admin 4 PIN change input -->
+        <label>Admin PIN (4 Digits)</label>
+        <input type="password" id="set-pin" class="search-input" maxlength="4" placeholder="Enter 4-digit access PIN" pattern="[0-9]*" inputmode="numeric">
+        
+        <label>Logo Image</label>
+        <input type="file" id="logoUpload" accept="image/*" onchange="processLogo(this)" class="search-input" style="padding: 5px;">
+        <input type="hidden" id="set-logo">
+        <img id="logoPreview" style="max-width: 30px; display: none; margin-top: -10px; border: 1px solid #e2e8f0; border-radius: 8px;">
+        <p style="font-size: 9px; color: var(--muted); margin-top: -5px;">Select an image from your device.</p>
+        <div style="display:flex; gap:10px; margin-top:15px;">
+            <button class="btn btn-success" style="flex:1" onclick="saveSettings()">Save</button>
+            <button class="btn btn-dark" style="flex:1; background:var(--muted)" onclick="document.getElementById('settingsModal').style.display='none'">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div id="pinModal" class="modal" style="z-index: 5000;">
+    <div class="modal-content" style="max-width: 300px; text-align: center; background: white;">
+        <h3 style="margin: 0 0 10px 0; font-size: 16px; color: var(--dark);">Secure Access</h3>
+        <p style="font-size: 11px; color: var(--muted); margin-bottom: 20px;">Enter Admin PIN to manage record</p>
+        <input type="password" id="pinInput" placeholder="Enter 4-Digit PIN" maxlength="4" pattern="[0-9]*" inputmode="numeric" style="margin-bottom: 10px; text-align: center; border: 1px solid #e2e8f0;">
+        <div id="pinError" style="color: var(--danger); font-size: 10px; font-weight: 700; margin-bottom: 10px; display: none;">Incorrect PIN. Please try again.</div>
+        <button class="btn btn-dark" onclick="verifyPin()">Unlock</button>
+        <button class="btn" style="background:transparent; color:var(--muted); margin-top:10px; font-size: 11px;" onclick="closePinModal()">Cancel</button>
     </div>
 </div>
 
@@ -277,21 +312,158 @@ localStorage.setItem("ag_active_uid", currentUID);
 
 const inventoryPath = `users/${currentUID}/inventory`;
 const salesPath = `users/${currentUID}/sales`;
-// UPDATED PROFILE PATH to point directly to the shared business profile info
-const profilePath = "company_info/businessProfile";
 
 let cart = [];
 let editIndex = -1;
+let pinTargetId = null;
+let pinAction = null; // Stores target: 'manage' or 'settings'
+let currentActiveLedgerId = null;
+let openLedgerCard = null;
+let runtimeActiveLedgerSalesMap = new Map();
 
 let firebaseInventory = JSON.parse(localStorage.getItem(`ag_stock_cache_${currentUID}`)) || {};
 let syncQueue = JSON.parse(localStorage.getItem(`ag_sales_queue_${currentUID}`)) || [];
 let rawLedgerData = JSON.parse(localStorage.getItem(`ag_ledger_cache_${currentUID}`)) || {}; 
-let userProfile = JSON.parse(localStorage.getItem(`ag_profile_cache_${currentUID}`)) || { businessName: "Business Name", tagline: "Your Business Tagline" };
 
-let openLedgerCard = null;
-let currentActiveLedgerId = null;
+// Initialize profile state + default pin setting configuration
+let userProfile = JSON.parse(localStorage.getItem(`ag_profile_cache_${currentUID}`)) || { businessName: "Business Name", tagline: "Your Business Tagline", logoUrl: "", adminPin: "0000" };
+if(!userProfile.adminPin) {
+    userProfile.adminPin = "0000";
+}
 
-const runtimeActiveLedgerSalesMap = new Map();
+window.promptPin = (action, id = null) => {
+    pinAction = action;
+    pinTargetId = id;
+    document.getElementById('pinInput').value = "";
+    document.getElementById('pinError').style.display = "none";
+    
+    const title = document.querySelector('#pinModal h3');
+    const desc = document.querySelector('#pinModal p');
+    if (action === 'settings') {
+        title.innerText = "Settings Access";
+        desc.innerText = "Enter Admin PIN to edit Business Profile";
+    } else {
+        title.innerText = "Secure Access";
+        desc.innerText = "Enter Admin PIN to manage record";
+    }
+    
+    document.getElementById('pinModal').style.display = "flex";
+};
+
+window.closePinModal = () => {
+    document.getElementById('pinModal').style.display = "none";
+    pinTargetId = null;
+    pinAction = null;
+};
+
+window.verifyPin = () => {
+    const input = document.getElementById('pinInput').value;
+    const activePin = userProfile.adminPin || "0000";
+    if (input === activePin) {
+        document.getElementById('pinModal').style.display = "none";
+        setTimeout(() => {
+            if (pinAction === 'settings') {
+                openSettingsDirectly();
+            } else {
+                openManager(pinTargetId);
+            }
+        }, 100);
+    } else {
+        const err = document.getElementById('pinError');
+        err.style.display = "block";
+        err.innerText = "Incorrect PIN. Please try again.";
+        document.getElementById('pinInput').value = "";
+    }
+};
+
+window.openSettingsDirectly = () => {
+    document.getElementById('set-name').value = userProfile.businessName || "";
+    document.getElementById('set-tagline').value = userProfile.tagline || "";
+    document.getElementById('set-pin').value = userProfile.adminPin || "0000";
+    document.getElementById('set-logo').value = userProfile.logoUrl || "";
+    const preview = document.getElementById('logoPreview');
+    if (userProfile.logoUrl) {
+        preview.src = userProfile.logoUrl;
+        preview.style.display = 'block';
+    } else {
+        preview.style.display = 'none';
+    }
+    document.getElementById('settingsModal').style.display = 'flex';
+};
+
+window.processLogo = (input) => {
+    const file = input.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const base64 = e.target.result;
+            document.getElementById('set-logo').value = base64;
+            const preview = document.getElementById('logoPreview');
+            preview.src = base64;
+            preview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+};
+
+window.saveSettings = () => {
+    const pinVal = document.getElementById('set-pin').value;
+    if (!/^\d{4}$/.test(pinVal)) {
+        alert("Admin PIN must be exactly 4 digits!");
+        return;
+    }
+    userProfile.businessName = document.getElementById('set-name').value;
+    userProfile.tagline = document.getElementById('set-tagline').value;
+    userProfile.logoUrl = document.getElementById('set-logo').value;
+    userProfile.adminPin = pinVal;
+    localStorage.setItem(`ag_profile_cache_${currentUID}`, JSON.stringify(userProfile));
+    document.getElementById('settingsModal').style.display = 'none';
+};
+
+window.showPinModal = (id) => {
+    promptPin('manage', id);
+};
+
+window.openManager = (id) => {
+    currentActiveLedgerId = id;
+    let s = runtimeActiveLedgerSalesMap.get(id);
+    if (!s && rawLedgerData[id]) { s = rawLedgerData[id]; }
+
+    if (!s) {
+        alert("Error: Transaction record not found. Please refresh.");
+        return;
+    }
+
+    document.getElementById('edit-cust-name').value = s.customer;
+    document.getElementById('edit-pay-ref').value = s.mpesa || s.bank || "";
+    document.getElementById('manual-pay-amt').value = "";
+    
+    const isCredit = (s.payment === "Credit");
+    const creditBlock = document.getElementById('credit-payment-block');
+    if (isCredit) {
+        creditBlock.style.display = 'block';
+        const saleTotal = (s.items || []).reduce((acc, i) => acc + parseFloat(i.total || 0), 0);
+        const paidSoFar = (s.payments || []).reduce((acc, p) => acc + parseFloat(p.amount || 0), 0);
+        const bal = saleTotal - paidSoFar;
+        document.getElementById('credit-bal-text').innerText = `KES ${bal.toLocaleString()}`;
+        const historyList = document.getElementById('payment-history-list');
+        historyList.innerHTML = (s.payments || []).map(p => {
+            const d = new Date(p.date);
+            return `<div class="history-item"><div class="history-meta"><b>KES ${parseFloat(p.amount).toLocaleString()}</b><small>${d.toLocaleDateString()}</small></div></div>`;
+        }).join('') || '<small style="color:var(--muted); font-style:italic;">No payments yet.</small>';
+    } else { creditBlock.style.display = 'none'; }
+
+    document.getElementById('edit-items-container').innerHTML = (s.items || []).map((item, idx) => `
+        <div class="edit-block" data-index="${idx}">
+            <div class="edit-row">
+                <input type="text" value="${item.product}" class="item-prod" readonly>
+                <input type="number" value="${item.quantity}" class="item-qty">
+                <input type="number" value="${item.price}" class="item-price">
+                <input type="number" value="${item.vatRate}" class="item-vrate">
+            </div>
+        </div>`).join('');
+    document.getElementById('manageModal').style.display = 'flex';
+};
 
 const pdfOptions = {
     margin: [10, 5, 10, 5],
@@ -368,14 +540,6 @@ onValue(ref(db, salesPath), snapshot => {
     rawLedgerData = snapVal || {};
     localStorage.setItem(`ag_ledger_cache_${currentUID}`, JSON.stringify(rawLedgerData));
     renderSales();
-});
-
-// Dynamic Profile Listener now points to the Centralized Settings
-onValue(ref(db, profilePath), snap => {
-    if(snap.exists()) {
-        userProfile = snap.val();
-        localStorage.setItem(`ag_profile_cache_${currentUID}`, JSON.stringify(userProfile));
-    }
 });
 
 function populateDropdown() {
@@ -550,7 +714,6 @@ window.processSale = () => {
     syncQueue.push(trans);
     localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
     
-    // Deduct stock locally immediately to prevent multi-sales
     cart.forEach(itm => {
         if (firebaseInventory[itm.dbKey]) {
             firebaseInventory[itm.dbKey].qty = Math.max(0, firebaseInventory[itm.dbKey].qty - itm.quantity);
@@ -562,7 +725,6 @@ window.processSale = () => {
     openReceiptSummary([...cart]);
     resetFullForm();
     
-    // Instantly render changes on the UI Ledger
     renderSales();
     attemptSync();
 };
@@ -657,12 +819,9 @@ window.reprintReceipt = (id) => {
     document.getElementById('receiptModal').style.display = 'flex';
 };
 
-function generateReceiptContent(customer, payment, reference, items, timestamp, partialPayments = []) {
-    // FORCE UPDATE: Pull the latest profile data from LocalStorage
+window.generateReceiptContent = (customer, payment, reference, items, timestamp, partialPayments = []) => {
     const savedProfile = localStorage.getItem(`ag_profile_cache_${currentUID}`);
-    if (savedProfile) {
-        userProfile = JSON.parse(savedProfile);
-    }
+    if (savedProfile) { userProfile = JSON.parse(savedProfile); }
 
     const dateObj = new Date(timestamp);
     const dateStr = dateObj.toLocaleDateString();
@@ -704,86 +863,94 @@ function generateReceiptContent(customer, payment, reference, items, timestamp, 
         }).join('');
     }
 
+    const watermarkHtml = userProfile.logoUrl ? `
+        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 0; opacity: 0.15; pointer-events: none; display: flex; align-items: center; justify-content: center; transform: translateY(-70px);">
+            <img src="${userProfile.logoUrl}" style="width: 300px; height: 300px; object-fit: contain; mix-blend-mode: multiply;">
+        </div>` : "";
+
     document.getElementById('receipt-area').innerHTML = `
-        <div id="receipt-content" style="background:#ffffff; color:#000000; font-family:'Plus Jakarta Sans', sans-serif; padding:30px; border: 1px solid #f0f2f5; min-height: 252mm; box-sizing: border-box; display: flex; flex-direction: column;">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:30px;">
-                <div>
-                    <b style="font-size:24px; color:#0072CE;">${userProfile.businessName || 'Your Business Name'}</b><br>
-                    <small style="color:#0072CE; font-size:10px; font-weight:700; text-transform:uppercase;">${userProfile.tagline || 'Business Tagline / Address'}</small>
-                </div>
-                <div style="text-align:right; font-size:10px; line-height:1.6; color:#64748b;">
-                    INVOICE NO: <b>${timestamp.split('-').pop().substring(0,8).toUpperCase()}</b><br>
-                    DATE: <b>${dateStr}</b><br>
-                    TIME: <b>${timeStr}</b>
-                </div>
-            </div>
-
-            <div style="background:#f1f5f9; padding:12px 20px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
-                <b style="font-size:13px; text-transform:uppercase; letter-spacing:1px; color:#001A35;">OFFICIAL SALES RECEIPT</b>
-                <b style="color:${statusColor}; font-size:13px;">${statusText}</b>
-            </div>
-
-            <div style="margin-bottom:25px;">
-                <small style="font-size:9px; font-weight:800; color:#94a3b8; text-transform:uppercase;">Customer Details</small><br>
-                <b style="font-size:13px; color:#001A35;">${customer}</b><br>
-                <span style="font-size:10px; color:#64748b;">Payment Method: ${payment} ${reference}</span>
-            </div>
-
-            <table style="width:100%; border-collapse:collapse; margin-bottom:30px;">
-                <thead>
-                    <tr style="border-bottom: 2px solid #0072CE; text-align:left; color:#94a3b8; font-size:9px; text-transform:uppercase; font-weight:800;">
-                        <th style="padding:10px 0;">Description</th>
-                        <th style="text-align:center;">Qty</th>
-                        <th style="text-align:center;">Unit Price</th>
-                        <th style="text-align:center;">Vat</th>
-                        <th style="text-align:right;">Total (KES)</th>
-                    </tr>
-                </thead>
-                <tbody>${tableRows}</tbody>
-            </table>
-
-            <div style="display:flex; justify-content:flex-end; margin-bottom:30px;">
-                <div style="width:250px; text-align:right;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:11px;">
-                        <span style="color:#64748b;">Invoice Total</span>
-                        <b>${grandTotal.toLocaleString()}</b>
+        <div id="receipt-content" style="position: relative; background:#ffffff; color:#000000; font-family:'Plus Jakarta Sans', sans-serif; padding:30px; border: 1px solid #f0f2f5; min-height: 252mm; box-sizing: border-box; display: flex; flex-direction: column;">
+            ${watermarkHtml}
+            <div style="position: relative; z-index: 1;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:30px;">
+                    <div>
+                        <b style="font-size:24px; color:#0072CE;">${userProfile.businessName || 'Your Business Name'}</b><br>
+                        <small style="color:#0072CE; font-size:10px; font-weight:700; text-transform:uppercase;">${userProfile.tagline || 'Business Tagline / Address'}</small>
                     </div>
-                    ${isCredit && paymentHistoryRows ? `
-                        <div style="text-align:left; margin:10px 0; border:1px solid #e2e8f0; border-radius:6px; padding:8px; background:#fafafa;">
-                            <small style="font-size:8px; font-weight:800; color:#64748b; text-transform:uppercase; display:block; margin-bottom:5px;">Transaction History</small>
-                            ${paymentHistoryRows}
-                        </div>
-                    ` : ''}
-                    ${isCredit ? `
-                        <div style="border-top:2px solid #0072CE; padding-top:12px; display:flex; justify-content:space-between; align-items:center;">
-                            <b style="color:#ef4444; font-size:14px;">Balance Due</b>
-                            <b style="color:#ef4444; font-size:18px;">KES ${balance.toLocaleString()}</b>
-                        </div>
-                    ` : `
-                        <div style="border-top:2px solid #0072CE; padding-top:12px; display:flex; justify-content:space-between; align-items:center;">
-                            <b style="color:#0072CE; font-size:14px;">Amount Paid</b>
-                            <b style="color:#0072CE; font-size:18px;">KES ${grandTotal.toLocaleString()}</b>
-                        </div>
-                    `}
+                    <div style="text-align:right; font-size:10px; line-height:1.6; color:#64748b;">
+                        INVOICE NO: <b>${timestamp.split('-').pop().substring(0,8).toUpperCase()}</b><br>
+                        DATE: <b>${dateStr}</b><br>
+                        TIME: <b>${timeStr}</b>
+                    </div>
                 </div>
-            </div>
 
-            <table style="width:100%; margin-top:15px; border-collapse:collapse; border:none;">
-                <tr>
-                    <td style="width:45%; text-align:left; vertical-align:bottom; border:none; padding:0;">
-                        <div style="border-bottom:1px solid #000000; width:100%; height:35px; box-sizing: border-box;">&nbsp;</div>
-                        <small style="font-size:10px; font-weight:800; color:#64748b; text-transform:uppercase; display:block; margin-top:5px; letter-spacing:0.5px;">${isCredit ? 'Creditor Signature' : 'Customer Signature'}</small>
-                    </td>
-                    <td style="width:10%; border:none;">&nbsp;</td>
-                    <td style="width:45%; text-align:left; vertical-align:bottom; border:none; padding:0;">
-                        <div style="border-bottom:1px solid #000000; width:100%; height:35px; box-sizing: border-box;">&nbsp;</div>
-                        <small style="font-size:10px; font-weight:800; color:#64748b; text-transform:uppercase; display:block; margin-top:5px; letter-spacing:0.5px;">Authorized Seller</small>
-                    </td>
-                </tr>
-            </table>
+                <div style="background:#f1f5f9; padding:12px 20px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+                    <b style="font-size:13px; text-transform:uppercase; letter-spacing:1px; color:#001A35;">OFFICIAL SALES RECEIPT</b>
+                    <b style="color:${statusColor}; font-size:13px;">${statusText}</b>
+                </div>
+
+                <div style="margin-bottom:25px;">
+                    <small style="font-size:9px; font-weight:800; color:#94a3b8; text-transform:uppercase;">Customer Details</small><br>
+                    <b style="font-size:13px; color:#001A35;">${customer}</b><br>
+                    <span style="font-size:10px; color:#64748b;">Payment Method: ${payment} ${reference}</span>
+                </div>
+
+                <table style="width:100%; border-collapse:collapse; margin-bottom:30px;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #0072CE; text-align:left; color:#94a3b8; font-size:9px; text-transform:uppercase; font-weight:800;">
+                            <th style="padding:10px 0;">Description</th>
+                            <th style="text-align:center;">Qty</th>
+                            <th style="text-align:center;">Unit Price</th>
+                            <th style="text-align:center;">Vat</th>
+                            <th style="text-align:right;">Total (KES)</th>
+                        </tr>
+                    </thead>
+                    <tbody>${tableRows}</tbody>
+                </table>
+
+                <div style="display:flex; justify-content:flex-end; margin-bottom:30px;">
+                    <div style="width:250px; text-align:right;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:11px;">
+                            <span style="color:#64748b;">Invoice Total</span>
+                            <b>${grandTotal.toLocaleString()}</b>
+                        </div>
+                        ${isCredit && paymentHistoryRows ? `
+                            <div style="text-align:left; margin:10px 0; border:1px solid #e2e8f0; border-radius:6px; padding:8px; background:#fafafa;">
+                                <small style="font-size:8px; font-weight:800; color:#64748b; text-transform:uppercase; display:block; margin-bottom:5px;">Transaction History</small>
+                                ${paymentHistoryRows}
+                            </div>
+                        ` : ''}
+                        ${isCredit ? `
+                            <div style="border-top:2px solid #0072CE; padding-top:12px; display:flex; justify-content:space-between; align-items:center;">
+                                <b style="color:#ef4444; font-size:14px;">Balance Due</b>
+                                <b style="color:#ef4444; font-size:18px;">KES ${balance.toLocaleString()}</b>
+                            </div>
+                        ` : `
+                            <div style="border-top:2px solid #0072CE; padding-top:12px; display:flex; justify-content:space-between; align-items:center;">
+                                <b style="color:#0072CE; font-size:14px;">Amount Paid</b>
+                                <b style="color:#0072CE; font-size:18px;">KES ${grandTotal.toLocaleString()}</b>
+                            </div>
+                        `}
+                    </div>
+                </div>
+
+                <table style="width:100%; margin-top:15px; border-collapse:collapse; border:none;">
+                    <tr>
+                        <td style="width:45%; text-align:left; vertical-align:bottom; border:none; padding:0;">
+                            <div style="border-bottom:1px solid #000000; width:100%; height:35px; box-sizing: border-box;">&nbsp;</div>
+                            <small style="font-size:10px; font-weight:800; color:#64748b; text-transform:uppercase; display:block; margin-top:5px; letter-spacing:0.5px;">${isCredit ? 'Creditor Signature' : 'Customer Signature'}</small>
+                        </td>
+                        <td style="width:10%; border:none;">&nbsp;</td>
+                        <td style="width:45%; text-align:left; vertical-align:bottom; border:none; padding:0;">
+                            <div style="border-bottom:1px solid #000000; width:100%; height:35px; box-sizing: border-box;">&nbsp;</div>
+                            <small style="font-size:10px; font-weight:800; color:#64748b; text-transform:uppercase; display:block; margin-top:5px; letter-spacing:0.5px;">Authorized Seller</small>
+                        </td>
+                    </tr>
+                </table>
+            </div>
         </div>
     `;
-}
+};
 
 window.closeReceipt = () => document.getElementById('receiptModal').style.display = 'none';
 
@@ -877,7 +1044,7 @@ window.renderSales = () => {
                         </div>
                     ` : ''}
                     <div style="display:flex; gap:8px; margin-top:12px;">
-                        <button class="btn btn-dark" style="flex:1;" onclick="event.stopPropagation(); openManager('${s.id}')" ${isPending ? 'disabled' : ''}>MANAGE / PAY</button>
+                        <button class="btn btn-dark" style="flex:1;" onclick="event.stopPropagation(); showPinModal('${s.id}')" ${isPending ? 'disabled' : ''}>MANAGE / PAY</button>
                         <button class="btn" style="flex:1; background:var(--primary); color:white;" onclick="event.stopPropagation(); reprintReceipt('${s.id}')">INVOICE</button>
                     </div>
                 </div>
@@ -903,50 +1070,18 @@ window.toggleLedgerCard = id => {
     openLedgerCard = isOpen ? null : id;
 };
 
-window.openManager = id => {
-    currentActiveLedgerId = id;
-    const s = runtimeActiveLedgerSalesMap.get(id);
-    if (!s) return;
-    document.getElementById('edit-cust-name').value = s.customer;
-    document.getElementById('edit-pay-ref').value = s.mpesa || s.bank || "";
-    document.getElementById('manual-pay-amt').value = "";
-    
-    const isCredit = (s.payment === "Credit");
-    const creditBlock = document.getElementById('credit-payment-block');
-    if (isCredit) {
-        creditBlock.style.display = 'block';
-        const saleTotal = s.items.reduce((acc, i) => acc + parseFloat(i.total || 0), 0);
-        const paidSoFar = (s.payments || []).reduce((acc, p) => acc + parseFloat(p.amount || 0), 0);
-        const bal = saleTotal - paidSoFar;
-        document.getElementById('credit-bal-text').innerText = `KES ${bal.toLocaleString()}`;
-        
-        const historyList = document.getElementById('payment-history-list');
-        historyList.innerHTML = (s.payments || []).map(p => {
-            const d = new Date(p.date);
-            return `<div class="history-item"><div class="history-meta"><b>KES ${parseFloat(p.amount).toLocaleString()}</b><small>${d.toLocaleDateString()}</small></div></div>`;
-        }).join('') || '<small style="color:var(--muted); font-style:italic;">No payments yet.</small>';
-    } else { creditBlock.style.display = 'none'; }
-
-    document.getElementById('edit-items-container').innerHTML = s.items.map((item, idx) => `
-        <div class="edit-block" data-index="${idx}">
-            <div class="edit-row">
-                <input type="text" value="${item.product}" class="item-prod" readonly>
-                <input type="number" value="${item.quantity}" class="item-qty">
-                <input type="number" value="${item.price}" class="item-price">
-                <input type="number" value="${item.vatRate}" class="item-vrate">
-            </div>
-        </div>`).join('');
-    document.getElementById('manageModal').style.display = 'flex';
-};
-
 document.getElementById('btn-add-payment').onclick = async () => {
     const amt = parseFloat(document.getElementById('manual-pay-amt').value);
     if (!amt || amt <= 0) return alert("Please enter a valid payment amount.");
     const s = runtimeActiveLedgerSalesMap.get(currentActiveLedgerId);
     const newPayments = s.payments || [];
     newPayments.push({ amount: amt, date: new Date().toISOString() });
-    if (navigator.onLine) { await update(ref(db, `${salesPath}/${currentActiveLedgerId}`), { payments: newPayments }); }
-    openManager(currentActiveLedgerId);
+    
+    const updateObj = { ...s, payments: newPayments, isUpdateOnly: true };
+    syncQueue.push(updateObj);
+    localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
+    attemptSync();
+    document.getElementById('manageModal').style.display = 'none';
 };
 
 document.getElementById('btn-save-changes').onclick = async () => {
@@ -959,13 +1094,19 @@ document.getElementById('btn-save-changes').onclick = async () => {
         const sub = q * p; const vat = sub * (vr/100);
         updated.push({ ...s.items[idx], quantity: q, price: p, vatRate: vr, total: (sub+vat).toFixed(2), vatAmount: vat.toFixed(2) });
     });
-    const payload = { customer: document.getElementById('edit-cust-name').value, items: updated };
-    if (navigator.onLine) { await update(ref(db, `${salesPath}/${currentActiveLedgerId}`), payload); }
+    
+    const payload = { ...s, customer: document.getElementById('edit-cust-name').value, items: updated, isUpdateOnly: true };
+    syncQueue.push(payload);
+    localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
+    attemptSync();
     document.getElementById('manageModal').style.display = 'none'; 
 };
 
 document.getElementById('btn-del-mode').onclick = async () => {
-    if (navigator.onLine) { await remove(ref(db, `${salesPath}/${currentActiveLedgerId}`)); }
+    const s = runtimeActiveLedgerSalesMap.get(currentActiveLedgerId);
+    syncQueue.push({ saleId: currentActiveLedgerId, isDeleteOnly: true });
+    localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
+    attemptSync();
     document.getElementById('manageModal').style.display = 'none'; 
 };
 
