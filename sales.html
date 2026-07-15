@@ -185,6 +185,8 @@
     </div>
 </div>
 
+<div id="settings-component-host"></div>
+
 <div id="receiptModal" class="modal">
     <div class="modal-box">
         <div id="receipt-area" style="padding:0px; background:#fff; font-family:'Plus Jakarta Sans', sans-serif; color:#000; overflow: auto; max-height: 70vh;"></div>
@@ -302,6 +304,17 @@ const pdfOptions = {
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', precision: 16 }
 };
 
+window.loadSettingsComponent = async () => {
+    try {
+        const response = await fetch('settings.html');
+        if(!response.ok) throw new Error("File not found");
+        const html = await response.text();
+        document.getElementById('settings-component-host').innerHTML = html;
+    } catch (e) {
+        console.warn("Could not load settings.html.");
+    }
+};
+
 window.toggleMainView = () => {
     const term = document.getElementById('view-terminal');
     const ledg = document.getElementById('view-ledger');
@@ -315,11 +328,21 @@ window.toggleMainView = () => {
     }
 };
 
+window.saveSettings = async () => {
+    const bName = document.getElementById('set-bus-name').value;
+    const bTag = document.getElementById('set-bus-tag').value;
+    userProfile.businessName = bName;
+    userProfile.tagline = bTag;
+    localStorage.setItem(`ag_profile_cache_${currentUID}`, JSON.stringify(userProfile));
+    await update(ref(db, profilePath), { businessName: bName, tagline: bTag });
+    closeModal();
+};
+
 window.onload = () => {
+    loadSettingsComponent(); 
     const badge = document.getElementById('user-badge');
-    if (badge) {
-        badge.innerText = `Active Session: ${currentUID}`;
-    }
+    if (badge) badge.innerText = `Active Session: ${currentUID}`;
+    
     populateDropdown();
     updateStatusUI();
     renderSales(); 
@@ -529,13 +552,10 @@ window.removeCart = (i) => { cart.splice(i, 1); if(!cart.length) lockInputs(fals
 
 window.processSale = () => {
     if(!cart.length) return;
-    
     const btn = document.getElementById('processBtn');
     btn.disabled = true;
     btn.innerText = "Processing...";
-
     const uniqueSaleId = "SALE-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
-
     const trans = {
         saleId: uniqueSaleId,
         customer: cart[0].customer,
@@ -546,10 +566,8 @@ window.processSale = () => {
         items: cart,
         payments: [] 
     };
-    
     syncQueue.push(trans);
     localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
-    
     cart.forEach(itm => {
         if (firebaseInventory[itm.dbKey]) {
             firebaseInventory[itm.dbKey].qty = Math.max(0, firebaseInventory[itm.dbKey].qty - itm.quantity);
@@ -557,10 +575,8 @@ window.processSale = () => {
     });
     localStorage.setItem(`ag_stock_cache_${currentUID}`, JSON.stringify(firebaseInventory));
     populateDropdown();
-
     openReceiptSummary([...cart]);
     resetFullForm();
-    
     renderSales();
     attemptSync();
 };
@@ -576,7 +592,6 @@ function resetFullForm() {
     togglePaymentExtra(); 
     lockInputs(false); 
     resetItemFields();
-    
     const btn = document.getElementById('processBtn');
     btn.disabled = false;
     btn.innerText = "Confirm Sale & Sync Cloud";
@@ -778,6 +793,9 @@ function generateReceiptContent(customer, payment, reference, items, timestamp, 
 }
 
 window.closeReceipt = () => document.getElementById('receiptModal').style.display = 'none';
+window.closeModal = () => {
+    document.getElementById('manageModal').style.display = 'none';
+};
 
 window.shareReceipt = () => { 
     const element = document.getElementById('receipt-content'); 
@@ -961,7 +979,6 @@ document.getElementById('btn-del-mode').onclick = async () => {
     document.getElementById('manageModal').style.display = 'none'; 
 };
 
-window.closeModal = () => document.getElementById('manageModal').style.display = 'none';
 window.filterSales = () => {
     const q = document.getElementById("searchInput").value.toLowerCase();
     document.querySelectorAll(".sale-card").forEach(c => c.style.display = c.innerText.toLowerCase().includes(q) ? "block" : "none");
