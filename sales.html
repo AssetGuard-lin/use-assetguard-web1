@@ -92,7 +92,9 @@
         AssetGuard <span>Terminal</span>
         <span id="user-badge" style="display:none; font-size:10px; color:var(--muted); font-weight:600; margin-top:2px;">Detecting Session...</span>
     </div>
-    <button class="toggle-view-btn" id="toggle-btn" onclick="toggleMainView()">Sales Ledger</button>
+    <div style="display: flex; gap: 8px;">
+        <button class="toggle-view-btn" id="toggle-btn" onclick="toggleMainView()">Sales Ledger</button>
+    </div>
 </header>
 
 <div id="view-terminal" class="view-container active">
@@ -369,7 +371,6 @@ onValue(ref(db, salesPath), snapshot => {
     renderSales();
 });
 
-// Dynamic Profile Listener
 onValue(ref(db, profilePath), snap => {
     if(snap.exists()) {
         userProfile = snap.val();
@@ -549,7 +550,6 @@ window.processSale = () => {
     syncQueue.push(trans);
     localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
     
-    // Deduct stock locally immediately to prevent multi-sales
     cart.forEach(itm => {
         if (firebaseInventory[itm.dbKey]) {
             firebaseInventory[itm.dbKey].qty = Math.max(0, firebaseInventory[itm.dbKey].qty - itm.quantity);
@@ -561,7 +561,6 @@ window.processSale = () => {
     openReceiptSummary([...cart]);
     resetFullForm();
     
-    // Instantly render changes on the UI Ledger
     renderSales();
     attemptSync();
 };
@@ -606,7 +605,6 @@ async function attemptSync() {
                             return Math.max(0, q - itm.quantity);
                         });
                     } catch (transErr) {
-                        // Resilient Fallback to standard write if transactions are network-locked
                         const snap = await fetch(`https://assetguard-c8c8c-default-rtdb.firebaseio.com/${inventoryPath}/${itm.dbKey}/qty.json`);
                         const currentQty = await snap.json() || 0;
                         await set(ref(db, `${inventoryPath}/${itm.dbKey}/qty`), Math.max(0, currentQty - itm.quantity));
@@ -617,7 +615,6 @@ async function attemptSync() {
             syncQueue.shift();
             localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
             
-            // Move newly synced transaction into raw ledger cache
             if (!trans.isDeleteOnly) {
                 rawLedgerData[sID] = trans;
                 localStorage.setItem(`ag_ledger_cache_${currentUID}`, JSON.stringify(rawLedgerData));
@@ -812,7 +809,6 @@ window.renderSales = () => {
     
     let gQty=0, gTotal=0, gTax=0;
     
-    // Unify synchronized remote data with local pending offline queue records
     const combinedSales = { ...rawLedgerData };
     syncQueue.forEach(item => {
         if (item.isDeleteOnly) {
