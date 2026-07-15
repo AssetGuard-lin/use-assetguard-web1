@@ -83,6 +83,21 @@
     .diagnostic-panel { background: #fff5f5; border: 1px solid #fecaca; border-radius: 14px; padding: 12px; margin-bottom: 12px; display: none; }
     .diagnostic-title { font-size: 11px; font-weight: 800; color: var(--error); text-transform: uppercase; display: flex; justify-content: space-between; }
     .diagnostic-log { font-size: 11px; margin-top: 5px; color: #7f1d1d; font-family: monospace; line-height: 1.4; }
+
+    /* --- Recharge Status and Blocking Layout Styles --- */
+    .recharge-block { position: fixed; inset: 0; background: radial-gradient(circle at center, #001A35 0%, #000c1a 100%); color: white; z-index: 99999; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 25px; box-sizing: border-box; backdrop-filter: blur(15px); }
+    .recharge-card { background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); padding: 30px 24px; border-radius: 24px; max-width: 400px; width: 100%; box-sizing: border-box; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
+    .recharge-icon { font-size: 50px; margin-bottom: 12px; color: var(--warning); display: inline-block; animation: lockPulse 2s infinite ease-in-out; }
+    @keyframes lockPulse { 0% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.08); opacity: 1; } 100% { transform: scale(1); opacity: 0.9; } }
+    .recharge-title { font-size: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; color: #fff; }
+    .recharge-desc { font-size: 12px; color: #94a3b8; line-height: 1.5; margin-bottom: 24px; }
+    .mpesa-push-group { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 15px; margin-bottom: 20px; text-align: left; }
+    .mpesa-logo-badge { color: #25D366; font-weight: 800; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+    .mpesa-logo-badge span { width: 8px; height: 8px; background: #25D366; border-radius: 50%; display: inline-block; }
+    .settings-divider { height: 1px; background: #e2e8f0; margin: 15px 0; }
+    .sub-badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+    .sub-active { background: #dcfce7; color: #15803d; }
+    .sub-expired { background: #fee2e2; color: #b91c1c; }
 </style>
 </head>
 <body>
@@ -227,21 +242,24 @@
 
 <div id="settingsModal" class="modal">
     <div class="modal-content">
-        <h3 style="margin:0 0 15px 0; font-size: 16px;">Business Profile</h3>
-        <label>Business Name</label>
-        <input type="text" id="set-name" class="search-input">
-        <label>Tagline / Address</label>
-        <input type="text" id="set-tagline" class="search-input">
+        <h3 style="margin:0 0 15px 0; font-size: 16px;">System Settings</h3>
         
-        <!-- Added dynamic Admin 4 PIN change input -->
         <label>Admin PIN (4 Digits)</label>
         <input type="password" id="set-pin" class="search-input" maxlength="4" placeholder="Enter 4-digit access PIN" pattern="[0-9]*" inputmode="numeric">
         
-        <label>Logo Image</label>
-        <input type="file" id="logoUpload" accept="image/*" onchange="processLogo(this)" class="search-input" style="padding: 5px;">
-        <input type="hidden" id="set-logo">
-        <img id="logoPreview" style="max-width: 30px; display: none; margin-top: -10px; border: 1px solid #e2e8f0; border-radius: 8px;">
-        <p style="font-size: 9px; color: var(--muted); margin-top: -5px;">Select an image from your device.</p>
+        <!-- --- Admin Terminal Access & Recharge Simulator Section --- -->
+        <div class="settings-divider"></div>
+        <h4 style="margin:0 0 8px 0; font-size: 12px; color: var(--dark); text-transform: uppercase; letter-spacing: 0.5px;">Subscription Administration</h4>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; background: #f8fafc; padding: 10px; border-radius: 10px; border: 1px solid #e2e8f0;">
+            <span style="font-size: 11px; font-weight: 700; color: var(--muted);">TERMINAL STATE:</span>
+            <span id="settings-sub-status" class="sub-badge sub-active">Active</span>
+        </div>
+        <div style="display: flex; gap: 8px; margin-bottom: 5px;">
+            <button class="btn btn-del" style="margin:0; font-size: 10px; padding: 8px; flex: 1;" onclick="setLocalTerminalLock(true)">Simulate Lock</button>
+            <button class="btn btn-success" style="margin:0; font-size: 10px; padding: 8px; flex: 1;" onclick="setLocalTerminalLock(false)">Simulate Unlock</button>
+        </div>
+        <!-- -------------------------------------------------------- -->
+
         <div style="display:flex; gap:10px; margin-top:15px;">
             <button class="btn btn-success" style="flex:1" onclick="saveSettings()">Save</button>
             <button class="btn btn-dark" style="flex:1; background:var(--muted)" onclick="document.getElementById('settingsModal').style.display='none'">Cancel</button>
@@ -257,6 +275,28 @@
         <div id="pinError" style="color: var(--danger); font-size: 10px; font-weight: 700; margin-bottom: 10px; display: none;">Incorrect PIN. Please try again.</div>
         <button class="btn btn-dark" onclick="verifyPin()">Unlock</button>
         <button class="btn" style="background:transparent; color:var(--muted); margin-top:10px; font-size: 11px;" onclick="closePinModal()">Cancel</button>
+    </div>
+</div>
+
+<div id="rechargeBlockModal" class="recharge-block">
+    <div class="recharge-card">
+        <div class="recharge-icon">⚠️</div>
+        <div class="recharge-title">Terminal Locked</div>
+        <div class="recharge-desc">This active terminal has suspended all retail operations, invoicing, local sales, and cloud synchronization due to an inactive subscription.</div>
+        
+        <div class="mpesa-push-group">
+            <div class="mpesa-logo-badge">
+                <span></span> Safaricom M-Pesa Instant Activation
+            </div>
+            <label style="color: #cbd5e1; margin-top: 0; font-size: 10px;">Enter Safaricom Number</label>
+            <input type="text" id="recharge_phone" placeholder="e.g. 07XXXXXXXX or 01XXXXXXXX" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.2); color: white; margin-bottom: 12px; margin-top: 4px; padding: 10px; font-size: 12px; border-radius: 8px;">
+            <label style="color: #cbd5e1; margin-top: 0; font-size: 10px;">Amount (KES)</label>
+            <input type="number" id="recharge_amount" value="1500" readonly style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.2); color: #cbd5e1; font-weight: 800; padding: 10px; font-size: 12px; border-radius: 8px; margin-top: 4px;">
+            <p style="font-size: 9px; color: #94a3b8; margin: 6px 0 0 0;">Automatic 30-day licensing extension upon confirmation.</p>
+        </div>
+        
+        <button class="btn-main" id="btn-trigger-recharge" style="background: var(--success); margin: 0; width: 100%; border-radius: 12px; padding: 14px;" onclick="simulateMpesaRecharge()">Request STK Activation</button>
+        <p id="recharge-status-msg" style="font-size: 11px; color: #f59e0b; margin-top: 12px; display: none; font-weight: 700; line-height: 1.4;"></p>
     </div>
 </div>
 
@@ -312,11 +352,12 @@ localStorage.setItem("ag_active_uid", currentUID);
 
 const inventoryPath = `users/${currentUID}/inventory`;
 const salesPath = `users/${currentUID}/sales`;
+const subscriptionPath = `users/${currentUID}/subscription`;
 
 let cart = [];
 let editIndex = -1;
 let pinTargetId = null;
-let pinAction = null; // Stores target: 'manage' or 'settings'
+let pinAction = null; 
 let currentActiveLedgerId = null;
 let openLedgerCard = null;
 let runtimeActiveLedgerSalesMap = new Map();
@@ -325,8 +366,9 @@ let firebaseInventory = JSON.parse(localStorage.getItem(`ag_stock_cache_${curren
 let syncQueue = JSON.parse(localStorage.getItem(`ag_sales_queue_${currentUID}`)) || [];
 let rawLedgerData = JSON.parse(localStorage.getItem(`ag_ledger_cache_${currentUID}`)) || {}; 
 
-// Initialize profile state + default pin setting configuration
-let userProfile = JSON.parse(localStorage.getItem(`ag_profile_cache_${currentUID}`)) || { businessName: "Business Name", tagline: "Your Business Tagline", logoUrl: "", adminPin: "0000" };
+let subscriptionState = JSON.parse(localStorage.getItem(`ag_subscription_cache_${currentUID}`)) || { active: true, expiresAt: "" };
+
+let userProfile = JSON.parse(localStorage.getItem(`ag_profile_cache_${currentUID}`)) || { adminPin: "0000" };
 if(!userProfile.adminPin) {
     userProfile.adminPin = "0000";
 }
@@ -341,7 +383,7 @@ window.promptPin = (action, id = null) => {
     const desc = document.querySelector('#pinModal p');
     if (action === 'settings') {
         title.innerText = "Settings Access";
-        desc.innerText = "Enter Admin PIN to edit Business Profile";
+        desc.innerText = "Enter Admin PIN to edit System Settings";
     } else {
         title.innerText = "Secure Access";
         desc.innerText = "Enter Admin PIN to manage record";
@@ -377,33 +419,9 @@ window.verifyPin = () => {
 };
 
 window.openSettingsDirectly = () => {
-    document.getElementById('set-name').value = userProfile.businessName || "";
-    document.getElementById('set-tagline').value = userProfile.tagline || "";
     document.getElementById('set-pin').value = userProfile.adminPin || "0000";
-    document.getElementById('set-logo').value = userProfile.logoUrl || "";
-    const preview = document.getElementById('logoPreview');
-    if (userProfile.logoUrl) {
-        preview.src = userProfile.logoUrl;
-        preview.style.display = 'block';
-    } else {
-        preview.style.display = 'none';
-    }
+    evaluateSubscriptionUI();
     document.getElementById('settingsModal').style.display = 'flex';
-};
-
-window.processLogo = (input) => {
-    const file = input.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const base64 = e.target.result;
-            document.getElementById('set-logo').value = base64;
-            const preview = document.getElementById('logoPreview');
-            preview.src = base64;
-            preview.style.display = 'block';
-        };
-        reader.readAsDataURL(file);
-    }
 };
 
 window.saveSettings = () => {
@@ -412,9 +430,6 @@ window.saveSettings = () => {
         alert("Admin PIN must be exactly 4 digits!");
         return;
     }
-    userProfile.businessName = document.getElementById('set-name').value;
-    userProfile.tagline = document.getElementById('set-tagline').value;
-    userProfile.logoUrl = document.getElementById('set-logo').value;
     userProfile.adminPin = pinVal;
     localStorage.setItem(`ag_profile_cache_${currentUID}`, JSON.stringify(userProfile));
     document.getElementById('settingsModal').style.display = 'none';
@@ -495,6 +510,7 @@ window.onload = () => {
     updateStatusUI();
     renderSales(); 
     deepSyncFirebase();
+    evaluateSubscriptionUI();
     if (navigator.onLine) attemptSync();
 };
 
@@ -541,6 +557,103 @@ onValue(ref(db, salesPath), snapshot => {
     localStorage.setItem(`ag_ledger_cache_${currentUID}`, JSON.stringify(rawLedgerData));
     renderSales();
 });
+
+onValue(ref(db, subscriptionPath), snap => {
+    const val = snap.val();
+    if (val !== null) {
+        subscriptionState = val;
+    } else {
+        subscriptionState = { active: true, expiresAt: "" };
+        set(ref(db, subscriptionPath), subscriptionState);
+    }
+    localStorage.setItem(`ag_subscription_cache_${currentUID}`, JSON.stringify(subscriptionState));
+    evaluateSubscriptionUI();
+});
+
+function evaluateSubscriptionUI() {
+    const blockModal = document.getElementById('rechargeBlockModal');
+    const statusBadge = document.getElementById('settings-sub-status');
+    const now = Date.now();
+    let locked = false;
+
+    if (subscriptionState.active === false) {
+        locked = true;
+    } else if (subscriptionState.expiresAt && now > subscriptionState.expiresAt) {
+        locked = true;
+    }
+
+    if (locked) {
+        blockModal.style.display = "flex";
+        if (statusBadge) {
+            statusBadge.innerText = "Inactive / Locked";
+            statusBadge.className = "sub-badge sub-expired";
+        }
+    } else {
+        blockModal.style.display = "none";
+        if (statusBadge) {
+            if (subscriptionState.expiresAt) {
+                const dateStr = new Date(subscriptionState.expiresAt).toLocaleDateString();
+                statusBadge.innerText = `Active (Until ${dateStr})`;
+            } else {
+                statusBadge.innerText = "Active";
+            }
+            statusBadge.className = "sub-badge sub-active";
+        }
+    }
+}
+
+window.setLocalTerminalLock = (lockState) => {
+    const targetState = {
+        active: !lockState,
+        expiresAt: lockState ? Date.now() - 1000 : Date.now() + (30 * 24 * 60 * 60 * 1000)
+    };
+    subscriptionState = targetState;
+    localStorage.setItem(`ag_subscription_cache_${currentUID}`, JSON.stringify(targetState));
+    set(ref(db, subscriptionPath), targetState);
+    evaluateSubscriptionUI();
+};
+
+window.simulateMpesaRecharge = () => {
+    const phone = document.getElementById('recharge_phone').value;
+    const btn = document.getElementById('btn-trigger-recharge');
+    const statusMsg = document.getElementById('recharge-status-msg');
+    
+    const isValidPhone = /^(07|01)\d{8}$/.test(phone) || /^\+254\d{9}$/.test(phone);
+    if (!isValidPhone) {
+        alert("Please enter a valid Safaricom phone number (e.g., 0712345678).");
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = "Requesting Handset STK...";
+    statusMsg.style.display = "block";
+    statusMsg.style.color = "var(--warning)";
+    statusMsg.innerText = "STK Push sent to " + phone + ". Enter your M-Pesa PIN on your phone to complete.";
+
+    setTimeout(() => {
+        statusMsg.innerText = "Syncing callback results from Daraja Safaricom API...";
+        setTimeout(() => {
+            statusMsg.style.color = "var(--success)";
+            statusMsg.innerText = "Payment confirmed! Extending license database validation...";
+            
+            setTimeout(() => {
+                const activeState = {
+                    active: true,
+                    expiresAt: Date.now() + (30 * 24 * 60 * 60 * 1000)
+                };
+                subscriptionState = activeState;
+                localStorage.setItem(`ag_subscription_cache_${currentUID}`, JSON.stringify(activeState));
+                set(ref(db, subscriptionPath), activeState);
+                
+                btn.disabled = false;
+                btn.innerText = "Request STK Activation";
+                statusMsg.style.display = "none";
+                document.getElementById('recharge_phone').value = "";
+                evaluateSubscriptionUI();
+            }, 1000);
+        }, 2000);
+    }, 2500);
+};
 
 function populateDropdown() {
     const ps = document.getElementById('product_stock');
@@ -820,9 +933,6 @@ window.reprintReceipt = (id) => {
 };
 
 window.generateReceiptContent = (customer, payment, reference, items, timestamp, partialPayments = []) => {
-    const savedProfile = localStorage.getItem(`ag_profile_cache_${currentUID}`);
-    if (savedProfile) { userProfile = JSON.parse(savedProfile); }
-
     const dateObj = new Date(timestamp);
     const dateStr = dateObj.toLocaleDateString();
     const timeStr = dateObj.toLocaleTimeString();
@@ -863,19 +973,12 @@ window.generateReceiptContent = (customer, payment, reference, items, timestamp,
         }).join('');
     }
 
-    const watermarkHtml = userProfile.logoUrl ? `
-        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 0; opacity: 0.15; pointer-events: none; display: flex; align-items: center; justify-content: center; transform: translateY(-70px);">
-            <img src="${userProfile.logoUrl}" style="width: 300px; height: 300px; object-fit: contain; mix-blend-mode: multiply;">
-        </div>` : "";
-
     document.getElementById('receipt-area').innerHTML = `
         <div id="receipt-content" style="position: relative; background:#ffffff; color:#000000; font-family:'Plus Jakarta Sans', sans-serif; padding:30px; border: 1px solid #f0f2f5; min-height: 252mm; box-sizing: border-box; display: flex; flex-direction: column;">
-            ${watermarkHtml}
             <div style="position: relative; z-index: 1;">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:30px;">
                     <div>
-                        <b style="font-size:24px; color:#0072CE;">${userProfile.businessName || 'Your Business Name'}</b><br>
-                        <small style="color:#0072CE; font-size:10px; font-weight:700; text-transform:uppercase;">${userProfile.tagline || 'Business Tagline / Address'}</small>
+                        <b style="font-size:24px; color:#0072CE;">AssetGuard Terminal</b><br>
                     </div>
                     <div style="text-align:right; font-size:10px; line-height:1.6; color:#64748b;">
                         INVOICE NO: <b>${timestamp.split('-').pop().substring(0,8).toUpperCase()}</b><br>
@@ -963,9 +1066,9 @@ window.nativeShare = async () => {
     const element = document.getElementById('receipt-content');
     try {
         const pdfBlob = await html2pdf().set(pdfOptions).from(element).outputPdf('blob');
-        const file = new File([pdfBlob], `${userProfile.businessName.replace(/\s+/g, '_')}_Receipt.pdf`, { type: 'application/pdf' });
+        const file = new File([pdfBlob], `Receipt_${Date.now()}.pdf`, { type: 'application/pdf' });
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            await navigator.share({ files: [file], title: 'Official Receipt', text: `Official transaction receipt from ${userProfile.businessName}.` });
+            await navigator.share({ files: [file], title: 'Official Receipt', text: `Official transaction receipt.` });
         } else {
             window.shareReceipt();
         }
