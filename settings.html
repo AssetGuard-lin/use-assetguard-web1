@@ -123,11 +123,9 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // Capture UID from URL (e.g., Settings.html?uid=User123)
         const urlParams = new URLSearchParams(window.location.search);
         const currentUID = urlParams.get('uid') || "global_terminal_user";
 
-        // Load Data on Startup
         window.onload = async () => {
             // Load LocalStorage defaults
             document.getElementById('ownerName').value = localStorage.getItem('ownerName') || '';
@@ -140,12 +138,13 @@
             const snapshot = await get(profileRef);
             if (snapshot.exists()) {
                 const data = snapshot.val();
+                document.getElementById('ownerName').value = data.ownerName || '';
+                document.getElementById('ownerRole').value = data.ownerRole || '';
                 document.getElementById('businessName').value = data.businessName || '';
                 document.getElementById('businessTagline').value = data.tagline || '';
             }
         };
 
-        // --- Profile Edit Toggle ---
         let isEditing = false;
         window.toggleEditMode = async function() {
             const btn = document.getElementById('editProfileBtn');
@@ -169,28 +168,28 @@
         }
 
         async function saveProfile() {
-            const bName = document.getElementById('businessName').value;
-            const bTagline = document.getElementById('businessTagline').value;
+            const profileData = {
+                ownerName: document.getElementById('ownerName').value,
+                ownerRole: document.getElementById('ownerRole').value,
+                businessName: document.getElementById('businessName').value,
+                tagline: document.getElementById('businessTagline').value
+            };
 
             // Save locally
-            localStorage.setItem('ownerName', document.getElementById('ownerName').value);
-            localStorage.setItem('ownerRole', document.getElementById('ownerRole').value);
-            localStorage.setItem('businessName', bName);
-            localStorage.setItem('businessTagline', bTagline);
+            localStorage.setItem('ownerName', profileData.ownerName);
+            localStorage.setItem('ownerRole', profileData.ownerRole);
+            localStorage.setItem('businessName', profileData.businessName);
+            localStorage.setItem('businessTagline', profileData.tagline);
 
             // Save to Firebase
             try {
-                await set(ref(db, `users/${currentUID}/profile`), {
-                    businessName: bName,
-                    tagline: bTagline
-                });
+                await set(ref(db, `users/${currentUID}/profile`), profileData);
                 alert('Profile saved successfully to local and cloud.');
             } catch (e) {
                 alert('Profile saved locally, but cloud sync failed: ' + e.message);
             }
         }
 
-        // --- Existing Security & API Logic ---
         document.getElementById('currentPass').addEventListener('input', (e) => {
             document.getElementById('passwordFields').style.display = (e.target.value === (localStorage.getItem('appPassword') || '1234')) ? 'block' : 'none';
         });
@@ -224,7 +223,6 @@
             location.reload();
         }
 
-        // Dark Mode
         document.getElementById('darkModeToggle').addEventListener('change', (e) => {
             if(e.target.checked) { document.body.setAttribute('data-theme','dark'); localStorage.setItem('theme','dark'); }
             else { document.body.removeAttribute('data-theme'); localStorage.setItem('theme','light'); }
