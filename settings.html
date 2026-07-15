@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>App Settings</title>
+    <style>
+        :root {
+            --bg-color: #f4f6f8;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --primary: #0284c7;
+            --danger: #ef4444;
+            --border: #e2e8f0;
+            --header-bg: #ffffff;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary: #38bdf8;
+            --danger: #f87171;
+            --border: #334155;
+            --header-bg: #1e293b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); transition: background-color 0.3s ease; padding-bottom: 50px; }
+        header { position: sticky; top: 0; z-index: 100; background-color: var(--header-bg); border-bottom: 1px solid var(--border); padding: 15px 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .container { padding: 15px; max-width: 600px; margin: 0 auto; }
+        .card { background-color: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 15px; border: 1px solid var(--border); }
+        .card-header { font-size: 0.85rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 15px; font-weight: 700; letter-spacing: 0.5px; }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px; }
+        .form-control { width: 100%; padding: 12px; background-color: var(--bg-color); border: 1px solid var(--border); color: var(--text-main); border-radius: 8px; font-size: 1rem; }
+        .form-control:disabled { opacity: 0.7; cursor: not-allowed; }
+
+        .profile-photo-container { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; }
+        .profile-photo { width: 90px; height: 90px; border-radius: 50%; background-color: var(--border); object-fit: cover; margin-bottom: 10px; border: 2px solid var(--primary); }
+        .file-upload-btn { color: var(--primary); font-size: 0.9rem; font-weight: 600; cursor: pointer; display: none; }
+        input[type="file"] { display: none; }
+
+        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--border); transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        .btn-action { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 10px; color: white; background-color: var(--primary); }
+        .btn-danger { background-color: var(--danger); }
+        .hidden-area { display: none; margin-top: 15px; border-top: 1px dashed var(--border); padding-top: 15px; }
+    </style>
+</head>
+<body>
+
+    <header><h1>System Settings</h1></header>
+
+    <div class="container">
+        
+        <!-- 1. Owner Profile & Business (Editable Toggle) -->
+        <div class="card">
+            <div class="card-header">Profile & Business</div>
+            <div class="profile-photo-container">
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2NjYyI+PHBhdGggZD0iTTEyIDEyYzIuMjEgMCA0LTEuNzkgNC00czEuNzktNCA0LTRzLTQgMS43OS00IDRzMS43OSA0IDQgNHptMCAyYy0yLjY3IDAtOCAxLjM0LTggNHYyYTEgMSAwIDAgMCAxIDFoMTRhMSAxIDAgMCAwIDEtMXYtMmMwLTIuNjYtNS4zMy00LTgtNHoiLz48L3N2Zz4=" id="previewPhoto" class="profile-photo">
+                <label class="file-upload-btn" id="uploadLabel" for="photoUpload">Update Photo</label>
+                <input type="file" id="photoUpload" accept="image/*">
+            </div>
+            <div class="form-group"><label>Full Name</label><input type="text" id="ownerName" class="form-control profile-input" disabled></div>
+            <div class="form-group"><label>Professional Role</label><input type="text" id="ownerRole" class="form-control profile-input" disabled></div>
+            <div class="form-group"><label>Business Name</label><input type="text" id="businessName" class="form-control profile-input" disabled></div>
+            <div class="form-group"><label>Tagline</label><input type="text" id="businessTagline" class="form-control profile-input" disabled></div>
+            
+            <button class="btn-action" id="editProfileBtn" onclick="toggleEditMode()">Edit Settings</button>
+        </div>
+
+        <!-- 2. Security -->
+        <div class="card">
+            <div class="card-header">Security Credentials</div>
+            <div class="form-group"><label>Current Password</label><input type="password" id="currentPass" class="form-control"></div>
+            <div id="passwordFields" class="hidden-area">
+                <div class="form-group"><label>New Password</label><input type="password" id="newPass" class="form-control"></div>
+                <div class="form-group"><label>Confirm New</label><input type="password" id="confirmPass" class="form-control"></div>
+                <button class="btn-action" onclick="changePassword()">Save New Password</button>
+            </div>
+        </div>
+
+        <!-- 3. API Settings -->
+        <div class="card">
+            <div class="card-header">System & API Preferences</div>
+            <div class="form-group"><label>Primary API Key</label><input type="password" id="apiKey" class="form-control" disabled></div>
+            <div class="form-group"><label>Unlock API Access</label><input type="password" id="apiVerificationPass" class="form-control"></div>
+            <div id="apiControls" class="hidden-area">
+                <button class="btn-action" onclick="saveApiKey()">Save Changes</button>
+                <button class="btn-action btn-danger" onclick="deleteApiKey()">Delete Key</button>
+            </div>
+        </div>
+
+        <!-- 4. General -->
+        <div class="card">
+            <div class="card-header">General App Preferences</div>
+            <div class="setting-row"><span>Dark Mode</span>
+                <label class="switch"><input type="checkbox" id="darkModeToggle"><span class="slider"></span></label>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load Data
+        window.onload = () => {
+            document.getElementById('ownerName').value = localStorage.getItem('ownerName') || '';
+            document.getElementById('ownerRole').value = localStorage.getItem('ownerRole') || '';
+            document.getElementById('businessName').value = localStorage.getItem('businessName') || '';
+            document.getElementById('businessTagline').value = localStorage.getItem('businessTagline') || '';
+            document.getElementById('apiKey').value = localStorage.getItem('apiKey') || '';
+            if(localStorage.getItem('theme') === 'dark') { document.body.setAttribute('data-theme','dark'); document.getElementById('darkModeToggle').checked = true; }
+        };
+
+        // --- Profile Edit Toggle ---
+        let isEditing = false;
+        function toggleEditMode() {
+            const btn = document.getElementById('editProfileBtn');
+            const inputs = document.querySelectorAll('.profile-input');
+            const uploadLabel = document.getElementById('uploadLabel');
+
+            if (!isEditing) {
+                // Enter Edit Mode
+                inputs.forEach(i => i.disabled = false);
+                uploadLabel.style.display = 'block';
+                btn.innerText = 'Save All Profile Updates';
+                btn.style.backgroundColor = '#22c55e'; // Green for save
+                isEditing = true;
+            } else {
+                // Save and Exit Edit Mode
+                saveProfile();
+                inputs.forEach(i => i.disabled = true);
+                uploadLabel.style.display = 'none';
+                btn.innerText = 'Edit Settings';
+                btn.style.backgroundColor = 'var(--primary)';
+                isEditing = false;
+            }
+        }
+
+        function saveProfile() {
+            localStorage.setItem('ownerName', document.getElementById('ownerName').value);
+            localStorage.setItem('ownerRole', document.getElementById('ownerRole').value);
+            localStorage.setItem('businessName', document.getElementById('businessName').value);
+            localStorage.setItem('businessTagline', document.getElementById('businessTagline').value);
+            alert('Profile saved successfully.');
+        }
+
+        // --- Existing Security & API Logic ---
+        document.getElementById('currentPass').addEventListener('input', (e) => {
+            document.getElementById('passwordFields').style.display = (e.target.value === (localStorage.getItem('appPassword') || '1234')) ? 'block' : 'none';
+        });
+
+        document.getElementById('apiVerificationPass').addEventListener('input', (e) => {
+            const isUnlocked = (e.target.value === (localStorage.getItem('appPassword') || '1234'));
+            document.getElementById('apiControls').style.display = isUnlocked ? 'block' : 'none';
+            document.getElementById('apiKey').disabled = !isUnlocked;
+            document.getElementById('apiKey').type = isUnlocked ? 'text' : 'password';
+        });
+
+        function changePassword() {
+            const p1 = document.getElementById('newPass').value;
+            const p2 = document.getElementById('confirmPass').value;
+            if(p1 === p2 && p1.length > 3) {
+                localStorage.setItem('appPassword', p1);
+                alert('Password updated!');
+            } else { alert('Passwords mismatch or too short'); }
+        }
+
+        function saveApiKey() {
+            localStorage.setItem('apiKey', document.getElementById('apiKey').value);
+            alert('API Key Saved');
+            location.reload();
+        }
+
+        function deleteApiKey() {
+            localStorage.removeItem('apiKey');
+            document.getElementById('apiKey').value = '';
+            alert('API Key Deleted');
+            location.reload();
+        }
+
+        // Dark Mode
+        document.getElementById('darkModeToggle').addEventListener('change', (e) => {
+            if(e.target.checked) { document.body.setAttribute('data-theme','dark'); localStorage.setItem('theme','dark'); }
+            else { document.body.removeAttribute('data-theme'); localStorage.setItem('theme','light'); }
+        });
+    </script>
+</body>
+</html>
