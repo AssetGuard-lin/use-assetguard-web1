@@ -277,7 +277,8 @@ localStorage.setItem("ag_active_uid", currentUID);
 
 const inventoryPath = `users/${currentUID}/inventory`;
 const salesPath = `users/${currentUID}/sales`;
-const profilePath = `users/${currentUID}/profile`;
+// UPDATED PROFILE PATH to point directly to the shared business profile info
+const profilePath = "company_info/businessProfile";
 
 let cart = [];
 let editIndex = -1;
@@ -369,7 +370,7 @@ onValue(ref(db, salesPath), snapshot => {
     renderSales();
 });
 
-// Dynamic Profile Listener
+// Dynamic Profile Listener now points to the Centralized Settings
 onValue(ref(db, profilePath), snap => {
     if(snap.exists()) {
         userProfile = snap.val();
