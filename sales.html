@@ -72,8 +72,6 @@
     .edit-block { background: #f8fafc; padding: 10px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #e2e8f0; }
     .edit-row { display: grid; grid-template-columns: 1fr 50px 60px 70px; gap: 6px; margin-top: 5px; }
     .edit-row input { padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 11px; width:100%; box-sizing:border-box; }
-    .pin-area { margin: 15px 0; padding: 10px; background: #fff5f5; border-radius: 10px; text-align: center; border: 1px dashed var(--danger); }
-    .pin-input { width: 100px; text-align: center; font-size: 20px; letter-spacing: 4px; padding: 8px; border: 2px solid var(--danger); border-radius: 8px; outline: none; }
     .btn { border:none; padding:12px; border-radius:10px; font-size:12px; font-weight:600; cursor:pointer; transition: 0.2s; }
     .btn-dark { background:var(--dark); color:#fff; width: 100%; }
     .btn-success { background:var(--success); color:#fff; width: 100%; }
@@ -219,11 +217,7 @@
         <label style="font-size:10px;font-weight:800; color: var(--muted)">PAYMENT REFERENCE</label>
         <input type="text" id="edit-pay-ref" class="search-input" style="margin-bottom: 15px;">
         <div id="edit-items-container"></div>
-        <div class="pin-area">
-            <small style="display:block; margin-bottom:5px; font-weight:800; color:var(--danger)">ADMIN PIN REQUIRED</small>
-            <input type="password" id="authPin" class="pin-input" maxlength="4" placeholder="****">
-        </div>
-        <div style="display:flex; flex-direction: column; gap: 8px;">
+        <div style="display:flex; flex-direction: column; gap: 8px; margin-top: 15px;">
             <button id="btn-save-changes" class="btn btn-success">Update Record</button>
             <button id="btn-del-mode" class="btn btn-del">Delete Transaction</button>
             <button onclick="closeModal()" class="btn btn-dark" style="background: var(--muted)">Cancel</button>
@@ -244,7 +238,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-const ADMIN_PASS = "1234";
 
 const urlParams = new URLSearchParams(window.location.search);
 let resolvedUID = urlParams.get('uid') || urlParams.get('user') || urlParams.get('currentUID') || urlParams.get('userId');
@@ -284,6 +277,7 @@ localStorage.setItem("ag_active_uid", currentUID);
 
 const inventoryPath = `users/${currentUID}/inventory`;
 const salesPath = `users/${currentUID}/sales`;
+const profilePath = `users/${currentUID}/profile`;
 
 let cart = [];
 let editIndex = -1;
@@ -291,6 +285,8 @@ let editIndex = -1;
 let firebaseInventory = JSON.parse(localStorage.getItem(`ag_stock_cache_${currentUID}`)) || {};
 let syncQueue = JSON.parse(localStorage.getItem(`ag_sales_queue_${currentUID}`)) || [];
 let rawLedgerData = JSON.parse(localStorage.getItem(`ag_ledger_cache_${currentUID}`)) || {}; 
+let userProfile = JSON.parse(localStorage.getItem(`ag_profile_cache_${currentUID}`)) || { businessName: "Business Name", tagline: "Your Business Tagline" };
+
 let openLedgerCard = null;
 let currentActiveLedgerId = null;
 
@@ -298,7 +294,7 @@ const runtimeActiveLedgerSalesMap = new Map();
 
 const pdfOptions = {
     margin: [10, 5, 10, 5],
-    filename: `JCorp_Official_Receipt_${Date.now()}.pdf`,
+    filename: `Official_Receipt_${Date.now()}.pdf`,
     image: { type: 'jpeg', quality: 1.0 },
     html2canvas: { scale: 4, useCORS: true, letterRendering: true, scrollX: 0, scrollY: 0 },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', precision: 16 }
@@ -371,6 +367,14 @@ onValue(ref(db, salesPath), snapshot => {
     rawLedgerData = snapVal || {};
     localStorage.setItem(`ag_ledger_cache_${currentUID}`, JSON.stringify(rawLedgerData));
     renderSales();
+});
+
+// Dynamic Profile Listener
+onValue(ref(db, profilePath), snap => {
+    if(snap.exists()) {
+        userProfile = snap.val();
+        localStorage.setItem(`ag_profile_cache_${currentUID}`, JSON.stringify(userProfile));
+    }
 });
 
 function populateDropdown() {
@@ -699,8 +703,8 @@ function generateReceiptContent(customer, payment, reference, items, timestamp, 
         <div id="receipt-content" style="background:#ffffff; color:#000000; font-family:'Plus Jakarta Sans', sans-serif; padding:30px; border: 1px solid #f0f2f5; min-height: 252mm; box-sizing: border-box; display: flex; flex-direction: column;">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:30px;">
                 <div>
-                    <b style="font-size:24px; color:#0072CE;">JCorp Ltd</b><br>
-                    <small style="color:#0072CE; font-size:10px; font-weight:700; text-transform:uppercase;">Industrial Solutions & Automotive Coatings</small>
+                    <b style="font-size:24px; color:#0072CE;">${userProfile.businessName || 'Your Business Name'}</b><br>
+                    <small style="color:#0072CE; font-size:10px; font-weight:700; text-transform:uppercase;">${userProfile.tagline || 'Business Tagline / Address'}</small>
                 </div>
                 <div style="text-align:right; font-size:10px; line-height:1.6; color:#64748b;">
                     INVOICE NO: <b>${timestamp.split('-').pop().substring(0,8).toUpperCase()}</b><br>
@@ -787,9 +791,9 @@ window.nativeShare = async () => {
     const element = document.getElementById('receipt-content');
     try {
         const pdfBlob = await html2pdf().set(pdfOptions).from(element).outputPdf('blob');
-        const file = new File([pdfBlob], `JCorp_Receipt.pdf`, { type: 'application/pdf' });
+        const file = new File([pdfBlob], `${userProfile.businessName.replace(/\s+/g, '_')}_Receipt.pdf`, { type: 'application/pdf' });
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            await navigator.share({ files: [file], title: 'JCorp Official Receipt', text: `Official transaction receipt from JCorp Ltd.` });
+            await navigator.share({ files: [file], title: 'Official Receipt', text: `Official transaction receipt from ${userProfile.businessName}.` });
         } else {
             window.shareReceipt();
         }
@@ -901,7 +905,6 @@ window.openManager = id => {
     if (!s) return;
     document.getElementById('edit-cust-name').value = s.customer;
     document.getElementById('edit-pay-ref').value = s.mpesa || s.bank || "";
-    document.getElementById('authPin').value = "";
     document.getElementById('manual-pay-amt').value = "";
     
     const isCredit = (s.payment === "Credit");
@@ -934,7 +937,7 @@ window.openManager = id => {
 
 document.getElementById('btn-add-payment').onclick = async () => {
     const amt = parseFloat(document.getElementById('manual-pay-amt').value);
-    if (!amt || amt <= 0 || document.getElementById('authPin').value !== ADMIN_PASS) return alert("Error.");
+    if (!amt || amt <= 0) return alert("Please enter a valid payment amount.");
     const s = runtimeActiveLedgerSalesMap.get(currentActiveLedgerId);
     const newPayments = s.payments || [];
     newPayments.push({ amount: amt, date: new Date().toISOString() });
@@ -943,7 +946,6 @@ document.getElementById('btn-add-payment').onclick = async () => {
 };
 
 document.getElementById('btn-save-changes').onclick = async () => {
-    if(document.getElementById('authPin').value !== ADMIN_PASS) return alert("Error.");
     const s = runtimeActiveLedgerSalesMap.get(currentActiveLedgerId);
     const updated = [];
     document.querySelectorAll('.edit-block').forEach((block, idx) => {
@@ -959,7 +961,6 @@ document.getElementById('btn-save-changes').onclick = async () => {
 };
 
 document.getElementById('btn-del-mode').onclick = async () => {
-    if(document.getElementById('authPin').value !== ADMIN_PASS) return alert("Error.");
     if (navigator.onLine) { await remove(ref(db, `${salesPath}/${currentActiveLedgerId}`)); }
     document.getElementById('manageModal').style.display = 'none'; 
 };
