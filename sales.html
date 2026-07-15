@@ -92,9 +92,7 @@
         AssetGuard <span>Terminal</span>
         <span id="user-badge" style="display:none; font-size:10px; color:var(--muted); font-weight:600; margin-top:2px;">Detecting Session...</span>
     </div>
-    <div style="display: flex; gap: 8px;">
-        <button class="toggle-view-btn" id="toggle-btn" onclick="toggleMainView()">Sales Ledger</button>
-    </div>
+    <button class="toggle-view-btn" id="toggle-btn" onclick="toggleMainView()">Sales Ledger</button>
 </header>
 
 <div id="view-terminal" class="view-container active">
@@ -185,8 +183,6 @@
     </div>
 </div>
 
-<div id="settings-component-host"></div>
-
 <div id="receiptModal" class="modal">
     <div class="modal-box">
         <div id="receipt-area" style="padding:0px; background:#fff; font-family:'Plus Jakarta Sans', sans-serif; color:#000; overflow: auto; max-height: 70vh;"></div>
@@ -268,8 +264,13 @@ if (!resolvedUID) {
     }
 }
 
-if (!resolvedUID) resolvedUID = localStorage.getItem("ag_active_uid");
-if (!resolvedUID || resolvedUID === "null" || resolvedUID === "undefined" || resolvedUID.trim() === "") resolvedUID = "global_terminal_user";
+if (!resolvedUID) {
+    resolvedUID = localStorage.getItem("ag_active_uid");
+}
+
+if (!resolvedUID || resolvedUID === "null" || resolvedUID === "undefined" || resolvedUID.trim() === "") {
+    resolvedUID = "global_terminal_user";
+}
 
 const currentUID = resolvedUID;
 localStorage.setItem("ag_active_uid", currentUID);
@@ -284,7 +285,7 @@ let editIndex = -1;
 let firebaseInventory = JSON.parse(localStorage.getItem(`ag_stock_cache_${currentUID}`)) || {};
 let syncQueue = JSON.parse(localStorage.getItem(`ag_sales_queue_${currentUID}`)) || [];
 let rawLedgerData = JSON.parse(localStorage.getItem(`ag_ledger_cache_${currentUID}`)) || {}; 
-let userProfile = JSON.parse(localStorage.getItem(`ag_profile_cache_${currentUID}`)) || { businessName: "Business Name", tagline: "Tagline" };
+let userProfile = JSON.parse(localStorage.getItem(`ag_profile_cache_${currentUID}`)) || { businessName: "Business Name", tagline: "Your Business Tagline" };
 
 let openLedgerCard = null;
 let currentActiveLedgerId = null;
@@ -314,8 +315,9 @@ window.toggleMainView = () => {
 
 window.onload = () => {
     const badge = document.getElementById('user-badge');
-    if (badge) badge.innerText = `Active Session: ${currentUID}`;
-    
+    if (badge) {
+        badge.innerText = `Active Session: ${currentUID}`;
+    }
     populateDropdown();
     updateStatusUI();
     renderSales(); 
@@ -325,11 +327,29 @@ window.onload = () => {
 
 async function deepSyncFirebase() {
     const baseURL = "https://assetguard-c8c8c-default-rtdb.firebaseio.com/";
+    const paths = [`users/${currentUID}/sales.json`];
+    let consolidatedSales = {}; 
+
+    const extract = (data) => {
+        if (!data || typeof data !== 'object') return;
+        Object.keys(data).forEach(key => {
+            const entry = data[key];
+            if (entry && entry.items && entry.timestamp && entry.saleId) {
+                consolidatedSales[entry.saleId] = entry; 
+            } else if (typeof entry === 'object') {
+                extract(entry);
+            }
+        });
+    };
+
     try {
-        const res = await fetch(`${baseURL}users/${currentUID}/sales.json`);
-        const data = await res.json();
-        if(data) {
-            rawLedgerData = data;
+        for (const path of paths) {
+            const res = await fetch(baseURL + path);
+            const data = await res.json();
+            extract(data);
+        }
+        if(Object.keys(consolidatedSales).length > 0) {
+            rawLedgerData = consolidatedSales;
             localStorage.setItem(`ag_ledger_cache_${currentUID}`, JSON.stringify(rawLedgerData));
             renderSales();
         }
@@ -349,6 +369,7 @@ onValue(ref(db, salesPath), snapshot => {
     renderSales();
 });
 
+// Dynamic Profile Listener
 onValue(ref(db, profilePath), snap => {
     if(snap.exists()) {
         userProfile = snap.val();
@@ -507,10 +528,13 @@ window.removeCart = (i) => { cart.splice(i, 1); if(!cart.length) lockInputs(fals
 
 window.processSale = () => {
     if(!cart.length) return;
+    
     const btn = document.getElementById('processBtn');
     btn.disabled = true;
     btn.innerText = "Processing...";
+
     const uniqueSaleId = "SALE-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
+
     const trans = {
         saleId: uniqueSaleId,
         customer: cart[0].customer,
@@ -521,8 +545,11 @@ window.processSale = () => {
         items: cart,
         payments: [] 
     };
+    
     syncQueue.push(trans);
     localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
+    
+    // Deduct stock locally immediately to prevent multi-sales
     cart.forEach(itm => {
         if (firebaseInventory[itm.dbKey]) {
             firebaseInventory[itm.dbKey].qty = Math.max(0, firebaseInventory[itm.dbKey].qty - itm.quantity);
@@ -530,8 +557,11 @@ window.processSale = () => {
     });
     localStorage.setItem(`ag_stock_cache_${currentUID}`, JSON.stringify(firebaseInventory));
     populateDropdown();
+
     openReceiptSummary([...cart]);
     resetFullForm();
+    
+    // Instantly render changes on the UI Ledger
     renderSales();
     attemptSync();
 };
@@ -547,6 +577,7 @@ function resetFullForm() {
     togglePaymentExtra(); 
     lockInputs(false); 
     resetItemFields();
+    
     const btn = document.getElementById('processBtn');
     btn.disabled = false;
     btn.innerText = "Confirm Sale & Sync Cloud";
@@ -562,28 +593,44 @@ async function attemptSync() {
         const trans = { ...tempQueue[i] };
         const sID = trans.saleId;
         try {
-            for (let itm of trans.items) {
-                try {
-                    await runTransaction(ref(db, `${inventoryPath}/${itm.dbKey}/qty`), q => {
-                        if (q === null) return 0;
-                        return Math.max(0, q - itm.quantity);
-                    });
-                } catch (transErr) {
-                    const snap = await fetch(`https://assetguard-c8c8c-default-rtdb.firebaseio.com/${inventoryPath}/${itm.dbKey}/qty.json`);
-                    const currentQty = await snap.json() || 0;
-                    await set(ref(db, `${inventoryPath}/${itm.dbKey}/qty`), Math.max(0, currentQty - itm.quantity));
+            if (trans.isDeleteOnly) {
+                await remove(ref(db, `${salesPath}/${sID}`));
+            } else if (trans.isUpdateOnly) {
+                delete trans.isUpdateOnly;
+                await update(ref(db, `${salesPath}/${sID}`), trans);
+            } else {
+                for (let itm of trans.items) {
+                    try {
+                        await runTransaction(ref(db, `${inventoryPath}/${itm.dbKey}/qty`), q => {
+                            if (q === null) return 0;
+                            return Math.max(0, q - itm.quantity);
+                        });
+                    } catch (transErr) {
+                        // Resilient Fallback to standard write if transactions are network-locked
+                        const snap = await fetch(`https://assetguard-c8c8c-default-rtdb.firebaseio.com/${inventoryPath}/${itm.dbKey}/qty.json`);
+                        const currentQty = await snap.json() || 0;
+                        await set(ref(db, `${inventoryPath}/${itm.dbKey}/qty`), Math.max(0, currentQty - itm.quantity));
+                    }
                 }
+                await set(ref(db, `${salesPath}/${sID}`), trans); 
             }
-            await set(ref(db, `${salesPath}/${sID}`), trans); 
             syncQueue.shift();
             localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
-            rawLedgerData[sID] = trans;
-            localStorage.setItem(`ag_ledger_cache_${currentUID}`, JSON.stringify(rawLedgerData));
+            
+            // Move newly synced transaction into raw ledger cache
+            if (!trans.isDeleteOnly) {
+                rawLedgerData[sID] = trans;
+                localStorage.setItem(`ag_ledger_cache_${currentUID}`, JSON.stringify(rawLedgerData));
+            } else {
+                delete rawLedgerData[sID];
+                localStorage.setItem(`ag_ledger_cache_${currentUID}`, JSON.stringify(rawLedgerData));
+            }
             renderSales();
         } catch (e) { 
+            console.error("Sync error caught: ", e);
             if (diagPanel && diagLog) {
                 diagPanel.style.display = "block";
-                diagLog.innerText = `Sync failed: ${e.message}. Retrying...`;
+                diagLog.innerText = `Sync failed: ${e.message || e}. Will retry when connection stabilizes.`;
             }
             break; 
         }
@@ -656,8 +703,8 @@ function generateReceiptContent(customer, payment, reference, items, timestamp, 
         <div id="receipt-content" style="background:#ffffff; color:#000000; font-family:'Plus Jakarta Sans', sans-serif; padding:30px; border: 1px solid #f0f2f5; min-height: 252mm; box-sizing: border-box; display: flex; flex-direction: column;">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:30px;">
                 <div>
-                    <b style="font-size:24px; color:#0072CE;">${userProfile.businessName || 'Business Name'}</b><br>
-                    <small style="color:#0072CE; font-size:10px; font-weight:700; text-transform:uppercase;">${userProfile.tagline || 'Tagline / Address'}</small>
+                    <b style="font-size:24px; color:#0072CE;">${userProfile.businessName || 'Your Business Name'}</b><br>
+                    <small style="color:#0072CE; font-size:10px; font-weight:700; text-transform:uppercase;">${userProfile.tagline || 'Business Tagline / Address'}</small>
                 </div>
                 <div style="text-align:right; font-size:10px; line-height:1.6; color:#64748b;">
                     INVOICE NO: <b>${timestamp.split('-').pop().substring(0,8).toUpperCase()}</b><br>
@@ -734,16 +781,25 @@ function generateReceiptContent(customer, payment, reference, items, timestamp, 
 }
 
 window.closeReceipt = () => document.getElementById('receiptModal').style.display = 'none';
-window.closeModal = () => { document.getElementById('manageModal').style.display = 'none'; };
-window.shareReceipt = () => { html2pdf().set(pdfOptions).from(document.getElementById('receipt-content')).save(); };
+
+window.shareReceipt = () => { 
+    const element = document.getElementById('receipt-content'); 
+    html2pdf().set(pdfOptions).from(element).save(); 
+};
+
 window.nativeShare = async () => {
     const element = document.getElementById('receipt-content');
     try {
         const pdfBlob = await html2pdf().set(pdfOptions).from(element).outputPdf('blob');
-        const file = new File([pdfBlob], `Receipt.pdf`, { type: 'application/pdf' });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file] });
-        else window.shareReceipt();
-    } catch (err) { window.shareReceipt(); }
+        const file = new File([pdfBlob], `${userProfile.businessName.replace(/\s+/g, '_')}_Receipt.pdf`, { type: 'application/pdf' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({ files: [file], title: 'Official Receipt', text: `Official transaction receipt from ${userProfile.businessName}.` });
+        } else {
+            window.shareReceipt();
+        }
+    } catch (err) {
+        window.shareReceipt();
+    }
 };
 
 window.renderSales = () => {
@@ -755,10 +811,30 @@ window.renderSales = () => {
     runtimeActiveLedgerSalesMap.clear();
     
     let gQty=0, gTotal=0, gTax=0;
-    const allSales = Object.keys(rawLedgerData).map(k => ({ id: k, ...rawLedgerData[k] }))
+    
+    // Unify synchronized remote data with local pending offline queue records
+    const combinedSales = { ...rawLedgerData };
+    syncQueue.forEach(item => {
+        if (item.isDeleteOnly) {
+            delete combinedSales[item.saleId];
+        } else if (item.isUpdateOnly) {
+            if (combinedSales[item.saleId]) {
+                combinedSales[item.saleId] = { ...combinedSales[item.saleId], ...item, isPending: true };
+            }
+        } else {
+            combinedSales[item.saleId] = { ...item, isPending: true };
+        }
+    });
+    
+    const allSales = Object.keys(combinedSales).map(k => ({ id: k, ...combinedSales[k] }))
                      .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
                      
+    if(allSales.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--muted); font-weight:600;">No sales history found.</div>`;
+    }
+
     allSales.forEach(s => {
+        if (!s.timestamp || !s.items) return;
         const date = new Date(s.timestamp);
         if (selectedYear !== "all" && date.getFullYear().toString() !== selectedYear) return;
         if (selectedMonth !== "all" && date.getMonth().toString() !== selectedMonth) return;
@@ -766,23 +842,43 @@ window.renderSales = () => {
         let saleTotal = 0, saleQty = 0, saleTax = 0;
         const rows = s.items.map(i => {
             saleTotal += parseFloat(i.total || 0); saleQty += parseFloat(i.quantity || 0); saleTax += parseFloat(i.vatAmount || 0);
-            return `<div class="ledger-row"><div><b>${i.quantity}</b></div><div>${i.product}</div><div style="color:var(--muted)">@${i.price}</div><div style="color:var(--danger)">V:${i.vatRate}%</div><div style="text-align:right; font-weight: 800;">KES ${parseFloat(i.total).toLocaleString()}</div></div>`;
+            return `<div class="ledger-row"><div><b>${i.quantity}</b></div><div style="padding-right: 4px;">${i.product}</div><div style="color:var(--muted)">@${i.price}</div><div style="color:var(--danger); font-size:9px;">V:${i.vatRate}%</div><div style="text-align:right; font-weight: 800;">KES ${parseFloat(i.total).toLocaleString()}</div></div>`;
         }).join('');
+        
+        const isCredit = (s.payment === "Credit");
+        const paidSoFar = (s.payments || []).reduce((acc, p) => acc + parseFloat(p.amount || 0), 0);
+        const bal = saleTotal - paidSoFar;
         
         gQty += saleQty; gTotal += saleTotal; gTax += saleTax;
         
+        const isPending = !!s.isPending;
+        const pendingBadge = isPending ? `<span style="background: #fef3c7; color: #d97706; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 800; text-transform: uppercase; margin-left: 5px;">Syncing...</span>` : '';
+        
         container.insertAdjacentHTML('beforeend', `
-            <div class="sale-card">
+            <div class="sale-card" style="${isPending ? 'border-left: 4px solid var(--warning);' : ''}">
                 <div class="sale-summary" onclick="toggleLedgerCard('${s.id}')">
-                    <div class="sale-info"><h3>${s.customer}</h3><span>${date.toLocaleDateString()}</span></div>
+                    <div class="sale-info">
+                        <h3>${s.customer} ${isCredit ? `<span class="credit-tag">Credit ${bal > 0 ? '(Pending)' : '(Settled)'}</span>` : ''}${pendingBadge}</h3>
+                        <span>${date.toLocaleDateString()}</span>
+                    </div>
                     <div class="sale-total">KES ${saleTotal.toLocaleString()}</div>
                 </div>
                 <div class="sale-body" id="body-${s.id}">
-                    <div style="font-size: 10px; color: var(--muted); margin-bottom: 8px; font-weight: 800;">PAYMENT: ${s.payment}</div>
+                    <div style="font-size: 10px; color: var(--muted); margin-bottom: 8px; font-weight: 800;">PAYMENT: ${s.payment} ${s.mpesa || s.bank || ""}</div>
                     ${rows}
-                    <button class="btn btn-dark" style="margin-top:10px;" onclick="reprintReceipt('${s.id}')">PRINT INVOICE</button>
+                    ${isCredit ? `
+                        <div style="margin-top:10px; background:#fff7ed; padding:8px; border-radius:8px; border:1px solid #ffedd5; display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:11px; font-weight:800; color:#c2410c;">REMAINING BALANCE:</span>
+                            <b style="color:var(--danger); font-size:14px;">KES ${bal.toLocaleString()}</b>
+                        </div>
+                    ` : ''}
+                    <div style="display:flex; gap:8px; margin-top:12px;">
+                        <button class="btn btn-dark" style="flex:1;" onclick="event.stopPropagation(); openManager('${s.id}')" ${isPending ? 'disabled' : ''}>MANAGE / PAY</button>
+                        <button class="btn" style="flex:1; background:var(--primary); color:white;" onclick="event.stopPropagation(); reprintReceipt('${s.id}')">INVOICE</button>
+                    </div>
                 </div>
             </div>`);
+            
         runtimeActiveLedgerSalesMap.set(s.id, s);
     });
     
@@ -794,8 +890,88 @@ window.renderSales = () => {
 
 window.toggleLedgerCard = id => {
     const body = document.getElementById("body-"+id);
-    body.style.display = (body.style.display === "block") ? "none" : "block";
+    if(openLedgerCard && openLedgerCard !== id) {
+        const prev = document.getElementById("body-"+openLedgerCard);
+        if(prev) prev.style.display = "none";
+    }
+    const isOpen = body.style.display === "block";
+    body.style.display = isOpen ? "none" : "block";
+    openLedgerCard = isOpen ? null : id;
 };
+
+window.openManager = id => {
+    currentActiveLedgerId = id;
+    const s = runtimeActiveLedgerSalesMap.get(id);
+    if (!s) return;
+    document.getElementById('edit-cust-name').value = s.customer;
+    document.getElementById('edit-pay-ref').value = s.mpesa || s.bank || "";
+    document.getElementById('manual-pay-amt').value = "";
+    
+    const isCredit = (s.payment === "Credit");
+    const creditBlock = document.getElementById('credit-payment-block');
+    if (isCredit) {
+        creditBlock.style.display = 'block';
+        const saleTotal = s.items.reduce((acc, i) => acc + parseFloat(i.total || 0), 0);
+        const paidSoFar = (s.payments || []).reduce((acc, p) => acc + parseFloat(p.amount || 0), 0);
+        const bal = saleTotal - paidSoFar;
+        document.getElementById('credit-bal-text').innerText = `KES ${bal.toLocaleString()}`;
+        
+        const historyList = document.getElementById('payment-history-list');
+        historyList.innerHTML = (s.payments || []).map(p => {
+            const d = new Date(p.date);
+            return `<div class="history-item"><div class="history-meta"><b>KES ${parseFloat(p.amount).toLocaleString()}</b><small>${d.toLocaleDateString()}</small></div></div>`;
+        }).join('') || '<small style="color:var(--muted); font-style:italic;">No payments yet.</small>';
+    } else { creditBlock.style.display = 'none'; }
+
+    document.getElementById('edit-items-container').innerHTML = s.items.map((item, idx) => `
+        <div class="edit-block" data-index="${idx}">
+            <div class="edit-row">
+                <input type="text" value="${item.product}" class="item-prod" readonly>
+                <input type="number" value="${item.quantity}" class="item-qty">
+                <input type="number" value="${item.price}" class="item-price">
+                <input type="number" value="${item.vatRate}" class="item-vrate">
+            </div>
+        </div>`).join('');
+    document.getElementById('manageModal').style.display = 'flex';
+};
+
+document.getElementById('btn-add-payment').onclick = async () => {
+    const amt = parseFloat(document.getElementById('manual-pay-amt').value);
+    if (!amt || amt <= 0) return alert("Please enter a valid payment amount.");
+    const s = runtimeActiveLedgerSalesMap.get(currentActiveLedgerId);
+    const newPayments = s.payments || [];
+    newPayments.push({ amount: amt, date: new Date().toISOString() });
+    if (navigator.onLine) { await update(ref(db, `${salesPath}/${currentActiveLedgerId}`), { payments: newPayments }); }
+    openManager(currentActiveLedgerId);
+};
+
+document.getElementById('btn-save-changes').onclick = async () => {
+    const s = runtimeActiveLedgerSalesMap.get(currentActiveLedgerId);
+    const updated = [];
+    document.querySelectorAll('.edit-block').forEach((block, idx) => {
+        const q = parseFloat(block.querySelector('.item-qty').value);
+        const p = parseFloat(block.querySelector('.item-price').value);
+        const vr = parseFloat(block.querySelector('.item-vrate').value);
+        const sub = q * p; const vat = sub * (vr/100);
+        updated.push({ ...s.items[idx], quantity: q, price: p, vatRate: vr, total: (sub+vat).toFixed(2), vatAmount: vat.toFixed(2) });
+    });
+    const payload = { customer: document.getElementById('edit-cust-name').value, items: updated };
+    if (navigator.onLine) { await update(ref(db, `${salesPath}/${currentActiveLedgerId}`), payload); }
+    document.getElementById('manageModal').style.display = 'none'; 
+};
+
+document.getElementById('btn-del-mode').onclick = async () => {
+    if (navigator.onLine) { await remove(ref(db, `${salesPath}/${currentActiveLedgerId}`)); }
+    document.getElementById('manageModal').style.display = 'none'; 
+};
+
+window.closeModal = () => document.getElementById('manageModal').style.display = 'none';
+window.filterSales = () => {
+    const q = document.getElementById("searchInput").value.toLowerCase();
+    document.querySelectorAll(".sale-card").forEach(c => c.style.display = c.innerText.toLowerCase().includes(q) ? "block" : "none");
+};
+
+window.addEventListener('online', attemptSync);
 </script>
 </body>
 </html>
