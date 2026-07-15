@@ -606,7 +606,6 @@ async function attemptSync() {
                             return Math.max(0, q - itm.quantity);
                         });
                     } catch (transErr) {
-                        // Resilient Fallback to standard write if transactions are network-locked
                         const snap = await fetch(`https://assetguard-c8c8c-default-rtdb.firebaseio.com/${inventoryPath}/${itm.dbKey}/qty.json`);
                         const currentQty = await snap.json() || 0;
                         await set(ref(db, `${inventoryPath}/${itm.dbKey}/qty`), Math.max(0, currentQty - itm.quantity));
@@ -617,7 +616,6 @@ async function attemptSync() {
             syncQueue.shift();
             localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
             
-            // Move newly synced transaction into raw ledger cache
             if (!trans.isDeleteOnly) {
                 rawLedgerData[sID] = trans;
                 localStorage.setItem(`ag_ledger_cache_${currentUID}`, JSON.stringify(rawLedgerData));
@@ -659,6 +657,12 @@ window.reprintReceipt = (id) => {
 };
 
 function generateReceiptContent(customer, payment, reference, items, timestamp, partialPayments = []) {
+    // FORCE UPDATE: Pull the latest profile data from LocalStorage
+    const savedProfile = localStorage.getItem(`ag_profile_cache_${currentUID}`);
+    if (savedProfile) {
+        userProfile = JSON.parse(savedProfile);
+    }
+
     const dateObj = new Date(timestamp);
     const dateStr = dateObj.toLocaleDateString();
     const timeStr = dateObj.toLocaleTimeString();
@@ -812,7 +816,6 @@ window.renderSales = () => {
     
     let gQty=0, gTotal=0, gTax=0;
     
-    // Unify synchronized remote data with local pending offline queue records
     const combinedSales = { ...rawLedgerData };
     syncQueue.forEach(item => {
         if (item.isDeleteOnly) {
