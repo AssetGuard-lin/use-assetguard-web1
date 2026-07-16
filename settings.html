@@ -711,7 +711,7 @@
 
 <script>
     // System Global States
-    let currentUID = "global_terminal_user";
+    let currentUID = "unidentified_user"; 
     let loadedSettings = {
         businessName: "JCorp Kenya Inc",
         tagline: "Transformation you need",
@@ -726,10 +726,10 @@
     
     // Auto Initialization on DOM Load
     window.onload = function() {
-        // 1. Resolve User ID FIRST so we know whose subscription to check
+        // 1. Resolve User ID FIRST 
         resolveUserIdentity();
         
-        // 2. Enforce Sub Gate using the now resolved currentUID
+        // 2. Enforce Sub Gate using the strictly resolved currentUID
         enforceSubscriptionGate();
         
         // 3. Load user specific settings
@@ -739,14 +739,13 @@
     // --- SUBSCRIPTION SYSTEM ENGINE ---
     
     function unsubscribe() {
-        // Appended currentUID to the storage key
         localStorage.removeItem(`ag_sub_expiry_${currentUID}`);
         enforceSubscriptionGate();
         triggerToast("Subscription cancelled.");
     }
 
     function enforceSubscriptionGate() {
-        // Appended currentUID to the storage key
+        // Look up the specific user's expiry time
         const expiryData = localStorage.getItem(`ag_sub_expiry_${currentUID}`);
         const lockScreen = document.getElementById('subLockScreen');
         const now = Date.now();
@@ -897,42 +896,55 @@
     function finalizeSubscriptionRenew(daysAdded) {
         const now = Date.now();
         
-        // Appended currentUID to the storage key
+        // Add time to the specific user's file
         let currentExpiry = localStorage.getItem(`ag_sub_expiry_${currentUID}`);
         currentExpiry = currentExpiry ? parseInt(currentExpiry) : now;
         
         const baseTime = currentExpiry > now ? currentExpiry : now;
         const newExpiry = baseTime + (daysAdded * 24 * 60 * 60 * 1000);
 
-        // Appended currentUID to the storage key
         localStorage.setItem(`ag_sub_expiry_${currentUID}`, newExpiry.toString());
         
         triggerToast(`Payment Received. Subscribed for ${daysAdded} Days.`);
 
-        // Re-check gate. If it was locked, this will unlock it.
         enforceSubscriptionGate();
         loadLocalSettings();
     }
 
-    // --- EXISTING APP LOGIC ---
+    // --- STRICT ISOLATION LOGIC ---
 
     function resolveUserIdentity() {
+        let resolved = null;
+
+        // 1. Try URL parameters first (e.g., settings.html?uid=12345)
         const urlParams = new URLSearchParams(window.location.search);
-        let resolved = urlParams.get('uid') || urlParams.get('user') || urlParams.get('userId');
+        resolved = urlParams.get('uid') || urlParams.get('user') || urlParams.get('userId');
+
+        // 2. Try Kodular / AppInventor WebViewString
         if (!resolved) {
             try {
                 if (window.AppInventor && typeof window.AppInventor.getWebViewString === 'function') {
                     const appString = window.AppInventor.getWebViewString();
-                    if (appString && appString !== "undefined" && appString !== "null" && appString.trim() !== "") {
-                        resolved = appString;
+                    if (appString && appString.trim() !== "") {
+                        try {
+                            const parsed = JSON.parse(appString);
+                            if (parsed.uid) resolved = parsed.uid;
+                        } catch (e) {
+                            resolved = appString; // Treat as raw string if not JSON
+                        }
                     }
                 }
             } catch (e) {}
         }
-        if (!resolved) resolved = localStorage.getItem("ag_active_uid");
+
+        // We REMOVED the local storage fallback for ID fetching!
+        // This ensures User B does not automatically log in as User A if they share a phone.
+        
         if (resolved && resolved.trim() !== "") {
-            currentUID = resolved;
-            localStorage.setItem("ag_active_uid", currentUID);
+            currentUID = resolved.trim();
+        } else {
+            // Force a unique fallback per anonymous session so they don't share the same lock
+            currentUID = "unidentified_" + Math.random().toString(36).substr(2, 9);
         }
     }
 
