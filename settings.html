@@ -425,7 +425,7 @@
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             z-index: 9999;
-            /* Locked by default until JS checks */
+            /* CHANGED TO FLEX: Locked by default before JS even loads */
             display: flex; 
             flex-direction: column;
             align-items: center;
@@ -724,31 +724,26 @@
     let pendingSubDays = 0;
     let stkTimeoutTokens = [];
     
-    // --- DYNAMIC STORAGE KEY HELPER ---
-    function getSubKey() {
-        return `ag_sub_expiry_${currentUID || "global_terminal_user"}`;
-    }
-    
     // Auto Initialization on DOM Load
     window.onload = function() {
-        // Resolve Identity FIRST so we check the correct user's subscription
+        // Enforce will set display to 'none' if valid, or 'flex' if not.
+        enforceSubscriptionGate();
+        
+        // Proceed with regular app initialization
         resolveUserIdentity();
         loadLocalSettings();
-        
-        // Then enforce subscription status for that specific user
-        enforceSubscriptionGate();
     };
 
     // --- SUBSCRIPTION SYSTEM ENGINE ---
     
     function unsubscribe() {
-        localStorage.removeItem(getSubKey());
+        localStorage.removeItem("ag_sub_expiry");
         enforceSubscriptionGate();
         triggerToast("Subscription cancelled.");
     }
 
     function enforceSubscriptionGate() {
-        const expiryData = localStorage.getItem(getSubKey());
+        const expiryData = localStorage.getItem("ag_sub_expiry");
         const lockScreen = document.getElementById('subLockScreen');
         const now = Date.now();
 
@@ -897,19 +892,20 @@
 
     function finalizeSubscriptionRenew(daysAdded) {
         const now = Date.now();
-        const subKey = getSubKey();
-        let currentExpiry = localStorage.getItem(subKey);
+        let currentExpiry = localStorage.getItem("ag_sub_expiry");
         currentExpiry = currentExpiry ? parseInt(currentExpiry) : now;
         
         const baseTime = currentExpiry > now ? currentExpiry : now;
         const newExpiry = baseTime + (daysAdded * 24 * 60 * 60 * 1000);
 
-        localStorage.setItem(subKey, newExpiry.toString());
+        localStorage.setItem("ag_sub_expiry", newExpiry.toString());
         
         triggerToast(`Payment Received. Subscribed for ${daysAdded} Days.`);
 
         // Re-check gate. If it was locked, this will unlock it.
         enforceSubscriptionGate();
+        resolveUserIdentity();
+        loadLocalSettings();
     }
 
     // --- EXISTING APP LOGIC ---
