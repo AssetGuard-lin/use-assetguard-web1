@@ -132,7 +132,6 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
-// --- SUBSCRIPTION CHECKER ---
 window.isSubActive = () => {
     const uid = localStorage.getItem("ag_active_uid");
     const expiry = localStorage.getItem(`ag_sub_expiry_${uid}`);
@@ -150,24 +149,21 @@ window.closeAll = () => {
     document.getElementById("overlay").classList.remove("active"); 
 };
 
-// --- MODERN MODAL HANDLER ---
+// --- MODERN MODAL ---
 window.showSubscriptionAlert = (onConfirm) => {
     const modal = document.getElementById('globalModal');
-    document.getElementById('modalTitle').innerText = "Subscription Expired";
-    document.getElementById('modalText').innerText = "Your license has expired. Please renew in settings to continue accessing this feature.";
+    document.getElementById('modalTitle').innerText = "License Expired";
+    document.getElementById('modalText').innerText = "Subscription inactive. Please renew license in Settings to continue.";
     document.getElementById('overlay').classList.add('active');
     modal.classList.add('active');
-    
-    // Setup Confirm Button
-    const confirmBtn = document.getElementById('modalConfirmBtn');
-    confirmBtn.onclick = () => {
+    document.getElementById('modalConfirmBtn').onclick = () => {
         closeAll();
         if(onConfirm) onConfirm();
     };
 };
 
 window.loadPage = (pageName) => { 
-    // LOCK GATE: Check subscription before navigating
+    // LOCK GATE: Check subscription without using browser alerts
     if (!window.isSubActive() && pageName !== 'settings') {
         showSubscriptionAlert(() => {
             document.getElementById('main-frame').src = "settings.html";
@@ -198,7 +194,6 @@ document.getElementById('main-frame').onload = function() {
     const iframeDoc = this.contentDocument || this.contentWindow.document;
     const activeUID = localStorage.getItem("ag_active_uid");
 
-    // INJECT LOCK: Forces redirect if someone manages to bypass navigation
     const lockScript = iframeDoc.createElement('script');
     lockScript.textContent = `
         const expiry = localStorage.getItem("ag_sub_expiry_${activeUID}");
