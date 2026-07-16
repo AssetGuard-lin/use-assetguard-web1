@@ -16,7 +16,9 @@
             --text-muted: #64748b;
             --border: #e2e8f0;
             --success: #10b981;
+            --warning: #f59e0b;
             --danger: #ef4444;
+            --mpesa: #00a859;
             --radius-lg: 16px;
             --radius-md: 12px;
             --shadow: 0 10px 25px -5px rgba(0, 26, 53, 0.05), 0 8px 10px -6px rgba(0, 26, 53, 0.05);
@@ -106,24 +108,21 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
-            padding-bottom: 100px; /* Space for sticky bottom button */
+            padding-bottom: 100px;
         }
 
-        /* Live Brand Card Preview */
-        .preview-card-wrap {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
+        /* Section Labels */
         .section-label {
             font-size: 11px;
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.8px;
             color: var(--text-muted);
+            display: block;
+            margin-bottom: 8px;
         }
 
+        /* Live Brand Card Preview */
         .brand-preview-card {
             background: linear-gradient(135deg, var(--dark) 0%, #002d5c 100%);
             color: white;
@@ -230,7 +229,7 @@
         }
 
         .form-field input[type="text"],
-        .form-field input[type="password"] {
+        .form-field input[type="tel"] {
             font-family: inherit;
             font-size: 14px;
             font-weight: 500;
@@ -247,6 +246,11 @@
             border-color: var(--primary);
             background: #ffffff;
             box-shadow: 0 0 0 4px rgba(0, 114, 206, 0.1);
+        }
+        
+        .form-field input.mpesa-focus:focus {
+            border-color: var(--mpesa);
+            box-shadow: 0 0 0 4px rgba(0, 168, 89, 0.1);
         }
 
         /* File Upload Block */
@@ -323,49 +327,167 @@
             justify-content: center;
             gap: 8px;
         }
-
-        .btn-primary {
-            background: var(--primary);
-            color: white;
+        
+        .btn-text-danger {
+            background: none;
+            border: none;
+            color: var(--danger);
+            font-size: 11px;
+            font-weight: 700;
+            text-decoration: underline;
+            cursor: pointer;
+            padding: 4px;
+            margin-top: 10px;
+            display: block;
+            width: 100%;
+            text-align: center;
         }
 
-        .btn-primary:active {
-            background: #00569e;
-            transform: scale(0.98);
-        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:active { background: #00569e; transform: scale(0.98); }
+        .btn-secondary { background: #f1f5f9; color: var(--text-muted); }
+        .btn-secondary:active { background: #e2e8f0; }
+        .btn-mpesa { background: var(--mpesa); color: white; }
+        .btn-mpesa:active { background: #008f4c; transform: scale(0.98); }
 
-        .btn-secondary {
-            background: #f1f5f9;
-            color: var(--text-muted);
+        /* SUBSCRIPTION SYSTEM STYLES */
+        .sub-status-box {
+            background: linear-gradient(145deg, #f0fdf4 0%, #dcfce7 100%);
+            border: 1px solid #bbf7d0;
+            border-radius: var(--radius-md);
+            padding: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
         }
-
-        .btn-secondary:active {
-            background: #e2e8f0;
+        .sub-status-box.expired {
+            background: linear-gradient(145deg, #fef2f2 0%, #fee2e2 100%);
+            border-color: #fecaca;
         }
-
-        /* KEYPAD LOCK SCREEN OVERLAY */
-        .pin-overlay {
-            position: fixed;
-            inset: 0;
+        .sub-status-info h4 { font-size: 14px; color: var(--dark); font-weight: 700; }
+        .sub-status-info p { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-top: 2px; }
+        
+        .timer-badge {
             background: var(--dark);
-            z-index: 2000;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .plan-btn {
+            background: #ffffff;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: space-between;
-            padding: 40px 30px;
+            gap: 6px;
+        }
+        .plan-btn:active { transform: scale(0.96); }
+        .plan-btn.popular { border-color: var(--primary); background: var(--primary-light); position: relative; }
+        .plan-btn.popular::after {
+            content: 'Save 20%';
+            position: absolute;
+            top: -10px;
+            background: var(--primary);
             color: white;
-            transition: opacity 0.3s ease-in-out;
+            font-size: 9px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 100px;
+            text-transform: uppercase;
+        }
+        .plan-title { font-size: 13px; font-weight: 700; color: var(--dark); }
+        .plan-price { font-size: 18px; font-weight: 800; color: var(--primary); }
+        .plan-price span { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+
+        /* GLOBAL SUBSCRIPTION LOCK OVERLAY */
+        .sub-lock-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 26, 53, 0.95);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            z-index: 9999;
+            /* CHANGED TO FLEX: Locked by default before JS even loads */
+            display: flex; 
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: white;
+            text-align: center;
         }
 
-        /* PIN Overlay Absolute Back Button */
-        .pin-back-btn {
+        .lock-card {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 30px 24px;
+            width: 100%;
+            max-width: 360px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            color: var(--text-main);
+            animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .lock-icon-wrap {
+            width: 64px;
+            height: 64px;
+            background: #fef2f2;
+            color: var(--danger);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+        .lock-card h2 { font-size: 22px; font-weight: 800; color: var(--dark); margin-bottom: 8px; }
+        .lock-card p { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.5; }
+
+        @keyframes slideUp {
+            from { transform: translateY(40px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* STK PUSH MODAL OVERLAY */
+        .stk-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 26, 53, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 10000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-close-btn {
             position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: rgba(255, 255, 255, 0.75);
+            top: 16px;
+            right: 16px;
+            background: #f1f5f9;
+            border: none;
+            color: var(--text-muted);
             cursor: pointer;
             padding: 8px;
             display: flex;
@@ -374,109 +496,20 @@
             border-radius: 50%;
             transition: 0.2s;
         }
+        .modal-close-btn:active { background: #e2e8f0; color: var(--dark); }
 
-        .pin-back-btn:active {
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-        }
-
-        .pin-header {
-            text-align: center;
-            margin-top: 40px;
-        }
-
-        .pin-logo {
-            width: 50px;
-            height: 50px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .stk-spinner {
+            width: 44px;
+            height: 44px;
+            border: 4px solid var(--primary-light);
+            border-top-color: var(--mpesa);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
             margin: 0 auto 16px;
         }
 
-        .pin-header h2 {
-            font-size: 20px;
-            font-weight: 700;
-            letter-spacing: -0.3px;
-        }
-
-        .pin-header p {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.6);
-            margin-top: 6px;
-        }
-
-        /* Indicators */
-        .pin-dots {
-            display: flex;
-            gap: 16px;
-            margin: 30px 0;
-        }
-
-        .dot {
-            width: 14px;
-            height: 14px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            transition: 0.15s;
-        }
-
-        .dot.filled {
-            background: var(--primary);
-            border-color: var(--primary);
-            box-shadow: 0 0 10px var(--primary);
-        }
-
-        .dot.error {
-            background: var(--danger);
-            border-color: var(--danger);
-            box-shadow: 0 0 10px var(--danger);
-        }
-
-        /* Custom Keypad Grid */
-        .keypad-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-            width: 100%;
-            max-width: 320px;
-            margin-bottom: 20px;
-        }
-
-        .key-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            color: white;
-            font-family: inherit;
-            font-size: 22px;
-            font-weight: 600;
-            width: 72px;
-            height: 72px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto;
-            transition: 0.1s;
-        }
-
-        .key-btn:active {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(0.92);
-        }
-
-        .key-btn.transparent {
-            background: none;
-            border: none;
-        }
-
-        .key-btn.transparent:active {
-            background: none;
-            transform: none;
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         /* Alert Toast */
@@ -492,7 +525,7 @@
             font-size: 12px;
             font-weight: 700;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            z-index: 3000;
+            z-index: 10005;
             opacity: 0;
             transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             display: flex;
@@ -500,69 +533,67 @@
             gap: 8px;
             border: 1px solid rgba(255,255,255,0.1);
         }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
-        .toast.show {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
-        }
-
-        /* Shake Keyframes for Error */
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20%, 60% { transform: translateX(-8px); }
-            40%, 80% { transform: translateX(8px); }
-        }
-
-        .shake {
-            animation: shake 0.3s ease-in-out;
-        }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-
-    <!-- PIN Screen Overlay -->
-    <div id="pinScreen" class="pin-overlay">
-        <!-- Secure PIN Back Button Navigation -->
-        <button class="pin-back-btn" onclick="exitPortal()" aria-label="Exit back to portal">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-        </button>
-
-        <div class="pin-header">
-            <div class="pin-logo">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+<!-- GLOBAL SUBSCRIPTION LOCK (Locked by default via CSS) -->
+<div id="subLockScreen" class="sub-lock-overlay">
+    <div class="lock-card">
+        <div class="lock-icon-wrap">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        </div>
+        <h2>Access Locked</h2>
+        <p>Your AssetGuard Pro subscription has expired. Please renew your plan to restore full access to your terminal and offline data.</p>
+        
+        <div class="pricing-grid">
+            <div class="plan-btn" onclick="initiateMpesaPayment(30, 'Ksh 1,500')">
+                <span class="plan-title">Monthly</span>
+                <div class="plan-price">Ksh 1,500</div>
             </div>
-            <h2>Secure Configuration</h2>
-            <p id="pinInstructions">Enter Admin PIN to access settings</p>
+            <div class="plan-btn popular" onclick="initiateMpesaPayment(365, 'Ksh 12,000')">
+                <span class="plan-title">Yearly</span>
+                <div class="plan-price">Ksh 12,000</div>
+            </div>
         </div>
-
-        <div class="pin-dots" id="pinDots">
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-        </div>
-
-        <div class="keypad-grid">
-            <button class="key-btn" onclick="pressPinKey('1')">1</button>
-            <button class="key-btn" onclick="pressPinKey('2')">2</button>
-            <button class="key-btn" onclick="pressPinKey('3')">3</button>
-            <button class="key-btn" onclick="pressPinKey('4')">4</button>
-            <button class="key-btn" onclick="pressPinKey('5')">5</button>
-            <button class="key-btn" onclick="pressPinKey('6')">6</button>
-            <button class="key-btn" onclick="pressPinKey('7')">7</button>
-            <button class="key-btn" onclick="pressPinKey('8')">8</button>
-            <button class="key-btn" onclick="pressPinKey('9')">9</button>
-            <button class="key-btn transparent" style="font-size:12px; font-weight:700; text-transform:uppercase; opacity:0.7;" onclick="clearPin()">Clear</button>
-            <button class="key-btn" onclick="pressPinKey('0')">0</button>
-            <button class="key-btn transparent" onclick="backspacePin()">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>
-            </button>
-        </div>
-        <div style="height: 10px;"></div>
     </div>
+</div>
 
+<!-- M-PESA STK PUSH MODAL -->
+<div id="stkModal" class="stk-overlay">
+    <div class="lock-card" style="position: relative; text-align: center;">
+        <button class="modal-close-btn" onclick="closeStkModal()" id="stkCloseBtn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+        
+        <div class="lock-icon-wrap" style="background: #e6fdf0; color: var(--mpesa); margin-bottom: 16px;">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line><path d="M16 10l-4 4-2-2"></path></svg>
+        </div>
+        
+        <h2>M-PESA Express</h2>
+        <p style="margin-bottom: 24px;">Complete your subscription payment of <strong id="stkAmountDisplay" style="color: var(--dark);">Ksh --</strong></p>
+
+        <!-- Step 1: Input Number -->
+        <div id="stkInputStep">
+            <div class="form-field" style="text-align: left; margin-bottom: 20px;">
+                <label>Safaricom Phone Number</label>
+                <input type="tel" id="mpesaNumber" class="mpesa-focus" placeholder="07XXXXXXXX" inputmode="numeric" maxlength="10">
+            </div>
+            <button class="btn btn-mpesa" style="width: 100%;" onclick="processStkPush()">Send STK Push</button>
+        </div>
+
+        <!-- Step 2: Loading / Simulation -->
+        <div id="stkLoadingStep" style="display: none; padding: 10px 0;">
+            <div class="stk-spinner"></div>
+            <h4 id="stkStatusTitle" style="font-size: 16px; color: var(--dark); font-weight: 700; margin-bottom: 4px;">Initiating Request...</h4>
+            <p id="stkStatusDesc" style="font-size: 13px; color: var(--text-muted);">Connecting to Safaricom Daraja API</p>
+        </div>
+    </div>
+</div>
+
+<div class="app-container">
     <!-- Main Navigation Header -->
     <header class="app-header">
         <button class="back-btn" onclick="exitPortal()">
@@ -571,7 +602,7 @@
         <div class="header-title">
             AssetGuard <span>Settings</span>
         </div>
-        <div style="width: 20px;"></div> <!-- Spacer for balance -->
+        <div style="width: 20px;"></div>
     </header>
 
     <!-- Main Settings Form Area -->
@@ -597,9 +628,39 @@
             </div>
         </div>
 
+        <!-- Section: Subscription & Billing -->
+        <div class="form-field-wrap">
+            <span class="section-label">Subscription & Billing</span>
+            <div class="input-group">
+                
+                <div class="sub-status-box" id="subStatusBox">
+                    <div class="sub-status-info">
+                        <h4 id="subStatusTitle">Pro License Active</h4>
+                        <p>Time remaining to expiration</p>
+                    </div>
+                    <div class="timer-badge" id="settingsTimer">--:--:--</div>
+                </div>
+                
+                <!-- Cancel Subscription Button -->
+                <button class="btn-text-danger" onclick="unsubscribe()">Cancel Subscription</button>
+
+                <div class="pricing-grid">
+                    <div class="plan-btn" onclick="initiateMpesaPayment(30, 'Ksh 1,500')">
+                        <span class="plan-title">Monthly</span>
+                        <div class="plan-price">Ksh 1,500</div>
+                    </div>
+                    <div class="plan-btn popular" onclick="initiateMpesaPayment(365, 'Ksh 12,000')">
+                        <span class="plan-title">Yearly</span>
+                        <div class="plan-price">Ksh 12,000</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
         <!-- Section: Business Details -->
         <div class="form-field-wrap">
-            <span class="section-label" style="display:block; margin-bottom: 8px;">Corporate Settings</span>
+            <span class="section-label">Corporate Settings</span>
             <div class="input-group">
                 <div class="form-field">
                     <label>Business Identity Name</label>
@@ -614,7 +675,7 @@
 
         <!-- Section: Corporate Emblem -->
         <div class="form-field-wrap">
-            <span class="section-label" style="display:block; margin-bottom: 8px;">Corporate Emblem</span>
+            <span class="section-label">Corporate Emblem</span>
             <div class="input-group">
                 <div class="logo-upload-area">
                     <input type="file" id="logoFileInput" accept="image/*" onchange="processLogoFile(this)">
@@ -625,17 +686,6 @@
                         <b>Upload Corporate Logo</b>
                         <p>Select an image from your device</p>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Section: Protection Security Pin -->
-        <div class="form-field-wrap">
-            <span class="section-label" style="display:block; margin-bottom: 8px;">Terminal Protection Security</span>
-            <div class="input-group">
-                <div class="form-field">
-                    <label>Update Admin PIN (4 Digits)</label>
-                    <input type="password" id="pinSettingInput" maxlength="4" placeholder="Enter 4-digit security PIN" pattern="[0-9]*" inputmode="numeric">
                 </div>
             </div>
         </div>
@@ -665,24 +715,204 @@
     let loadedSettings = {
         businessName: "JCorp Kenya Inc",
         tagline: "Transformation you need",
-        logoUrl: "",
-        adminPin: "0000"
+        logoUrl: ""
     };
     
-    let activePinBuffer = "";
+    let subscriptionTimerInterval;
+    
+    // M-Pesa STK State
+    let pendingSubDays = 0;
+    let stkTimeoutTokens = [];
     
     // Auto Initialization on DOM Load
     window.onload = function() {
+        // Enforce will set display to 'none' if valid, or 'flex' if not.
+        enforceSubscriptionGate();
+        
+        // Proceed with regular app initialization
         resolveUserIdentity();
         loadLocalSettings();
-        initializeVerificationMode();
     };
 
-    // Determine current user session (supports URL parameters, WebView inputs, and standard local terminal caches)
+    // --- SUBSCRIPTION SYSTEM ENGINE ---
+    
+    function unsubscribe() {
+        localStorage.removeItem("ag_sub_expiry");
+        enforceSubscriptionGate();
+        triggerToast("Subscription cancelled.");
+    }
+
+    function enforceSubscriptionGate() {
+        const expiryData = localStorage.getItem("ag_sub_expiry");
+        const lockScreen = document.getElementById('subLockScreen');
+        const now = Date.now();
+
+        if (!expiryData || now >= parseInt(expiryData)) {
+            // Subscription Invalid or Missing
+            lockScreen.style.display = "flex";
+            document.body.style.overflow = "hidden";
+            clearInterval(subscriptionTimerInterval);
+            updateSettingsSubUI(0);
+            return false;
+        } else {
+            // Subscription Valid
+            lockScreen.style.display = "none";
+            document.body.style.overflow = "auto";
+            startCountdownTimer(parseInt(expiryData));
+            return true; 
+        }
+    }
+
+    function startCountdownTimer(expiryTimestamp) {
+        clearInterval(subscriptionTimerInterval);
+        
+        function tick() {
+            const now = Date.now();
+            const timeDiff = expiryTimestamp - now;
+
+            if (timeDiff <= 0) {
+                enforceSubscriptionGate();
+                return;
+            }
+
+            updateSettingsSubUI(timeDiff);
+        }
+
+        tick(); 
+        subscriptionTimerInterval = setInterval(tick, 1000);
+    }
+
+    function updateSettingsSubUI(timeDiffMs) {
+        const subBox = document.getElementById('subStatusBox');
+        const titleEl = document.getElementById('subStatusTitle');
+        const timerEl = document.getElementById('settingsTimer');
+
+        if (timeDiffMs <= 0) {
+            subBox.classList.add('expired');
+            titleEl.innerText = "License Expired";
+            timerEl.innerText = "00:00:00";
+            timerEl.style.color = "var(--danger)";
+            return;
+        }
+
+        const days = Math.floor(timeDiffMs / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((timeDiffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((timeDiffMs % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((timeDiffMs % (1000 * 60)) / 1000);
+
+        subBox.classList.remove('expired');
+        titleEl.innerText = "Pro License Active";
+        timerEl.style.color = "white";
+        
+        if (days > 0) {
+            timerEl.innerText = `${days}d ${hours.toString().padStart(2, '0')}h ${minutes.toString().padStart(2, '0')}m`;
+        } else {
+            timerEl.innerText = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            if(hours < 1) timerEl.style.color = "var(--warning)"; 
+        }
+    }
+
+    // --- M-PESA STK PUSH SIMULATION LOGIC ---
+
+    function initiateMpesaPayment(daysAdded, amountString) {
+        pendingSubDays = daysAdded;
+        
+        document.getElementById('stkAmountDisplay').innerText = amountString;
+        document.getElementById('stkInputStep').style.display = "block";
+        document.getElementById('stkLoadingStep').style.display = "none";
+        document.getElementById('mpesaNumber').value = "";
+        document.getElementById('stkCloseBtn').style.display = "flex";
+        
+        document.getElementById('stkModal').style.display = "flex";
+    }
+
+    function closeStkModal() {
+        document.getElementById('stkModal').style.display = "none";
+        
+        // Clear any running simulation timeouts
+        stkTimeoutTokens.forEach(clearTimeout);
+        stkTimeoutTokens = [];
+    }
+
+    function processStkPush() {
+        const phoneInput = document.getElementById('mpesaNumber');
+        const phone = phoneInput.value.trim();
+        
+        // Kenyan Phone Validation: 10 digits starting with 07 or 01
+        const kenyanPhoneRegex = /^(07|01)\d{8}$/;
+
+        if (!kenyanPhoneRegex.test(phone)) {
+            triggerToast("Invalid Format: Use 07XXXXXXXX or 01XXXXXXXX");
+            phoneInput.style.borderColor = "var(--danger)";
+            return;
+        }
+
+        // Reset border and proceed
+        phoneInput.style.borderColor = "var(--border)";
+
+        // Hide input, show loader
+        document.getElementById('stkInputStep').style.display = "none";
+        document.getElementById('stkLoadingStep').style.display = "block";
+        document.getElementById('stkCloseBtn').style.display = "none"; 
+        
+        const titleEl = document.getElementById('stkStatusTitle');
+        const descEl = document.getElementById('stkStatusDesc');
+        
+        titleEl.innerText = "Initiating Request...";
+        descEl.innerText = "Connecting to Safaricom Daraja API";
+
+        // Simulate API Delays
+        stkTimeoutTokens.push(setTimeout(() => {
+            titleEl.innerText = "STK Push Sent!";
+            descEl.innerText = "Please check your phone and enter your M-Pesa PIN.";
+            descEl.style.color = "var(--mpesa)";
+        }, 2000));
+
+        stkTimeoutTokens.push(setTimeout(() => {
+            titleEl.innerText = "Waiting for Confirmation...";
+            descEl.innerText = "Awaiting Safaricom callback...";
+            descEl.style.color = "var(--text-muted)";
+        }, 6000));
+
+        stkTimeoutTokens.push(setTimeout(() => {
+            titleEl.innerText = "Payment Successful!";
+            titleEl.style.color = "var(--mpesa)";
+            descEl.innerText = "Transaction confirmed. Activating your license...";
+        }, 9500));
+
+        // Complete the subscription
+        stkTimeoutTokens.push(setTimeout(() => {
+            finalizeSubscriptionRenew(pendingSubDays);
+            closeStkModal();
+            
+            // Reset modal styles for next time
+            titleEl.style.color = "var(--dark)";
+        }, 11000));
+    }
+
+    function finalizeSubscriptionRenew(daysAdded) {
+        const now = Date.now();
+        let currentExpiry = localStorage.getItem("ag_sub_expiry");
+        currentExpiry = currentExpiry ? parseInt(currentExpiry) : now;
+        
+        const baseTime = currentExpiry > now ? currentExpiry : now;
+        const newExpiry = baseTime + (daysAdded * 24 * 60 * 60 * 1000);
+
+        localStorage.setItem("ag_sub_expiry", newExpiry.toString());
+        
+        triggerToast(`Payment Received. Subscribed for ${daysAdded} Days.`);
+
+        // Re-check gate. If it was locked, this will unlock it.
+        enforceSubscriptionGate();
+        resolveUserIdentity();
+        loadLocalSettings();
+    }
+
+    // --- EXISTING APP LOGIC ---
+
     function resolveUserIdentity() {
         const urlParams = new URLSearchParams(window.location.search);
         let resolved = urlParams.get('uid') || urlParams.get('user') || urlParams.get('userId');
-        
         if (!resolved) {
             try {
                 if (window.AppInventor && typeof window.AppInventor.getWebViewString === 'function') {
@@ -691,22 +921,15 @@
                         resolved = appString;
                     }
                 }
-            } catch (e) {
-                console.warn("Could not inspect native container metadata context.", e);
-            }
+            } catch (e) {}
         }
-        
-        if (!resolved) {
-            resolved = localStorage.getItem("ag_active_uid");
-        }
-        
+        if (!resolved) resolved = localStorage.getItem("ag_active_uid");
         if (resolved && resolved.trim() !== "") {
             currentUID = resolved;
             localStorage.setItem("ag_active_uid", currentUID);
         }
     }
 
-    // Load Local Settings matching Unified Terminal Cache Schema
     function loadLocalSettings() {
         const cacheKey = `ag_profile_cache_${currentUID}`;
         const cachedData = localStorage.getItem(cacheKey);
@@ -715,44 +938,25 @@
             try {
                 const parsed = JSON.parse(cachedData);
                 loadedSettings = { ...loadedSettings, ...parsed };
-                // Ensure there is always a valid PIN fallback
-                if (!loadedSettings.adminPin) {
-                    loadedSettings.adminPin = "0000";
-                }
-            } catch (e) {
-                console.error("Cache reconstruction failed. Reverting to factory config defaults.", e);
-            }
+            } catch (e) { console.error("Cache reconstruction failed."); }
         } else {
-            // Apply fresh defaults directly to UI & local storage if blank
             localStorage.setItem(cacheKey, JSON.stringify(loadedSettings));
         }
 
-        // Map configuration data to input fields
         document.getElementById('businessNameInput').value = loadedSettings.businessName;
         document.getElementById('taglineInput').value = loadedSettings.tagline;
-        document.getElementById('pinSettingInput').value = loadedSettings.adminPin;
-        
         updatePreviewCard();
     }
 
-    // Refresh Visual Preview Element Dynamic State
     function updatePreviewCard() {
-        const nameVal = document.getElementById('businessNameInput').value || "JCorp Kenya Inc";
-        const tagVal = document.getElementById('taglineInput').value || "Transformation you need";
-        
-        document.getElementById('prevName').innerText = nameVal;
-        document.getElementById('prevTag').innerText = tagVal;
-        
+        document.getElementById('prevName').innerText = document.getElementById('businessNameInput').value || "JCorp Kenya Inc";
+        document.getElementById('prevTag').innerText = document.getElementById('taglineInput').value || "Transformation you need";
         const previewLogoImg = document.getElementById('prevLogo');
         if (loadedSettings.logoUrl && loadedSettings.logoUrl !== "") {
             previewLogoImg.src = loadedSettings.logoUrl;
-        } else {
-            // Default SVG Avatar placeholder
-            previewLogoImg.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='42' height='42' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='1.5'><path d='M4.5 16.5c-1.5 1.26-2.5 3.19-2.5 5.5h20c0-2.31-1-4.24-2.5-5.5' /><circle cx='12' cy='8' r='5' /></svg>";
         }
     }
 
-    // Process Logo File upload natively into Base64 for offline local cache resilience
     function processLogoFile(uploader) {
         const emblem = uploader.files[0];
         if (emblem) {
@@ -765,141 +969,34 @@
         }
     }
 
-    // Keypad Logic System
-    function initializeVerificationMode() {
-        activePinBuffer = "";
-        drawPinDots();
-        document.getElementById('pinScreen').style.display = "flex";
-        document.getElementById('pinScreen').style.opacity = "1";
-    }
-
-    function pressPinKey(digit) {
-        if (activePinBuffer.length < 4) {
-            activePinBuffer += digit;
-            drawPinDots();
-            
-            if (activePinBuffer.length === 4) {
-                // Execute security confirmation check
-                setTimeout(evaluateSecurityCode, 150);
-            }
-        }
-    }
-
-    function clearPin() {
-        activePinBuffer = "";
-        drawPinDots();
-    }
-
-    function backspacePin() {
-        activePinBuffer = activePinBuffer.slice(0, -1);
-        drawPinDots();
-    }
-
-    function drawPinDots() {
-        const dots = document.getElementById('pinDots').children;
-        for (let i = 0; i < dots.length; i++) {
-            if (i < activePinBuffer.length) {
-                dots[i].classList.add('filled');
-            } else {
-                dots[i].classList.remove('filled');
-            }
-            dots[i].classList.remove('error');
-        }
-    }
-
-    function evaluateSecurityCode() {
-        const targetPin = loadedSettings.adminPin || "0000";
-        const dotsContainer = document.getElementById('pinDots');
-        
-        if (activePinBuffer === targetPin) {
-            // Dismiss authentication overlay
-            document.getElementById('pinScreen').style.opacity = "0";
-            setTimeout(() => {
-                document.getElementById('pinScreen').style.display = "none";
-            }, 300);
-        } else {
-            // Flash red on incorrect PIN and play a shake animation
-            dotsContainer.classList.add('shake');
-            const dots = dotsContainer.children;
-            for (let i = 0; i < dots.length; i++) {
-                dots[i].classList.add('error');
-            }
-            
-            // Render instructions label with an error message
-            const promptLabel = document.getElementById('pinInstructions');
-            promptLabel.innerText = "Incorrect PIN. Please try again.";
-            promptLabel.style.color = "var(--danger)";
-            
-            setTimeout(() => {
-                dotsContainer.classList.remove('shake');
-                activePinBuffer = "";
-                drawPinDots();
-                promptLabel.innerText = "Enter Admin PIN to access settings";
-                promptLabel.style.color = "rgba(255, 255, 255, 0.6)";
-            }, 1000);
-        }
-    }
-
-    // Save configuration settings
     function saveConfiguration() {
-        const finalPin = document.getElementById('pinSettingInput').value;
-        
-        if (!/^\d{4}$/.test(finalPin)) {
-            alert("Admin Protection PIN must be exactly 4 digits!");
-            return;
-        }
-
         loadedSettings.businessName = document.getElementById('businessNameInput').value;
         loadedSettings.tagline = document.getElementById('taglineInput').value;
-        loadedSettings.adminPin = finalPin;
 
-        const cacheKey = `ag_profile_cache_${currentUID}`;
-        localStorage.setItem(cacheKey, JSON.stringify(loadedSettings));
+        localStorage.setItem(`ag_profile_cache_${currentUID}`, JSON.stringify(loadedSettings));
 
-        // Push settings update through WebView string for native container frameworks (e.g., Kodular)
         try {
             if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
-                window.AppInventor.setWebViewString(JSON.stringify({
-                    action: "settings_updated",
-                    uid: currentUID,
-                    data: loadedSettings
-                }));
+                window.AppInventor.setWebViewString(JSON.stringify({ action: "settings_updated", uid: currentUID, data: loadedSettings }));
             }
-        } catch (e) {
-            console.warn("Could not sync with native AppInventor state manager context.", e);
-        }
+        } catch (e) {}
 
-        // Show a polished toast notification
-        triggerToast("Branding & Protection Settings Updated");
-        
-        // Return back to security verification after saving to protect changes
-        setTimeout(() => {
-            initializeVerificationMode();
-        }, 1200);
+        triggerToast("Branding Settings Updated");
     }
 
-    // Trigger Modern Custom Toast
     function triggerToast(msg) {
         const box = document.getElementById('toastBox');
         document.getElementById('toastText').innerText = msg;
         box.classList.add('show');
-        setTimeout(() => {
-            box.classList.remove('show');
-        }, 2500);
+        setTimeout(() => { box.classList.remove('show'); }, 3000);
     }
 
-    // Handshake back to Terminal UI - Instantly triggers dynamic platform exit or page navigation
     function exitPortal() {
-        // 1. Instantly trigger the Native Kodular/AppInventor channel if present
         try {
             if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
                 window.AppInventor.setWebViewString("navigate back to terminal console");
             }
-        } catch (e) {
-            console.warn("Native interface check bypassed.", e);
-        }
-
-        // 2. Direct hard redirect to dashboard.html
+        } catch (e) {}
         window.location.href = "dashboard.html";
     }
 </script>
