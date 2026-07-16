@@ -425,7 +425,6 @@
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             z-index: 9999;
-            /* CHANGED TO FLEX: Locked by default before JS even loads */
             display: flex; 
             flex-direction: column;
             align-items: center;
@@ -539,7 +538,7 @@
 </head>
 <body>
 
-<!-- GLOBAL SUBSCRIPTION LOCK (Locked by default via CSS) -->
+<!-- GLOBAL SUBSCRIPTION LOCK -->
 <div id="subLockScreen" class="sub-lock-overlay">
     <div class="lock-card">
         <div class="lock-icon-wrap">
@@ -575,7 +574,6 @@
         <h2>M-PESA Express</h2>
         <p style="margin-bottom: 24px;">Complete your subscription payment of <strong id="stkAmountDisplay" style="color: var(--dark);">Ksh --</strong></p>
 
-        <!-- Step 1: Input Number -->
         <div id="stkInputStep">
             <div class="form-field" style="text-align: left; margin-bottom: 20px;">
                 <label>Safaricom Phone Number</label>
@@ -584,7 +582,6 @@
             <button class="btn btn-mpesa" style="width: 100%;" onclick="processStkPush()">Send STK Push</button>
         </div>
 
-        <!-- Step 2: Loading / Simulation -->
         <div id="stkLoadingStep" style="display: none; padding: 10px 0;">
             <div class="stk-spinner"></div>
             <h4 id="stkStatusTitle" style="font-size: 16px; color: var(--dark); font-weight: 700; margin-bottom: 4px;">Initiating Request...</h4>
@@ -594,7 +591,6 @@
 </div>
 
 <div class="app-container">
-    <!-- Main Navigation Header -->
     <header class="app-header">
         <button class="back-btn" onclick="exitPortal()">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
@@ -605,10 +601,7 @@
         <div style="width: 20px;"></div>
     </header>
 
-    <!-- Main Settings Form Area -->
     <main class="settings-content">
-        
-        <!-- Live Invoice Header Mockup Card -->
         <div class="preview-card-wrap">
             <span class="section-label">Branding Visualizer</span>
             <div class="brand-preview-card">
@@ -628,11 +621,9 @@
             </div>
         </div>
 
-        <!-- Section: Subscription & Billing -->
         <div class="form-field-wrap">
             <span class="section-label">Subscription & Billing</span>
             <div class="input-group">
-                
                 <div class="sub-status-box" id="subStatusBox">
                     <div class="sub-status-info">
                         <h4 id="subStatusTitle">Pro License Active</h4>
@@ -641,7 +632,6 @@
                     <div class="timer-badge" id="settingsTimer">--:--:--</div>
                 </div>
                 
-                <!-- Cancel Subscription Button -->
                 <button class="btn-text-danger" onclick="unsubscribe()">Cancel Subscription</button>
 
                 <div class="pricing-grid">
@@ -654,11 +644,9 @@
                         <div class="plan-price">Ksh 12,000</div>
                     </div>
                 </div>
-
             </div>
         </div>
 
-        <!-- Section: Business Details -->
         <div class="form-field-wrap">
             <span class="section-label">Corporate Settings</span>
             <div class="input-group">
@@ -673,7 +661,6 @@
             </div>
         </div>
 
-        <!-- Section: Corporate Emblem -->
         <div class="form-field-wrap">
             <span class="section-label">Corporate Emblem</span>
             <div class="input-group">
@@ -689,10 +676,8 @@
                 </div>
             </div>
         </div>
-
     </main>
 
-    <!-- App Fixed Footer Buttons -->
     <footer class="settings-footer">
         <button class="btn btn-secondary" onclick="exitPortal()">Cancel</button>
         <button class="btn btn-primary" onclick="saveConfiguration()">
@@ -700,44 +685,26 @@
             Save Settings
         </button>
     </footer>
-
 </div>
 
-<!-- Toast Box -->
 <div id="toastBox" class="toast">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="color: var(--success);"><polyline points="20 6 9 17 4 12"></polyline></svg>
     <span id="toastText">Settings Updated Successfully</span>
 </div>
 
 <script>
-    // System Global States
     let currentUID = "unidentified_user"; 
-    let loadedSettings = {
-        businessName: "JCorp Kenya Inc",
-        tagline: "Transformation you need",
-        logoUrl: ""
-    };
-    
+    let loadedSettings = { businessName: "JCorp Kenya Inc", tagline: "Transformation you need", logoUrl: "" };
     let subscriptionTimerInterval;
-    
-    // M-Pesa STK State
     let pendingSubDays = 0;
     let stkTimeoutTokens = [];
     
-    // Auto Initialization on DOM Load
     window.onload = function() {
-        // 1. Resolve User ID FIRST 
         resolveUserIdentity();
-        
-        // 2. Enforce Sub Gate using the strictly resolved currentUID
         enforceSubscriptionGate();
-        
-        // 3. Load user specific settings
         loadLocalSettings();
     };
 
-    // --- SUBSCRIPTION SYSTEM ENGINE ---
-    
     function unsubscribe() {
         localStorage.removeItem(`ag_sub_expiry_${currentUID}`);
         enforceSubscriptionGate();
@@ -745,20 +712,18 @@
     }
 
     function enforceSubscriptionGate() {
-        // Look up the specific user's expiry time
+        // The lock is now checked specifically against the current user's isolated ID!
         const expiryData = localStorage.getItem(`ag_sub_expiry_${currentUID}`);
         const lockScreen = document.getElementById('subLockScreen');
         const now = Date.now();
 
         if (!expiryData || now >= parseInt(expiryData)) {
-            // Subscription Invalid or Missing
             lockScreen.style.display = "flex";
             document.body.style.overflow = "hidden";
             clearInterval(subscriptionTimerInterval);
             updateSettingsSubUI(0);
             return false;
         } else {
-            // Subscription Valid
             lockScreen.style.display = "none";
             document.body.style.overflow = "auto";
             startCountdownTimer(parseInt(expiryData));
@@ -777,7 +742,6 @@
                 enforceSubscriptionGate();
                 return;
             }
-
             updateSettingsSubUI(timeDiff);
         }
 
@@ -815,24 +779,18 @@
         }
     }
 
-    // --- M-PESA STK PUSH SIMULATION LOGIC ---
-
     function initiateMpesaPayment(daysAdded, amountString) {
         pendingSubDays = daysAdded;
-        
         document.getElementById('stkAmountDisplay').innerText = amountString;
         document.getElementById('stkInputStep').style.display = "block";
         document.getElementById('stkLoadingStep').style.display = "none";
         document.getElementById('mpesaNumber').value = "";
         document.getElementById('stkCloseBtn').style.display = "flex";
-        
         document.getElementById('stkModal').style.display = "flex";
     }
 
     function closeStkModal() {
         document.getElementById('stkModal').style.display = "none";
-        
-        // Clear any running simulation timeouts
         stkTimeoutTokens.forEach(clearTimeout);
         stkTimeoutTokens = [];
     }
@@ -840,8 +798,6 @@
     function processStkPush() {
         const phoneInput = document.getElementById('mpesaNumber');
         const phone = phoneInput.value.trim();
-        
-        // Kenyan Phone Validation: 10 digits starting with 07 or 01
         const kenyanPhoneRegex = /^(07|01)\d{8}$/;
 
         if (!kenyanPhoneRegex.test(phone)) {
@@ -850,10 +806,7 @@
             return;
         }
 
-        // Reset border and proceed
         phoneInput.style.borderColor = "var(--border)";
-
-        // Hide input, show loader
         document.getElementById('stkInputStep').style.display = "none";
         document.getElementById('stkLoadingStep').style.display = "block";
         document.getElementById('stkCloseBtn').style.display = "none"; 
@@ -864,7 +817,6 @@
         titleEl.innerText = "Initiating Request...";
         descEl.innerText = "Connecting to Safaricom Daraja API";
 
-        // Simulate API Delays
         stkTimeoutTokens.push(setTimeout(() => {
             titleEl.innerText = "STK Push Sent!";
             descEl.innerText = "Please check your phone and enter your M-Pesa PIN.";
@@ -883,20 +835,16 @@
             descEl.innerText = "Transaction confirmed. Activating your license...";
         }, 9500));
 
-        // Complete the subscription
         stkTimeoutTokens.push(setTimeout(() => {
             finalizeSubscriptionRenew(pendingSubDays);
             closeStkModal();
-            
-            // Reset modal styles for next time
             titleEl.style.color = "var(--dark)";
         }, 11000));
     }
 
     function finalizeSubscriptionRenew(daysAdded) {
         const now = Date.now();
-        
-        // Add time to the specific user's file
+        // Payment is tied STRICTLY to the current isolated user ID!
         let currentExpiry = localStorage.getItem(`ag_sub_expiry_${currentUID}`);
         currentExpiry = currentExpiry ? parseInt(currentExpiry) : now;
         
@@ -904,23 +852,18 @@
         const newExpiry = baseTime + (daysAdded * 24 * 60 * 60 * 1000);
 
         localStorage.setItem(`ag_sub_expiry_${currentUID}`, newExpiry.toString());
-        
         triggerToast(`Payment Received. Subscribed for ${daysAdded} Days.`);
-
         enforceSubscriptionGate();
         loadLocalSettings();
     }
 
-    // --- STRICT ISOLATION LOGIC ---
-
+    // --- UPDATED RESOLUTION LOGIC ---
     function resolveUserIdentity() {
         let resolved = null;
 
-        // 1. Try URL parameters first (e.g., settings.html?uid=12345)
         const urlParams = new URLSearchParams(window.location.search);
         resolved = urlParams.get('uid') || urlParams.get('user') || urlParams.get('userId');
 
-        // 2. Try Kodular / AppInventor WebViewString
         if (!resolved) {
             try {
                 if (window.AppInventor && typeof window.AppInventor.getWebViewString === 'function') {
@@ -930,20 +873,23 @@
                             const parsed = JSON.parse(appString);
                             if (parsed.uid) resolved = parsed.uid;
                         } catch (e) {
-                            resolved = appString; // Treat as raw string if not JSON
+                            resolved = appString; 
                         }
                     }
                 }
             } catch (e) {}
         }
 
-        // We REMOVED the local storage fallback for ID fetching!
-        // This ensures User B does not automatically log in as User A if they share a phone.
+        // We RESTORED this fallback so the app doesn't forget who you are when you navigate.
+        if (!resolved) {
+            resolved = localStorage.getItem('ag_active_uid');
+        }
         
         if (resolved && resolved.trim() !== "") {
             currentUID = resolved.trim();
+            // Store it so you stay logged in while navigating your app
+            localStorage.setItem('ag_active_uid', currentUID);
         } else {
-            // Force a unique fallback per anonymous session so they don't share the same lock
             currentUID = "unidentified_" + Math.random().toString(36).substr(2, 9);
         }
     }
@@ -1012,10 +958,11 @@
     function exitPortal() {
         try {
             if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
-                window.AppInventor.setWebViewString("navigate back to terminal console");
+                window.AppInventor.setWebViewString(JSON.stringify({ action: "navigate_back", uid: currentUID }));
             }
         } catch (e) {}
-        window.location.href = "dashboard.html";
+        // Appends your ID to the URL so the dashboard definitely remembers who you are
+        window.location.href = `dashboard.html?uid=${currentUID}`;
     }
 </script>
 </body>
