@@ -726,24 +726,28 @@
     
     // Auto Initialization on DOM Load
     window.onload = function() {
-        // Enforce will set display to 'none' if valid, or 'flex' if not.
+        // 1. Resolve User ID FIRST so we know whose subscription to check
+        resolveUserIdentity();
+        
+        // 2. Enforce Sub Gate using the now resolved currentUID
         enforceSubscriptionGate();
         
-        // Proceed with regular app initialization
-        resolveUserIdentity();
+        // 3. Load user specific settings
         loadLocalSettings();
     };
 
     // --- SUBSCRIPTION SYSTEM ENGINE ---
     
     function unsubscribe() {
-        localStorage.removeItem("ag_sub_expiry");
+        // Appended currentUID to the storage key
+        localStorage.removeItem(`ag_sub_expiry_${currentUID}`);
         enforceSubscriptionGate();
         triggerToast("Subscription cancelled.");
     }
 
     function enforceSubscriptionGate() {
-        const expiryData = localStorage.getItem("ag_sub_expiry");
+        // Appended currentUID to the storage key
+        const expiryData = localStorage.getItem(`ag_sub_expiry_${currentUID}`);
         const lockScreen = document.getElementById('subLockScreen');
         const now = Date.now();
 
@@ -892,19 +896,21 @@
 
     function finalizeSubscriptionRenew(daysAdded) {
         const now = Date.now();
-        let currentExpiry = localStorage.getItem("ag_sub_expiry");
+        
+        // Appended currentUID to the storage key
+        let currentExpiry = localStorage.getItem(`ag_sub_expiry_${currentUID}`);
         currentExpiry = currentExpiry ? parseInt(currentExpiry) : now;
         
         const baseTime = currentExpiry > now ? currentExpiry : now;
         const newExpiry = baseTime + (daysAdded * 24 * 60 * 60 * 1000);
 
-        localStorage.setItem("ag_sub_expiry", newExpiry.toString());
+        // Appended currentUID to the storage key
+        localStorage.setItem(`ag_sub_expiry_${currentUID}`, newExpiry.toString());
         
         triggerToast(`Payment Received. Subscribed for ${daysAdded} Days.`);
 
         // Re-check gate. If it was locked, this will unlock it.
         enforceSubscriptionGate();
-        resolveUserIdentity();
         loadLocalSettings();
     }
 
