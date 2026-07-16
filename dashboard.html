@@ -4,13 +4,25 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AssetGuard Pro - Dashboard</title>
+
+<!-- GATE: Redirect immediately if expired -->
+<script>
+    (function() {
+        const expiry = localStorage.getItem("ag_sub_expiry");
+        const now = Date.now();
+        if ((!expiry || now >= parseInt(expiry)) && !window.location.href.includes("settings.html")) {
+            window.location.href = "settings.html";
+        }
+    })();
+</script>
+
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 /* --- CORE LAYOUT --- */
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:#f4f6f9;display:flex;height:100vh;overflow:hidden;}
 
-/* --- SUBSCRIPTION/PAYMENT GATE (Preserved) --- */
+/* --- SUBSCRIPTION/PAYMENT GATE --- */
 #sub-lock-screen {
     display: none; position: fixed; inset: 0; background: #001A35; z-index: 999999;
     flex-direction: column; align-items: center; justify-content: center;
@@ -54,7 +66,6 @@ iframe { width: 100%; height: 100%; border: none; }
 </head>
 <body>
 
-<!-- SUBSCRIPTION/PAYMENT GATE (Hidden by default, used by settings logic) -->
 <div id="sub-lock-screen">
     <div class="lock-card" id="lock-main">
         <h2>License Expired</h2>
@@ -71,17 +82,6 @@ iframe { width: 100%; height: 100%; border: none; }
 </div>
 
 <script>
-    // HARD REDIRECT GATE
-    (function() {
-        const expiry = localStorage.getItem("ag_sub_expiry");
-        const now = Date.now();
-        // Redirect to settings if expired, unless already on settings page
-        if ((!expiry || now >= parseInt(expiry)) && !window.location.href.includes("settings.html")) {
-            window.location.href = "settings.html";
-        }
-    })();
-
-    // PAYMENT HANDLING
     function initiatePayment(days) {
         document.getElementById('lock-main').style.display = 'none';
         document.getElementById('lock-processing').style.display = 'block';
@@ -174,7 +174,7 @@ window.closeAll = () => {
     document.getElementById("overlay").classList.remove("active"); 
 };
 
-// Updated loadPage to include subscription check
+// --- SECURED NAVIGATION ---
 window.loadPage = (pageName) => { 
     const expiry = localStorage.getItem("ag_sub_expiry");
     const now = Date.now();
