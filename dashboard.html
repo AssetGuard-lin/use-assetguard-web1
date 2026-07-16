@@ -10,7 +10,7 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:#f4f6f9;display:flex;height:100vh;overflow:hidden;}
 
-/* --- SUBSCRIPTION/PAYMENT GATE --- */
+/* --- SUBSCRIPTION/PAYMENT GATE (Preserved) --- */
 #sub-lock-screen {
     display: none; position: fixed; inset: 0; background: #001A35; z-index: 999999;
     flex-direction: column; align-items: center; justify-content: center;
@@ -54,7 +54,7 @@ iframe { width: 100%; height: 100%; border: none; }
 </head>
 <body>
 
-<!-- SUBSCRIPTION/PAYMENT GATE -->
+<!-- SUBSCRIPTION/PAYMENT GATE (Hidden by default, used by settings logic) -->
 <div id="sub-lock-screen">
     <div class="lock-card" id="lock-main">
         <h2>License Expired</h2>
@@ -64,7 +64,6 @@ iframe { width: 100%; height: 100%; border: none; }
             <div class="plan-btn" onclick="initiatePayment(365)">Yearly<br>Ksh 12,000</div>
         </div>
     </div>
-    
     <div class="lock-card" id="lock-processing" style="display:none;">
         <div class="stk-spinner"></div>
         <p>Processing M-Pesa request... Please check your phone.</p>
@@ -72,15 +71,13 @@ iframe { width: 100%; height: 100%; border: none; }
 </div>
 
 <script>
-    // ACCESS GATE
+    // HARD REDIRECT GATE
     (function() {
         const expiry = localStorage.getItem("ag_sub_expiry");
         const now = Date.now();
-        if (!expiry || now >= parseInt(expiry)) {
-            document.getElementById('sub-lock-screen').style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-            const iframe = document.getElementById('main-frame');
-            if(iframe) iframe.src = "about:blank";
+        // Redirect to settings if expired, unless already on settings page
+        if ((!expiry || now >= parseInt(expiry)) && !window.location.href.includes("settings.html")) {
+            window.location.href = "settings.html";
         }
     })();
 
@@ -88,12 +85,10 @@ iframe { width: 100%; height: 100%; border: none; }
     function initiatePayment(days) {
         document.getElementById('lock-main').style.display = 'none';
         document.getElementById('lock-processing').style.display = 'block';
-        
-        // Simulating M-Pesa processing
         setTimeout(() => {
             const newExpiry = Date.now() + (days * 24 * 60 * 60 * 1000);
             localStorage.setItem("ag_sub_expiry", newExpiry.toString());
-            location.reload(); // Refresh to unlock dashboard
+            location.reload(); 
         }, 3000);
     }
 </script>
@@ -179,7 +174,14 @@ window.closeAll = () => {
     document.getElementById("overlay").classList.remove("active"); 
 };
 
+// Updated loadPage to include subscription check
 window.loadPage = (pageName) => { 
+    const expiry = localStorage.getItem("ag_sub_expiry");
+    const now = Date.now();
+    if (!expiry || now >= parseInt(expiry)) {
+        window.location.href = "settings.html";
+        return;
+    }
     document.getElementById('main-frame').src = pageName + ".html"; 
     closeAll(); 
 };
