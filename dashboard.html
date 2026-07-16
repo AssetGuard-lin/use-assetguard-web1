@@ -132,6 +132,13 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
+// --- SUBSCRIPTION CHECKER ---
+window.isSubActive = () => {
+    const uid = localStorage.getItem("ag_active_uid");
+    const expiry = localStorage.getItem(`ag_sub_expiry_${uid}`);
+    return expiry && Date.now() < parseInt(expiry);
+};
+
 window.toggleMenu = () => { 
     document.getElementById("sidebar").classList.toggle("active"); 
     document.getElementById("overlay").classList.toggle("active"); 
@@ -144,7 +151,13 @@ window.closeAll = () => {
 };
 
 window.loadPage = (pageName) => { 
-    document.getElementById('main-frame').src = pageName + ".html"; 
+    // LOCK GATE: Check subscription before navigating
+    if (!window.isSubActive() && pageName !== 'settings') {
+        alert("Subscription inactive. Please renew license in Settings.");
+        document.getElementById('main-frame').src = "settings.html";
+    } else {
+        document.getElementById('main-frame').src = pageName + ".html";
+    }
     closeAll(); 
 };
 
@@ -167,6 +180,16 @@ document.getElementById('main-frame').onload = function() {
     const iframeWin = this.contentWindow;
     const iframeDoc = this.contentDocument || this.contentWindow.document;
     const activeUID = localStorage.getItem("ag_active_uid");
+
+    // INJECT LOCK: Forces redirect if someone manages to bypass navigation
+    const lockScript = iframeDoc.createElement('script');
+    lockScript.textContent = `
+        const expiry = localStorage.getItem("ag_sub_expiry_${activeUID}");
+        if ((!expiry || Date.now() >= parseInt(expiry)) && window.location.pathname.indexOf('settings.html') === -1) {
+            window.location.href = 'settings.html';
+        }
+    `;
+    iframeDoc.head.appendChild(lockScript);
 
     const dbScript = iframeDoc.createElement('script');
     dbScript.textContent = `
@@ -200,11 +223,11 @@ document.getElementById('main-frame').onload = function() {
     iframeDoc.head.appendChild(dbScript);
 
     iframeWin.alert = function(msg) {
-        document.getElementById('modalText').innerText = msg;
-        document.getElementById('modalTitle').innerText = "Notification";
-        document.getElementById('overlay').classList.add('active');
-        document.getElementById('globalModal').classList.add('active');
-        document.getElementById('modalConfirmBtn').onclick = () => closeAll();
+        window.parent.document.getElementById('modalText').innerText = msg;
+        window.parent.document.getElementById('modalTitle').innerText = "Notification";
+        window.parent.document.getElementById('overlay').classList.add('active');
+        window.parent.document.getElementById('globalModal').classList.add('active');
+        window.parent.document.getElementById('modalConfirmBtn').onclick = () => window.parent.closeAll();
     };
 };
 
