@@ -596,7 +596,7 @@
 <div class="app-container">
     <!-- Main Navigation Header -->
     <header class="app-header">
-        <button class="back-btn" onclick="exitPortal()">
+        <button class="back-btn" onclick="exitPortal()" ontouchstart="exitPortal()">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
         </button>
         <div class="header-title">
@@ -996,12 +996,20 @@
     }
 
     function exitPortal() {
+        // Send signal to App Inventor/Kodular if connected
         try {
             if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
                 window.AppInventor.setWebViewString("navigate back to terminal console");
             }
         } catch (e) {}
-        window.location.href = "dashboard.html";
+
+        // Attempt to navigate back in history
+        window.history.back();
+
+        // Fallback to specific page if history doesn't trigger
+        setTimeout(() => {
+            window.location.href = "dashboard.html";
+        }, 300);
     }
 </script>
 </body>
