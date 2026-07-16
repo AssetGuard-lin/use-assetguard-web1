@@ -150,11 +150,28 @@ window.closeAll = () => {
     document.getElementById("overlay").classList.remove("active"); 
 };
 
+// --- MODERN MODAL HANDLER ---
+window.showSubscriptionAlert = (onConfirm) => {
+    const modal = document.getElementById('globalModal');
+    document.getElementById('modalTitle').innerText = "Subscription Expired";
+    document.getElementById('modalText').innerText = "Your license has expired. Please renew in settings to continue accessing this feature.";
+    document.getElementById('overlay').classList.add('active');
+    modal.classList.add('active');
+    
+    // Setup Confirm Button
+    const confirmBtn = document.getElementById('modalConfirmBtn');
+    confirmBtn.onclick = () => {
+        closeAll();
+        if(onConfirm) onConfirm();
+    };
+};
+
 window.loadPage = (pageName) => { 
     // LOCK GATE: Check subscription before navigating
     if (!window.isSubActive() && pageName !== 'settings') {
-        alert("Subscription inactive. Please renew license in Settings.");
-        document.getElementById('main-frame').src = "settings.html";
+        showSubscriptionAlert(() => {
+            document.getElementById('main-frame').src = "settings.html";
+        });
     } else {
         document.getElementById('main-frame').src = pageName + ".html";
     }
