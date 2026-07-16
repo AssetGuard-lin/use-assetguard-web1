@@ -4,94 +4,59 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AssetGuard Pro - Dashboard</title>
-
-<!-- GATE: Redirect immediately if expired -->
-<script>
-    (function() {
-        const expiry = localStorage.getItem("ag_sub_expiry");
-        const now = Date.now();
-        if ((!expiry || now >= parseInt(expiry)) && !window.location.href.includes("settings.html")) {
-            window.location.href = "settings.html";
-        }
-    })();
-</script>
-
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 /* --- CORE LAYOUT --- */
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:#f4f6f9;display:flex;height:100vh;overflow:hidden;}
 
-/* --- SUBSCRIPTION/PAYMENT GATE --- */
-#sub-lock-screen {
-    display: none; position: fixed; inset: 0; background: #001A35; z-index: 999999;
-    flex-direction: column; align-items: center; justify-content: center;
-    color: white; padding: 20px; text-align: center;
+.floating-menu-btn {
+    position: fixed; top: 20px; left: 20px; z-index: 1100;
+    background: #0072CE; color: white; border: none;
+    width: 45px; height: 45px; border-radius: 12px;
+    cursor: pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    display: flex; align-items: center; justify-content: center; font-size: 20px;
 }
-.lock-card { background: white; padding: 30px; border-radius: 20px; color: #333; max-width: 320px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-.lock-card h2 { font-size: 20px; margin-bottom: 10px; color: #002E5D; }
-.lock-card p { font-size: 14px; color: #666; margin-bottom: 20px; }
 
-.plan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-.plan-btn { padding: 12px 5px; border: 2px solid #0072CE; border-radius: 8px; cursor: pointer; color: #0072CE; font-weight: bold; }
-.plan-btn:active { background: #0072CE; color: white; }
-
-.stk-spinner { width: 30px; height: 30px; border: 4px solid #f3f3f3; border-top: 4px solid #00a859; border-radius: 50%; animation: spin 1s linear infinite; margin: 20px auto; }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-/* --- EXISTING DASHBOARD STYLES --- */
-.floating-menu-btn { position: fixed; top: 20px; left: 20px; z-index: 1100; background: #0072CE; color: white; border: none; width: 45px; height: 45px; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; font-size: 20px; }
-.sidebar { width: 260px; background: #002E5D; color: white; position: fixed; left: -280px; top: 15px; bottom: 15px; display: flex; flex-direction: column; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1200; border-radius: 0 20px 20px 0; box-shadow: 10px 0 30px rgba(0,0,0,0.25); }
+.sidebar {
+    width: 260px; background: #002E5D; color: white;
+    position: fixed; left: -280px; top: 15px; bottom: 15px;
+    display: flex; flex-direction: column; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1200; border-radius: 0 20px 20px 0; box-shadow: 10px 0 30px rgba(0,0,0,0.25);
+}
 .sidebar.active { left: 0; }
+
 .sidebar-header { padding: 25px 20px; font-size: 18px; font-weight: bold; background: #001F3F; border-radius: 0 20px 0 0; text-align: center; }
 .menu-section { flex: 1; overflow-y: auto; padding: 10px 0; }
 .label { padding: 15px 25px 5px; font-size: 10px; text-transform: uppercase; color: #8bb4dd; font-weight: 800; }
 .nav-link { padding: 12px 25px; cursor: pointer; font-size: 14px; color: #d1d8e0; transition: 0.2s; display: block; text-decoration: none; }
 .nav-link:hover { background: #004080; color: white; padding-left: 30px; }
+
 .sidebar-footer { border-top: 1px solid #004080; background: #001F3F; border-radius: 0 0 20px 0; }
 .notebook-link { color: #f59e0b !important; font-weight: bold; }
 .logout-link { color: #ff7675 !important; font-weight: 600; }
+
 .main { flex: 1; width: 100%; height: 100vh; position: relative; }
 iframe { width: 100%; height: 100%; border: none; }
+
 .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); z-index: 900; }
 .overlay.active { display: block; }
-.custom-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 25px; border-radius: 12px; z-index: 2000; width: 90%; max-width: 350px; text-align: center; color: #333; }
+
+.custom-modal {
+    display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: white; padding: 25px; border-radius: 12px; z-index: 2000;
+    width: 90%; max-width: 350px; text-align: center; color: #333;
+}
 .custom-modal.active { display: block; }
 .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
 .btn { padding: 10px 20px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; flex: 1; }
 .btn-confirm { background: #0072CE; color: white; }
 .btn-cancel { background: #e2e8f0; }
+
 .legal-strip { position: fixed; bottom: 10px; right: 20px; font-size: 8px; font-weight: 700; color: #94a3b8; z-index: 500; pointer-events: none; }
 </style>
 </head>
 <body>
-
-<div id="sub-lock-screen">
-    <div class="lock-card" id="lock-main">
-        <h2>License Expired</h2>
-        <p>Select a plan to reactivate your access instantly.</p>
-        <div class="plan-grid">
-            <div class="plan-btn" onclick="initiatePayment(30)">Monthly<br>Ksh 1,500</div>
-            <div class="plan-btn" onclick="initiatePayment(365)">Yearly<br>Ksh 12,000</div>
-        </div>
-    </div>
-    <div class="lock-card" id="lock-processing" style="display:none;">
-        <div class="stk-spinner"></div>
-        <p>Processing M-Pesa request... Please check your phone.</p>
-    </div>
-</div>
-
-<script>
-    function initiatePayment(days) {
-        document.getElementById('lock-main').style.display = 'none';
-        document.getElementById('lock-processing').style.display = 'block';
-        setTimeout(() => {
-            const newExpiry = Date.now() + (days * 24 * 60 * 60 * 1000);
-            localStorage.setItem("ag_sub_expiry", newExpiry.toString());
-            location.reload(); 
-        }, 3000);
-    }
-</script>
 
 <button class="floating-menu-btn" onclick="toggleMenu()">☰</button>
 <div class="overlay" id="overlay" onclick="closeAll()"></div>
@@ -111,15 +76,19 @@ iframe { width: 100%; height: 100%; border: none; }
         <div class="label">Operations</div>
         <div class="nav-link" onclick="loadPage('sales')">Sales Terminal</div>
         <div class="nav-link" onclick="loadPage('purchases')">Purchases</div>
+        
         <div class="label">Relationships</div>
         <div class="nav-link" onclick="loadPage('crm')" style="color:#40c057; font-weight:bold;">Customer Registry</div>
+        
         <div class="label">Inventory</div>
         <div class="nav-link" onclick="loadPage('stock')">Current Stock</div>
+        
         <div class="label">Finance</div>
         <div class="nav-link" onclick="loadPage('expenses')">Record Expense</div>
         <div class="label">Analytics</div>
         <div class="nav-link" onclick="loadPage('bi_dashboard')">BI Dashboard</div>
         <div class="nav-link" onclick="loadPage('master-ledger')">Master Ledger</div>
+        
         <div class="label">Reports</div>
         <div class="nav-link" onclick="loadPage('cash-report')">Cash Report</div>
         <div class="nav-link" onclick="loadPage('mpesa-report')">M-Pesa Report</div>
@@ -174,14 +143,7 @@ window.closeAll = () => {
     document.getElementById("overlay").classList.remove("active"); 
 };
 
-// --- SECURED NAVIGATION ---
 window.loadPage = (pageName) => { 
-    const expiry = localStorage.getItem("ag_sub_expiry");
-    const now = Date.now();
-    if (!expiry || now >= parseInt(expiry)) {
-        window.location.href = "settings.html";
-        return;
-    }
     document.getElementById('main-frame').src = pageName + ".html"; 
     closeAll(); 
 };
