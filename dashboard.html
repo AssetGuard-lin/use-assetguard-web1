@@ -3,58 +3,220 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AssetGuard Pro - Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<title>AssetGuard Pro - The Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-/* --- CORE LAYOUT --- */
+:root {
+    --primary: #0052cc;
+    --primary-dark: #071952;
+    --accent: #ff6b00;
+    --whatsapp: #25D366;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --bg-light: #f8fafc;
+    --card-bg: #ffffff;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+}
+
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:#f4f6f9;display:flex;height:100vh;overflow:hidden;}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg-light);display:flex;height:100vh;overflow:hidden;color:var(--text-main);}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
 .floating-menu-btn {
-    position: fixed; top: 20px; left: 20px; z-index: 1100;
-    background: #0072CE; color: white; border: none;
-    width: 45px; height: 45px; border-radius: 12px;
-    cursor: pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    position: fixed; top: 15px; left: 15px; z-index: 1100;
+    background: var(--primary); color: white; border: none;
+    width: 44px; height: 44px; border-radius: 12px;
+    cursor: pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(0,82,204,0.3);
     display: flex; align-items: center; justify-content: center; font-size: 20px;
 }
 
-.sidebar {
-    width: 260px; background: #002E5D; color: white;
-    position: fixed; left: -280px; top: 15px; bottom: 15px;
-    display: flex; flex-direction: column; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 1200; border-radius: 0 20px 20px 0; box-shadow: 10px 0 30px rgba(0,0,0,0.25);
+@media (min-width: 1024px) {
+    .floating-menu-btn { display: none; }
 }
-.sidebar.active { left: 0; }
 
-.sidebar-header { padding: 25px 20px; font-size: 18px; font-weight: bold; background: #001F3F; border-radius: 0 20px 0 0; text-align: center; }
-.menu-section { flex: 1; overflow-y: auto; padding: 10px 0; }
-.label { padding: 15px 25px 5px; font-size: 10px; text-transform: uppercase; color: #8bb4dd; font-weight: 800; }
-.nav-link { padding: 12px 25px; cursor: pointer; font-size: 14px; color: #d1d8e0; transition: 0.2s; display: block; text-decoration: none; }
-.nav-link:hover { background: #004080; color: white; padding-left: 30px; }
+.sidebar {
+    width: 270px; background: var(--primary-dark); color: white;
+    position: fixed; left: 0; top: 0; bottom: 0;
+    display: flex; flex-direction: column; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1200; box-shadow: 10px 0 30px rgba(0,0,0,0.25);
+}
 
-.sidebar-footer { border-top: 1px solid #004080; background: #001F3F; border-radius: 0 0 20px 0; }
-.notebook-link { color: #f59e0b !important; font-weight: bold; }
-.logout-link { color: #ff7675 !important; font-weight: 600; }
+@media (max-width: 1023px) {
+    .sidebar { left: -290px; top: 0; bottom: 0; border-radius: 0 20px 20px 0; }
+    .sidebar.active { left: 0; }
+}
 
-.main { flex: 1; width: 100%; height: 100vh; position: relative; }
-iframe { width: 100%; height: 100%; border: none; }
+.sidebar-header { padding: 22px 20px; font-size: 17px; font-weight: 800; background: rgba(0,0,0,0.25); text-align: center; letter-spacing: 0.5px; }
+@media (max-width: 1023px) {
+    .sidebar-header { border-radius: 0 20px 0 0; }
+}
 
-.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); z-index: 900; }
+.menu-section { flex: 1; overflow-y: auto; padding: 10px 0; -webkit-overflow-scrolling: touch; }
+.label { padding: 12px 22px 4px; font-size: 10px; text-transform: uppercase; color: #93c5fd; font-weight: 800; letter-spacing: 0.5px; }
+.nav-link { padding: 11px 22px; cursor: pointer; font-size: 13px; color: #d1d8e0; transition: 0.2s; display: block; text-decoration: none; font-weight: 500;}
+.nav-link:hover { background: rgba(255,255,255,0.1); color: white; padding-left: 26px; }
+
+.sidebar-footer { border-top: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25); padding: 5px 0; }
+@media (max-width: 1023px) {
+    .sidebar-footer { border-radius: 0 0 20px 0; }
+}
+.notebook-link { color: #fbd38d !important; font-weight: 700; }
+.logout-link { color: #fca5a5 !important; font-weight: 700; }
+
+.main { flex: 1; width: 100%; height: 100vh; position: relative; display: flex; flex-direction: column; }
+@media (min-width: 1024px) {
+    .main { margin-left: 270px; width: calc(100% - 270px); }
+}
+
+iframe { width: 100%; height: 100%; border: none; display: none; }
+
+.overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.65); backdrop-filter: blur(4px); z-index: 1050; }
 .overlay.active { display: block; }
+@media (min-width: 1024px) {
+    .overlay.active { display: none; }
+}
 
 .custom-modal {
     display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    background: white; padding: 25px; border-radius: 12px; z-index: 2000;
-    width: 90%; max-width: 350px; text-align: center; color: #333;
+    background: white; padding: 25px; border-radius: 16px; z-index: 2000;
+    width: 90%; max-width: 360px; text-align: center; color: var(--text-main);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
 }
 .custom-modal.active { display: block; }
-.modal-btns { display: flex; gap: 10px; margin-top: 20px; }
-.btn { padding: 10px 20px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; flex: 1; }
-.btn-confirm { background: #0072CE; color: white; }
-.btn-cancel { background: #e2e8f0; }
+.modal-btns { display: flex; gap: 12px; margin-top: 20px; }
+.btn { padding: 10px 18px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; flex: 1; transition: 0.2s; text-decoration: none; display: inline-block; text-align: center; font-size: 13px;}
+.btn-primary { background: var(--accent); color: white; box-shadow: 0 4px 12px rgba(255,107,0,0.3); }
+.btn-primary:hover { background: #e05e00; }
+.btn-cancel { background: #f1f5f9; color: var(--text-muted); }
 
-.legal-strip { position: fixed; bottom: 10px; right: 20px; font-size: 8px; font-weight: 700; color: #94a3b8; z-index: 500; pointer-events: none; }
+.dashboard-wrapper { flex: 1; padding: 75px 20px 30px; overflow-y: auto; width: 100%; }
+@media (min-width: 1024px) {
+    .dashboard-wrapper { padding: 35px 35px 35px; }
+}
+
+.dashboard-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 20px; max-width: 1300px; margin: 0 auto; }
+
+.col-12 { grid-column: span 12; }
+.col-6 { grid-column: span 6; }
+.col-4 { grid-column: span 4; }
+.col-3 { grid-column: span 3; }
+
+@media (max-width: 1024px) {
+    .col-6, .col-4, .col-3 { grid-column: span 12; }
+}
+
+/* Institutional Broker-Style Hero */
+.broker-hero {
+    background: linear-gradient(135deg, #071952 0%, #0b2545 100%);
+    color: white; border-radius: 18px; padding: 35px;
+    box-shadow: 0 15px 35px rgba(7, 25, 82, 0.2);
+    display: flex; flex-direction: column; gap: 16px; position: relative; overflow: hidden;
+}
+.broker-hero::after {
+    content: ''; position: absolute; right: -50px; bottom: -50px; width: 250px; height: 250px;
+    background: radial-gradient(circle, rgba(255,107,0,0.15) 0%, transparent 70%); border-radius: 50%; pointer-events: none;
+}
+.broker-hero h1 { font-size: 26px; font-weight: 800; line-height: 1.25; max-width: 700px; }
+.broker-hero h1 span { color: var(--accent); }
+.broker-hero p { font-size: 14px; color: #cbd5e1; max-width: 600px; line-height: 1.5; }
+.hero-cta-group { display: flex; gap: 12px; margin-top: 5px; }
+
+/* Stats Hub Card */
+.stats-hub-card {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    color: white; border-radius: 16px; padding: 28px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; border: 1px solid rgba(255,255,255,0.05);
+}
+.stats-hub-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #38bdf8; font-weight: 800; margin-bottom: 6px; }
+.stats-hub-value { font-size: 40px; font-weight: 800; color: #ffffff; margin-bottom: 4px; }
+.stats-hub-desc { font-size: 12px; color: #94a3b8; font-weight: 600; }
+
+/* Feature Cards Style */
+.asset-card {
+    background: var(--card-bg); border-radius: 16px; padding: 22px;
+    border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    display: flex; flex-direction: column; gap: 10px; transition: transform 0.2s, border-color 0.2s;
+}
+.asset-card:hover { transform: translateY(-3px); border-color: var(--primary); }
+.asset-icon { width: 38px; height: 38px; border-radius: 10px; background: #e0f2fe; color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.asset-title { font-size: 15px; font-weight: 800; color: var(--text-main); }
+.asset-desc { font-size: 12px; color: var(--text-muted); line-height: 1.45; }
+
+/* Directory Panel */
+.directory-panel { background: var(--card-bg); border-radius: 16px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid var(--border-color); }
+.directory-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 25px; }
+.directory-category h4 { font-size: 11px; text-transform: uppercase; color: var(--primary); font-weight: 800; margin-bottom: 12px; letter-spacing: 1px; border-bottom: 2px solid #f1f5f9; padding-bottom: 5px; }
+.directory-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.directory-item { font-size: 12px; color: var(--text-main); font-weight: 700; display: flex; flex-direction: column; }
+.directory-item small { font-size: 10px; color: var(--text-muted); font-weight: 500; margin-top: 1px; line-height: 1.35; }
+.directory-footer-bar { margin-top: 25px; padding-top: 15px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: 700; color: var(--text-muted); }
+.directory-footer-bar a { color: var(--primary); text-decoration: none; }
+
+/* Chat Bot Widget Styles */
+.chat-widget-btn {
+    position: fixed; bottom: 20px; right: 20px; z-index: 1400;
+    background: var(--whatsapp); color: white; border: none;
+    width: 54px; height: 54px; border-radius: 50%;
+    cursor: pointer; box-shadow: 0 4px 20px rgba(37,211,102,0.4);
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.2s;
+}
+.chat-widget-btn:hover { transform: scale(1.06); }
+.chat-widget-btn svg { width: 30px; height: 30px; fill: white; }
+
+.chat-container {
+    position: fixed; bottom: 85px; right: 20px; z-index: 1400;
+    width: 360px; max-width: calc(100vw - 30px); height: 500px;
+    background: var(--card-bg); border-radius: 16px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+    border: 1px solid var(--border-color);
+    display: none; flex-direction: column; overflow: hidden;
+}
+.chat-container.active { display: flex; }
+.chat-header {
+    background: var(--primary-dark); color: white; padding: 15px;
+    font-weight: 800; font-size: 14px; display: flex; justify-content: space-between; align-items: center;
+}
+.chat-header button { background: none; border: none; color: white; font-size: 16px; cursor: pointer; }
+.chat-messages {
+    flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; font-size: 12px; background: #f8fafc;
+}
+.chat-bubble {
+    max-width: 85%; padding: 10px 14px; border-radius: 12px; line-height: 1.45; word-wrap: break-word;
+}
+.chat-bubble.bot { background: white; color: var(--text-main); align-self: flex-start; border-bottom-left-radius: 2px; border: 1px solid var(--border-color); box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+.chat-bubble.user { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+.chat-input-area {
+    padding: 12px; border-top: 1px solid var(--border-color); display: flex; gap: 8px; background: white;
+}
+.chat-input-area input {
+    flex: 1; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 12px; outline: none; font-family: inherit;
+}
+.chat-input-area button {
+    background: var(--primary); color: white; border: none; padding: 9px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 12px;
+}
+.chat-actions { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.chat-chip {
+    background: #e0f2fe; color: var(--primary); border: none; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; transition: 0.2s;
+}
+.chat-chip:hover { background: #bae6fd; }
+.chat-chip-whatsapp {
+    background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; display: inline-flex; align-items: center; gap: 5px;
+}
+.chat-chip-whatsapp:hover { background: #bbf7d0; }
+.chat-chip-whatsapp svg { width: 13px; height: 13px; fill: #166534; }
 </style>
+
+<!-- Firebase Classic SDK -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body>
 
@@ -62,75 +224,213 @@ iframe { width: 100%; height: 100%; border: none; }
 <div class="overlay" id="overlay" onclick="closeAll()"></div>
 
 <div class="custom-modal" id="globalModal">
-    <div class="modal-title" id="modalTitle" style="font-weight:bold; margin-bottom:10px;">Notification</div>
-    <div class="modal-text" id="modalText">Message goes here...</div>
+    <div class="modal-title" id="modalTitle" style="font-size: 15px; font-weight: 800; margin-bottom:8px;">Notification</div>
+    <div class="modal-text" id="modalText" style="font-size: 12px; color: var(--text-muted);">Message goes here...</div>
     <div class="modal-btns">
-        <button class="btn btn-cancel" id="modalCancelBtn" onclick="closeAll()">Cancel</button>
-        <button class="btn btn-confirm" id="modalConfirmBtn">OK</button>
+        <button class="btn btn-cancel" onclick="closeAll()">Cancel</button>
+        <button class="btn btn-primary" id="modalConfirmBtn">OK</button>
     </div>
 </div>
 
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">AssetGuard Pro</div>
     <div class="menu-section">
+        <div class="nav-link" onclick="showDashboard()" style="border-left: 3px solid #60a5fa; padding-left: 19px; background: rgba(255,255,255,0.1);">Institutional Hub</div>
+        
         <div class="label">Operations</div>
         <div class="nav-link" onclick="loadPage('sales')">Sales Terminal</div>
         <div class="nav-link" onclick="loadPage('purchases')">Purchases</div>
         
         <div class="label">Relationships</div>
-        <div class="nav-link" onclick="loadPage('crm')" style="color:#40c057; font-weight:bold;">Customer Registry</div>
+        <div class="nav-link" onclick="loadPage('crm')" style="color:#4ade80;">Customer Registry</div>
         
         <div class="label">Inventory</div>
         <div class="nav-link" onclick="loadPage('stock')">Current Stock</div>
         
         <div class="label">Finance</div>
         <div class="nav-link" onclick="loadPage('expenses')">Record Expense</div>
-        <div class="label">Analytics</div>
-        <div class="nav-link" onclick="loadPage('bi_dashboard')">BI Dashboard</div>
         <div class="nav-link" onclick="loadPage('master-ledger')">Master Ledger</div>
         
         <div class="label">Reports</div>
         <div class="nav-link" onclick="loadPage('cash-report')">Cash Report</div>
         <div class="nav-link" onclick="loadPage('mpesa-report')">M-Pesa Report</div>
-        <div class="nav-link" onclick="loadPage('bank-report')">Bank Report</div>
-        <div class="nav-link" onclick="loadPage('credit-report')" style="border-left: 3px solid #f59e0b; padding-left: 22px;">Credit Report</div>
+        <div class="nav-link" onclick="loadPage('credit-report')" style="border-left: 3px solid #fbd38d; padding-left: 19px;">Credit Report</div>
     </div>
     <div class="sidebar-footer">
-        <div class="nav-link notebook-link" onclick="loadPage('notebook')">📒 Notebook </div>
+        <div class="nav-link notebook-link" onclick="loadPage('notebook')">📒 Notebook</div>
         <div class="nav-link" onclick="loadPage('settings')">⚙️ Settings</div>
         <div class="nav-link logout-link" onclick="customLogoutTrigger()">Logout</div>
     </div>
 </aside>
 
 <main class="main">
+    
+    <div class="dashboard-wrapper" id="dashboard-wrapper">
+        <div class="dashboard-grid">
+            
+            <div class="broker-hero col-12">
+                <h1>Institutional-Grade <span>Offline Execution Hub</span></h1>
+                <p>Process retail checkouts instantly with sub-millisecond local database sync, multi-tender payment routing, and real-time inventory adjustments built for high-performance retail enterprises.</p>
+                <div class="hero-cta-group">
+                    <a href="#" onclick="loadPage('sales'); return false;" class="btn btn-primary" style="max-width: 200px;">Launch Terminal</a>
+                </div>
+            </div>
+
+            <div class="stats-hub-card col-6">
+                <div class="stats-hub-title">Local IndexedDB Sync Engine</div>
+                <div class="stats-hub-value">&lt;5ms</div>
+                <div class="stats-hub-desc">Local Database Transaction Execution Latency</div>
+            </div>
+
+            <div class="stats-hub-card col-6">
+                <div class="stats-hub-title">Offline Transaction Buffer</div>
+                <div class="stats-hub-value">100%</div>
+                <div class="stats-hub-desc">Zero Data Loss Guaranteed During Network Outages</div>
+            </div>
+
+            <div class="asset-card col-4">
+                <div class="asset-icon">⚡</div>
+                <div class="asset-title">High-Speed Terminal</div>
+                <div class="asset-desc">Execute sales seamlessly with barcode scanning, instant product lookup, and split-tender payment processing.</div>
+            </div>
+
+            <div class="asset-card col-4">
+                <div class="asset-icon"></div>
+                <div class="asset-title">Real-Time Inventory Engine</div>
+                <div class="asset-desc">Track precise stock levels, Weighted Average Costs (WAC), and automated low-stock reorder thresholds.</div>
+            </div>
+
+            <div class="asset-card col-4">
+                <div class="asset-icon"></div>
+                <div class="asset-title">Automated Master Ledger</div>
+                <div class="asset-desc">Every checkout or petty cash adjustment writes double-entry records, producing instantaneous P&L reports.</div>
+            </div>
+
+            <div class="directory-panel col-12">
+                <div class="directory-grid">
+                    
+                    <div class="directory-category">
+                        <h4>Community</h4>
+                        <ul class="directory-list">
+                            <li class="directory-item">Tutorials <small>Step-by-step user guides</small></li>
+                            <li class="directory-item">Documentation <small>Technical and API manuals</small></li>
+                            <li class="directory-item">Forum <small>Community peer discussions</small></li>
+                            <li class="directory-item">Open Source <small>Core repositories & modules</small></li>
+                            <li class="directory-item">Download <small>Client apps for devices</small></li>
+                            <li class="directory-item">Github <small>Source code tracking</small></li>
+                            <li class="directory-item">Runbot <small>Live sandbox environments</small></li>
+                            <li class="directory-item">Translations <small>Localized language packs</small></li>
+                        </ul>
+                    </div>
+
+                    <div class="directory-category">
+                        <h4>Services</h4>
+                        <ul class="directory-list">
+                            <li class="directory-item">Asset guard pro Hosting <small>Cloud enterprise infrastructure</small></li>
+                            <li class="directory-item">Support <small>24/7 technical assistance</small></li>
+                            <li class="directory-item">Upgrade <small>Seamless version migrations</small></li>
+                            <li class="directory-item">Custom Developments <small>Tailored app modifications</small></li>
+                            <li class="directory-item">Education <small>Staff training courses</small></li>
+                            <li class="directory-item">Find an Accountant <small>Certified financial pros</small></li>
+                            <li class="directory-item">Find a Partner <small>Certified implementation experts</small></li>
+                        </ul>
+                    </div>
+
+                    <div class="directory-category">
+                        <h4>About Us</h4>
+                        <ul class="directory-list">
+                            <li class="directory-item">Our company <small>Enterprise vision & history</small></li>
+                            <li class="directory-item">Brand Assets <small>Logos and guidelines</small></li>
+                            <li class="directory-item">Contact us <small>Direct support channels</small></li>
+                            <li class="directory-item">Jobs <small>Career and team growth</small></li>
+                            <li class="directory-item">Events <small>Conferences and webinars</small></li>
+                            <li class="directory-item">Podcast <small>Business and tech insights</small></li>
+                            <li class="directory-item">Blog <small>Engineering updates</small></li>
+                            <li class="directory-item">Customers <small>Success case stories</small></li>
+                        </ul>
+                    </div>
+
+                    <div class="directory-category">
+                        <h4>Language & Region</h4>
+                        <ul class="directory-list" style="margin-bottom: 20px;">
+                            <li class="directory-item">English (US) <small>Default international locale</small></li>
+                            <li class="directory-item">Swahili (KE) <small>Regional East African layout</small></li>
+                            <li class="directory-item">Spanish (ES) <small>Hispanic market support</small></li>
+                        </ul>
+
+                        <h4>Legal & Security</h4>
+                        <ul class="directory-list">
+                            <li class="directory-item">Legal Terms <small>User agreements & policies</small></li>
+                            <li class="directory-item">Privacy Policy <small>Data protection guidelines</small></li>
+                            <li class="directory-item">Security Compliance <small>Encryption standards</small></li>
+                            <li class="directory-item">Licensing Agreements <small>Software usage rights</small></li>
+                        </ul>
+                    </div>
+
+                </div>
+
+                <div class="directory-footer-bar">
+                    <span>&copy; 2026 ASSETGUARD LTD. JCORP LTD PARTNERSHIP. ALL RIGHTS RESERVED.</span>
+                    <a href="#privacy">Privacy</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
     <iframe id="main-frame" src="sales.html"></iframe>
-    <div class="legal-strip">&copy; 2026 ASSETGUARD LTD. JCORP LTD PARTNERSHIP.</div>
 </main>
 
 <iframe id="sync-engine" src="local_db.html" style="display:none;"></iframe>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+<!-- AI Support Chat Widget HTML with WhatsApp Icon -->
+<button class="chat-widget-btn" id="chatWidgetBtn" onclick="toggleChatBot()" title="Support Chat">
+    <svg viewBox="0 0 24 24"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01-1.87-1.87-4.36-2.9-7.01-2.9zm0 1.67c2.2 0 4.27.86 5.82 2.42 1.56 1.55 2.42 3.63 2.42 5.82 0 4.54-3.69 8.24-8.24 8.24-1.46 0-2.88-.39-4.12-1.13l-.3-.18-3.11.82.83-3.03-.19-.31c-.81-1.28-1.24-2.77-1.24-4.31 0-4.54 3.69-8.24 8.24-8.24zm4.51 5.92c-.17-.09-.98-.48-1.13-.54-.15-.06-.26-.09-.37.09-.11.17-.43.54-.53.65-.1.11-.21.13-.38.05-.17-.09-.72-.27-1.37-.84-.51-.45-.85-1-1.0-1.17-.15-.17-.02-.26.07-.35.07-.07.15-.17.23-.26.08-.09.11-.15.17-.26.06-.11.03-.2-.01-.28-.04-.09-.37-.89-.51-1.22-.13-.32-.27-.28-.37-.28h-.32c-.11 0-.28.04-.43.2-.15.17-.57.55-.57 1.34 0 .79.58 1.55.66 1.66.08.11 1.14 1.74 2.77 2.44.39.17.69.27.93.35.39.12.74.1 1.02.06.31-.05.98-.4 1.12-.79.14-.39.14-.72.1-.79-.04-.07-.15-.11-.32-.2z"/></svg>
+</button>
 
+<div class="chat-container" id="chatContainer">
+    <div class="chat-header">
+        <span>AssetGuard Support AI</span>
+        <button onclick="toggleChatBot()">✕</button>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+        <div class="chat-bubble bot">
+            Hello! I am your AssetGuard Pro Intelligent Assistant. I can answer any questions regarding sales, inventory WAC, offline IndexedDB sync, reports, or license renewals. How can I help you today?
+            <div class="chat-actions">
+                <button class="chat-chip" onclick="handleBotChoice('license')">License & Subscription</button>
+                <button class="chat-chip" onclick="handleBotChoice('sync')">Offline Sync Info</button>
+                <button class="chat-chip chat-chip-whatsapp" onclick="handleBotChoice('agent')">
+                    <svg viewBox="0 0 24 24"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01-1.87-1.87-4.36-2.9-7.01-2.9z"/></svg>
+                    Speak to an Agent
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="chat-input-area">
+        <input type="text" id="chatInputBox" placeholder="Ask anything about AssetGuard Pro..." onkeypress="handleChatKeyPress(event)">
+        <button onclick="sendChatMessage()">Send</button>
+    </div>
+</div>
+
+<script>
+// Initialize Firebase Classic SDK
 const firebaseConfig = { 
     apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA", 
     authDomain: "assetguard-c8c8c.firebaseapp.com", 
-    projectId: "assetguard-c8c8c" 
+    projectId: "assetguard-c8c8c",
+    databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com"
 };
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+const rtdb = firebase.database();
+const auth = firebase.auth();
 
 const activeUID = localStorage.getItem("ag_active_uid");
 if (!activeUID) {
     window.location.href = "index.html";
 }
-
-onAuthStateChanged(auth, (user) => {
-    if (!user && !localStorage.getItem("ag_session_active")) {
-        window.location.href = "index.html";
-    }
-});
 
 window.isSubActive = () => {
     const uid = localStorage.getItem("ag_active_uid");
@@ -149,7 +449,6 @@ window.closeAll = () => {
     document.getElementById("overlay").classList.remove("active"); 
 };
 
-// --- MODERN MODAL ---
 window.showSubscriptionAlert = (onConfirm) => {
     const modal = document.getElementById('globalModal');
     document.getElementById('modalTitle').innerText = "License Expired";
@@ -162,8 +461,16 @@ window.showSubscriptionAlert = (onConfirm) => {
     };
 };
 
+window.showDashboard = () => {
+    document.getElementById('dashboard-wrapper').style.display = 'block';
+    document.getElementById('main-frame').style.display = 'none';
+    closeAll();
+};
+
 window.loadPage = (pageName) => { 
-    // LOCK GATE: Check subscription without using browser alerts
+    document.getElementById('dashboard-wrapper').style.display = 'none';
+    document.getElementById('main-frame').style.display = 'block';
+
     if (!window.isSubActive() && pageName !== 'settings') {
         showSubscriptionAlert(() => {
             document.getElementById('main-frame').src = "settings.html";
@@ -183,8 +490,171 @@ window.customLogoutTrigger = () => {
     document.getElementById('modalConfirmBtn').onclick = () => {
         localStorage.removeItem("ag_active_uid");
         localStorage.removeItem("ag_session_active");
-        signOut(auth).then(() => { window.location.href = "index.html"; });
+        auth.signOut().then(() => { window.location.href = "index.html"; });
     };
+};
+
+let agentFlowState = null; // null, 'awaiting_new_msg', 'awaiting_followup_msg'
+
+window.toggleChatBot = () => {
+    const container = document.getElementById('chatContainer');
+    container.classList.toggle('active');
+    if (container.classList.contains('active')) {
+        document.getElementById('chatInputBox').focus();
+    }
+};
+
+window.appendMessage = (sender, text, htmlContent = '') => {
+    const messagesDiv = document.getElementById('chatMessages');
+    const bubble = document.createElement('div');
+    bubble.className = `chat-bubble ${sender}`;
+    bubble.innerHTML = text;
+    if (htmlContent) {
+        const extra = document.createElement('div');
+        extra.innerHTML = htmlContent;
+        bubble.appendChild(extra);
+    }
+    messagesDiv.appendChild(bubble);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+};
+
+window.handleBotChoice = (choice) => {
+    if (choice === 'license') {
+        appendMessage('user', 'I need help with License & Subscription');
+        setTimeout(() => {
+            appendMessage('bot', 'You can manage or renew your active subscription by navigating to the Settings page from your sidebar menu.');
+        }, 500);
+    } else if (choice === 'sync') {
+        appendMessage('user', 'Tell me about Offline Sync');
+        setTimeout(() => {
+            appendMessage('bot', 'AssetGuard Pro features a high-speed local IndexedDB sync engine with <5ms transaction latency.');
+        }, 500);
+    } else if (choice === 'agent') {
+        appendMessage('user', 'I want to speak to an agent');
+        agentFlowState = 'awaiting_type';
+        setTimeout(() => {
+            appendMessage('bot', 'Is this a **New Issue** or a **Follow-up** on an existing ticket?', `
+                <div class="chat-actions">
+                    <button class="chat-chip" onclick="handleAgentType('new')">New Issue</button>
+                    <button class="chat-chip" onclick="handleAgentType('followup')">Follow-up</button>
+                </div>
+            `);
+        }, 500);
+    }
+};
+
+window.handleAgentType = (type) => {
+    if (type === 'new') {
+        appendMessage('user', 'New Issue');
+        agentFlowState = 'awaiting_new_msg';
+        setTimeout(() => {
+            appendMessage('bot', 'Please type your detailed request for your new issue below and press Send.');
+        }, 400);
+    } else if (type === 'followup') {
+        appendMessage('user', 'Follow-up');
+        agentFlowState = 'awaiting_followup_msg';
+        setTimeout(() => {
+            appendMessage('bot', 'Please enter your existing Ticket Number (e.g. AG-1234) and your message below.');
+        }, 400);
+    }
+};
+
+window.handleChatKeyPress = (e) => {
+    if (e.key === 'Enter') {
+        sendChatMessage();
+    }
+};
+
+window.sendChatMessage = async () => {
+    const input = document.getElementById('chatInputBox');
+    const text = input.value.trim();
+    if (!text) return;
+
+    appendMessage('user', text);
+    input.value = '';
+
+    const lowerText = text.toLowerCase();
+    const agentKeywords = ['agent', 'human', 'person', 'whatsapp', 'speak to someone', 'talk to someone', 'call', 'manager', 'support team'];
+    const wantsAgent = agentKeywords.some(keyword => lowerText.includes(keyword));
+
+    if (wantsAgent && !agentFlowState) {
+        agentFlowState = 'awaiting_type';
+        setTimeout(() => {
+            appendMessage('bot', 'Is this a **New Issue** or a **Follow-up** on an existing ticket?', `
+                <div class="chat-actions">
+                    <button class="chat-chip" onclick="handleAgentType('new')">New Issue</button>
+                    <button class="chat-chip" onclick="handleAgentType('followup')">Follow-up</button>
+                </div>
+            `);
+        }, 500);
+        return;
+    }
+
+    if (agentFlowState === 'awaiting_new_msg') {
+        agentFlowState = null;
+        try {
+            const ticketNumber = "AG-" + Math.floor(1000 + Math.random() * 9000);
+            const newTicketRef = rtdb.ref('support_tickets').push();
+            
+            await newTicketRef.set({
+                uid: activeUID || "Anonymous",
+                ticketNumber: ticketNumber,
+                message: text,
+                status: "Pending",
+                timestamp: Date.now()
+            });
+
+            appendMessage('bot', `✅ New support ticket successfully created!<br><br>Your  tracking ticket number is: <strong>${ticketNumber}</strong>. Please keep it for follow-ups.`);
+        } catch (error) {
+            console.error("Realtime Database Error:", error);
+            appendMessage('bot', `⚠️ Error: Message not sent. ${error.message}`);
+        }
+        return;
+    }
+
+    if (agentFlowState === 'awaiting_followup_msg') {
+        agentFlowState = null;
+        try {
+            const ticketMatch = text.match(/AG-\d{4}/i);
+            const extractedTicketNo = ticketMatch ? ticketMatch[0].toUpperCase() : "AG-UNKNOWN";
+
+            const newTicketRef = rtdb.ref('support_tickets').push();
+            await newTicketRef.set({
+                uid: activeUID || "Anonymous",
+                ticketNumber: extractedTicketNo,
+                isFollowUp: true,
+                message: text,
+                status: "Pending (Follow-up)",
+                timestamp: Date.now()
+            });
+
+            appendMessage('bot', `✅ Follow-up message successfully recorded for ticket <strong>${extractedTicketNo}</strong>! An agent will review it shortly.`);
+        } catch (error) {
+            console.error("Realtime Database Error:", error);
+            appendMessage('bot', `⚠️ Error: Follow-up not sent. ${error.message}`);
+        }
+        return;
+    }
+
+    setTimeout(() => {
+        let response = "";
+        if (lowerText.includes('sales') || lowerText.includes('terminal')) {
+            response = "The Sales Terminal allows you to process checkouts instantly with barcode scanning and multi-tender payments.";
+        } else if (lowerText.includes('stock') || lowerText.includes('inventory')) {
+            response = "The Real-Time Inventory Engine tracks stock levels and WAC automatically.";
+        } else {
+            response = "I can answer questions regarding sales, inventory, and app navigation. Click below to connect with support.";
+        }
+
+        appendMessage('bot', response, `
+            <div class="chat-actions">
+                <button class="chat-chip chat-chip-whatsapp" onclick="handleBotChoice('agent')">
+                    <svg viewBox="0 0 24 24"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01-1.87-1.87-4.36-2.9-7.01-2.9z"/></svg>
+                    Speak to an Agent
+                </button>
+            </div>
+        `);
+    }, 600);
 };
 </script>
 

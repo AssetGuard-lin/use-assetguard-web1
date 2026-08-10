@@ -229,7 +229,8 @@
         }
 
         .form-field input[type="text"],
-        .form-field input[type="tel"] {
+        .form-field input[type="tel"],
+        .form-field input[type="password"] {
             font-family: inherit;
             font-size: 14px;
             font-weight: 500;
@@ -534,6 +535,56 @@
         }
         .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
+        /* ====================================================================
+           LAPTOP & TABLET RESPONSIVE OVERRIDES
+           ==================================================================== */
+        @media (min-width: 768px) {
+            .app-container {
+                max-width: 100%;
+            }
+            .app-header {
+                padding: 24px 10%;
+            }
+            .settings-content {
+                padding: 40px 10%;
+                gap: 32px;
+            }
+            .settings-footer {
+                padding: 24px 10%;
+                justify-content: center;
+                gap: 24px;
+            }
+            .settings-footer .btn {
+                max-width: 300px;
+            }
+            .input-group, .brand-preview-card, .logo-upload-area {
+                padding: 32px;
+            }
+            .pricing-grid {
+                grid-template-columns: repeat(2, minmax(250px, 1fr));
+                gap: 24px;
+                max-width: 700px;
+            }
+            .form-field-wrap {
+                max-width: 900px;
+            }
+            .preview-card-wrap {
+                max-width: 900px;
+            }
+            .brand-preview-card::before {
+                width: 400px;
+                height: 400px;
+                top: -80%;
+                right: -10%;
+            }
+        }
+        
+        @media (min-width: 1200px) {
+            .app-header, .settings-content, .settings-footer {
+                padding-left: 20%;
+                padding-right: 20%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -661,6 +712,36 @@
             </div>
         </div>
 
+        <!-- DARAJA API & M-PESA STK CONFIGURATION SECTION -->
+        <div class="form-field-wrap">
+            <span class="section-label">M-Pesa Daraja API Integration</span>
+            <div class="input-group">
+                <div class="form-field">
+                    <label>Account Type / Payment Mode</label>
+                    <select id="darajaAccountType" style="font-family: inherit; font-size: 14px; font-weight: 500; padding: 12px 14px; border: 2px solid var(--border); border-radius: var(--radius-md); outline: none; background: #fafbfe; color: var(--text-main);">
+                        <option value="Paybill">Paybill (Business Shortcode)</option>
+                        <option value="Till">Till Number (Buy Goods & Services)</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label>Business Shortcode (Paybill / Till)</label>
+                    <input type="tel" id="darajaShortcode" class="mpesa-focus" placeholder="e.g. 174379" inputmode="numeric">
+                </div>
+                <div class="form-field">
+                    <label>Passkey (Lipwa Na M-Pesa Online)</label>
+                    <input type="password" id="darajaPasskey" class="mpesa-focus" placeholder="Enter Daraja Passkey">
+                </div>
+                <div class="form-field">
+                    <label>Consumer Key (Daraja Portal)</label>
+                    <input type="text" id="darajaConsumerKey" placeholder="Enter Consumer Key">
+                </div>
+                <div class="form-field">
+                    <label>Consumer Secret (Daraja Portal)</label>
+                    <input type="password" id="darajaConsumerSecret" placeholder="Enter Consumer Secret">
+                </div>
+            </div>
+        </div>
+
         <div class="form-field-wrap">
             <span class="section-label">Corporate Emblem</span>
             <div class="input-group">
@@ -694,7 +775,18 @@
 
 <script>
     let currentUID = "unidentified_user"; 
-    let loadedSettings = { businessName: "JCorp Kenya Inc", tagline: "Transformation you need", logoUrl: "" };
+    let loadedSettings = { 
+        businessName: "JCorp Kenya Inc", 
+        tagline: "Transformation you need", 
+        logoUrl: "",
+        daraja: {
+            accountType: "Paybill",
+            shortcode: "",
+            passkey: "",
+            consumerKey: "",
+            consumerSecret: ""
+        }
+    };
     let subscriptionTimerInterval;
     let pendingSubDays = 0;
     let stkTimeoutTokens = [];
@@ -712,7 +804,6 @@
     }
 
     function enforceSubscriptionGate() {
-        // The lock is now checked specifically against the current user's isolated ID!
         const expiryData = localStorage.getItem(`ag_sub_expiry_${currentUID}`);
         const lockScreen = document.getElementById('subLockScreen');
         const now = Date.now();
@@ -844,7 +935,6 @@
 
     function finalizeSubscriptionRenew(daysAdded) {
         const now = Date.now();
-        // Payment is tied STRICTLY to the current isolated user ID!
         let currentExpiry = localStorage.getItem(`ag_sub_expiry_${currentUID}`);
         currentExpiry = currentExpiry ? parseInt(currentExpiry) : now;
         
@@ -857,7 +947,6 @@
         loadLocalSettings();
     }
 
-    // --- UPDATED RESOLUTION LOGIC ---
     function resolveUserIdentity() {
         let resolved = null;
 
@@ -880,14 +969,12 @@
             } catch (e) {}
         }
 
-        // We RESTORED this fallback so the app doesn't forget who you are when you navigate.
         if (!resolved) {
             resolved = localStorage.getItem('ag_active_uid');
         }
         
         if (resolved && resolved.trim() !== "") {
             currentUID = resolved.trim();
-            // Store it so you stay logged in while navigating your app
             localStorage.setItem('ag_active_uid', currentUID);
         } else {
             currentUID = "unidentified_" + Math.random().toString(36).substr(2, 9);
@@ -902,13 +989,23 @@
             try {
                 const parsed = JSON.parse(cachedData);
                 loadedSettings = { ...loadedSettings, ...parsed };
+                if(!loadedSettings.daraja) {
+                    loadedSettings.daraja = { accountType: "Paybill", shortcode: "", passkey: "", consumerKey: "", consumerSecret: "" };
+                }
             } catch (e) { console.error("Cache reconstruction failed."); }
         } else {
             localStorage.setItem(cacheKey, JSON.stringify(loadedSettings));
         }
 
-        document.getElementById('businessNameInput').value = loadedSettings.businessName;
-        document.getElementById('taglineInput').value = loadedSettings.tagline;
+        document.getElementById('businessNameInput').value = loadedSettings.businessName || "";
+        document.getElementById('taglineInput').value = loadedSettings.tagline || "";
+        
+        document.getElementById('darajaAccountType').value = loadedSettings.daraja.accountType || "Paybill";
+        document.getElementById('darajaShortcode').value = loadedSettings.daraja.shortcode || "";
+        document.getElementById('darajaPasskey').value = loadedSettings.daraja.passkey || "";
+        document.getElementById('darajaConsumerKey').value = loadedSettings.daraja.consumerKey || "";
+        document.getElementById('darajaConsumerSecret').value = loadedSettings.daraja.consumerSecret || "";
+
         updatePreviewCard();
     }
 
@@ -937,6 +1034,14 @@
         loadedSettings.businessName = document.getElementById('businessNameInput').value;
         loadedSettings.tagline = document.getElementById('taglineInput').value;
 
+        loadedSettings.daraja = {
+            accountType: document.getElementById('darajaAccountType').value,
+            shortcode: document.getElementById('darajaShortcode').value.trim(),
+            passkey: document.getElementById('darajaPasskey').value.trim(),
+            consumerKey: document.getElementById('darajaConsumerKey').value.trim(),
+            consumerSecret: document.getElementById('darajaConsumerSecret').value.trim()
+        };
+
         localStorage.setItem(`ag_profile_cache_${currentUID}`, JSON.stringify(loadedSettings));
 
         try {
@@ -945,7 +1050,7 @@
             }
         } catch (e) {}
 
-        triggerToast("Branding Settings Updated");
+        triggerToast("Settings & Daraja API Updated");
     }
 
     function triggerToast(msg) {
@@ -961,7 +1066,6 @@
                 window.AppInventor.setWebViewString(JSON.stringify({ action: "navigate_back", uid: currentUID }));
             }
         } catch (e) {}
-        // Appends your ID to the URL so the dashboard definitely remembers who you are
         window.location.href = `dashboard.html?uid=${currentUID}`;
     }
 </script>
