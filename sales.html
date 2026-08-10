@@ -537,7 +537,6 @@
                 <option value="2026" selected>2026</option>
             </select>
             <select id="monthFilter" onchange="renderSales()">
-                <option value="all" selected>Full Year View</option>
                 <option value="0">January</option><option value="1">February</option><option value="2">March</option>
                 <option value="3">April</option><option value="4">May</option><option value="5">June</option>
                 <option value="6">July</option><option value="7">August</option><option value="8">September</option>
@@ -583,6 +582,7 @@
             <span style="font-size: 10px; color: #64748b; text-transform: uppercase; display: block; font-weight: 700;">Target Shortcode / Till</span>
             <b id="stkConfigDisplay" style="color: #38bdf8; font-size: 13px;">--</b>
         </div>
+        <button class="btn" style="background: var(--muted); color: white; width: 100%; margin-top: 10px;" onclick="bypassStkPush()">Bypass & Complete Instantly</button>
     </div>
 </div>
 
@@ -734,6 +734,7 @@ localStorage.setItem("ag_active_uid", currentUID);
 const inventoryPath = `users/${currentUID}/inventory`;
 const salesPath = `users/${currentUID}/sales`;
 const subscriptionPath = `users/${currentUID}/subscription`;
+const profilePath = `users/${currentUID}/profile`;
 
 let cart = [];
 let editIndex = -1;
@@ -745,6 +746,7 @@ let alertCallback = null;
 let openLedgerCard = null;
 let activeReceiptPayload = null;
 let isThermalReceiptMode = false;
+let activeStkTimer = null;
 
 let bluetoothDevice = null;
 let bluetoothCharacteristic = null;
@@ -785,6 +787,8 @@ window.closeCustomAlert = () => {
         const cb = alertCallback;
         alertCallback = null;
         cb();
+    } else {
+        window.location.href = 'dashboard.html';
     }
 };
 
@@ -916,6 +920,14 @@ window.onload = () => {
     if (badge) {
         badge.innerText = `Active Session: ${currentUID}`;
     }
+    
+    // Set default month filter to current month automatically
+    const currentMonthIdx = new Date().getMonth().toString();
+    const monthSelect = document.getElementById('monthFilter');
+    if (monthSelect) {
+        monthSelect.value = currentMonthIdx;
+    }
+
     populateDropdown();
     updateStatusUI();
     renderSales(); 
@@ -966,6 +978,13 @@ onValue(ref(db, salesPath), snapshot => {
     rawLedgerData = snapVal || {};
     localStorage.setItem(`ag_ledger_cache_${currentUID}`, JSON.stringify(rawLedgerData));
     renderSales();
+});
+
+onValue(ref(db, profilePath), snap => {
+    if (snap.exists()) {
+        userProfile = snap.val();
+        localStorage.setItem(`ag_profile_cache_${currentUID}`, JSON.stringify(userProfile));
+    }
 });
 
 onValue(ref(db, subscriptionPath), snap => {
@@ -1059,17 +1078,22 @@ function populateDropdown() {
     listContainer.innerHTML = "";
     let matchCount = 0;
 
-    Object.keys(firebaseInventory).forEach(k => {
-        const itemName = firebaseInventory[k].name || "";
-        if (itemName.toLowerCase().includes(query)) {
-            matchCount++;
-            const itemDiv = document.createElement('div');
-            itemDiv.className = 'custom-dropdown-item';
-            itemDiv.innerText = itemName;
-            itemDiv.onclick = () => selectStockItem(k, itemName);
-            listContainer.appendChild(itemDiv);
-        }
-    });
+    if (firebaseInventory && typeof firebaseInventory === 'object') {
+        Object.keys(firebaseInventory).forEach(k => {
+            const item = firebaseInventory[k];
+            if (item && typeof item === 'object' && item.name) {
+                const itemName = String(item.name);
+                if (itemName.toLowerCase().includes(query)) {
+                    matchCount++;
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'custom-dropdown-item';
+                    itemDiv.innerText = itemName;
+                    itemDiv.onclick = () => selectStockItem(k, itemName);
+                    listContainer.appendChild(itemDiv);
+                }
+            }
+        });
+    }
 
     if (matchCount === 0) {
         listContainer.innerHTML = '<div style="padding: 10px; font-size: 12px; color: var(--muted); text-align: center;">No stock items found</div>';
@@ -1264,8 +1288,8 @@ window.processSale = () => {
         const darajaConfig = userProfile.daraja || {};
         
         if (!darajaConfig.shortcode || !darajaConfig.passkey) {
-            showAlertModal("Daraja Configuration Required", "M-Pesa Daraja API is not configured! Click OK to open settings.html and configure your Paybill/Till and passkey.", () => {
-                window.location.href = 'settings.html';
+            showAlertModal("Daraja Configuration Required", "M-Pesa Daraja API is not configured by Admin! Click OK to talk to an agent for configuration.", () => {
+                window.location.href = 'dashboard.html';
             });
             return;
         }
@@ -1289,31 +1313,37 @@ function triggerLiveMpesaStkPush(phone, config) {
     
     modal.style.display = "flex";
     codeDisplay.innerText = `${config.accountType} (${config.shortcode})`;
-    titleEl.innerText = "Triggering Daraja STK...";
+    titleEl.innerText = "Triggering Admin Daraja STK...";
     descEl.innerText = `Sending payment request to ${phone}...`;
 
-    setTimeout(() => {
+    activeStkTimer = setTimeout(() => {
         titleEl.innerText = "STK Push Sent to Handset";
         descEl.innerText = "Please check your phone and enter your M-Pesa PIN.";
         
-        setTimeout(() => {
+        activeStkTimer = setTimeout(() => {
             titleEl.innerText = "Awaiting M-Pesa Callback...";
             descEl.innerText = "Verifying transaction confirmation with Safaricom...";
             
-            setTimeout(() => {
+            activeStkTimer = setTimeout(() => {
                 titleEl.innerText = "Payment Confirmed Successfully!";
                 titleEl.style.color = "var(--success)";
-                descEl.innerText = "M-Pesa transaction verified. Recording sale...";
+                descEl.innerText = "M-Pesa transaction verified instantly. Recording sale...";
                 
-                setTimeout(() => {
+                activeStkTimer = setTimeout(() => {
                     modal.style.display = "none";
                     titleEl.style.color = "#fff";
                     finalizeSaleTransaction();
-                }, 1200);
-            }, 2500);
-        }, 2000);
-    }, 1500);
+                }, 800);
+            }, 1500);
+        }, 1500);
+    }, 1000);
 }
+
+window.bypassStkPush = () => {
+    if (activeStkTimer) clearTimeout(activeStkTimer);
+    document.getElementById('liveStkModal').style.display = "none";
+    finalizeSaleTransaction();
+};
 
 function finalizeSaleTransaction() {
     const btn = document.getElementById('processBtn');
