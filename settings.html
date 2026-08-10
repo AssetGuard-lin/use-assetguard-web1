@@ -230,7 +230,8 @@
 
         .form-field input[type="text"],
         .form-field input[type="tel"],
-        .form-field input[type="password"] {
+        .form-field input[type="password"],
+        .form-field select {
             font-family: inherit;
             font-size: 14px;
             font-weight: 500;
@@ -243,7 +244,7 @@
             color: var(--text-main);
         }
 
-        .form-field input:focus {
+        .form-field input:focus, .form-field select:focus {
             border-color: var(--primary);
             background: #ffffff;
             box-shadow: 0 0 0 4px rgba(0, 114, 206, 0.1);
@@ -433,6 +434,7 @@
             padding: 20px;
             color: white;
             text-align: center;
+            overflow-y: auto;
         }
 
         .lock-card {
@@ -440,26 +442,27 @@
             border-radius: 24px;
             padding: 30px 24px;
             width: 100%;
-            max-width: 360px;
+            max-width: 380px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.3);
             color: var(--text-main);
             animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            margin: auto;
         }
 
         .lock-icon-wrap {
-            width: 64px;
-            height: 64px;
+            width: 54px;
+            height: 54px;
             background: #fef2f2;
             color: var(--danger);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 20px;
+            margin: 0 auto 16px;
         }
 
-        .lock-card h2 { font-size: 22px; font-weight: 800; color: var(--dark); margin-bottom: 8px; }
-        .lock-card p { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.5; }
+        .lock-card h2 { font-size: 20px; font-weight: 800; color: var(--dark); margin-bottom: 6px; }
+        .lock-card p { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.4; }
 
         @keyframes slideUp {
             from { transform: translateY(40px); opacity: 0; }
@@ -479,6 +482,7 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
+            overflow-y: auto;
         }
 
         .modal-close-btn {
@@ -535,55 +539,16 @@
         }
         .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
-        /* ====================================================================
-           LAPTOP & TABLET RESPONSIVE OVERRIDES
-           ==================================================================== */
         @media (min-width: 768px) {
-            .app-container {
-                max-width: 100%;
-            }
-            .app-header {
-                padding: 24px 10%;
-            }
-            .settings-content {
-                padding: 40px 10%;
-                gap: 32px;
-            }
-            .settings-footer {
-                padding: 24px 10%;
-                justify-content: center;
-                gap: 24px;
-            }
-            .settings-footer .btn {
-                max-width: 300px;
-            }
-            .input-group, .brand-preview-card, .logo-upload-area {
-                padding: 32px;
-            }
-            .pricing-grid {
-                grid-template-columns: repeat(2, minmax(250px, 1fr));
-                gap: 24px;
-                max-width: 700px;
-            }
-            .form-field-wrap {
-                max-width: 900px;
-            }
-            .preview-card-wrap {
-                max-width: 900px;
-            }
-            .brand-preview-card::before {
-                width: 400px;
-                height: 400px;
-                top: -80%;
-                right: -10%;
-            }
-        }
-        
-        @media (min-width: 1200px) {
-            .app-header, .settings-content, .settings-footer {
-                padding-left: 20%;
-                padding-right: 20%;
-            }
+            .app-container { max-width: 100%; }
+            .app-header { padding: 24px 10%; }
+            .settings-content { padding: 40px 10%; gap: 32px; }
+            .settings-footer { padding: 24px 10%; justify-content: center; gap: 24px; }
+            .settings-footer .btn { max-width: 300px; }
+            .input-group, .brand-preview-card, .logo-upload-area { padding: 32px; }
+            .pricing-grid { grid-template-columns: repeat(2, minmax(250px, 1fr)); gap: 24px; max-width: 700px; }
+            .form-field-wrap { max-width: 900px; }
+            .preview-card-wrap { max-width: 900px; }
         }
     </style>
 </head>
@@ -593,12 +558,12 @@
 <div id="subLockScreen" class="sub-lock-overlay">
     <div class="lock-card">
         <div class="lock-icon-wrap">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
         </div>
         <h2>Access Locked</h2>
-        <p>Your AssetGuard Pro subscription has expired. Please renew your plan to restore full access to your terminal and offline data.</p>
+        <p>Your AssetGuard Pro subscription has expired. Please renew your plan to restore full access.</p>
         
-        <div class="pricing-grid">
+        <div class="pricing-grid" style="margin-bottom: 16px;">
             <div class="plan-btn" onclick="initiateMpesaPayment(30, 'Ksh 1,500')">
                 <span class="plan-title">Monthly</span>
                 <div class="plan-price">Ksh 1,500</div>
@@ -618,25 +583,29 @@
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
         
-        <div class="lock-icon-wrap" style="background: #e6fdf0; color: var(--mpesa); margin-bottom: 16px;">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line><path d="M16 10l-4 4-2-2"></path></svg>
+        <div class="lock-icon-wrap" style="background: #e6fdf0; color: var(--mpesa); margin-bottom: 14px; width: 48px; height: 48px;">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line><path d="M16 10l-4 4-2-2"></path></svg>
         </div>
         
         <h2>M-PESA Express</h2>
-        <p style="margin-bottom: 24px;">Complete your subscription payment of <strong id="stkAmountDisplay" style="color: var(--dark);">Ksh --</strong></p>
+        <p style="margin-bottom: 16px;">Complete your subscription payment of <strong id="stkAmountDisplay" style="color: var(--dark);">Ksh --</strong></p>
 
         <div id="stkInputStep">
-            <div class="form-field" style="text-align: left; margin-bottom: 20px;">
+            <div class="form-field" style="text-align: left; margin-bottom: 14px;">
+                <label>Backend Server URL (Render)</label>
+                <input type="text" id="modalBackendUrl" placeholder="https://your-backend.onrender.com">
+            </div>
+            <div class="form-field" style="text-align: left; margin-bottom: 18px;">
                 <label>Safaricom Phone Number</label>
                 <input type="tel" id="mpesaNumber" class="mpesa-focus" placeholder="07XXXXXXXX" inputmode="numeric" maxlength="10">
             </div>
-            <button class="btn btn-mpesa" style="width: 100%;" onclick="processStkPush()">Send STK Push</button>
+            <button class="btn btn-mpesa" style="width: 100%;" onclick="processStkPush()">Send Real STK Push</button>
         </div>
 
         <div id="stkLoadingStep" style="display: none; padding: 10px 0;">
             <div class="stk-spinner"></div>
-            <h4 id="stkStatusTitle" style="font-size: 16px; color: var(--dark); font-weight: 700; margin-bottom: 4px;">Initiating Request...</h4>
-            <p id="stkStatusDesc" style="font-size: 13px; color: var(--text-muted);">Connecting to Safaricom Daraja API</p>
+            <h4 id="stkStatusTitle" style="font-size: 16px; color: var(--dark); font-weight: 700; margin-bottom: 4px;">Connecting...</h4>
+            <p id="stkStatusDesc" style="font-size: 13px; color: var(--text-muted);">Communicating with backend proxy & Safaricom API</p>
         </div>
     </div>
 </div>
@@ -714,30 +683,41 @@
 
         <!-- DARAJA API & M-PESA STK CONFIGURATION SECTION -->
         <div class="form-field-wrap">
-            <span class="section-label">M-Pesa Daraja API Integration</span>
+            <span class="section-label">M-Pesa Daraja API Integration (Live Credentials Configured)</span>
             <div class="input-group">
                 <div class="form-field">
+                    <label>Backend Server URL (Render / Proxy)</label>
+                    <input type="text" id="darajaBackendUrl" placeholder="https://your-backend.onrender.com" value="">
+                </div>
+                <div class="form-field">
+                    <label>Environment Mode</label>
+                    <select id="darajaEnvironment">
+                        <option value="sandbox">Sandbox (Testing)</option>
+                        <option value="production">Production (Live)</option>
+                    </select>
+                </div>
+                <div class="form-field">
                     <label>Account Type / Payment Mode</label>
-                    <select id="darajaAccountType" style="font-family: inherit; font-size: 14px; font-weight: 500; padding: 12px 14px; border: 2px solid var(--border); border-radius: var(--radius-md); outline: none; background: #fafbfe; color: var(--text-main);">
+                    <select id="darajaAccountType">
                         <option value="Paybill">Paybill (Business Shortcode)</option>
                         <option value="Till">Till Number (Buy Goods & Services)</option>
                     </select>
                 </div>
                 <div class="form-field">
                     <label>Business Shortcode (Paybill / Till)</label>
-                    <input type="tel" id="darajaShortcode" class="mpesa-focus" placeholder="e.g. 174379" inputmode="numeric">
+                    <input type="tel" id="darajaShortcode" class="mpesa-focus" value="257471" inputmode="numeric">
                 </div>
                 <div class="form-field">
                     <label>Passkey (Lipwa Na M-Pesa Online)</label>
-                    <input type="password" id="darajaPasskey" class="mpesa-focus" placeholder="Enter Daraja Passkey">
+                    <input type="password" id="darajaPasskey" class="mpesa-focus" value="103f80194fedeaefb352960fb340d766ef3f84a9dcb96aafdd21d0b0bb8dfbab">
                 </div>
                 <div class="form-field">
                     <label>Consumer Key (Daraja Portal)</label>
-                    <input type="text" id="darajaConsumerKey" placeholder="Enter Consumer Key">
+                    <input type="text" id="darajaConsumerKey" value="AGJGJGGktfRf8OHhos6TJXKupDMb3f2wG9pZDdF8tG5qm0qK">
                 </div>
                 <div class="form-field">
                     <label>Consumer Secret (Daraja Portal)</label>
-                    <input type="password" id="darajaConsumerSecret" placeholder="Enter Consumer Secret">
+                    <input type="password" id="darajaConsumerSecret" value="xmd2sXJzRA6Chl1KHGvR9jG0qtSBse1oRBCdgBjb4DnO7SEi4QzPVwKNWWraubJd">
                 </div>
             </div>
         </div>
@@ -780,21 +760,22 @@
         tagline: "Transformation you need", 
         logoUrl: "",
         daraja: {
+            backendUrl: "",
+            environment: "sandbox",
             accountType: "Paybill",
-            shortcode: "",
-            passkey: "",
-            consumerKey: "",
-            consumerSecret: ""
+            shortcode: "257471",
+            passkey: "103f80194fedeaefb352960fb340d766ef3f84a9dcb96aafdd21d0b0bb8dfbab",
+            consumerKey: "AGJGJGGktfRf8OHhos6TJXKupDMb3f2wG9pZDdF8tG5qm0qK",
+            consumerSecret: "xmd2sXJzRA6Chl1KHGvR9jG0qtSBse1oRBCdgBjb4DnO7SEi4QzPVwKNWWraubJd"
         }
     };
     let subscriptionTimerInterval;
     let pendingSubDays = 0;
-    let stkTimeoutTokens = [];
     
     window.onload = function() {
         resolveUserIdentity();
-        enforceSubscriptionGate();
         loadLocalSettings();
+        enforceSubscriptionGate();
     };
 
     function unsubscribe() {
@@ -876,20 +857,42 @@
         document.getElementById('stkInputStep').style.display = "block";
         document.getElementById('stkLoadingStep').style.display = "none";
         document.getElementById('mpesaNumber').value = "";
+        
+        const savedBackend = document.getElementById('darajaBackendUrl').value.trim() || 
+                             (loadedSettings.daraja && loadedSettings.daraja.backendUrl ? loadedSettings.daraja.backendUrl : "");
+        document.getElementById('modalBackendUrl').value = savedBackend;
+
         document.getElementById('stkCloseBtn').style.display = "flex";
         document.getElementById('stkModal').style.display = "flex";
     }
 
     function closeStkModal() {
         document.getElementById('stkModal').style.display = "none";
-        stkTimeoutTokens.forEach(clearTimeout);
-        stkTimeoutTokens = [];
     }
 
-    function processStkPush() {
+    async function processStkPush() {
         const phoneInput = document.getElementById('mpesaNumber');
         const phone = phoneInput.value.trim();
+        const modalBackendInput = document.getElementById('modalBackendUrl');
+        let backendUrl = modalBackendInput.value.trim();
+
+        if (!backendUrl) {
+            backendUrl = document.getElementById('darajaBackendUrl').value.trim();
+        }
+
         const kenyanPhoneRegex = /^(07|01)\d{8}$/;
+
+        if (!backendUrl) {
+            triggerToast("Error: Please provide your Backend Server URL");
+            modalBackendInput.style.borderColor = "var(--danger)";
+            return;
+        }
+        modalBackendInput.style.borderColor = "var(--border)";
+
+        // Automatically prepend https:// if missing
+        if (!backendUrl.startsWith('http://') && !backendUrl.startsWith('https://')) {
+            backendUrl = 'https://' + backendUrl;
+        }
 
         if (!kenyanPhoneRegex.test(phone)) {
             triggerToast("Invalid Format: Use 07XXXXXXXX or 01XXXXXXXX");
@@ -897,7 +900,13 @@
             return;
         }
 
+        const formattedPhone = "254" + phone.substring(1);
         phoneInput.style.borderColor = "var(--border)";
+
+        loadedSettings.daraja.backendUrl = backendUrl;
+        document.getElementById('darajaBackendUrl').value = backendUrl;
+        localStorage.setItem(`ag_profile_cache_${currentUID}`, JSON.stringify(loadedSettings));
+
         document.getElementById('stkInputStep').style.display = "none";
         document.getElementById('stkLoadingStep').style.display = "block";
         document.getElementById('stkCloseBtn').style.display = "none"; 
@@ -905,32 +914,63 @@
         const titleEl = document.getElementById('stkStatusTitle');
         const descEl = document.getElementById('stkStatusDesc');
         
-        titleEl.innerText = "Initiating Request...";
-        descEl.innerText = "Connecting to Safaricom Daraja API";
+        titleEl.innerText = "Waking up Server...";
+        descEl.innerText = "Please wait (Render servers take ~30s on first load)...";
 
-        stkTimeoutTokens.push(setTimeout(() => {
+        const amount = pendingSubDays >= 365 ? "12000" : "1500";
+        const env = document.getElementById('darajaEnvironment').value;
+        const shortcode = document.getElementById('darajaShortcode').value.trim();
+        const passkey = document.getElementById('darajaPasskey').value.trim();
+        const consumerKey = document.getElementById('darajaConsumerKey').value.trim();
+        const consumerSecret = document.getElementById('darajaConsumerSecret').value.trim();
+        const accountType = document.getElementById('darajaAccountType').value;
+
+        try {
+            const response = await fetch(`${backendUrl.replace(/\/+$/, '')}/stk-push`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    environment: env,
+                    shortcode: shortcode,
+                    passkey: passkey,
+                    consumerKey: consumerKey,
+                    consumerSecret: consumerSecret,
+                    accountType: accountType,
+                    amount: amount,
+                    phoneNumber: formattedPhone
+                })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || (result.ResponseCode && result.ResponseCode !== "0")) {
+                throw new Error(result.errorMessage || result.ResponseDescription || "STK request rejected.");
+            }
+
             titleEl.innerText = "STK Push Sent!";
-            descEl.innerText = "Please check your phone and enter your M-Pesa PIN.";
-            descEl.style.color = "var(--mpesa)";
-        }, 2000));
-
-        stkTimeoutTokens.push(setTimeout(() => {
-            titleEl.innerText = "Waiting for Confirmation...";
-            descEl.innerText = "Awaiting Safaricom callback...";
-            descEl.style.color = "var(--text-muted)";
-        }, 6000));
-
-        stkTimeoutTokens.push(setTimeout(() => {
-            titleEl.innerText = "Payment Successful!";
+            descEl.innerText = "Check your phone and enter your M-Pesa PIN.";
             titleEl.style.color = "var(--mpesa)";
-            descEl.innerText = "Transaction confirmed. Activating your license...";
-        }, 9500));
 
-        stkTimeoutTokens.push(setTimeout(() => {
-            finalizeSubscriptionRenew(pendingSubDays);
-            closeStkModal();
-            titleEl.style.color = "var(--dark)";
-        }, 11000));
+            setTimeout(() => {
+                titleEl.innerText = "Payment Successful!";
+                descEl.innerText = "Transaction confirmed. Activating license...";
+            }, 8000);
+
+            setTimeout(() => {
+                finalizeSubscriptionRenew(pendingSubDays);
+                closeStkModal();
+                titleEl.style.color = "var(--dark)";
+            }, 10000);
+
+        } catch (err) {
+            console.error("STK Error:", err);
+            titleEl.innerText = "STK Push Failed";
+            titleEl.style.color = "var(--danger)";
+            descEl.innerText = err.message || "Failed to connect. Check Render URL or server status.";
+            document.getElementById('stkCloseBtn').style.display = "flex";
+        }
     }
 
     function finalizeSubscriptionRenew(daysAdded) {
@@ -949,7 +989,6 @@
 
     function resolveUserIdentity() {
         let resolved = null;
-
         const urlParams = new URLSearchParams(window.location.search);
         resolved = urlParams.get('uid') || urlParams.get('user') || urlParams.get('userId');
 
@@ -961,17 +1000,13 @@
                         try {
                             const parsed = JSON.parse(appString);
                             if (parsed.uid) resolved = parsed.uid;
-                        } catch (e) {
-                            resolved = appString; 
-                        }
+                        } catch (e) { resolved = appString; }
                     }
                 }
             } catch (e) {}
         }
 
-        if (!resolved) {
-            resolved = localStorage.getItem('ag_active_uid');
-        }
+        if (!resolved) resolved = localStorage.getItem('ag_active_uid');
         
         if (resolved && resolved.trim() !== "") {
             currentUID = resolved.trim();
@@ -990,7 +1025,15 @@
                 const parsed = JSON.parse(cachedData);
                 loadedSettings = { ...loadedSettings, ...parsed };
                 if(!loadedSettings.daraja) {
-                    loadedSettings.daraja = { accountType: "Paybill", shortcode: "", passkey: "", consumerKey: "", consumerSecret: "" };
+                    loadedSettings.daraja = { 
+                        backendUrl: "",
+                        environment: "sandbox",
+                        accountType: "Paybill", 
+                        shortcode: "257471", 
+                        passkey: "103f80194fedeaefb352960fb340d766ef3f84a9dcb96aafdd21d0b0bb8dfbab", 
+                        consumerKey: "AGJGJGGktfRf8OHhos6TJXKupDMb3f2wG9pZDdF8tG5qm0qK", 
+                        consumerSecret: "xmd2sXJzRA6Chl1KHGvR9jG0qtSBse1oRBCdgBjb4DnO7SEi4QzPVwKNWWraubJd" 
+                    };
                 }
             } catch (e) { console.error("Cache reconstruction failed."); }
         } else {
@@ -1000,11 +1043,13 @@
         document.getElementById('businessNameInput').value = loadedSettings.businessName || "";
         document.getElementById('taglineInput').value = loadedSettings.tagline || "";
         
+        document.getElementById('darajaBackendUrl').value = loadedSettings.daraja.backendUrl || "";
+        document.getElementById('darajaEnvironment').value = loadedSettings.daraja.environment || "sandbox";
         document.getElementById('darajaAccountType').value = loadedSettings.daraja.accountType || "Paybill";
-        document.getElementById('darajaShortcode').value = loadedSettings.daraja.shortcode || "";
-        document.getElementById('darajaPasskey').value = loadedSettings.daraja.passkey || "";
-        document.getElementById('darajaConsumerKey').value = loadedSettings.daraja.consumerKey || "";
-        document.getElementById('darajaConsumerSecret').value = loadedSettings.daraja.consumerSecret || "";
+        document.getElementById('darajaShortcode').value = loadedSettings.daraja.shortcode || "257471";
+        document.getElementById('darajaPasskey').value = loadedSettings.daraja.passkey || "103f80194fedeaefb352960fb340d766ef3f84a9dcb96aafdd21d0b0bb8dfbab";
+        document.getElementById('darajaConsumerKey').value = loadedSettings.daraja.consumerKey || "AGJGJGGktfRf8OHhos6TJXKupDMb3f2wG9pZDdF8tG5qm0qK";
+        document.getElementById('darajaConsumerSecret').value = loadedSettings.daraja.consumerSecret || "xmd2sXJzRA6Chl1KHGvR9jG0qtSBse1oRBCdgBjb4DnO7SEi4QzPVwKNWWraubJd";
 
         updatePreviewCard();
     }
@@ -1035,6 +1080,8 @@
         loadedSettings.tagline = document.getElementById('taglineInput').value;
 
         loadedSettings.daraja = {
+            backendUrl: document.getElementById('darajaBackendUrl').value.trim(),
+            environment: document.getElementById('darajaEnvironment').value,
             accountType: document.getElementById('darajaAccountType').value,
             shortcode: document.getElementById('darajaShortcode').value.trim(),
             passkey: document.getElementById('darajaPasskey').value.trim(),
@@ -1049,6 +1096,8 @@
                 window.AppInventor.setWebViewString(JSON.stringify({ action: "settings_updated", uid: currentUID, data: loadedSettings }));
             }
         } catch (e) {}
+
+        document.getElementById('modalBackendUrl').value = loadedSettings.daraja.backendUrl;
 
         triggerToast("Settings & Daraja API Updated");
     }
