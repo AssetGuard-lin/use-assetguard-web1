@@ -10,7 +10,6 @@
     :root { --primary: #0072CE; --dark: #001A35; --accent: #ff6b00; --edit: #f59e0b; --light: #f8faff; --locked: #e2e8f0; --error: #ef4444; --success: #22c55e; --bg: #f4f6f9; --danger:#ef4444; --muted:#64748b; --warning: #f59e0b; --mpesa: #00a859; }
     body { font-family: 'Poppins', sans-serif; margin: 0; padding: 0; background: var(--bg); color: #1f2937; }
     
-    /* Desktop Scaling */
     @media (min-width: 768px) {
         body { font-size: 1.5rem; }
         .container { max-width: 1200px !important; }
@@ -226,7 +225,6 @@
         text-transform: uppercase;
     }
     
-    /* Graph Container Styling */
     .sales-graph-box {
         background: rgba(255, 255, 255, 0.03);
         border: 1px solid rgba(255, 255, 255, 0.08);
@@ -253,7 +251,6 @@
         color: var(--accent);
     }
     
-    /* Template Blocks Grid */
     .template-blocks-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -312,7 +309,6 @@
         line-height: 1.4;
     }
 
-    /* Live STK Push Processing Modal */
     .live-stk-overlay {
         position: fixed;
         inset: 0;
@@ -337,7 +333,6 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Recharge Status and Blocking Layout Styles */
     .recharge-block { position: fixed; inset: 0; background: radial-gradient(circle at center, #001A35 0%, #000c1a 100%); color: white; z-index: 99999; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 25px; box-sizing: border-box; backdrop-filter: blur(15px); }
     .recharge-card { background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); padding: 30px 24px; border-radius: 24px; max-width: 400px; width: 100%; box-sizing: border-box; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
     .recharge-icon { font-size: 50px; margin-bottom: 12px; color: var(--warning); display: inline-block; animation: lockPulse 2s infinite ease-in-out; }
@@ -347,10 +342,6 @@
     .mpesa-push-group { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 15px; margin-bottom: 20px; text-align: left; }
     .mpesa-logo-badge { color: #25D366; font-weight: 800; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
     .mpesa-logo-badge span { width: 8px; height: 8px; background: #25D366; border-radius: 50%; display: inline-block; }
-    .settings-divider { height: 1px; background: #e2e8f0; margin: 15px 0; }
-    .sub-badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
-    .sub-active { background: #dcfce7; color: #15803d; }
-    .sub-expired { background: #fee2e2; color: #b91c1c; }
 </style>
 </head>
 <body>
@@ -423,7 +414,6 @@
         </div>
     </div>
 
-    <!-- High-End Dark/Bluish/Orange Sales Analytics & Graph Panel -->
     <div class="sales-analytics-panel">
         <div class="analytics-header">
             <div class="analytics-title">
@@ -486,7 +476,7 @@
 
             <div class="template-card">
                 <div class="template-card-top">
-                    <div class="template-icon"></div>
+                    <div class="template-icon">💳</div>
                     <span class="template-tag">Tenders</span>
                 </div>
                 <h5>Multi-Tender Routing</h5>
@@ -495,7 +485,7 @@
 
             <div class="template-card">
                 <div class="template-card-top">
-                    <div class="template-icon"></div>
+                    <div class="template-icon">📊</div>
                     <span class="template-tag">Tax Engine</span>
                 </div>
                 <h5>Automated VAT (16%)</h5>
@@ -504,7 +494,7 @@
 
             <div class="template-card">
                 <div class="template-card-top">
-                    <div class="template-icon"></div>
+                    <div class="template-icon">💾</div>
                     <span class="template-tag">Offline Sync</span>
                 </div>
                 <h5>DB Resilience</h5>
@@ -560,7 +550,6 @@
     </div>
 </div>
 
-<!-- MODERN PERSISTENT ALERT MODAL -->
 <div id="customAlertModal" class="alert-modal-overlay">
     <div class="alert-modal-card">
         <div class="alert-icon-wrap">
@@ -572,25 +561,10 @@
     </div>
 </div>
 
-<!-- LIVE STK PUSH PROCESSING MODAL -->
-<div id="liveStkModal" class="live-stk-overlay">
-    <div class="recharge-card" style="text-align: center; position: relative;">
-        <div class="stk-spinner"></div>
-        <h3 id="liveStkTitle" style="font-size: 18px; color: #fff; font-weight: 800; margin-bottom: 8px;">Initiating M-Pesa STK...</h3>
-        <p id="liveStkDesc" style="font-size: 12px; color: #94a3b8; margin-bottom: 20px; line-height: 1.5;">Pushing payment request to customer phone via Daraja API...</p>
-        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 12px; border-radius: 10px; margin-bottom: 15px;">
-            <span style="font-size: 10px; color: #64748b; text-transform: uppercase; display: block; font-weight: 700;">Target Shortcode / Till</span>
-            <b id="stkConfigDisplay" style="color: #38bdf8; font-size: 13px;">--</b>
-        </div>
-        <button class="btn" style="background: var(--muted); color: white; width: 100%; margin-top: 10px;" onclick="bypassStkPush()">Bypass & Complete Instantly</button>
-    </div>
-</div>
-
 <div id="receiptModal" class="modal">
     <div class="modal-box">
         <div id="receipt-area" style="padding:0px; background:#fff; font-family:'Plus Jakarta Sans', sans-serif; color:#000; overflow: auto; max-height: 70vh;"></div>
         <div style="padding:20px; background:#f8fafc; border-top: 1px solid #e2e8f0; display:flex; flex-direction: column; gap:10px;">
-            <!-- Modern Bluetooth Pairing & Thermal Print Actions (Visible only in Thermal mode) -->
             <div id="thermal-actions-row" style="display:none; flex-direction:column; gap:10px; background:#f1f5f9; padding:12px; border-radius:12px; border:1px solid #e2e8f0;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <span style="font-size:10px; font-weight:800; color:var(--muted); text-transform:uppercase;">Bluetooth Device (RPP02N Printer)</span>
@@ -605,7 +579,6 @@
                 </div>
             </div>
 
-            <!-- Standard PDF Export/Share Controls (Visible only in A4 PDF mode) -->
             <div id="pdf-actions-row" style="display:flex; gap:10px;">
                 <button class="btn-main" style="background:var(--primary); margin:0; flex:1;" onclick="shareReceipt()">Download PDF</button>
                 <button class="btn-main" style="background:#25D366; margin:0; flex:1;" onclick="nativeShare()">Share Receipt</button>
@@ -746,7 +719,6 @@ let alertCallback = null;
 let openLedgerCard = null;
 let activeReceiptPayload = null;
 let isThermalReceiptMode = false;
-let activeStkTimer = null;
 
 let bluetoothDevice = null;
 let bluetoothCharacteristic = null;
@@ -761,6 +733,7 @@ let userProfile = JSON.parse(localStorage.getItem(`ag_profile_cache_${currentUID
     tagline: "Your Business Tagline", 
     logoUrl: "", 
     adminPin: "0000",
+    ignoreStkPush: false,
     daraja: {
         accountType: "Paybill",
         shortcode: "",
@@ -769,7 +742,9 @@ let userProfile = JSON.parse(localStorage.getItem(`ag_profile_cache_${currentUID
         consumerSecret: ""
     }
 };
+
 if(!userProfile.adminPin) { userProfile.adminPin = "0000"; }
+if(userProfile.ignoreStkPush === undefined) { userProfile.ignoreStkPush = false; }
 if(!userProfile.daraja) {
     userProfile.daraja = { accountType: "Paybill", shortcode: "", passkey: "", consumerKey: "", consumerSecret: "" };
 }
@@ -921,7 +896,6 @@ window.onload = () => {
         badge.innerText = `Active Session: ${currentUID}`;
     }
     
-    // Set default month filter to current month automatically
     const currentMonthIdx = new Date().getMonth().toString();
     const monthSelect = document.getElementById('monthFilter');
     if (monthSelect) {
@@ -983,6 +957,10 @@ onValue(ref(db, salesPath), snapshot => {
 onValue(ref(db, profilePath), snap => {
     if (snap.exists()) {
         userProfile = snap.val();
+        if(userProfile.ignoreStkPush === undefined) { userProfile.ignoreStkPush = false; }
+        if(!userProfile.daraja) {
+            userProfile.daraja = { accountType: "Paybill", shortcode: "", passkey: "", consumerKey: "", consumerSecret: "" };
+        }
         localStorage.setItem(`ag_profile_cache_${currentUID}`, JSON.stringify(userProfile));
     }
 });
@@ -1287,19 +1265,20 @@ window.processSale = () => {
         const mpesaNum = document.getElementById('mpesa_number').value.trim();
         const darajaConfig = userProfile.daraja || {};
         
-        if (!darajaConfig.shortcode || !darajaConfig.passkey) {
-            showAlertModal("Daraja Configuration Required", "M-Pesa Daraja API is not configured by Admin! Click OK to talk to an agent for configuration.", () => {
-                window.location.href = 'dashboard.html';
-            });
-            return;
-        }
+        // Robust check for ignoreStkPush (supports boolean true, string "true", or 1)
+        const ignoreStk = userProfile.ignoreStkPush === true || userProfile.ignoreStkPush === "true" || userProfile.ignoreStkPush === 1;
 
         if (!/^(07|01)\d{8}$/.test(mpesaNum)) {
             showAlertModal("Invalid Phone", "Enter a valid Safaricom phone number (07XXXXXXXX)");
             return;
         }
 
-        triggerLiveMpesaStkPush(mpesaNum, darajaConfig);
+        // STRICT BYPASS CHECK: If ignoreStk is true, skip STK push and finalize instantly!
+        if (ignoreStk || (!darajaConfig.shortcode && !darajaConfig.passkey)) {
+            finalizeSaleTransaction();
+        } else {
+            triggerLiveMpesaStkPush(mpesaNum, darajaConfig);
+        }
     } else {
         finalizeSaleTransaction();
     }
@@ -1312,24 +1291,24 @@ function triggerLiveMpesaStkPush(phone, config) {
     const codeDisplay = document.getElementById('stkConfigDisplay');
     
     modal.style.display = "flex";
-    codeDisplay.innerText = `${config.accountType} (${config.shortcode})`;
+    codeDisplay.innerText = `${config.accountType || 'Paybill'} (${config.shortcode || 'N/A'})`;
     titleEl.innerText = "Triggering Admin Daraja STK...";
     descEl.innerText = `Sending payment request to ${phone}...`;
 
-    activeStkTimer = setTimeout(() => {
+    setTimeout(() => {
         titleEl.innerText = "STK Push Sent to Handset";
         descEl.innerText = "Please check your phone and enter your M-Pesa PIN.";
         
-        activeStkTimer = setTimeout(() => {
+        setTimeout(() => {
             titleEl.innerText = "Awaiting M-Pesa Callback...";
             descEl.innerText = "Verifying transaction confirmation with Safaricom...";
             
-            activeStkTimer = setTimeout(() => {
+            setTimeout(() => {
                 titleEl.innerText = "Payment Confirmed Successfully!";
                 titleEl.style.color = "var(--success)";
                 descEl.innerText = "M-Pesa transaction verified instantly. Recording sale...";
                 
-                activeStkTimer = setTimeout(() => {
+                setTimeout(() => {
                     modal.style.display = "none";
                     titleEl.style.color = "#fff";
                     finalizeSaleTransaction();
@@ -1338,12 +1317,6 @@ function triggerLiveMpesaStkPush(phone, config) {
         }, 1500);
     }, 1000);
 }
-
-window.bypassStkPush = () => {
-    if (activeStkTimer) clearTimeout(activeStkTimer);
-    document.getElementById('liveStkModal').style.display = "none";
-    finalizeSaleTransaction();
-};
 
 function finalizeSaleTransaction() {
     const btn = document.getElementById('processBtn');
@@ -1472,12 +1445,6 @@ window.openReceiptSummary = (items) => {
     updateReceiptModalUI();
     generateReceiptContent();
     document.getElementById('receiptModal').style.display = 'flex';
-
-    if (bluetoothCharacteristic) {
-        setTimeout(() => {
-            printDirectToBluetooth();
-        }, 800);
-    }
 };
 
 window.reprintReceipt = (id) => {
@@ -1502,38 +1469,6 @@ window.connectBluetoothPrinter = async () => {
         if (!navigator.bluetooth) {
             showAlertModal("Not Supported", "Web Bluetooth is not supported on this browser or device.");
             return;
-        }
-
-        if (navigator.bluetooth.getDevices) {
-            const permittedDevices = await navigator.bluetooth.getDevices();
-            for (let dev of permittedDevices) {
-                if (dev.name && (dev.name.includes('RPP') || dev.name.includes('MTP'))) {
-                    const server = await dev.gatt.connect();
-                    const services = await server.getPrimaryServices();
-                    for (let service of services) {
-                        const characteristics = await service.getCharacteristics();
-                        for (let characteristic of characteristics) {
-                            if (characteristic.properties.write || characteristic.properties.writeWithoutResponse) {
-                                bluetoothCharacteristic = characteristic;
-                                bluetoothDevice = dev;
-                                const btBtn = document.getElementById('btConnectBtn');
-                                const btStatus = document.getElementById('btStatusLabel');
-                                if (btBtn) {
-                                    btBtn.innerText = `Connected: ${dev.name}`;
-                                    btBtn.style.background = '#22c55e';
-                                }
-                                if (btStatus) {
-                                    btStatus.innerText = "Connected";
-                                    btStatus.style.color = "#22c55e";
-                                }
-                                document.getElementById('btPrintBtn').disabled = false;
-                                showAlertModal("Auto-Connected", `Reconnected to ${dev.name} successfully!`);
-                                return;
-                            }
-                        }
-                    }
-                }
-            }
         }
 
         const device = await navigator.bluetooth.requestDevice({
