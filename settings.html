@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AssetGuard Pro - Settings Terminal</title>
+    <title>AssetGuard Pro - Business Setup & Settings</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -16,20 +16,17 @@
             --text-muted: #64748b;
             --border: #e2e8f0;
             --success: #10b981;
+            --success-light: #d1fae5;
             --warning: #f59e0b;
             --danger: #ef4444;
+            --danger-light: #fee2e2;
             --mpesa: #00a859;
             --radius-lg: 16px;
             --radius-md: 12px;
             --shadow: 0 10px 25px -5px rgba(0, 26, 53, 0.05), 0 8px 10px -6px rgba(0, 26, 53, 0.05);
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            -webkit-tap-highlight-color: transparent;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -39,573 +36,294 @@
             display: flex;
             justify-content: center;
             align-items: flex-start;
-            padding: 0;
         }
 
-        /* Standalone App Container */
         .app-container {
             width: 100%;
             max-width: 480px;
             background: var(--card-bg);
             min-height: 100vh;
-            box-shadow: 0 0 40px rgba(0, 0, 0, 0.03);
+            box-shadow: 0 0 40px rgba(0,0,0,0.03);
             display: flex;
             flex-direction: column;
             position: relative;
         }
 
-        /* Header Navigation */
+        /* Header */
         .app-header {
-            position: sticky;
-            top: 0;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            padding: 16px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border);
-            z-index: 100;
+            position: sticky; top: 0; background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px); padding: 16px 20px;
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid var(--border); z-index: 100;
         }
-
-        .header-title {
-            font-size: 16px;
-            font-weight: 800;
-            color: var(--dark);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .header-title span {
-            color: var(--primary);
-        }
+        .header-title { font-size: 16px; font-weight: 800; color: var(--dark); display: flex; align-items: center; gap: 8px; }
+        .header-title span { color: var(--primary); }
 
         .back-btn {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            padding: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: 0.2s;
+            background: none; border: none; color: var(--text-muted); cursor: pointer;
+            padding: 4px; display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; transition: 0.2s;
         }
+        .back-btn:active { background: var(--primary-light); color: var(--primary); }
 
-        .back-btn:active {
-            background: var(--primary-light);
-            color: var(--primary);
-        }
-
-        /* Settings Scroll Area */
+        /* Content Area */
         .settings-content {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            padding-bottom: 100px;
+            flex: 1; padding: 20px; overflow-y: auto;
+            display: flex; flex-direction: column; gap: 20px; padding-bottom: 120px;
         }
 
-        /* Section Labels */
         .section-label {
-            font-size: 11px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: var(--text-muted);
-            display: block;
-            margin-bottom: 8px;
+            font-size: 11px; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 0.8px; color: var(--text-muted); display: block; margin-bottom: 8px;
         }
 
-        /* Live Brand Card Preview */
+        /* Brand Preview Card */
         .brand-preview-card {
             background: linear-gradient(135deg, var(--dark) 0%, #002d5c 100%);
-            color: white;
-            padding: 20px;
-            border-radius: var(--radius-lg);
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 10px 20px rgba(0, 26, 53, 0.15);
+            color: white; padding: 20px; border-radius: var(--radius-lg);
+            position: relative; box-shadow: 0 10px 20px rgba(0, 26, 53, 0.15);
         }
-
-        .brand-preview-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -20%;
-            width: 250px;
-            height: 250px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(0,114,206,0.2) 0%, rgba(0,0,0,0) 70%);
-            pointer-events: none;
-        }
-
-        .card-header-flex {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: relative;
-            z-index: 2;
-        }
-
-        .card-identity h3 {
-            font-family: 'Poppins', sans-serif;
-            font-size: 18px;
-            font-weight: 700;
-            letter-spacing: -0.3px;
-        }
-
-        .card-identity p {
-            font-size: 10px;
-            opacity: 0.8;
-            font-weight: 500;
-            margin-top: 2px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
+        .card-header-flex { display: flex; justify-content: space-between; align-items: center; }
+        .card-identity h3 { font-family: 'Poppins', sans-serif; font-size: 18px; font-weight: 700; }
+        .card-identity p { font-size: 10px; opacity: 0.8; margin-top: 2px; text-transform: uppercase; }
         .card-logo-slot {
-            width: 42px;
-            height: 42px;
-            border-radius: var(--radius-md);
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
+            width: 42px; height: 42px; border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, 0.1); display: flex; align-items: center; justify-content: center;
+            border: 1px solid rgba(255,255,255,0.15); overflow: hidden;
         }
-
-        .card-logo-slot img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
+        .card-logo-slot img { width: 100%; height: 100%; object-fit: cover; }
         .preview-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 4px 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 100px;
-            font-size: 8px;
-            font-weight: 800;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            align-self: flex-start;
-            margin-top: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px;
+            background: rgba(255,255,255,0.1); border-radius: 100px; font-size: 8px;
+            font-weight: 800; text-transform: uppercase; margin-top: 15px; border: 1px solid rgba(255,255,255,0.05);
         }
 
-        /* Setting Forms Group */
+        /* Input Groups */
         .input-group {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
+            background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: var(--radius-lg); padding: 16px;
+            display: flex; flex-direction: column; gap: 14px;
         }
-
-        .form-field {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .form-field label {
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--dark);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
+        .form-field { display: flex; flex-direction: column; gap: 6px; }
+        .form-field label { font-size: 11px; font-weight: 700; color: var(--dark); text-transform: uppercase; }
         .form-field input[type="text"],
         .form-field input[type="tel"],
         .form-field input[type="password"],
         .form-field select {
-            font-family: inherit;
-            font-size: 14px;
-            font-weight: 500;
-            padding: 12px 14px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius-md);
-            outline: none;
-            transition: 0.2s;
-            background: #fafbfe;
-            color: var(--text-main);
+            font-family: inherit; font-size: 14px; padding: 12px 14px;
+            border: 2px solid var(--border); border-radius: var(--radius-md); background: #fafbfe;
+            outline: none; transition: 0.2s; color: var(--text-main);
         }
+        .form-field input:focus, .form-field select:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(0, 114, 206, 0.1); }
+        .form-field input.mpesa-focus:focus { border-color: var(--mpesa); box-shadow: 0 0 0 4px rgba(0, 168, 89, 0.1); }
 
-        .form-field input:focus, .form-field select:focus {
-            border-color: var(--primary);
-            background: #ffffff;
-            box-shadow: 0 0 0 4px rgba(0, 114, 206, 0.1);
-        }
-        
-        .form-field input.mpesa-focus:focus {
-            border-color: var(--mpesa);
-            box-shadow: 0 0 0 4px rgba(0, 168, 89, 0.1);
-        }
-
-        /* File Upload Block */
+        /* Logo Upload */
         .logo-upload-area {
-            border: 2px dashed var(--border);
-            border-radius: var(--radius-md);
-            padding: 16px;
-            text-align: center;
-            cursor: pointer;
-            transition: 0.2s;
-            background: #fafbfe;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            position: relative;
+            border: 2px dashed var(--border); border-radius: var(--radius-md);
+            padding: 16px; text-align: center; cursor: pointer; background: #fafbfe;
+            display: flex; flex-direction: column; align-items: center; gap: 8px; position: relative;
         }
+        .logo-upload-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+        .upload-icon { color: var(--primary); }
+        .upload-text b { color: var(--primary); font-size: 12px; }
+        .upload-text p { font-size: 10px; color: var(--text-muted); }
 
-        .logo-upload-area:hover, .logo-upload-area:active {
-            border-color: var(--primary);
-            background: var(--primary-light);
+        /* Collapsible Section (Skip Configuration Feature) */
+        .collapsible-section {
+            border: 1px solid var(--border); border-radius: var(--radius-lg);
+            background: #fff; overflow: hidden; transition: box-shadow 0.3s;
         }
+        .collapsible-section.expanded { box-shadow: var(--shadow); }
 
-        .logo-upload-area input[type="file"] {
-            position: absolute;
-            inset: 0;
-            opacity: 0;
-            cursor: pointer;
+        .section-toggle-header {
+            padding: 16px; display: flex; justify-content: space-between;
+            align-items: center; cursor: pointer; background: #f8fafc;
         }
-
-        .upload-icon {
-            color: var(--primary);
-        }
-
-        .upload-text b {
-            color: var(--primary);
-            font-size: 12px;
-        }
-
-        .upload-text p {
-            font-size: 10px;
-            color: var(--text-muted);
-            margin-top: 2px;
-        }
-
-        /* Sticky Footer Controls */
-        .settings-footer {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            padding: 16px 20px;
-            border-top: 1px solid var(--border);
-            display: flex;
-            gap: 12px;
-            z-index: 100;
-        }
-
-        .btn {
-            flex: 1;
-            font-family: inherit;
-            font-size: 14px;
-            font-weight: 700;
-            padding: 14px;
-            border: none;
-            border-radius: var(--radius-md);
-            cursor: pointer;
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
+        .section-toggle-header:hover { background: #f1f5f9; }
+        .toggle-title-wrap h3 { font-size: 14px; font-weight: 700; color: var(--dark); display: flex; align-items: center; gap: 8px; }
+        .toggle-title-wrap p { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
         
-        .btn-text-danger {
-            background: none;
-            border: none;
-            color: var(--danger);
-            font-size: 11px;
-            font-weight: 700;
-            text-decoration: underline;
-            cursor: pointer;
-            padding: 4px;
-            margin-top: 10px;
-            display: block;
-            width: 100%;
-            text-align: center;
+        .status-badge {
+            font-size: 10px; font-weight: 800; text-transform: uppercase;
+            padding: 4px 10px; border-radius: 100px;
         }
+        .badge-configured { background: var(--success-light); color: var(--success); }
+        .badge-skipped { background: var(--danger-light); color: #b91c1c; }
+        .badge-pending { background: #e2e8f0; color: var(--text-muted); }
 
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:active { background: #00569e; transform: scale(0.98); }
-        .btn-secondary { background: #f1f5f9; color: var(--text-muted); }
-        .btn-secondary:active { background: #e2e8f0; }
-        .btn-mpesa { background: var(--mpesa); color: white; }
-        .btn-mpesa:active { background: #008f4c; transform: scale(0.98); }
+        .chevron-icon { transition: transform 0.3s ease; color: var(--text-muted); }
+        .collapsible-section.expanded .chevron-icon { transform: rotate(180deg); }
 
-        /* SUBSCRIPTION SYSTEM STYLES */
+        .collapsible-body {
+            padding: 16px; display: none;
+            flex-direction: column; gap: 14px; border-top: 1px solid var(--border);
+        }
+        .collapsible-section.expanded .collapsible-body { display: flex; }
+
+        .skip-action-row {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-top: 6px; padding-top: 10px; border-top: 1px dashed var(--border);
+        }
+        .skip-btn {
+            background: none; border: none; color: var(--danger);
+            font-size: 12px; font-weight: 700; cursor: pointer; padding: 6px 12px;
+            border-radius: var(--radius-md); transition: 0.2s;
+        }
+        .skip-btn:hover { background: var(--danger-light); }
+
+        /* Subscription Status Box */
         .sub-status-box {
             background: linear-gradient(145deg, #f0fdf4 0%, #dcfce7 100%);
-            border: 1px solid #bbf7d0;
-            border-radius: var(--radius-md);
-            padding: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 14px;
-        }
-        .sub-status-box.expired {
-            background: linear-gradient(145deg, #fef2f2 0%, #fee2e2 100%);
-            border-color: #fecaca;
+            border: 1px solid #bbf7d0; border-radius: var(--radius-md);
+            padding: 14px; display: flex; align-items: center; justify-content: space-between;
         }
         .sub-status-info h4 { font-size: 14px; color: var(--dark); font-weight: 700; }
         .sub-status-info p { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-top: 2px; }
-        
-        .timer-badge {
-            background: var(--dark);
-            color: white;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-family: monospace;
-            font-size: 14px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
+        .timer-badge { background: var(--dark); color: white; padding: 6px 12px; border-radius: 8px; font-family: monospace; font-size: 14px; font-weight: 700; }
 
-        .pricing-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
+        .pricing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
         .plan-btn {
-            background: #ffffff;
-            border: 2px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 16px 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: 0.2s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
+            background: #ffffff; border: 2px solid var(--border); border-radius: var(--radius-md);
+            padding: 14px 10px; text-align: center; cursor: pointer; transition: 0.2s;
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
         }
         .plan-btn:active { transform: scale(0.96); }
-        .plan-btn.popular { border-color: var(--primary); background: var(--primary-light); position: relative; }
-        .plan-btn.popular::after {
-            content: 'Save 20%';
-            position: absolute;
-            top: -10px;
-            background: var(--primary);
-            color: white;
-            font-size: 9px;
-            font-weight: 800;
-            padding: 2px 8px;
-            border-radius: 100px;
-            text-transform: uppercase;
+        .plan-btn.popular { border-color: var(--primary); background: var(--primary-light); }
+        .plan-title { font-size: 12px; font-weight: 700; color: var(--dark); }
+        .plan-price { font-size: 16px; font-weight: 800; color: var(--primary); }
+
+        /* Footer */
+        .settings-footer {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px);
+            padding: 16px 20px; border-top: 1px solid var(--border);
+            display: flex; gap: 12px; z-index: 100;
         }
-        .plan-title { font-size: 13px; font-weight: 700; color: var(--dark); }
-        .plan-price { font-size: 18px; font-weight: 800; color: var(--primary); }
-        .plan-price span { font-size: 11px; color: var(--text-muted); font-weight: 500; }
-
-        /* GLOBAL SUBSCRIPTION LOCK OVERLAY */
-        .sub-lock-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 26, 53, 0.95);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            z-index: 9999;
-            display: flex; 
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            color: white;
-            text-align: center;
-            overflow-y: auto;
+        .btn {
+            flex: 1; font-family: inherit; font-size: 14px; font-weight: 700;
+            padding: 14px; border: none; border-radius: var(--radius-md);
+            cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;
         }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:active { background: #00569e; }
+        .btn-secondary { background: #f1f5f9; color: var(--text-muted); }
+        .btn-mpesa { background: var(--mpesa); color: white; }
 
-        .lock-card {
-            background: var(--card-bg);
-            border-radius: 24px;
-            padding: 30px 24px;
-            width: 100%;
-            max-width: 380px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-            color: var(--text-main);
-            animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            margin: auto;
+        /* Global Subscription Enforcement Guard Overlay */
+        #globalSubBlockOverlay {
+            position: fixed; inset: 0; background: rgba(0, 26, 53, 0.96);
+            backdrop-filter: blur(16px); z-index: 1000000; display: none;
+            align-items: center; justify-content: center; padding: 20px; color: #ffffff;
         }
-
-        .lock-icon-wrap {
-            width: 54px;
-            height: 54px;
-            background: #fef2f2;
-            color: var(--danger);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 16px;
+        .sub-block-card {
+            background: #ffffff; color: #0f172a; width: 100%; max-width: 420px;
+            border-radius: 24px; padding: 32px 24px; text-align: center;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.5);
         }
-
-        .lock-card h2 { font-size: 20px; font-weight: 800; color: var(--dark); margin-bottom: 6px; }
-        .lock-card p { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.4; }
-
-        @keyframes slideUp {
-            from { transform: translateY(40px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+        .sub-block-icon {
+            width: 64px; height: 64px; background: #fee2e2; color: #ef4444;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;
         }
+        .sub-block-plans { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+        .sub-plan-option {
+            background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px;
+            padding: 14px; cursor: pointer; text-align: center;
+        }
+        .sub-plan-option:hover { border-color: #0072CE; background: #e6f0fa; }
+        .sub-plan-option span { font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; text-transform: uppercase; }
+        .sub-plan-option b { font-size: 15px; font-weight: 800; color: var(--primary); display: block; margin-top: 2px; }
 
-        /* STK PUSH MODAL OVERLAY */
+        /* STK Push Modal */
         .stk-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 26, 53, 0.85);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            z-index: 10000;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            overflow-y: auto;
+            position: fixed; inset: 0; background: rgba(0, 26, 53, 0.9);
+            backdrop-filter: blur(8px); z-index: 2000000; display: none;
+            flex-direction: column; align-items: center; justify-content: center; padding: 20px;
         }
-
+        .lock-card {
+            background: var(--card-bg); border-radius: 24px; padding: 30px 24px;
+            width: 100%; max-width: 380px; text-align: center; color: var(--text-main);
+            position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        }
         .modal-close-btn {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            background: #f1f5f9;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            padding: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: 0.2s;
+            position: absolute; top: 16px; right: 16px; background: #f1f5f9;
+            border: none; color: var(--text-muted); cursor: pointer; padding: 8px;
+            display: flex; align-items: center; justify-content: center; border-radius: 50%;
         }
-        .modal-close-btn:active { background: #e2e8f0; color: var(--dark); }
-
         .stk-spinner {
-            width: 44px;
-            height: 44px;
-            border: 4px solid var(--primary-light);
-            border-top-color: var(--mpesa);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 16px;
+            width: 44px; height: 44px; border: 4px solid var(--primary-light);
+            border-top-color: var(--mpesa); border-radius: 50%;
+            animation: spin 1s linear infinite; margin: 0 auto 16px;
         }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Alert Toast */
+        /* Toast Notifications */
         .toast {
-            position: fixed;
-            bottom: 90px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: var(--dark);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 100px;
-            font-size: 12px;
-            font-weight: 700;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            z-index: 10005;
-            opacity: 0;
-            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(100px);
+            background: var(--dark); color: white; padding: 12px 24px; border-radius: 100px;
+            font-size: 12px; font-weight: 700; z-index: 10005; opacity: 0;
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; align-items: center; gap: 8px;
             border: 1px solid rgba(255,255,255,0.1);
         }
         .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-
-        @media (min-width: 768px) {
-            .app-container { max-width: 100%; }
-            .app-header { padding: 24px 10%; }
-            .settings-content { padding: 40px 10%; gap: 32px; }
-            .settings-footer { padding: 24px 10%; justify-content: center; gap: 24px; }
-            .settings-footer .btn { max-width: 300px; }
-            .input-group, .brand-preview-card, .logo-upload-area { padding: 32px; }
-            .pricing-grid { grid-template-columns: repeat(2, minmax(250px, 1fr)); gap: 24px; max-width: 700px; }
-            .form-field-wrap { max-width: 900px; }
-            .preview-card-wrap { max-width: 900px; }
-        }
     </style>
+
+    <!-- Firebase Classic SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body>
 
-<!-- GLOBAL SUBSCRIPTION LOCK -->
-<div id="subLockScreen" class="sub-lock-overlay">
-    <div class="lock-card">
-        <div class="lock-icon-wrap">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+<!-- Global Screen Block Overlay for Expired / Suspended Accounts -->
+<div id="globalSubBlockOverlay">
+    <div class="sub-block-card">
+        <div class="sub-block-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
         </div>
-        <h2>Access Locked</h2>
-        <p>Your AssetGuard Pro subscription has expired. Please renew your plan to restore full access.</p>
+        <h2 id="subBlockTitle" style="font-size:20px; font-weight:800; color:var(--dark); margin-bottom:8px;">Subscription Expired</h2>
+        <p id="subBlockDesc" style="font-size:13px; color:var(--text-muted); line-height:1.5; margin-bottom:20px;">Your platform access license has elapsed. Click a plan below to prompt payment and unlock your platform instantly.</p>
         
-        <div class="pricing-grid" style="margin-bottom: 16px;">
-            <div class="plan-btn" onclick="initiateMpesaPayment(30, 'Ksh 1,500')">
-                <span class="plan-title">Monthly</span>
-                <div class="plan-price">Ksh 1,500</div>
+        <div class="sub-block-plans">
+            <div class="sub-plan-option" onclick="initiateMpesaPayment(30, 1500, 'Ksh 1,500')">
+                <span>Monthly</span>
+                <b>Ksh 1,500</b>
             </div>
-            <div class="plan-btn popular" onclick="initiateMpesaPayment(365, 'Ksh 12,000')">
-                <span class="plan-title">Yearly</span>
-                <div class="plan-price">Ksh 12,000</div>
+            <div class="sub-plan-option" onclick="initiateMpesaPayment(365, 12000, 'Ksh 12,000')" style="border-color: #0072CE; background: #e6f0fa;">
+                <span>Yearly</span>
+                <b>Ksh 12,000</b>
             </div>
         </div>
     </div>
 </div>
 
-<!-- M-PESA STK PUSH MODAL -->
+<!-- STK Push Processing Modal -->
 <div id="stkModal" class="stk-overlay">
-    <div class="lock-card" style="position: relative; text-align: center;">
+    <div class="lock-card">
         <button class="modal-close-btn" onclick="closeStkModal()" id="stkCloseBtn">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
         
-        <div class="lock-icon-wrap" style="background: #e6fdf0; color: var(--mpesa); margin-bottom: 14px; width: 48px; height: 48px;">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line><path d="M16 10l-4 4-2-2"></path></svg>
+        <div style="width: 52px; height: 52px; background: #e6fdf0; color: var(--mpesa); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
         </div>
         
-        <h2>M-PESA Express</h2>
-        <p style="margin-bottom: 16px;">Complete your subscription payment of <strong id="stkAmountDisplay" style="color: var(--dark);">Ksh --</strong></p>
+        <h2 style="font-size:18px; font-weight:800; color:var(--dark); margin-bottom:4px;">M-PESA Express</h2>
+        <p style="margin-bottom: 16px; font-size: 13px; color: var(--text-muted);">Subscription fee: <strong id="stkAmountDisplay" style="color: var(--dark);">Ksh --</strong></p>
 
+        <!-- STEP 1: Phone input -->
         <div id="stkInputStep">
-            <div class="form-field" style="text-align: left; margin-bottom: 14px;">
-                <label>Backend Server URL (Render)</label>
-                <input type="text" id="modalBackendUrl" placeholder="https://your-backend.onrender.com">
-            </div>
-            <div class="form-field" style="text-align: left; margin-bottom: 18px;">
+            <div class="form-field" style="text-align: left; margin-bottom: 16px;">
                 <label>Safaricom Phone Number</label>
                 <input type="tel" id="mpesaNumber" class="mpesa-focus" placeholder="07XXXXXXXX" inputmode="numeric" maxlength="10">
             </div>
             <button class="btn btn-mpesa" style="width: 100%;" onclick="processStkPush()">Send Real STK Push</button>
         </div>
 
+        <!-- STEP 2: Loading & Status Polling -->
         <div id="stkLoadingStep" style="display: none; padding: 10px 0;">
-            <div class="stk-spinner"></div>
-            <h4 id="stkStatusTitle" style="font-size: 16px; color: var(--dark); font-weight: 700; margin-bottom: 4px;">Connecting...</h4>
-            <p id="stkStatusDesc" style="font-size: 13px; color: var(--text-muted);">Communicating with backend proxy & Safaricom API</p>
+            <div class="stk-spinner" id="stkSpinnerIcon"></div>
+            <h4 id="stkStatusTitle" style="font-size: 16px; color: var(--dark); font-weight: 700; margin-bottom: 4px;">Sending STK Push...</h4>
+            <p id="stkStatusDesc" style="font-size: 13px; color: var(--text-muted); line-height: 1.4; margin-bottom: 16px;">Connecting to Safaricom API...</p>
+            <button class="btn btn-secondary" id="stkRetryBtn" style="display: none; width: 100%; font-size: 13px;" onclick="resetStkModal()">Try Again</button>
         </div>
     </div>
 </div>
@@ -615,14 +333,13 @@
         <button class="back-btn" onclick="exitPortal()">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
         </button>
-        <div class="header-title">
-            AssetGuard <span>Settings</span>
-        </div>
+        <div class="header-title">AssetGuard <span>Settings</span></div>
         <div style="width: 20px;"></div>
     </header>
 
     <main class="settings-content">
-        <div class="preview-card-wrap">
+        <!-- Branding Visualizer Card -->
+        <div>
             <span class="section-label">Branding Visualizer</span>
             <div class="brand-preview-card">
                 <div class="card-header-flex">
@@ -641,33 +358,32 @@
             </div>
         </div>
 
-        <div class="form-field-wrap">
-            <span class="section-label">Subscription & Billing</span>
+        <!-- Platform Licensing & Subscription Area -->
+        <div>
+            <span class="section-label">Platform Licensing & Subscription</span>
             <div class="input-group">
-                <div class="sub-status-box" id="subStatusBox">
+                <div class="sub-status-box">
                     <div class="sub-status-info">
-                        <h4 id="subStatusTitle">Pro License Active</h4>
-                        <p>Time remaining to expiration</p>
+                        <h4 id="subStatusTitle">License Status</h4>
+                        <p id="subStatusDesc">Active Subscription Plan</p>
                     </div>
-                    <div class="timer-badge" id="settingsTimer">--:--:--</div>
+                    <div class="timer-badge" id="settingsTimer">Active</div>
                 </div>
-                
-                <button class="btn-text-danger" onclick="unsubscribe()">Cancel Subscription</button>
-
                 <div class="pricing-grid">
-                    <div class="plan-btn" onclick="initiateMpesaPayment(30, 'Ksh 1,500')">
-                        <span class="plan-title">Monthly</span>
+                    <div class="plan-btn" onclick="initiateMpesaPayment(30, 1500, 'Ksh 1,500')">
+                        <span class="plan-title">Monthly Plan</span>
                         <div class="plan-price">Ksh 1,500</div>
                     </div>
-                    <div class="plan-btn popular" onclick="initiateMpesaPayment(365, 'Ksh 12,000')">
-                        <span class="plan-title">Yearly</span>
+                    <div class="plan-btn popular" onclick="initiateMpesaPayment(365, 12000, 'Ksh 12,000')">
+                        <span class="plan-title">Yearly Plan</span>
                         <div class="plan-price">Ksh 12,000</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="form-field-wrap">
+        <!-- Corporate Settings (Required Identity) -->
+        <div>
             <span class="section-label">Corporate Settings</span>
             <div class="input-group">
                 <div class="form-field">
@@ -681,48 +397,58 @@
             </div>
         </div>
 
-        <!-- DARAJA API & M-PESA STK CONFIGURATION SECTION -->
-        <div class="form-field-wrap">
-            <span class="section-label">M-Pesa Daraja API Integration (Live Credentials Configured)</span>
-            <div class="input-group">
-                <div class="form-field">
-                    <label>Backend Server URL (Render / Proxy)</label>
-                    <input type="text" id="darajaBackendUrl" placeholder="https://your-backend.onrender.com" value="">
+        <!-- COLLAPSIBLE & OPTIONAL: My Sales M-Pesa Integration (POS Credentials) -->
+        <div class="collapsible-section" id="salesSection">
+            <div class="section-toggle-header" onclick="toggleSalesConfig()">
+                <div class="toggle-title-wrap">
+                    <h3>Accept Customer Payments(STK push)) <span id="salesStatusBadge" class="status-badge badge-pending">Optional</span></h3>
+                    <p>Configure your own Paybill/Till for customer sales</p>
                 </div>
+                <div class="chevron-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
+            </div>
+            <div class="collapsible-body">
                 <div class="form-field">
                     <label>Environment Mode</label>
-                    <select id="darajaEnvironment">
-                        <option value="sandbox">Sandbox (Testing)</option>
+                    <select id="salesEnvironment">
                         <option value="production">Production (Live)</option>
+                        <option value="sandbox">Sandbox (Testing)</option>
                     </select>
                 </div>
                 <div class="form-field">
                     <label>Account Type / Payment Mode</label>
-                    <select id="darajaAccountType">
+                    <select id="salesAccountType">
                         <option value="Paybill">Paybill (Business Shortcode)</option>
                         <option value="Till">Till Number (Buy Goods & Services)</option>
                     </select>
                 </div>
                 <div class="form-field">
-                    <label>Business Shortcode (Paybill / Till)</label>
-                    <input type="tel" id="darajaShortcode" class="mpesa-focus" value="257471" inputmode="numeric">
+                    <label>My Business Shortcode / Till Number</label>
+                    <input type="tel" id="salesShortcode" class="mpesa-focus" placeholder="e.g. 257471" inputmode="numeric">
                 </div>
                 <div class="form-field">
-                    <label>Passkey (Lipwa Na M-Pesa Online)</label>
-                    <input type="password" id="darajaPasskey" class="mpesa-focus" value="103f80194fedeaefb352960fb340d766ef3f84a9dcb96aafdd21d0b0bb8dfbab">
+                    <label>My Passkey (Lipwa Na M-Pesa Online)</label>
+                    <input type="password" id="salesPasskey" class="mpesa-focus" placeholder="Enter your Lipwa passkey">
                 </div>
                 <div class="form-field">
-                    <label>Consumer Key (Daraja Portal)</label>
-                    <input type="text" id="darajaConsumerKey" value="AGJGJGGktfRf8OHhos6TJXKupDMb3f2wG9pZDdF8tG5qm0qK">
+                    <label>My Consumer Key (Daraja Portal)</label>
+                    <input type="text" id="salesConsumerKey" placeholder="Enter your Consumer Key">
                 </div>
                 <div class="form-field">
-                    <label>Consumer Secret (Daraja Portal)</label>
-                    <input type="password" id="darajaConsumerSecret" value="xmd2sXJzRA6Chl1KHGvR9jG0qtSBse1oRBCdgBjb4DnO7SEi4QzPVwKNWWraubJd">
+                    <label>My Consumer Secret (Daraja Portal)</label>
+                    <input type="password" id="salesConsumerSecret" placeholder="Enter your Consumer Secret">
+                </div>
+                
+                <div class="skip-action-row">
+                    <span style="font-size:11px; color:var(--text-muted);">Don't have automated keys yet?</span>
+                    <button class="skip-btn" onclick="skipSalesConfig(event)">Skip Configuration for Now</button>
                 </div>
             </div>
         </div>
 
-        <div class="form-field-wrap">
+        <!-- Corporate Emblem Upload -->
+        <div>
             <span class="section-label">Corporate Emblem</span>
             <div class="input-group">
                 <div class="logo-upload-area">
@@ -732,7 +458,7 @@
                     </div>
                     <div class="upload-text">
                         <b>Upload Corporate Logo</b>
-                        <p>Select an image from your device</p>
+                        <p>Select image from device storage</p>
                     </div>
                 </div>
             </div>
@@ -748,151 +474,187 @@
     </footer>
 </div>
 
+<!-- Toast Notification -->
 <div id="toastBox" class="toast">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="color: var(--success);"><polyline points="20 6 9 17 4 12"></polyline></svg>
     <span id="toastText">Settings Updated Successfully</span>
 </div>
 
 <script>
+    const firebaseConfig = { 
+        apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA", 
+        authDomain: "assetguard-c8c8c.firebaseapp.com", 
+        projectId: "assetguard-c8c8c",
+        databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com"
+    };
+
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const rtdb = firebase.database();
+
     let currentUID = "unidentified_user"; 
+    let pollInterval = null;
+    
+    const MASTER_CONFIG = {
+        backendUrl: "https://weathered-glade-c60b.assetguardinfo.workers.dev",
+        environment: "production",
+        accountType: "Paybill",
+        shortcode: "257471",
+        passkey: "103f80194fedeaefb352960fb340d766ef3f84a9dcb96aafdd21d0b0bb8dfbab",
+        consumerKey: "AGJGJGGktfRf8OHhos6TJXKupDMb3f2wG9pZDdF8tG5qm0qK",
+        consumerSecret: "xmd2sXJzRA6Chl1KHGvR9jG0qtSBse1oRBCdgBjb4DnO7SEi4QzPVwKNWWraubJd"
+    };
+
     let loadedSettings = { 
         businessName: "JCorp Kenya Inc", 
         tagline: "Transformation you need", 
         logoUrl: "",
-        daraja: {
-            backendUrl: "",
-            environment: "sandbox",
+        salesConfigSkipped: false,
+        salesDaraja: {
+            environment: "production",
             accountType: "Paybill",
-            shortcode: "257471",
-            passkey: "103f80194fedeaefb352960fb340d766ef3f84a9dcb96aafdd21d0b0bb8dfbab",
-            consumerKey: "AGJGJGGktfRf8OHhos6TJXKupDMb3f2wG9pZDdF8tG5qm0qK",
-            consumerSecret: "xmd2sXJzRA6Chl1KHGvR9jG0qtSBse1oRBCdgBjb4DnO7SEi4QzPVwKNWWraubJd"
+            shortcode: "",
+            passkey: "",
+            consumerKey: "",
+            consumerSecret: ""
         }
     };
-    let subscriptionTimerInterval;
     let pendingSubDays = 0;
+    let pendingAmount = 1500;
     
     window.onload = function() {
         resolveUserIdentity();
         loadLocalSettings();
-        enforceSubscriptionGate();
+        initFirebaseListeners();
     };
 
-    function unsubscribe() {
-        localStorage.removeItem(`ag_sub_expiry_${currentUID}`);
-        enforceSubscriptionGate();
-        triggerToast("Subscription cancelled.");
+    function initFirebaseListeners() {
+        if (!currentUID || currentUID.startsWith("unidentified")) return;
+
+        // 1. Listen for Admin Account Status (Active, Suspended, Blocked)
+        rtdb.ref(`user_statuses/${currentUID}`).on('value', (snapshot) => {
+            const status = snapshot.val();
+            if (status && status !== "Active") {
+                lockScreenWithNotice("Account " + status, `Your account has been marked as ${status.toLowerCase()} by the system administrator.`);
+            } else {
+                recheckSubscriptionState();
+            }
+        });
+
+        // 2. Listen for Admin Subscription Pause / Free Access Window
+        rtdb.ref(`subscription_pauses/${currentUID}`).on('value', (snapshot) => {
+            const pause = snapshot.val();
+            const now = Date.now();
+            if (pause && pause.active && pause.pausedUntil > now) {
+                unlockScreen();
+            } else {
+                recheckSubscriptionState();
+            }
+        });
     }
 
-    function enforceSubscriptionGate() {
-        const expiryData = localStorage.getItem(`ag_sub_expiry_${currentUID}`);
-        const lockScreen = document.getElementById('subLockScreen');
+    function recheckSubscriptionState() {
+        const expiry = localStorage.getItem(`ag_sub_expiry_${currentUID}`);
         const now = Date.now();
 
-        if (!expiryData || now >= parseInt(expiryData)) {
-            lockScreen.style.display = "flex";
-            document.body.style.overflow = "hidden";
-            clearInterval(subscriptionTimerInterval);
-            updateSettingsSubUI(0);
-            return false;
+        if (!expiry || now >= parseInt(expiry)) {
+            lockScreenWithNotice("Subscription Expired", "Your access license has elapsed. Please select a plan below to prompt payment and resume interaction.");
         } else {
-            lockScreen.style.display = "none";
-            document.body.style.overflow = "auto";
-            startCountdownTimer(parseInt(expiryData));
-            return true; 
+            unlockScreen();
+            checkSubscriptionStatusLocally();
         }
     }
 
-    function startCountdownTimer(expiryTimestamp) {
-        clearInterval(subscriptionTimerInterval);
-        
-        function tick() {
-            const now = Date.now();
-            const timeDiff = expiryTimestamp - now;
-
-            if (timeDiff <= 0) {
-                enforceSubscriptionGate();
-                return;
-            }
-            updateSettingsSubUI(timeDiff);
-        }
-
-        tick(); 
-        subscriptionTimerInterval = setInterval(tick, 1000);
+    function lockScreenWithNotice(title, desc) {
+        document.getElementById('subBlockTitle').innerText = title;
+        document.getElementById('subBlockDesc').innerText = desc;
+        document.getElementById('globalSubBlockOverlay').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
     }
 
-    function updateSettingsSubUI(timeDiffMs) {
-        const subBox = document.getElementById('subStatusBox');
-        const titleEl = document.getElementById('subStatusTitle');
+    function unlockScreen() {
+        document.getElementById('globalSubBlockOverlay').style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+
+    function checkSubscriptionStatusLocally() {
+        const expiryData = localStorage.getItem(`ag_sub_expiry_${currentUID}`);
+        const now = Date.now();
         const timerEl = document.getElementById('settingsTimer');
+        const descEl = document.getElementById('subStatusDesc');
 
-        if (timeDiffMs <= 0) {
-            subBox.classList.add('expired');
-            titleEl.innerText = "License Expired";
-            timerEl.innerText = "00:00:00";
+        if (!expiryData || now >= parseInt(expiryData)) {
+            timerEl.innerText = "EXPIRED";
             timerEl.style.color = "var(--danger)";
-            return;
-        }
-
-        const days = Math.floor(timeDiffMs / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((timeDiffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((timeDiffMs % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((timeDiffMs % (1000 * 60)) / 1000);
-
-        subBox.classList.remove('expired');
-        titleEl.innerText = "Pro License Active";
-        timerEl.style.color = "white";
-        
-        if (days > 0) {
-            timerEl.innerText = `${days}d ${hours.toString().padStart(2, '0')}h ${minutes.toString().padStart(2, '0')}m`;
+            descEl.innerText = "Please renew your plan";
         } else {
-            timerEl.innerText = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            if(hours < 1) timerEl.style.color = "var(--warning)"; 
+            const timeDiffMs = parseInt(expiryData) - now;
+            const days = Math.floor(timeDiffMs / (1000 * 60 * 60 * 24));
+            timerEl.innerText = `${days} Days Left`;
+            timerEl.style.color = "var(--success)";
+            descEl.innerText = "Pro License Active";
         }
     }
 
-    function initiateMpesaPayment(daysAdded, amountString) {
+    function toggleSalesConfig() {
+        const section = document.getElementById('salesSection');
+        section.classList.toggle('expanded');
+    }
+
+    function skipSalesConfig(e) {
+        e.stopPropagation();
+        loadedSettings.salesConfigSkipped = true;
+        document.getElementById('salesSection').classList.remove('expanded');
+        updateSalesBadge();
+        triggerToast("POS Payment Setup Skipped for Now");
+    }
+
+    function updateSalesBadge() {
+        const badge = document.getElementById('salesStatusBadge');
+        if (loadedSettings.salesConfigSkipped) {
+            badge.innerText = "Skipped";
+            badge.className = "status-badge badge-skipped";
+        } else if (document.getElementById('salesShortcode').value.trim() !== "") {
+            badge.innerText = "Configured";
+            badge.className = "status-badge badge-configured";
+        } else {
+            badge.innerText = "Optional";
+            badge.className = "status-badge badge-pending";
+        }
+    }
+
+    function initiateMpesaPayment(daysAdded, amountVal, amountString) {
         pendingSubDays = daysAdded;
+        pendingAmount = amountVal;
         document.getElementById('stkAmountDisplay').innerText = amountString;
+        document.getElementById('mpesaNumber').value = "";
         document.getElementById('stkInputStep').style.display = "block";
         document.getElementById('stkLoadingStep').style.display = "none";
-        document.getElementById('mpesaNumber').value = "";
-        
-        const savedBackend = document.getElementById('darajaBackendUrl').value.trim() || 
-                             (loadedSettings.daraja && loadedSettings.daraja.backendUrl ? loadedSettings.daraja.backendUrl : "");
-        document.getElementById('modalBackendUrl').value = savedBackend;
-
+        document.getElementById('stkSpinnerIcon').style.display = "block";
+        document.getElementById('stkRetryBtn').style.display = "none";
         document.getElementById('stkCloseBtn').style.display = "flex";
         document.getElementById('stkModal').style.display = "flex";
+        if (pollInterval) clearInterval(pollInterval);
     }
 
     function closeStkModal() {
+        if (pollInterval) clearInterval(pollInterval);
         document.getElementById('stkModal').style.display = "none";
+    }
+
+    function resetStkModal() {
+        if (pollInterval) clearInterval(pollInterval);
+        document.getElementById('stkLoadingStep').style.display = "none";
+        document.getElementById('stkInputStep').style.display = "block";
+        document.getElementById('stkCloseBtn').style.display = "flex";
     }
 
     async function processStkPush() {
         const phoneInput = document.getElementById('mpesaNumber');
         const phone = phoneInput.value.trim();
-        const modalBackendInput = document.getElementById('modalBackendUrl');
-        let backendUrl = modalBackendInput.value.trim();
-
-        if (!backendUrl) {
-            backendUrl = document.getElementById('darajaBackendUrl').value.trim();
-        }
-
+        const backendUrl = MASTER_CONFIG.backendUrl;
         const kenyanPhoneRegex = /^(07|01)\d{8}$/;
-
-        if (!backendUrl) {
-            triggerToast("Error: Please provide your Backend Server URL");
-            modalBackendInput.style.borderColor = "var(--danger)";
-            return;
-        }
-        modalBackendInput.style.borderColor = "var(--border)";
-
-        // Automatically prepend https:// if missing
-        if (!backendUrl.startsWith('http://') && !backendUrl.startsWith('https://')) {
-            backendUrl = 'https://' + backendUrl;
-        }
 
         if (!kenyanPhoneRegex.test(phone)) {
             triggerToast("Invalid Format: Use 07XXXXXXXX or 01XXXXXXXX");
@@ -903,74 +665,128 @@
         const formattedPhone = "254" + phone.substring(1);
         phoneInput.style.borderColor = "var(--border)";
 
-        loadedSettings.daraja.backendUrl = backendUrl;
-        document.getElementById('darajaBackendUrl').value = backendUrl;
-        localStorage.setItem(`ag_profile_cache_${currentUID}`, JSON.stringify(loadedSettings));
-
         document.getElementById('stkInputStep').style.display = "none";
         document.getElementById('stkLoadingStep').style.display = "block";
+        document.getElementById('stkSpinnerIcon').style.display = "block";
+        document.getElementById('stkRetryBtn').style.display = "none";
         document.getElementById('stkCloseBtn').style.display = "none"; 
         
         const titleEl = document.getElementById('stkStatusTitle');
         const descEl = document.getElementById('stkStatusDesc');
         
-        titleEl.innerText = "Waking up Server...";
-        descEl.innerText = "Please wait (Render servers take ~30s on first load)...";
-
-        const amount = pendingSubDays >= 365 ? "12000" : "1500";
-        const env = document.getElementById('darajaEnvironment').value;
-        const shortcode = document.getElementById('darajaShortcode').value.trim();
-        const passkey = document.getElementById('darajaPasskey').value.trim();
-        const consumerKey = document.getElementById('darajaConsumerKey').value.trim();
-        const consumerSecret = document.getElementById('darajaConsumerSecret').value.trim();
-        const accountType = document.getElementById('darajaAccountType').value;
+        titleEl.innerText = "Sending STK Push...";
+        descEl.innerText = "Communicating with Safaricom live gateway...";
 
         try {
-            const response = await fetch(`${backendUrl.replace(/\/+$/, '')}/stk-push`, {
+            const response = await fetch(`${backendUrl.replace(/\/+$/, '')}`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    environment: env,
-                    shortcode: shortcode,
-                    passkey: passkey,
-                    consumerKey: consumerKey,
-                    consumerSecret: consumerSecret,
-                    accountType: accountType,
-                    amount: amount,
+                    environment: MASTER_CONFIG.environment,
+                    shortcode: MASTER_CONFIG.shortcode,
+                    passkey: MASTER_CONFIG.passkey,
+                    consumerKey: MASTER_CONFIG.consumerKey,
+                    consumerSecret: MASTER_CONFIG.consumerSecret,
+                    accountType: MASTER_CONFIG.accountType,
+                    amount: parseInt(pendingAmount, 10),
                     phoneNumber: formattedPhone
                 })
             });
 
-            const result = await response.json();
+            let result;
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+                result = await response.json();
+            } else {
+                const textResponse = await response.text();
+                throw new Error(`Server returned non-JSON: ${textResponse.substring(0, 100)}`);
+            }
 
             if (!response.ok || (result.ResponseCode && result.ResponseCode !== "0")) {
                 throw new Error(result.errorMessage || result.ResponseDescription || "STK request rejected.");
             }
 
-            titleEl.innerText = "STK Push Sent!";
-            descEl.innerText = "Check your phone and enter your M-Pesa PIN.";
-            titleEl.style.color = "var(--mpesa)";
+            const checkoutRequestID = result.CheckoutRequestID;
+            if (!checkoutRequestID) throw new Error("No CheckoutRequestID returned from server.");
 
-            setTimeout(() => {
-                titleEl.innerText = "Payment Successful!";
-                descEl.innerText = "Transaction confirmed. Activating license...";
-            }, 8000);
-
-            setTimeout(() => {
-                finalizeSubscriptionRenew(pendingSubDays);
-                closeStkModal();
-                titleEl.style.color = "var(--dark)";
-            }, 10000);
+            startStatusPolling(checkoutRequestID);
 
         } catch (err) {
             console.error("STK Error:", err);
-            titleEl.innerText = "STK Push Failed";
+            document.getElementById('stkSpinnerIcon').style.display = "none";
+            titleEl.innerText = "Payment cancelled";
             titleEl.style.color = "var(--danger)";
-            descEl.innerText = err.message || "Failed to connect. Check Render URL or server status.";
+            descEl.innerText = err.message || "Timeout or user cannot be reached.";
+            document.getElementById('stkRetryBtn').style.display = "block";
             document.getElementById('stkCloseBtn').style.display = "flex";
         }
+    }
+
+    function startStatusPolling(checkoutRequestID) {
+        const titleEl = document.getElementById('stkStatusTitle');
+        const descEl = document.getElementById('stkStatusDesc');
+        
+        titleEl.innerText = "Waiting for PIN Entry...";
+        descEl.innerText = "Please check your phone and enter your M-Pesa PIN.";
+        
+        let attempts = 0;
+        const maxAttempts = 18;
+
+        pollInterval = setInterval(async () => {
+            attempts++;
+            if (attempts > maxAttempts) {
+                clearInterval(pollInterval);
+                document.getElementById('stkSpinnerIcon').style.display = "none";
+                titleEl.innerText = "Payment cancelled";
+                titleEl.style.color = "var(--danger)";
+                descEl.innerText = "Timeout waiting for user response.";
+                document.getElementById('stkRetryBtn').style.display = "block";
+                document.getElementById('stkCloseBtn').style.display = "flex";
+                return;
+            }
+
+            try {
+                const response = await fetch(`${MASTER_CONFIG.backendUrl.replace(/\/+$/, '')}/query`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        environment: MASTER_CONFIG.environment,
+                        shortcode: MASTER_CONFIG.shortcode,
+                        passkey: MASTER_CONFIG.passkey,
+                        consumerKey: MASTER_CONFIG.consumerKey,
+                        consumerSecret: MASTER_CONFIG.consumerSecret,
+                        checkoutRequestID: checkoutRequestID
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.ResultCode === "0") {
+                    clearInterval(pollInterval);
+                    document.getElementById('stkSpinnerIcon').style.display = "none";
+                    titleEl.innerText = "Payment Received";
+                    titleEl.style.color = "var(--mpesa)";
+                    descEl.innerText = "Subscription active!";
+
+                    setTimeout(() => {
+                        finalizeSubscriptionRenew(pendingSubDays);
+                        closeStkModal();
+                        titleEl.style.color = "var(--dark)";
+                    }, 2000);
+                } 
+                else if (data.ResultCode && data.ResultCode !== "0") {
+                    clearInterval(pollInterval);
+                    document.getElementById('stkSpinnerIcon').style.display = "none";
+                    titleEl.style.color = "var(--danger)";
+                    titleEl.innerText = data.ResultCode === "1032" ? "Payment cancelled" : "Wrong PIN entered.";
+                    descEl.innerText = data.ResultDesc || "Transaction failed.";
+                    document.getElementById('stkRetryBtn').style.display = "block";
+                    document.getElementById('stkCloseBtn').style.display = "flex";
+                }
+            } catch (err) {
+                console.error("Polling query error:", err);
+            }
+        }, 4000);
     }
 
     function finalizeSubscriptionRenew(daysAdded) {
@@ -982,32 +798,16 @@
         const newExpiry = baseTime + (daysAdded * 24 * 60 * 60 * 1000);
 
         localStorage.setItem(`ag_sub_expiry_${currentUID}`, newExpiry.toString());
-        triggerToast(`Payment Received. Subscribed for ${daysAdded} Days.`);
-        enforceSubscriptionGate();
-        loadLocalSettings();
+        triggerToast(`Verified! Subscribed for ${daysAdded} Days.`);
+        unlockScreen();
+        checkSubscriptionStatusLocally();
     }
 
     function resolveUserIdentity() {
         let resolved = null;
         const urlParams = new URLSearchParams(window.location.search);
         resolved = urlParams.get('uid') || urlParams.get('user') || urlParams.get('userId');
-
-        if (!resolved) {
-            try {
-                if (window.AppInventor && typeof window.AppInventor.getWebViewString === 'function') {
-                    const appString = window.AppInventor.getWebViewString();
-                    if (appString && appString.trim() !== "") {
-                        try {
-                            const parsed = JSON.parse(appString);
-                            if (parsed.uid) resolved = parsed.uid;
-                        } catch (e) { resolved = appString; }
-                    }
-                }
-            } catch (e) {}
-        }
-
         if (!resolved) resolved = localStorage.getItem('ag_active_uid');
-        
         if (resolved && resolved.trim() !== "") {
             currentUID = resolved.trim();
             localStorage.setItem('ag_active_uid', currentUID);
@@ -1024,34 +824,24 @@
             try {
                 const parsed = JSON.parse(cachedData);
                 loadedSettings = { ...loadedSettings, ...parsed };
-                if(!loadedSettings.daraja) {
-                    loadedSettings.daraja = { 
-                        backendUrl: "",
-                        environment: "sandbox",
-                        accountType: "Paybill", 
-                        shortcode: "257471", 
-                        passkey: "103f80194fedeaefb352960fb340d766ef3f84a9dcb96aafdd21d0b0bb8dfbab", 
-                        consumerKey: "AGJGJGGktfRf8OHhos6TJXKupDMb3f2wG9pZDdF8tG5qm0qK", 
-                        consumerSecret: "xmd2sXJzRA6Chl1KHGvR9jG0qtSBse1oRBCdgBjb4DnO7SEi4QzPVwKNWWraubJd" 
-                    };
+                if(!loadedSettings.salesDaraja) {
+                    loadedSettings.salesDaraja = { environment: "production", accountType: "Paybill", shortcode: "", passkey: "", consumerKey: "", consumerSecret: "" };
                 }
             } catch (e) { console.error("Cache reconstruction failed."); }
-        } else {
-            localStorage.setItem(cacheKey, JSON.stringify(loadedSettings));
         }
 
         document.getElementById('businessNameInput').value = loadedSettings.businessName || "";
         document.getElementById('taglineInput').value = loadedSettings.tagline || "";
         
-        document.getElementById('darajaBackendUrl').value = loadedSettings.daraja.backendUrl || "";
-        document.getElementById('darajaEnvironment').value = loadedSettings.daraja.environment || "sandbox";
-        document.getElementById('darajaAccountType').value = loadedSettings.daraja.accountType || "Paybill";
-        document.getElementById('darajaShortcode').value = loadedSettings.daraja.shortcode || "257471";
-        document.getElementById('darajaPasskey').value = loadedSettings.daraja.passkey || "103f80194fedeaefb352960fb340d766ef3f84a9dcb96aafdd21d0b0bb8dfbab";
-        document.getElementById('darajaConsumerKey').value = loadedSettings.daraja.consumerKey || "AGJGJGGktfRf8OHhos6TJXKupDMb3f2wG9pZDdF8tG5qm0qK";
-        document.getElementById('darajaConsumerSecret').value = loadedSettings.daraja.consumerSecret || "xmd2sXJzRA6Chl1KHGvR9jG0qtSBse1oRBCdgBjb4DnO7SEi4QzPVwKNWWraubJd";
+        document.getElementById('salesEnvironment').value = loadedSettings.salesDaraja.environment || "production";
+        document.getElementById('salesAccountType').value = loadedSettings.salesDaraja.accountType || "Paybill";
+        document.getElementById('salesShortcode').value = loadedSettings.salesDaraja.shortcode || "";
+        document.getElementById('salesPasskey').value = loadedSettings.salesDaraja.passkey || "";
+        document.getElementById('salesConsumerKey').value = loadedSettings.salesDaraja.consumerKey || "";
+        document.getElementById('salesConsumerSecret').value = loadedSettings.salesDaraja.consumerSecret || "";
 
         updatePreviewCard();
+        updateSalesBadge();
     }
 
     function updatePreviewCard() {
@@ -1079,17 +869,23 @@
         loadedSettings.businessName = document.getElementById('businessNameInput').value;
         loadedSettings.tagline = document.getElementById('taglineInput').value;
 
-        loadedSettings.daraja = {
-            backendUrl: document.getElementById('darajaBackendUrl').value.trim(),
-            environment: document.getElementById('darajaEnvironment').value,
-            accountType: document.getElementById('darajaAccountType').value,
-            shortcode: document.getElementById('darajaShortcode').value.trim(),
-            passkey: document.getElementById('darajaPasskey').value.trim(),
-            consumerKey: document.getElementById('darajaConsumerKey').value.trim(),
-            consumerSecret: document.getElementById('darajaConsumerSecret').value.trim()
+        const sc = document.getElementById('salesShortcode').value.trim();
+        if (sc !== "") {
+            loadedSettings.salesConfigSkipped = false;
+        }
+
+        loadedSettings.salesDaraja = {
+            backendUrl: MASTER_CONFIG.backendUrl,
+            environment: document.getElementById('salesEnvironment').value,
+            accountType: document.getElementById('salesAccountType').value,
+            shortcode: sc,
+            passkey: document.getElementById('salesPasskey').value.trim(),
+            consumerKey: document.getElementById('salesConsumerKey').value.trim(),
+            consumerSecret: document.getElementById('salesConsumerSecret').value.trim()
         };
 
         localStorage.setItem(`ag_profile_cache_${currentUID}`, JSON.stringify(loadedSettings));
+        updateSalesBadge();
 
         try {
             if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
@@ -1097,9 +893,7 @@
             }
         } catch (e) {}
 
-        document.getElementById('modalBackendUrl').value = loadedSettings.daraja.backendUrl;
-
-        triggerToast("Settings & Daraja API Updated");
+        triggerToast("Settings Saved Successfully");
     }
 
     function triggerToast(msg) {

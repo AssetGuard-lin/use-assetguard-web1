@@ -40,6 +40,7 @@
     h2 { text-align: center; color: var(--dark); margin-bottom: 20px; font-weight: 700; }
     label { display: block; margin-top: 10px; font-weight: 700; color: var(--dark); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
     input, select { width: 100%; padding: 12px; margin-top: 5px; border: 2px solid #f0f2f5; border-radius: 10px; box-sizing: border-box; background: #f9fbff; transition: 0.3s; font-family: inherit; }
+    input:disabled { background: #e2e8f0 !important; opacity: 0.6; cursor: not-allowed; }
     .valid-kenya { border-color: var(--success) !important; background: #f0fff4 !important; }
     .invalid-kenya { border-color: var(--error) !important; background: #fff5f5 !important; }
     .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: #fdfeff; padding: 15px; border-radius: 15px; border: 1px solid #edf2f7; margin-bottom: 15px; }
@@ -373,7 +374,8 @@
                         <option value="Credit">Credit</option>
                     </select>
                     <div id="payment_extra_container" class="payment-extra">
-                        <input type="text" id="mpesa_number" placeholder="M-Pesa Number (07XXXXXXXX)" oninput="syncHeaderToCart(); validatePayment();">
+                        <input type="text" id="mpesa_number" placeholder="M-Pesa Number (07XXXXXXXX)" oninput="handleMpesaInputFocus()">
+                        <input type="text" id="mpesa_ref" placeholder="M-Pesa Reference Code (10 Chars)" maxlength="10" oninput="handleMpesaInputFocus()">
                         <input type="text" id="bank_details" placeholder="Bank Reference Code" oninput="syncHeaderToCart(); validatePayment();">
                     </div>
                 </div>
@@ -561,6 +563,16 @@
     </div>
 </div>
 
+<!-- Live STK Push Modal Overlay -->
+<div id="liveStkModal" class="live-stk-overlay">
+    <div class="recharge-card" style="text-align: center;">
+        <div class="stk-spinner"></div>
+        <h3 id="liveStkTitle" style="color: #fff; margin-bottom: 8px; font-size: 18px;">Triggering Daraja STK...</h3>
+        <p id="liveStkDesc" style="color: #94a3b8; font-size: 12px; margin-bottom: 15px;">Initiating payment request...</p>
+        <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px; font-size: 11px; color: #38bdf8; font-weight: 700;" id="stkConfigDisplay">Paybill (--)</div>
+    </div>
+</div>
+
 <div id="receiptModal" class="modal">
     <div class="modal-box">
         <div id="receipt-area" style="padding:0px; background:#fff; font-family:'Plus Jakarta Sans', sans-serif; color:#000; overflow: auto; max-height: 70vh;"></div>
@@ -728,12 +740,13 @@ let syncQueue = JSON.parse(localStorage.getItem(`ag_sales_queue_${currentUID}`))
 let rawLedgerData = JSON.parse(localStorage.getItem(`ag_ledger_cache_${currentUID}`)) || {}; 
 
 let subscriptionState = JSON.parse(localStorage.getItem(`ag_subscription_cache_${currentUID}`)) || { active: true, expiresAt: "" };
+
 let userProfile = JSON.parse(localStorage.getItem(`ag_profile_cache_${currentUID}`)) || { 
     businessName: "Business Name", 
     tagline: "Your Business Tagline", 
     logoUrl: "", 
     adminPin: "0000",
-    ignoreStkPush: false,
+    ignoreStkPush: true,
     daraja: {
         accountType: "Paybill",
         shortcode: "",
@@ -744,7 +757,7 @@ let userProfile = JSON.parse(localStorage.getItem(`ag_profile_cache_${currentUID
 };
 
 if(!userProfile.adminPin) { userProfile.adminPin = "0000"; }
-if(userProfile.ignoreStkPush === undefined) { userProfile.ignoreStkPush = false; }
+if(userProfile.ignoreStkPush === undefined) { userProfile.ignoreStkPush = true; }
 if(!userProfile.daraja) {
     userProfile.daraja = { accountType: "Paybill", shortcode: "", passkey: "", consumerKey: "", consumerSecret: "" };
 }
@@ -831,7 +844,7 @@ window.openManager = (id) => {
     }
 
     document.getElementById('edit-cust-name').value = s.customer;
-    document.getElementById('edit-pay-ref').value = s.mpesa || s.bank || "";
+    document.getElementById('edit-pay-ref').value = s.mpesaRef || s.mpesa || s.bank || "";
     document.getElementById('manual-pay-amt').value = "";
     
     const isCredit = (s.payment === "Credit");
@@ -957,7 +970,7 @@ onValue(ref(db, salesPath), snapshot => {
 onValue(ref(db, profilePath), snap => {
     if (snap.exists()) {
         userProfile = snap.val();
-        if(userProfile.ignoreStkPush === undefined) { userProfile.ignoreStkPush = false; }
+        if(userProfile.ignoreStkPush === undefined) { userProfile.ignoreStkPush = true; }
         if(!userProfile.daraja) {
             userProfile.daraja = { accountType: "Paybill", shortcode: "", passkey: "", consumerKey: "", consumerSecret: "" };
         }
@@ -1125,9 +1138,35 @@ window.updateStockDisplay = () => {
     }
 };
 
+window.handleMpesaInputFocus = () => {
+    const phoneInput = document.getElementById('mpesa_number');
+    const refInput = document.getElementById('mpesa_ref');
+    
+    const phoneVal = phoneInput.value.trim();
+    const refVal = refInput.value.trim();
+    
+    if (phoneVal !== "") {
+        refInput.disabled = true;
+        refInput.value = "";
+    } else {
+        refInput.disabled = false;
+    }
+    
+    if (refVal !== "") {
+        phoneInput.disabled = true;
+        phoneInput.value = "";
+    } else {
+        phoneInput.disabled = false;
+    }
+    
+    syncHeaderToCart();
+    validatePayment();
+};
+
 window.validatePayment = () => {
     const method = document.getElementById('payment_status').value;
     const mpesa = document.getElementById('mpesa_number');
+    const mpesaRef = document.getElementById('mpesa_ref');
     const bank = document.getElementById('bank_details');
     const product = document.getElementById('selected_product_key').value;
     const qtyInput = document.getElementById('quantity');
@@ -1140,8 +1179,14 @@ window.validatePayment = () => {
 
     let paymentOk = true;
     if (method === 'M-Pesa') {
-        paymentOk = /^(07|01)\d{8}$/.test(mpesa.value) || /^\+254\d{9}$/.test(mpesa.value);
-        mpesa.className = mpesa.value === "" ? "" : (paymentOk ? 'valid-kenya' : 'invalid-kenya');
+        const phoneVal = mpesa.value.trim();
+        const refVal = mpesaRef.value.trim();
+        const isPhone = /^(07|01)\d{8}$/.test(phoneVal) || /^\+254\d{9}$/.test(phoneVal);
+        const isRef = /^[A-Z0-9]{10}$/i.test(refVal); // Exact 10-character standard M-Pesa reference code
+        
+        paymentOk = isPhone || isRef;
+        mpesa.className = phoneVal === "" ? "" : (isPhone ? 'valid-kenya' : 'invalid-kenya');
+        mpesaRef.className = refVal === "" ? "" : (isRef ? 'valid-kenya' : 'invalid-kenya');
     } else if (method === 'Bank Transfer') {
         paymentOk = bank.value.length >= 5;
         bank.className = bank.value === "" ? "" : (paymentOk ? 'valid-kenya' : 'invalid-kenya');
@@ -1155,12 +1200,14 @@ window.togglePaymentExtra = () => {
     const container = document.getElementById('payment_extra_container');
     container.style.display = (m === 'M-Pesa' || m === 'Bank Transfer') ? 'flex' : 'none';
     document.getElementById('mpesa_number').style.display = (m === 'M-Pesa') ? 'block' : 'none';
+    document.getElementById('mpesa_ref').style.display = (m === 'M-Pesa') ? 'block' : 'none';
     document.getElementById('bank_details').style.display = (m === 'Bank Transfer') ? 'block' : 'none';
 };
 
 function lockInputs(l) { 
-    ['customer_name', 'payment_status', 'mpesa_number', 'bank_details'].forEach(id => {
-        document.getElementById(id).disabled = l;
+    ['customer_name', 'payment_status', 'mpesa_number', 'mpesa_ref', 'bank_details'].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.disabled = l;
     });
 }
 
@@ -1168,9 +1215,10 @@ window.syncHeaderToCart = () => {
     const name = document.getElementById('customer_name').value;
     const method = document.getElementById('payment_status').value;
     const mpesa = document.getElementById('mpesa_number').value;
+    const mpesaRef = document.getElementById('mpesa_ref').value;
     const bank = document.getElementById('bank_details').value;
     if(cart.length > 0) {
-        cart = cart.map(item => ({ ...item, customer: name, payment: method, mpesa: mpesa, bank: bank }));
+        cart = cart.map(item => ({ ...item, customer: name, payment: method, mpesa: mpesa, mpesaRef: mpesaRef, bank: bank }));
         updateCartUI();
     }
 };
@@ -1195,6 +1243,7 @@ window.addToCart = () => {
         customer: document.getElementById('customer_name').value,
         payment: document.getElementById('payment_status').value,
         mpesa: document.getElementById('mpesa_number').value || "",
+        mpesaRef: document.getElementById('mpesa_ref').value || "",
         bank: document.getElementById('bank_details').value || ""
     };
 
@@ -1214,7 +1263,12 @@ function updateCartUI() {
     let grand = 0;
     cart.forEach((item, i) => {
         grand += parseFloat(item.total);
-        const refText = (item.payment === 'M-Pesa') ? item.mpesa : (item.payment === 'Bank Transfer' ? item.bank : "-");
+        let refText = "-";
+        if (item.payment === 'M-Pesa') {
+            refText = item.mpesaRef ? `Ref: ${item.mpesaRef}` : (item.mpesa ? `Phone: ${item.mpesa}` : "-");
+        } else if (item.payment === 'Bank Transfer') {
+            refText = item.bank;
+        }
         section.innerHTML += `
             <div class="cart-card">
                 <div class="cart-card-header">${item.product}</div>
@@ -1243,8 +1297,10 @@ window.editCart = (i) => {
     document.getElementById('customer_name').value = itm.customer;
     document.getElementById('payment_status').value = itm.payment;
     togglePaymentExtra();
-    document.getElementById('mpesa_number').value = itm.mpesa;
-    document.getElementById('bank_details').value = itm.bank;
+    document.getElementById('mpesa_number').value = itm.mpesa || "";
+    document.getElementById('mpesa_ref').value = itm.mpesaRef || "";
+    document.getElementById('bank_details').value = itm.bank || "";
+    handleMpesaInputFocus();
     
     document.getElementById('stockSearchInput').value = itm.product;
     document.getElementById('selected_product_key').value = itm.dbKey;
@@ -1262,22 +1318,24 @@ window.processSale = () => {
     const paymentMode = document.getElementById('payment_status').value;
     
     if (paymentMode === 'M-Pesa') {
-        const mpesaNum = document.getElementById('mpesa_number').value.trim();
+        const phoneInput = document.getElementById('mpesa_number').value.trim();
+        const refInput = document.getElementById('mpesa_ref').value.trim();
         const darajaConfig = userProfile.daraja || {};
         
-        // Robust check for ignoreStkPush (supports boolean true, string "true", or 1)
         const ignoreStk = userProfile.ignoreStkPush === true || userProfile.ignoreStkPush === "true" || userProfile.ignoreStkPush === 1;
 
-        if (!/^(07|01)\d{8}$/.test(mpesaNum)) {
-            showAlertModal("Invalid Phone", "Enter a valid Safaricom phone number (07XXXXXXXX)");
+        const isPhone = /^(07|01)\d{8}$/.test(phoneInput) || /^\+254\d{9}$/.test(phoneInput);
+        const isRef = /^[A-Z0-9]{10}$/i.test(refInput);
+
+        if (!isPhone && !isRef) {
+            showAlertModal("Invalid Details", "Please enter either a valid M-Pesa phone number (07XXXXXXXX) or an exact 10-character M-Pesa transaction reference code.");
             return;
         }
 
-        // STRICT BYPASS CHECK: If ignoreStk is true, skip STK push and finalize instantly!
-        if (ignoreStk || (!darajaConfig.shortcode && !darajaConfig.passkey)) {
+        if (isRef || ignoreStk || (!darajaConfig.shortcode && !darajaConfig.passkey)) {
             finalizeSaleTransaction();
         } else {
-            triggerLiveMpesaStkPush(mpesaNum, darajaConfig);
+            triggerLiveMpesaStkPush(phoneInput, darajaConfig);
         }
     } else {
         finalizeSaleTransaction();
@@ -1292,7 +1350,7 @@ function triggerLiveMpesaStkPush(phone, config) {
     
     modal.style.display = "flex";
     codeDisplay.innerText = `${config.accountType || 'Paybill'} (${config.shortcode || 'N/A'})`;
-    titleEl.innerText = "Triggering Admin Daraja STK...";
+    titleEl.innerText = "Triggering Daraja STK...";
     descEl.innerText = `Sending payment request to ${phone}...`;
 
     setTimeout(() => {
@@ -1330,6 +1388,7 @@ function finalizeSaleTransaction() {
         customer: cart[0].customer,
         payment: cart[0].payment,
         mpesa: cart[0].mpesa || "",
+        mpesaRef: cart[0].mpesaRef || "",
         bank: cart[0].bank || "",
         timestamp: new Date().toISOString(),
         items: cart,
@@ -1361,7 +1420,10 @@ function resetFullForm() {
     document.getElementById('customer_name').value = "Walk-in Customer";
     document.getElementById('payment_status').value = "Cash";
     document.getElementById('mpesa_number').value = "";
+    document.getElementById('mpesa_ref').value = "";
     document.getElementById('bank_details').value = "";
+    document.getElementById('mpesa_number').disabled = false;
+    document.getElementById('mpesa_ref').disabled = false;
     togglePaymentExtra(); 
     lockInputs(false); 
     resetItemFields();
@@ -1433,10 +1495,17 @@ function updateStatusUI() {
 }
 
 window.openReceiptSummary = (items) => {
+    let refStr = "";
+    if (items[0].payment === 'M-Pesa') {
+        refStr = items[0].mpesaRef ? `Ref: ${items[0].mpesaRef}` : (items[0].mpesa ? `Phone: ${items[0].mpesa}` : "");
+    } else if (items[0].payment === 'Bank Transfer') {
+        refStr = items[0].bank;
+    }
+
     activeReceiptPayload = {
         customer: items[0].customer,
         payment: items[0].payment,
-        reference: items[0].mpesa || items[0].bank || "",
+        reference: refStr,
         items: items,
         timestamp: new Date().toISOString(),
         partialPayments: []
@@ -1450,10 +1519,17 @@ window.openReceiptSummary = (items) => {
 window.reprintReceipt = (id) => {
     const sale = runtimeActiveLedgerSalesMap.get(id);
     if (!sale) return;
+    let refStr = "";
+    if (sale.payment === 'M-Pesa') {
+        refStr = sale.mpesaRef ? `Ref: ${sale.mpesaRef}` : (sale.mpesa ? `Phone: ${sale.mpesa}` : "");
+    } else if (sale.payment === 'Bank Transfer') {
+        refStr = sale.bank;
+    }
+
     activeReceiptPayload = {
         customer: sale.customer,
         payment: sale.payment,
-        reference: sale.mpesa || sale.bank || "",
+        reference: refStr,
         items: sale.items,
         timestamp: sale.timestamp,
         partialPayments: sale.payments || []
@@ -1906,6 +1982,7 @@ window.renderSales = () => {
 
         const isPending = !!s.isPending;
         const pendingBadge = isPending ? `<span style="background: #fef3c7; color: #d97706; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 800; text-transform: uppercase; margin-left: 5px;">Syncing...</span>` : '';
+        const payDetailStr = s.mpesaRef ? `Ref: ${s.mpesaRef}` : (s.mpesa ? `Phone: ${s.mpesa}` : (s.bank || ""));
 
         container.insertAdjacentHTML('beforeend', `
             <div class="sale-card" style="${isPending ? 'border-left: 4px solid var(--warning);' : ''}">
@@ -1917,7 +1994,7 @@ window.renderSales = () => {
                     <div class="sale-total">KES ${sTotal.toLocaleString()}</div>
                 </div>
                 <div class="sale-body" id="body-${s.id}">
-                    <div style="font-size: 10px; color: var(--muted); margin-bottom: 8px; font-weight: 800;">PAYMENT: ${s.payment} ${s.mpesa || s.bank || ""}</div>
+                    <div style="font-size: 10px; color: var(--muted); margin-bottom: 8px; font-weight: 800;">PAYMENT: ${s.payment} ${payDetailStr}</div>
                     ${rows}
                     ${isCredit ? `
                         <div style="margin-top:10px; background:#fff7ed; padding:8px; border-radius:8px; border:1px solid #ffedd5; display:flex; justify-content:space-between; align-items:center;">
