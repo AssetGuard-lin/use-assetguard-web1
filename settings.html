@@ -86,7 +86,7 @@
         .card-logo-slot {
             width: 42px; height: 42px; border-radius: var(--radius-md);
             background: rgba(255, 255, 255, 0.1); display: flex; align-items: center; justify-content: center;
-            border: 1px solid rgba(255,255,255,0.15); overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.15); overflow: hidden;
         }
         .card-logo-slot img { width: 100%; height: 100%; object-fit: cover; }
         .preview-badge {
@@ -436,7 +436,7 @@
         }
     }
 
-    function saveConfiguration() {
+    async function saveConfiguration() {
         loadedSettings.businessName = document.getElementById('businessNameInput').value;
         loadedSettings.tagline = document.getElementById('taglineInput').value;
         const sc = document.getElementById('salesShortcode').value.trim();
@@ -452,8 +452,35 @@
             consumerSecret: document.getElementById('salesConsumerSecret').value.trim()
         };
 
+        // 1. Save locally for instant offline UI rendering
         localStorage.setItem(`ag_profile_cache_${activeUID}`, JSON.stringify(loadedSettings));
         updateSalesBadge();
+
+        // 2. Push settings and initialize user status in Firebase Cloud
+        try {
+            await rtdb.ref(`user_settings/${activeUID}`).set({
+                ...loadedSettings,
+                updatedAt: Date.now()
+            });
+
+            // Ensure user status node exists so admin directory picks them up
+            const statusRef = rtdb.ref(`user_statuses/${activeUID}`);
+            const statusSnap = await statusRef.once('value');
+            if (!statusSnap.exists()) {
+                await statusRef.set("Active");
+            }
+
+            // Log the activity
+            await rtdb.ref('user_activity_logs').push({
+                uid: activeUID,
+                category: "SETTINGS",
+                description: "Corporate business and Daraja settings updated",
+                timestamp: Date.now(),
+                device: navigator.userAgent.substring(0, 50)
+            });
+        } catch (error) {
+            console.error("Firebase sync error:", error);
+        }
 
         try {
             if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
@@ -461,7 +488,7 @@
             }
         } catch (e) {}
 
-        triggerToast("Settings Saved Successfully");
+        triggerToast("Settings Saved & Synchronized");
     }
 
     function triggerToast(msg) {
