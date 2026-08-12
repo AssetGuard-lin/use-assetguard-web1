@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AssetGuard Pro - Business Setup & Settings</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-
     <style>
         :root {
             --primary: #0072CE;
@@ -27,12 +26,7 @@
             --shadow: 0 10px 25px -5px rgba(0, 26, 53, 0.05), 0 8px 10px -6px rgba(0, 26, 53, 0.05);
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            -webkit-tap-highlight-color: transparent;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -56,2505 +50,874 @@
         }
 
         .app-header {
-            position: sticky;
-            top: 0;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(12px);
-            padding: 16px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border);
-            z-index: 100;
+            position: sticky; top: 0; background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px); padding: 16px 20px;
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid var(--border); z-index: 100;
         }
-
-        .header-title {
-            font-size: 16px;
-            font-weight: 800;
-            color: var(--dark);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .header-title span {
-            color: var(--primary);
-        }
+        .header-title { font-size: 16px; font-weight: 800; color: var(--dark); display: flex; align-items: center; gap: 8px; }
+        .header-title span { color: var(--primary); }
 
         .back-btn {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            padding: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: 0.2s;
+            background: none; border: none; color: var(--text-muted); cursor: pointer;
+            padding: 4px; display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; transition: 0.2s;
         }
-
-        .back-btn:active {
-            background: var(--primary-light);
-            color: var(--primary);
-        }
+        .back-btn:active { background: var(--primary-light); color: var(--primary); }
 
         .settings-content {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            padding-bottom: 120px;
+            flex: 1; padding: 20px; overflow-y: auto;
+            display: flex; flex-direction: column; gap: 20px; padding-bottom: 120px;
         }
 
         .section-label {
-            font-size: 11px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: var(--text-muted);
-            display: block;
-            margin-bottom: 8px;
+            font-size: 11px; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 0.8px; color: var(--text-muted); display: block; margin-bottom: 8px;
         }
 
         .brand-preview-card {
             background: linear-gradient(135deg, var(--dark) 0%, #002d5c 100%);
-            color: white;
-            padding: 20px;
-            border-radius: var(--radius-lg);
-            position: relative;
-            box-shadow: 0 10px 20px rgba(0, 26, 53, 0.15);
+            color: white; padding: 20px; border-radius: var(--radius-lg);
+            position: relative; box-shadow: 0 10px 20px rgba(0, 26, 53, 0.15);
         }
-
-        .card-header-flex {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .card-identity h3 {
-            font-family: 'Poppins', sans-serif;
-            font-size: 18px;
-            font-weight: 700;
-        }
-
-        .card-identity p {
-            font-size: 10px;
-            opacity: 0.8;
-            margin-top: 2px;
-            text-transform: uppercase;
-        }
-
+        .card-header-flex { display: flex; justify-content: space-between; align-items: center; }
+        .card-identity h3 { font-family: 'Poppins', sans-serif; font-size: 18px; font-weight: 700; }
+        .card-identity p { font-size: 10px; opacity: 0.8; margin-top: 2px; text-transform: uppercase; }
         .card-logo-slot {
-            width: 42px;
-            height: 42px;
-            border-radius: var(--radius-md);
-            background: rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid rgba(255,255,255,0.15);
-            overflow: hidden;
+            width: 42px; height: 42px; border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, 0.1); display: flex; align-items: center; justify-content: center;
+            border: 1px solid rgba(255,255,255,0.15); overflow: hidden;
         }
-
-        .card-logo-slot img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
+        .card-logo-slot img { width: 100%; height: 100%; object-fit: cover; }
         .preview-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 4px 8px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 100px;
-            font-size: 8px;
-            font-weight: 800;
-            text-transform: uppercase;
-            margin-top: 15px;
-            border: 1px solid rgba(255,255,255,0.05);
+            display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px;
+            background: rgba(255,255,255,0.1); border-radius: 100px; font-size: 8px;
+            font-weight: 800; text-transform: uppercase; margin-top: 15px; border: 1px solid rgba(255,255,255,0.05);
         }
 
         .input-group {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
+            background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: var(--radius-lg); padding: 16px;
+            display: flex; flex-direction: column; gap: 14px;
         }
-
-        .form-field {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .form-field label {
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--dark);
-            text-transform: uppercase;
-        }
-
+        .form-field { display: flex; flex-direction: column; gap: 6px; }
+        .form-field label { font-size: 11px; font-weight: 700; color: var(--dark); text-transform: uppercase; }
         .form-field input[type="text"],
         .form-field input[type="tel"],
         .form-field input[type="password"],
         .form-field select {
-            font-family: inherit;
-            font-size: 14px;
-            padding: 12px 14px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius-md);
-            background: #fafbfe;
-            outline: none;
-            transition: 0.2s;
-            color: var(--text-main);
+            font-family: inherit; font-size: 14px; padding: 12px 14px;
+            border: 2px solid var(--border); border-radius: var(--radius-md); background: #fafbfe;
+            outline: none; transition: 0.2s; color: var(--text-main);
         }
-
-        .form-field input:focus,
-        .form-field select:focus {
-            border-color: var(--primary);
-            background: #fff;
-            box-shadow: 0 0 0 4px rgba(0, 114, 206, 0.1);
-        }
-
-        .form-field input.mpesa-focus:focus {
-            border-color: var(--mpesa);
-            box-shadow: 0 0 0 4px rgba(0, 168, 89, 0.1);
-        }
+        .form-field input:focus, .form-field select:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(0, 114, 206, 0.1); }
+        .form-field input.mpesa-focus:focus { border-color: var(--mpesa); box-shadow: 0 0 0 4px rgba(0, 168, 89, 0.1); }
 
         .logo-upload-area {
-            border: 2px dashed var(--border);
-            border-radius: var(--radius-md);
-            padding: 16px;
-            text-align: center;
-            cursor: pointer;
-            background: #fafbfe;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            position: relative;
+            border: 2px dashed var(--border); border-radius: var(--radius-md);
+            padding: 16px; text-align: center; cursor: pointer; background: #fafbfe;
+            display: flex; flex-direction: column; align-items: center; gap: 8px; position: relative;
         }
-
-        .logo-upload-area input[type="file"] {
-            position: absolute;
-            inset: 0;
-            opacity: 0;
-            cursor: pointer;
-        }
-
-        .upload-icon {
-            color: var(--primary);
-        }
-
-        .upload-text b {
-            color: var(--primary);
-            font-size: 12px;
-        }
-
-        .upload-text p {
-            font-size: 10px;
-            color: var(--text-muted);
-        }
+        .logo-upload-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+        .upload-icon { color: var(--primary); }
+        .upload-text b { color: var(--primary); font-size: 12px; }
+        .upload-text p { font-size: 10px; color: var(--text-muted); }
 
         .collapsible-section {
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            background: #fff;
-            overflow: hidden;
-            transition: box-shadow 0.3s;
+            border: 1px solid var(--border); border-radius: var(--radius-lg);
+            background: #fff; overflow: hidden; transition: box-shadow 0.3s;
         }
-
-        .collapsible-section.expanded {
-            box-shadow: var(--shadow);
-        }
+        .collapsible-section.expanded { box-shadow: var(--shadow); }
 
         .section-toggle-header {
-            padding: 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            background: #f8fafc;
+            padding: 16px; display: flex; justify-content: space-between;
+            align-items: center; cursor: pointer; background: #f8fafc;
         }
+        .section-toggle-header:hover { background: #f1f5f9; }
+        .toggle-title-wrap h3 { font-size: 14px; font-weight: 700; color: var(--dark); display: flex; align-items: center; gap: 8px; }
+        .toggle-title-wrap p { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+        
+        .status-badge { font-size: 10px; font-weight: 800; text-transform: uppercase; padding: 4px 10px; border-radius: 100px; }
+        .badge-configured { background: var(--success-light); color: var(--success); }
+        .badge-skipped { background: var(--danger-light); color: #b91c1c; }
+        .badge-pending { background: #e2e8f0; color: var(--text-muted); }
 
-        .section-toggle-header:hover {
-            background: #f1f5f9;
-        }
+        .chevron-icon { transition: transform 0.3s ease; color: var(--text-muted); }
+        .collapsible-section.expanded .chevron-icon { transform: rotate(180deg); }
 
-        .toggle-title-wrap h3 {
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--dark);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+        .collapsible-body { padding: 16px; display: none; flex-direction: column; gap: 14px; border-top: 1px solid var(--border); }
+        .collapsible-section.expanded .collapsible-body { display: flex; }
 
-        .toggle-title-wrap p {
-            font-size: 11px;
-            color: var(--text-muted);
-            margin-top: 2px;
-        }
-
-        .status-badge {
-            font-size: 10px;
-            font-weight: 800;
-            text-transform: uppercase;
-            padding: 4px 10px;
-            border-radius: 100px;
-        }
-
-        .badge-configured {
-            background: var(--success-light);
-            color: var(--success);
-        }
-
-        .badge-skipped {
-            background: var(--danger-light);
-            color: #b91c1c;
-        }
-
-        .badge-pending {
-            background: #e2e8f0;
-            color: var(--text-muted);
-        }
-
-        .chevron-icon {
-            transition: transform 0.3s ease;
-            color: var(--text-muted);
-        }
-
-        .collapsible-section.expanded .chevron-icon {
-            transform: rotate(180deg);
-        }
-
-        .collapsible-body {
-            padding: 16px;
-            display: none;
-            flex-direction: column;
-            gap: 14px;
-            border-top: 1px solid var(--border);
-        }
-
-        .collapsible-section.expanded .collapsible-body {
-            display: flex;
-        }
-
-        .skip-action-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 6px;
-            padding-top: 10px;
-            border-top: 1px dashed var(--border);
-        }
-
-        .skip-btn {
-            background: none;
-            border: none;
-            color: var(--danger);
-            font-size: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            padding: 6px 12px;
-            border-radius: var(--radius-md);
-            transition: 0.2s;
-        }
-
-        .skip-btn:hover {
-            background: var(--danger-light);
-        }
+        .skip-action-row { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; padding-top: 10px; border-top: 1px dashed var(--border); }
+        .skip-btn { background: none; border: none; color: var(--danger); font-size: 12px; font-weight: 700; cursor: pointer; padding: 6px 12px; border-radius: var(--radius-md); transition: 0.2s; }
+        .skip-btn:hover { background: var(--danger-light); }
 
         .sub-status-box {
             background: linear-gradient(145deg, #f0fdf4 0%, #dcfce7 100%);
-            border: 1px solid #bbf7d0;
-            border-radius: var(--radius-md);
-            padding: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            border: 1px solid #bbf7d0; border-radius: var(--radius-md);
+            padding: 14px; display: flex; align-items: center; justify-content: space-between;
         }
+        .sub-status-info h4 { font-size: 14px; color: var(--dark); font-weight: 700; }
+        .sub-status-info p { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-top: 2px; }
+        .timer-badge { background: var(--dark); color: white; padding: 6px 12px; border-radius: 8px; font-family: monospace; font-size: 14px; font-weight: 700; }
 
-        .sub-status-info h4 {
-            font-size: 14px;
-            color: var(--dark);
-            font-weight: 700;
-        }
-
-        .sub-status-info p {
-            font-size: 11px;
-            color: var(--text-muted);
-            font-weight: 500;
-            margin-top: 2px;
-        }
-
-        .timer-badge {
-            background: var(--dark);
-            color: white;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-family: monospace;
-            font-size: 14px;
-            font-weight: 700;
-        }
-
-        .pricing-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 12px;
-        }
-
+        .pricing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
         .plan-btn {
-            background: #ffffff;
-            border: 2px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 14px 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: 0.2s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
+            background: #ffffff; border: 2px solid var(--border); border-radius: var(--radius-md);
+            padding: 14px 10px; text-align: center; cursor: pointer; transition: 0.2s;
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
         }
-
-        .plan-btn:active {
-            transform: scale(0.96);
-        }
-
-        .plan-btn.popular {
-            border-color: var(--primary);
-            background: var(--primary-light);
-        }
-
-        .plan-title {
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--dark);
-        }
-
-        .plan-price {
-            font-size: 16px;
-            font-weight: 800;
-            color: var(--primary);
-        }
+        .plan-btn:active { transform: scale(0.96); }
+        .plan-btn.popular { border-color: var(--primary); background: var(--primary-light); }
+        .plan-title { font-size: 12px; font-weight: 700; color: var(--dark); }
+        .plan-price { font-size: 16px; font-weight: 800; color: var(--primary); }
 
         .settings-footer {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(12px);
-            padding: 16px 20px;
-            border-top: 1px solid var(--border);
-            display: flex;
-            gap: 12px;
-            z-index: 100;
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px);
+            padding: 16px 20px; border-top: 1px solid var(--border);
+            display: flex; gap: 12px; z-index: 100;
         }
-
         .btn {
-            flex: 1;
-            font-family: inherit;
-            font-size: 14px;
-            font-weight: 700;
-            padding: 14px;
-            border: none;
-            border-radius: var(--radius-md);
-            cursor: pointer;
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            flex: 1; font-family: inherit; font-size: 14px; font-weight: 700;
+            padding: 14px; border: none; border-radius: var(--radius-md);
+            cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;
         }
-
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
-
-        .btn-primary:active {
-            background: #00569e;
-        }
-
-        .btn-secondary {
-            background: #f1f5f9;
-            color: var(--text-muted);
-        }
-
-        .btn-mpesa {
-            background: var(--mpesa);
-            color: white;
-        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:active { background: #00569e; }
+        .btn-secondary { background: #f1f5f9; color: var(--text-muted); }
+        .btn-mpesa { background: var(--mpesa); color: white; }
 
         #globalSubBlockOverlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 26, 53, 0.96);
-            backdrop-filter: blur(16px);
-            z-index: 1000000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            color: #ffffff;
+            position: fixed; inset: 0; background: rgba(0, 26, 53, 0.96);
+            backdrop-filter: blur(16px); z-index: 1000000; display: none;
+            align-items: center; justify-content: center; padding: 20px; color: #ffffff;
         }
-
         .sub-block-card {
-            background: #ffffff;
-            color: #0f172a;
-            width: 100%;
-            max-width: 420px;
-            border-radius: 24px;
-            padding: 32px 24px;
-            text-align: center;
+            background: #ffffff; color: #0f172a; width: 100%; max-width: 420px;
+            border-radius: 24px; padding: 32px 24px; text-align: center;
             box-shadow: 0 25px 60px rgba(0,0,0,0.5);
         }
-
         .sub-block-icon {
-            width: 64px;
-            height: 64px;
-            background: #fee2e2;
-            color: #ef4444;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
+            width: 64px; height: 64px; background: #fee2e2; color: #ef4444;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;
         }
-
-        .sub-block-plans {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 20px;
-        }
-
+        .sub-block-plans { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
         .sub-plan-option {
-            background: #f8fafc;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 14px;
-            cursor: pointer;
-            text-align: center;
+            background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px;
+            padding: 14px; cursor: pointer; text-align: center;
         }
-
-        .sub-plan-option:hover {
-            border-color: #0072CE;
-            background: #e6f0fa;
-        }
-
-        .sub-plan-option span {
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--text-muted);
-            display: block;
-            text-transform: uppercase;
-        }
-
-        .sub-plan-option b {
-            font-size: 15px;
-            font-weight: 800;
-            color: var(--primary);
-            display: block;
-            margin-top: 2px;
-        }
+        .sub-plan-option:hover { border-color: #0072CE; background: #e6f0fa; }
+        .sub-plan-option span { font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; text-transform: uppercase; }
+        .sub-plan-option b { font-size: 15px; font-weight: 800; color: var(--primary); display: block; margin-top: 2px; }
 
         .stk-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 26, 53, 0.9);
-            backdrop-filter: blur(8px);
-            z-index: 2000000;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
+            position: fixed; inset: 0; background: rgba(0, 26, 53, 0.9);
+            backdrop-filter: blur(8px); z-index: 2000000; display: none;
+            flex-direction: column; align-items: center; justify-content: center; padding: 20px;
         }
-
         .lock-card {
-            background: var(--card-bg);
-            border-radius: 24px;
-            padding: 30px 24px;
-            width: 100%;
-            max-width: 380px;
-            text-align: center;
-            color: var(--text-main);
-            position: relative;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            background: var(--card-bg); border-radius: 24px; padding: 30px 24px;
+            width: 100%; max-width: 380px; text-align: center; color: var(--text-main);
+            position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
         }
-
         .modal-close-btn {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            background: #f1f5f9;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            padding: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
+            position: absolute; top: 16px; right: 16px; background: #f1f5f9;
+            border: none; color: var(--text-muted); cursor: pointer; padding: 8px;
+            display: flex; align-items: center; justify-content: center; border-radius: 50%;
         }
-
         .stk-spinner {
-            width: 44px;
-            height: 44px;
-            border: 4px solid var(--primary-light);
-            border-top-color: var(--mpesa);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 16px;
+            width: 44px; height: 44px; border: 4px solid var(--primary-light);
+            border-top-color: var(--mpesa); border-radius: 50%;
+            animation: spin 1s linear infinite; margin: 0 auto 16px;
         }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         .toast {
-            position: fixed;
-            bottom: 90px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: var(--dark);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 100px;
-            font-size: 12px;
-            font-weight: 700;
-            z-index: 10005;
-            opacity: 0;
-            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(100px);
+            background: var(--dark); color: white; padding: 12px 24px; border-radius: 100px;
+            font-size: 12px; font-weight: 700; z-index: 10005; opacity: 0;
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; align-items: center; gap: 8px;
             border: 1px solid rgba(255,255,255,0.1);
         }
-
-        .toast.show {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
-        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
     </style>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
-
 <body>
 
 <div id="globalSubBlockOverlay">
     <div class="sub-block-card">
-
         <div class="sub-block-icon">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-            </svg>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
         </div>
-
-        <h2 id="subBlockTitle" style="font-size:20px;font-weight:800;color:var(--dark);margin-bottom:8px;">
-            Subscription Expired
-        </h2>
-
-        <p id="subBlockDesc" style="font-size:13px;color:var(--text-muted);line-height:1.5;margin-bottom:20px;">
-            Your platform access license has elapsed. Click a plan below to prompt payment and unlock your platform instantly.
-        </p>
-
+        <h2 id="subBlockTitle" style="font-size:20px; font-weight:800; color:var(--dark); margin-bottom:8px;">Subscription Expired</h2>
+        <p id="subBlockDesc" style="font-size:13px; color:var(--text-muted); line-height:1.5; margin-bottom:20px;">Your platform access license has elapsed. Click a plan below to prompt payment and unlock your platform instantly.</p>
+        
         <div class="sub-block-plans">
-
-            <div class="sub-plan-option" onclick="initiateMpesaPayment(30,1500,'Ksh 1,500')">
+            <div class="sub-plan-option" onclick="initiateMpesaPayment(30, 1500, 'Ksh 1,500')">
                 <span>Monthly</span>
                 <b>Ksh 1,500</b>
             </div>
-
-            <div class="sub-plan-option"
-                 onclick="initiateMpesaPayment(365,12000,'Ksh 12,000')"
-                 style="border-color:#0072CE;background:#e6f0fa;">
+            <div class="sub-plan-option" onclick="initiateMpesaPayment(365, 12000, 'Ksh 12,000')" style="border-color: #0072CE; background: #e6f0fa;">
                 <span>Yearly</span>
                 <b>Ksh 12,000</b>
             </div>
-
         </div>
     </div>
 </div>
 
 <div id="stkModal" class="stk-overlay">
-
     <div class="lock-card">
-
         <button class="modal-close-btn" onclick="closeStkModal()" id="stkCloseBtn">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
-
-        <div style="width:52px;height:52px;background:#e6fdf0;color:var(--mpesa);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="5" y="2" width="14" height="20" rx="2"></rect>
-                <line x1="12" y1="18" x2="12.01" y2="18"></line>
-            </svg>
+        
+        <div style="width: 52px; height: 52px; background: #e6fdf0; color: var(--mpesa); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
         </div>
-
-        <h2 style="font-size:18px;font-weight:800;color:var(--dark);margin-bottom:4px;">
-            M-PESA Express
-        </h2>
-
-        <p style="margin-bottom:16px;font-size:13px;color:var(--text-muted);">
-            Subscription fee:
-            <strong id="stkAmountDisplay" style="color:var(--dark);">Ksh --</strong>
-        </p>
+        
+        <h2 style="font-size:18px; font-weight:800; color:var(--dark); margin-bottom:4px;">M-PESA Express</h2>
+        <p style="margin-bottom: 16px; font-size: 13px; color: var(--text-muted);">Subscription fee: <strong id="stkAmountDisplay" style="color: var(--dark);">Ksh --</strong></p>
 
         <div id="stkInputStep">
-
-            <div class="form-field" style="text-align:left;margin-bottom:16px;">
+            <div class="form-field" style="text-align: left; margin-bottom: 16px;">
                 <label>Safaricom Phone Number</label>
-                <input type="tel"
-                       id="mpesaNumber"
-                       class="mpesa-focus"
-                       placeholder="07XXXXXXXX"
-                       inputmode="numeric"
-                       maxlength="10">
+                <input type="tel" id="mpesaNumber" class="mpesa-focus" placeholder="07XXXXXXXX" inputmode="numeric" maxlength="10">
             </div>
-
-            <button class="btn btn-mpesa"
-                    style="width:100%;"
-                    onclick="processStkPush()">
-                Send Real STK Push
-            </button>
-
+            <button class="btn btn-mpesa" style="width: 100%;" onclick="processStkPush()">Send Real STK Push</button>
         </div>
 
-        <div id="stkLoadingStep" style="display:none;padding:10px 0;">
-
+        <div id="stkLoadingStep" style="display: none; padding: 10px 0;">
             <div class="stk-spinner" id="stkSpinnerIcon"></div>
-
-            <h4 id="stkStatusTitle"
-                style="font-size:16px;color:var(--dark);font-weight:700;margin-bottom:4px;">
-                Sending STK Push...
-            </h4>
-
-            <p id="stkStatusDesc"
-               style="font-size:13px;color:var(--text-muted);line-height:1.4;margin-bottom:16px;">
-                Connecting to Safaricom API...
-            </p>
-
-            <button class="btn btn-secondary"
-                    id="stkRetryBtn"
-                    style="display:none;width:100%;font-size:13px;"
-                    onclick="resetStkModal()">
-                Try Again
-            </button>
-
+            <h4 id="stkStatusTitle" style="font-size: 16px; color: var(--dark); font-weight: 700; margin-bottom: 4px;">Sending STK Push...</h4>
+            <p id="stkStatusDesc" style="font-size: 13px; color: var(--text-muted); line-height: 1.4; margin-bottom: 16px;">Connecting to Safaricom API...</p>
+            <button class="btn btn-secondary" id="stkRetryBtn" style="display: none; width: 100%; font-size: 13px;" onclick="resetStkModal()">Try Again</button>
         </div>
     </div>
 </div>
 
 <div class="app-container">
-
     <header class="app-header">
-
         <button class="back-btn" onclick="exitPortal()">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="19" y1="12" x2="5" y2="12"></line>
-                <polyline points="12 19 5 12 12 5"></polyline>
-            </svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
         </button>
-
-        <div class="header-title">
-            AssetGuard <span>Settings</span>
-        </div>
-
-        <div style="width:20px;"></div>
-
+        <div class="header-title">AssetGuard <span>Settings</span></div>
+        <div style="width: 20px;"></div>
     </header>
 
     <main class="settings-content">
-
         <div>
-
             <span class="section-label">Branding Visualizer</span>
-
             <div class="brand-preview-card">
-
                 <div class="card-header-flex">
-
                     <div class="card-identity">
                         <h3 id="prevName">JCorp Kenya Inc</h3>
                         <p id="prevTag">Transformation you need</p>
                     </div>
-
                     <div class="card-logo-slot">
-                        <img id="prevLogo"
-                             src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='42' height='42' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='1.5'><path d='M4.5 16.5c-1.5 1.26-2.5 3.19-2.5 5.5h20c0-2.31-1-4.24-2.5-5.5' /><circle cx='12' cy='8' r='5' /></svg>"
-                             alt="Logo">
+                        <img id="prevLogo" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='42' height='42' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='1.5'><path d='M4.5 16.5c-1.5 1.26-2.5 3.19-2.5 5.5h20c0-2.31-1-4.24-2.5-5.5' /><circle cx='12' cy='8' r='5' /></svg>" alt="Logo">
                     </div>
-
                 </div>
-
                 <div class="preview-badge">
-                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="color:#22c55e;">
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
+                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="color:#22c55e;"><polyline points="20 6 9 17 4 12"></polyline></svg>
                     Live Preview
                 </div>
-
             </div>
-
         </div>
 
         <div>
-
             <span class="section-label">Platform Licensing & Subscription</span>
-
             <div class="input-group">
-
                 <div class="sub-status-box">
-
                     <div class="sub-status-info">
                         <h4 id="subStatusTitle">License Status</h4>
                         <p id="subStatusDesc">Checking database...</p>
                     </div>
-
-                    <div class="timer-badge" id="settingsTimer">
-                        Checking
-                    </div>
-
+                    <div class="timer-badge" id="settingsTimer">Checking</div>
                 </div>
-
                 <div class="pricing-grid">
-
-                    <div class="plan-btn"
-                         onclick="initiateMpesaPayment(30,1500,'Ksh 1,500')">
+                    <div class="plan-btn" onclick="initiateMpesaPayment(30, 1500, 'Ksh 1,500')">
                         <span class="plan-title">Monthly Plan</span>
                         <div class="plan-price">Ksh 1,500</div>
                     </div>
-
-                    <div class="plan-btn popular"
-                         onclick="initiateMpesaPayment(365,12000,'Ksh 12,000')">
+                    <div class="plan-btn popular" onclick="initiateMpesaPayment(365, 12000, 'Ksh 12,000')">
                         <span class="plan-title">Yearly Plan</span>
                         <div class="plan-price">Ksh 12,000</div>
                     </div>
-
                 </div>
-
             </div>
-
         </div>
 
         <div>
-
             <span class="section-label">Corporate Settings</span>
-
             <div class="input-group">
-
                 <div class="form-field">
                     <label>Business Identity Name</label>
-                    <input type="text"
-                           id="businessNameInput"
-                           placeholder="Enter Business Name"
-                           oninput="updatePreviewCard()">
+                    <input type="text" id="businessNameInput" placeholder="Enter Business Name" oninput="updatePreviewCard()">
                 </div>
-
                 <div class="form-field">
                     <label>Corporate Tagline / Address</label>
-                    <input type="text"
-                           id="taglineInput"
-                           placeholder="Enter Tagline/Address"
-                           oninput="updatePreviewCard()">
+                    <input type="text" id="taglineInput" placeholder="Enter Tagline/Address" oninput="updatePreviewCard()">
                 </div>
-
             </div>
-
         </div>
 
         <div class="collapsible-section" id="salesSection">
-
-            <div class="section-toggle-header"
-                 onclick="toggleSalesConfig()">
-
+            <div class="section-toggle-header" onclick="toggleSalesConfig()">
                 <div class="toggle-title-wrap">
-
-                    <h3>
-                        Accept Customer Payments(STK push)
-                        <span id="salesStatusBadge"
-                              class="status-badge badge-pending">
-                            Optional
-                        </span>
-                    </h3>
-
-                    <p>
-                        Configure your own Paybill/Till for customer sales
-                    </p>
-
+                    <h3>Accept Customer Payments (STK push) <span id="salesStatusBadge" class="status-badge badge-pending">Optional</span></h3>
+                    <p>Configure your own Paybill/Till for customer sales</p>
                 </div>
-
                 <div class="chevron-icon">
-
-                    <svg width="20"
-                         height="20"
-                         viewBox="0 0 24 24"
-                         fill="none"
-                         stroke="currentColor"
-                         stroke-width="2.5"
-                         stroke-linecap="round"
-                         stroke-linejoin="round">
-                        <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
-
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
                 </div>
-
             </div>
-
             <div class="collapsible-body">
-
                 <div class="form-field">
                     <label>Environment Mode</label>
-
                     <select id="salesEnvironment">
                         <option value="production">Production (Live)</option>
                         <option value="sandbox">Sandbox (Testing)</option>
                     </select>
                 </div>
-
                 <div class="form-field">
                     <label>Account Type / Payment Mode</label>
-
                     <select id="salesAccountType">
                         <option value="Paybill">Paybill (Business Shortcode)</option>
                         <option value="Till">Till Number (Buy Goods & Services)</option>
                     </select>
                 </div>
-
                 <div class="form-field">
                     <label>My Business Shortcode / Till Number</label>
-
-                    <input type="tel"
-                           id="salesShortcode"
-                           class="mpesa-focus"
-                           placeholder="e.g. 257471"
-                           inputmode="numeric">
+                    <input type="tel" id="salesShortcode" class="mpesa-focus" placeholder="e.g. 257471" inputmode="numeric">
                 </div>
-
                 <div class="form-field">
                     <label>My Passkey (Lipwa Na M-Pesa Online)</label>
-
-                    <input type="password"
-                           id="salesPasskey"
-                           class="mpesa-focus"
-                           placeholder="Enter your Lipwa passkey">
+                    <input type="password" id="salesPasskey" class="mpesa-focus" placeholder="Enter your Lipwa passkey">
                 </div>
-
                 <div class="form-field">
                     <label>My Consumer Key (Daraja Portal)</label>
-
-                    <input type="text"
-                           id="salesConsumerKey"
-                           placeholder="Enter your Consumer Key">
+                    <input type="text" id="salesConsumerKey" placeholder="Enter your Consumer Key">
                 </div>
-
                 <div class="form-field">
                     <label>My Consumer Secret (Daraja Portal)</label>
-
-                    <input type="password"
-                           id="salesConsumerSecret"
-                           placeholder="Enter your Consumer Secret">
+                    <input type="password" id="salesConsumerSecret" placeholder="Enter your Consumer Secret">
                 </div>
-
+                
                 <div class="skip-action-row">
-
-                    <span style="font-size:11px;color:var(--text-muted);">
-                        Don't have automated keys yet?
-                    </span>
-
-                    <button class="skip-btn"
-                            onclick="skipSalesConfig(event)">
-                        Skip Configuration for Now
-                    </button>
-
+                    <span style="font-size:11px; color:var(--text-muted);">Don't have automated keys yet?</span>
+                    <button class="skip-btn" onclick="skipSalesConfig(event)">Skip Configuration for Now</button>
                 </div>
-
             </div>
-
         </div>
 
         <div>
-
             <span class="section-label">Corporate Emblem</span>
-
             <div class="input-group">
-
                 <div class="logo-upload-area">
-
-                    <input type="file"
-                           id="logoFileInput"
-                           accept="image/*"
-                           onchange="processLogoFile(this)">
-
+                    <input type="file" id="logoFileInput" accept="image/*" onchange="processLogoFile(this)">
                     <div class="upload-icon">
-
-                        <svg width="28"
-                             height="28"
-                             viewBox="0 0 24 24"
-                             fill="none"
-                             stroke="currentColor"
-                             stroke-width="2"
-                             stroke-linecap="round"
-                             stroke-linejoin="round">
-                            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                            <polyline points="21 15 16 10 5 21"></polyline>
-                        </svg>
-
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx='8.5' cy='8.5' r='1.5'></circle><polyline points='21 15 16 10 5 21'></polyline></svg>
                     </div>
-
                     <div class="upload-text">
                         <b>Upload Corporate Logo</b>
                         <p>Select image from device storage</p>
                     </div>
-
                 </div>
-
             </div>
-
         </div>
-
     </main>
 
     <footer class="settings-footer">
-
-        <button class="btn btn-secondary"
-                onclick="exitPortal()">
-            Cancel
-        </button>
-
-        <button class="btn btn-primary"
-                onclick="saveConfiguration()">
-
-            <svg width="18"
-                 height="18"
-                 viewBox="0 0 24 24"
-                 fill="none"
-                 stroke="currentColor"
-                 stroke-width="2.5"
-                 stroke-linecap="round"
-                 stroke-linejoin="round">
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                <polyline points="7 3 7 8 15 8"></polyline>
-            </svg>
-
+        <button class="btn btn-secondary" onclick="exitPortal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveConfiguration()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
             Save Settings
-
         </button>
-
     </footer>
-
 </div>
 
 <div id="toastBox" class="toast">
-
-    <svg width="16"
-         height="16"
-         viewBox="0 0 24 24"
-         fill="none"
-         stroke="currentColor"
-         stroke-width="3"
-         stroke-linecap="round"
-         stroke-linejoin="round"
-         style="color:var(--success);">
-        <polyline points="20 6 9 17 4 12"></polyline>
-    </svg>
-
-    <span id="toastText">
-        Settings Updated Successfully
-    </span>
-
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="color: var(--success);"><polyline points="20 6 9 17 4 12"></polyline></svg>
+    <span id="toastText">Settings Updated Successfully</span>
 </div>
 
 <script>
-
-const firebaseConfig = {
-    apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA",
-    authDomain: "assetguard-c8c8c.firebaseapp.com",
-    projectId: "assetguard-c8c8c",
-    databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com"
-};
-
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
-
-const rtdb = firebase.database();
-
-let currentUID = "unidentified_user";
-let pollInterval = null;
-
-const MASTER_CONFIG = {
-    backendUrl: "https://weathered-glade-c60b.assetguardinfo.workers.dev",
-    environment: "production",
-    accountType: "Paybill",
-    shortcode: "257471",
-    passkey: "103f80194fedeaefb352960fb340d766ef3f84a9dcb96aafdd21d0b0bb8dfbab",
-    consumerKey: "AGJGJGGktfRf8OHhos6TJXKupDMb3f2wG9pZDdF8tG5qm0qK",
-    consumerSecret: "xmd2sXJzRA6Chl1KHGvR9jG0qtSBse1oRBCdgBjb4DnO7SEi4QzPVwKNWWraubJd"
-};
-
-let loadedSettings = {
-    businessName: "JCorp Kenya Inc",
-    tagline: "Transformation you need",
-    logoUrl: "",
-    salesConfigSkipped: false,
-    salesDaraja: {
-        environment: "production",
-        accountType: "Paybill",
-        shortcode: "",
-        passkey: "",
-        consumerKey: "",
-        consumerSecret: ""
-    }
-};
-
-let pendingSubDays = 0;
-let pendingAmount = 1500;
-
-window.onload = function() {
-
-    resolveUserIdentity();
-
-    loadLocalSettings();
-
-    initFirebaseListeners();
-
-};
-
-function initFirebaseListeners() {
-
-    if (!currentUID ||
-        currentUID.startsWith("unidentified")) {
-
-        lockScreenWithNotice(
-            "Account Not Identified",
-            "Your AssetGuard account could not be identified."
-        );
-
-        return;
-    }
-
-    rtdb.ref(`user_statuses/${currentUID}`)
-        .on("value", function(snapshot) {
-
-            const status = snapshot.val();
-
-            if (status && status !== "Active") {
-
-                lockScreenWithNotice(
-                    "Account " + status,
-                    "Your account has been marked as " +
-                    String(status).toLowerCase() +
-                    " by the system administrator."
-                );
-
-            } else {
-
-                readSubscriptionFromDatabase();
-
-            }
-
-        });
-
-    rtdb.ref(`subscription_pauses/${currentUID}`)
-        .on("value", function(snapshot) {
-
-            const pause = snapshot.val();
-
-            const now = Date.now();
-
-            if (
-                pause &&
-                pause.active === true &&
-                Number(pause.pausedUntil || 0) > now
-            ) {
-
-                unlockScreen();
-
-                updateSubscriptionDisplay({
-                    status: "active",
-                    expiry: Number(pause.pausedUntil),
-                    pauseOverride: true
-                });
-
-            } else {
-
-                readSubscriptionFromDatabase();
-
-            }
-
-        });
-
-    rtdb.ref(`subscriptions/${currentUID}`)
-        .on("value", function(snapshot) {
-
-            const subscription = snapshot.val();
-
-            evaluateSubscriptionFromDatabase(
-                subscription
-            );
-
-        });
-
-}
-
-function readSubscriptionFromDatabase() {
-
-    if (!currentUID ||
-        currentUID.startsWith("unidentified")) {
-
-        lockScreenWithNotice(
-            "Account Not Identified",
-            "Your AssetGuard account could not be identified."
-        );
-
-        return;
-    }
-
-    rtdb.ref(`subscriptions/${currentUID}`)
-        .once("value")
-        .then(function(snapshot) {
-
-            evaluateSubscriptionFromDatabase(
-                snapshot.val()
-            );
-
-        })
-        .catch(function(error) {
-
-            console.error(
-                "Firebase subscription read error:",
-                error
-            );
-
-            lockScreenWithNotice(
-                "Subscription Verification Failed",
-                "AssetGuard could not verify your subscription from the database."
-            );
-
-        });
-
-}
-
-function evaluateSubscriptionFromDatabase(subscription) {
-
-    const now = Date.now();
-
-    if (!subscription) {
-
-        lockScreenWithNotice(
-            "Subscription Required",
-            "No active AssetGuard subscription was found for this account."
-        );
-
-        updateSubscriptionDisplay(null);
-
-        return;
-    }
-
-    const status = String(
-        subscription.status || ""
-    ).toLowerCase();
-
-    if (
-        status === "suspended" ||
-        status === "blocked" ||
-        status === "inactive"
-    ) {
-
-        lockScreenWithNotice(
-            status === "suspended"
-                ? "Subscription Suspended"
-                : status === "blocked"
-                    ? "Account Blocked"
-                    : "Subscription Inactive",
-
-            status === "suspended"
-                ? "Your subscription has been suspended by the system administrator."
-                : status === "blocked"
-                    ? "Your account has been blocked by the system administrator."
-                    : "Your subscription is currently inactive."
-        );
-
-        updateSubscriptionDisplay(
-            subscription
-        );
-
-        return;
-    }
-
-    const expiry = Number(
-        subscription.expiry || 0
-    );
-
-    if (
-        !expiry ||
-        !Number.isFinite(expiry)
-    ) {
-
-        lockScreenWithNotice(
-            "Subscription Required",
-            "No valid subscription expiry was found in the AssetGuard database."
-        );
-
-        updateSubscriptionDisplay(
-            subscription
-        );
-
-        return;
-    }
-
-    if (now >= expiry) {
-
-        lockScreenWithNotice(
-            "Subscription Expired",
-            "Your AssetGuard subscription has expired. Please select a plan below to renew access."
-        );
-
-        updateSubscriptionDisplay(
-            subscription
-        );
-
-        return;
-    }
-
-    unlockScreen();
-
-    updateSubscriptionDisplay(
-        subscription
-    );
-
-}
-
-function lockScreenWithNotice(title, desc) {
-
-    document.getElementById(
-        "subBlockTitle"
-    ).innerText = title;
-
-    document.getElementById(
-        "subBlockDesc"
-    ).innerText = desc;
-
-    document.getElementById(
-        "globalSubBlockOverlay"
-    ).style.display = "flex";
-
-    document.body.style.overflow = "hidden";
-
-}
-
-function unlockScreen() {
-
-    document.getElementById(
-        "globalSubBlockOverlay"
-    ).style.display = "none";
-
-    document.body.style.overflow = "auto";
-
-}
-
-function updateSubscriptionDisplay(subscription) {
-
-    const timerEl =
-        document.getElementById("settingsTimer");
-
-    const descEl =
-        document.getElementById("subStatusDesc");
-
-    if (!subscription) {
-
-        timerEl.innerText = "LOCKED";
-
-        timerEl.style.color =
-            "var(--danger)";
-
-        descEl.innerText =
-            "Subscription not found";
-
-        return;
-    }
-
-    const expiry =
-        Number(subscription.expiry || 0);
-
-    const now = Date.now();
-
-    if (
-        !expiry ||
-        now >= expiry
-    ) {
-
-        timerEl.innerText =
-            "EXPIRED";
-
-        timerEl.style.color =
-            "var(--danger)";
-
-        descEl.innerText =
-            "Please renew your plan";
-
-        return;
-    }
-
-    const remaining =
-        expiry - now;
-
-    const days =
-        Math.floor(
-            remaining /
-            (1000 * 60 * 60 * 24)
-        );
-
-    const hours =
-        Math.floor(
-            (
-                remaining %
-                (1000 * 60 * 60 * 24)
-            ) /
-            (1000 * 60 * 60)
-        );
-
-    timerEl.innerText =
-        `${days}d ${hours}h`;
-
-    timerEl.style.color =
-        "var(--success)";
-
-    descEl.innerText =
-        subscription.plan
-            ? `${subscription.plan} plan active`
-            : "Pro License Active";
-
-}
-
-function toggleSalesConfig() {
-
-    const section =
-        document.getElementById(
-            "salesSection"
-        );
-
-    section.classList.toggle(
-        "expanded"
-    );
-
-}
-
-function skipSalesConfig(e) {
-
-    e.stopPropagation();
-
-    loadedSettings.salesConfigSkipped =
-        true;
-
-    document.getElementById(
-        "salesSection"
-    ).classList.remove(
-        "expanded"
-    );
-
-    updateSalesBadge();
-
-    triggerToast(
-        "POS Payment Setup Skipped for Now"
-    );
-
-}
-
-function updateSalesBadge() {
-
-    const badge =
-        document.getElementById(
-            "salesStatusBadge"
-        );
-
-    if (
-        loadedSettings.salesConfigSkipped
-    ) {
-
-        badge.innerText =
-            "Skipped";
-
-        badge.className =
-            "status-badge badge-skipped";
-
-    } else if (
-        document.getElementById(
-            "salesShortcode"
-        ).value.trim() !== ""
-    ) {
-
-        badge.innerText =
-            "Configured";
-
-        badge.className =
-            "status-badge badge-configured";
-
-    } else {
-
-        badge.innerText =
-            "Optional";
-
-        badge.className =
-            "status-badge badge-pending";
-
-    }
-
-}
-
-function initiateMpesaPayment(
-    daysAdded,
-    amountVal,
-    amountString
-) {
-
-    pendingSubDays =
-        daysAdded;
-
-    pendingAmount =
-        amountVal;
-
-    document.getElementById(
-        "stkAmountDisplay"
-    ).innerText =
-        amountString;
-
-    document.getElementById(
-        "mpesaNumber"
-    ).value = "";
-
-    document.getElementById(
-        "stkInputStep"
-    ).style.display =
-        "block";
-
-    document.getElementById(
-        "stkLoadingStep"
-    ).style.display =
-        "none";
-
-    document.getElementById(
-        "stkSpinnerIcon"
-    ).style.display =
-        "block";
-
-    document.getElementById(
-        "stkRetryBtn"
-    ).style.display =
-        "none";
-
-    document.getElementById(
-        "stkCloseBtn"
-    ).style.display =
-        "flex";
-
-    document.getElementById(
-        "stkModal"
-    ).style.display =
-        "flex";
-
-    if (pollInterval) {
-
-        clearInterval(
-            pollInterval
-        );
-
-        pollInterval = null;
-
-    }
-
-}
-
-function closeStkModal() {
-
-    if (pollInterval) {
-
-        clearInterval(
-            pollInterval
-        );
-
-        pollInterval = null;
-
-    }
-
-    document.getElementById(
-        "stkModal"
-    ).style.display =
-        "none";
-
-}
-
-function resetStkModal() {
-
-    if (pollInterval) {
-
-        clearInterval(
-            pollInterval
-        );
-
-        pollInterval = null;
-
-    }
-
-    document.getElementById(
-        "stkLoadingStep"
-    ).style.display =
-        "none";
-
-    document.getElementById(
-        "stkInputStep"
-    ).style.display =
-        "block";
-
-    document.getElementById(
-        "stkCloseBtn"
-    ).style.display =
-        "flex";
-
-}
-
-async function processStkPush() {
-
-    const phoneInput =
-        document.getElementById(
-            "mpesaNumber"
-        );
-
-    const phone =
-        phoneInput.value.trim();
-
-    const backendUrl =
-        MASTER_CONFIG.backendUrl;
-
-    const kenyanPhoneRegex =
-        /^(07|01)\d{8}$/;
-
-    if (!kenyanPhoneRegex.test(phone)) {
-
-        triggerToast(
-            "Invalid Format: Use 07XXXXXXXX or 01XXXXXXXX"
-        );
-
-        phoneInput.style.borderColor =
-            "var(--danger)";
-
-        return;
-
-    }
-
-    const formattedPhone =
-        "254" +
-        phone.substring(1);
-
-    phoneInput.style.borderColor =
-        "var(--border)";
-
-    document.getElementById(
-        "stkInputStep"
-    ).style.display =
-        "none";
-
-    document.getElementById(
-        "stkLoadingStep"
-    ).style.display =
-        "block";
-
-    document.getElementById(
-        "stkSpinnerIcon"
-    ).style.display =
-        "block";
-
-    document.getElementById(
-        "stkRetryBtn"
-    ).style.display =
-        "none";
-
-    document.getElementById(
-        "stkCloseBtn"
-    ).style.display =
-        "none";
-
-    const titleEl =
-        document.getElementById(
-            "stkStatusTitle"
-        );
-
-    const descEl =
-        document.getElementById(
-            "stkStatusDesc"
-        );
-
-    titleEl.innerText =
-        "Sending STK Push...";
-
-    titleEl.style.color =
-        "var(--dark)";
-
-    descEl.innerText =
-        "Communicating with Safaricom live gateway...";
-
-    try {
-
-        const response =
-            await fetch(
-                `${backendUrl.replace(/\/+$/, "")}`,
-                {
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body: JSON.stringify({
-
-                        environment:
-                            MASTER_CONFIG.environment,
-
-                        shortcode:
-                            MASTER_CONFIG.shortcode,
-
-                        passkey:
-                            MASTER_CONFIG.passkey,
-
-                        consumerKey:
-                            MASTER_CONFIG.consumerKey,
-
-                        consumerSecret:
-                            MASTER_CONFIG.consumerSecret,
-
-                        accountType:
-                            MASTER_CONFIG.accountType,
-
-                        amount:
-                            parseInt(
-                                pendingAmount,
-                                10
-                            ),
-
-                        phoneNumber:
-                            formattedPhone
-
-                    })
-                }
-            );
-
-        let result;
-
-        const contentType =
-            response.headers.get(
-                "content-type"
-            );
-
-        if (
-            contentType &&
-            contentType.includes(
-                "application/json"
-            )
-        ) {
-
-            result =
-                await response.json();
-
-        } else {
-
-            const textResponse =
-                await response.text();
-
-            throw new Error(
-                "Server returned non-JSON: " +
-                textResponse.substring(
-                    0,
-                    100
-                )
-            );
-
-        }
-
-        if (
-            !response.ok ||
-            (
-                result.ResponseCode &&
-                result.ResponseCode !== "0"
-            )
-        ) {
-
-            throw new Error(
-                result.errorMessage ||
-                result.ResponseDescription ||
-                "STK request rejected."
-            );
-
-        }
-
-        const checkoutRequestID =
-            result.CheckoutRequestID;
-
-        if (!checkoutRequestID) {
-
-            throw new Error(
-                "No CheckoutRequestID returned from server."
-            );
-
-        }
-
-        startStatusPolling(
-            checkoutRequestID
-        );
-
-    } catch (err) {
-
-        console.error(
-            "STK Error:",
-            err
-        );
-
-        document.getElementById(
-            "stkSpinnerIcon"
-        ).style.display =
-            "none";
-
-        titleEl.innerText =
-            "Payment cancelled";
-
-        titleEl.style.color =
-            "var(--danger)";
-
-        descEl.innerText =
-            err.message ||
-            "Timeout or user cannot be reached.";
-
-        document.getElementById(
-            "stkRetryBtn"
-        ).style.display =
-            "block";
-
-        document.getElementById(
-            "stkCloseBtn"
-        ).style.display =
-            "flex";
-
-    }
-
-}
-
-function startStatusPolling(
-    checkoutRequestID
-) {
-
-    const titleEl =
-        document.getElementById(
-            "stkStatusTitle"
-        );
-
-    const descEl =
-        document.getElementById(
-            "stkStatusDesc"
-        );
-
-    titleEl.innerText =
-        "Waiting for PIN Entry...";
-
-    descEl.innerText =
-        "Please check your phone and enter your M-Pesa PIN.";
-
-    let attempts = 0;
-
-    const maxAttempts = 18;
-
-    if (pollInterval) {
-
-        clearInterval(
-            pollInterval
-        );
-
-    }
-
-    pollInterval =
-        setInterval(
-            async function() {
-
-                attempts++;
-
-                if (
-                    attempts >
-                    maxAttempts
-                ) {
-
-                    clearInterval(
-                        pollInterval
-                    );
-
-                    pollInterval = null;
-
-                    document.getElementById(
-                        "stkSpinnerIcon"
-                    ).style.display =
-                        "none";
-
-                    titleEl.innerText =
-                        "Payment cancelled";
-
-                    titleEl.style.color =
-                        "var(--danger)";
-
-                    descEl.innerText =
-                        "Timeout waiting for user response.";
-
-                    document.getElementById(
-                        "stkRetryBtn"
-                    ).style.display =
-                        "block";
-
-                    document.getElementById(
-                        "stkCloseBtn"
-                    ).style.display =
-                        "flex";
-
-                    return;
-
-                }
-
-                try {
-
-                    const response =
-                        await fetch(
-                            `${MASTER_CONFIG.backendUrl.replace(/\/+$/, "")}/query`,
-                            {
-                                method: "POST",
-
-                                headers: {
-                                    "Content-Type":
-                                        "application/json"
-                                },
-
-                                body:
-                                    JSON.stringify({
-
-                                        environment:
-                                            MASTER_CONFIG.environment,
-
-                                        shortcode:
-                                            MASTER_CONFIG.shortcode,
-
-                                        passkey:
-                                            MASTER_CONFIG.passkey,
-
-                                        consumerKey:
-                                            MASTER_CONFIG.consumerKey,
-
-                                        consumerSecret:
-                                            MASTER_CONFIG.consumerSecret,
-
-                                        checkoutRequestID:
-                                            checkoutRequestID
-
-                                    })
-
-                            }
-                        );
-
-                    const data =
-                        await response.json();
-
-                    if (
-                        data.ResultCode === "0"
-                    ) {
-
-                        clearInterval(
-                            pollInterval
-                        );
-
-                        pollInterval = null;
-
-                        document.getElementById(
-                            "stkSpinnerIcon"
-                        ).style.display =
-                            "none";
-
-                        titleEl.innerText =
-                            "Payment Received";
-
-                        titleEl.style.color =
-                            "var(--mpesa)";
-
-                        descEl.innerText =
-                            "Updating subscription...";
-
-                        setTimeout(
-                            async function() {
-
-                                await finalizeSubscriptionRenew(
-                                    pendingSubDays
-                                );
-
-                                closeStkModal();
-
-                                titleEl.style.color =
-                                    "var(--dark)";
-
-                            },
-                            1200
-                        );
-
-                    } else if (
-                        data.ResultCode &&
-                        data.ResultCode !== "0"
-                    ) {
-
-                        clearInterval(
-                            pollInterval
-                        );
-
-                        pollInterval = null;
-
-                        document.getElementById(
-                            "stkSpinnerIcon"
-                        ).style.display =
-                            "none";
-
-                        titleEl.style.color =
-                            "var(--danger)";
-
-                        titleEl.innerText =
-                            data.ResultCode === "1032"
-                                ? "Payment cancelled"
-                                : "Payment failed";
-
-                        descEl.innerText =
-                            data.ResultDesc ||
-                            "Transaction failed.";
-
-                        document.getElementById(
-                            "stkRetryBtn"
-                        ).style.display =
-                            "block";
-
-                        document.getElementById(
-                            "stkCloseBtn"
-                        ).style.display =
-                            "flex";
-
-                    }
-
-                } catch (err) {
-
-                    console.error(
-                        "Polling query error:",
-                        err
-                    );
-
-                }
-
-            },
-            4000
-        );
-
-}
-
-async function finalizeSubscriptionRenew(
-    daysAdded
-) {
-
-    const now =
-        Date.now();
-
-    try {
-
-        const subscriptionRef =
-            rtdb.ref(
-                `subscriptions/${currentUID}`
-            );
-
-        const snapshot =
-            await subscriptionRef.once(
-                "value"
-            );
-
-        const existing =
-            snapshot.val() || {};
-
-        const existingExpiry =
-            Number(
-                existing.expiry || 0
-            );
-
-        const baseTime =
-            existingExpiry > now
-                ? existingExpiry
-                : now;
-
-        const newExpiry =
-            baseTime +
-            (
-                daysAdded *
-                24 *
-                60 *
-                60 *
-                1000
-            );
-
-        await subscriptionRef.update({
-
-            status:
-                "active",
-
-            expiry:
-                newExpiry,
-
-            plan:
-                daysAdded >= 365
-                    ? "yearly"
-                    : "monthly",
-
-            lastPaymentAt:
-                now,
-
-            updatedAt:
-                now
-
-        });
-
-        triggerToast(
-            `Verified! Subscribed for ${daysAdded} Days.`
-        );
-
-        evaluateSubscriptionFromDatabase({
-            status: "active",
-            expiry: newExpiry,
-            plan:
-                daysAdded >= 365
-                    ? "yearly"
-                    : "monthly"
-        });
-
-    } catch (error) {
-
-        console.error(
-            "Subscription database update failed:",
-            error
-        );
-
-        lockScreenWithNotice(
-            "Activation Error",
-            "Payment was received but the subscription could not be updated in the database. Please contact the administrator."
-        );
-
-    }
-
-}
-
-function resolveUserIdentity() {
-
-    let resolved = null;
-
-    const urlParams =
-        new URLSearchParams(
-            window.location.search
-        );
-
-    resolved =
-        urlParams.get("uid") ||
-        urlParams.get("user") ||
-        urlParams.get("userId");
-
-    if (!resolved) {
-
-        resolved =
-            localStorage.getItem(
-                "ag_active_uid"
-            );
-
-    }
-
-    if (
-        resolved &&
-        resolved.trim() !== ""
-    ) {
-
-        currentUID =
-            resolved.trim();
-
-        localStorage.setItem(
-            "ag_active_uid",
-            currentUID
-        );
-
-    } else {
-
-        currentUID =
-            "unidentified_" +
-            Math.random()
-                .toString(36)
-                .substr(2,9);
-
-    }
-
-}
-
-function loadLocalSettings() {
-
-    const cacheKey =
-        `ag_profile_cache_${currentUID}`;
-
-    const cachedData =
-        localStorage.getItem(
-            cacheKey
-        );
-
-    if (cachedData) {
-
-        try {
-
-            const parsed =
-                JSON.parse(
-                    cachedData
-                );
-
-            loadedSettings = {
-                ...loadedSettings,
-                ...parsed
-            };
-
-            if (
-                !loadedSettings.salesDaraja
-            ) {
-
-                loadedSettings.salesDaraja = {
-                    environment:
-                        "production",
-
-                    accountType:
-                        "Paybill",
-
-                    shortcode:
-                        "",
-
-                    passkey:
-                        "",
-
-                    consumerKey:
-                        "",
-
-                    consumerSecret:
-                        ""
-                };
-
-            }
-
-        } catch (e) {
-
-            console.error(
-                "Cache reconstruction failed."
-            );
-
-        }
-
-    }
-
-    document.getElementById(
-        "businessNameInput"
-    ).value =
-        loadedSettings.businessName ||
-        "";
-
-    document.getElementById(
-        "taglineInput"
-    ).value =
-        loadedSettings.tagline ||
-        "";
-
-    document.getElementById(
-        "salesEnvironment"
-    ).value =
-        loadedSettings.salesDaraja.environment ||
-        "production";
-
-    document.getElementById(
-        "salesAccountType"
-    ).value =
-        loadedSettings.salesDaraja.accountType ||
-        "Paybill";
-
-    document.getElementById(
-        "salesShortcode"
-    ).value =
-        loadedSettings.salesDaraja.shortcode ||
-        "";
-
-    document.getElementById(
-        "salesPasskey"
-    ).value =
-        loadedSettings.salesDaraja.passkey ||
-        "";
-
-    document.getElementById(
-        "salesConsumerKey"
-    ).value =
-        loadedSettings.salesDaraja.consumerKey ||
-        "";
-
-    document.getElementById(
-        "salesConsumerSecret"
-    ).value =
-        loadedSettings.salesDaraja.consumerSecret ||
-        "";
-
-    updatePreviewCard();
-
-    updateSalesBadge();
-
-}
-
-function updatePreviewCard() {
-
-    document.getElementById(
-        "prevName"
-    ).innerText =
-        document.getElementById(
-            "businessNameInput"
-        ).value ||
-        "JCorp Kenya Inc";
-
-    document.getElementById(
-        "prevTag"
-    ).innerText =
-        document.getElementById(
-            "taglineInput"
-        ).value ||
-        "Transformation you need";
-
-    const previewLogoImg =
-        document.getElementById(
-            "prevLogo"
-        );
-
-    if (
-        loadedSettings.logoUrl &&
-        loadedSettings.logoUrl !== ""
-    ) {
-
-        previewLogoImg.src =
-            loadedSettings.logoUrl;
-
-    }
-
-}
-
-function processLogoFile(
-    uploader
-) {
-
-    const emblem =
-        uploader.files[0];
-
-    if (emblem) {
-
-        const parser =
-            new FileReader();
-
-        parser.onload =
-            function(e) {
-
-                loadedSettings.logoUrl =
-                    e.target.result;
-
-                updatePreviewCard();
-
-            };
-
-        parser.readAsDataURL(
-            emblem
-        );
-
-    }
-
-}
-
-function saveConfiguration() {
-
-    loadedSettings.businessName =
-        document.getElementById(
-            "businessNameInput"
-        ).value;
-
-    loadedSettings.tagline =
-        document.getElementById(
-            "taglineInput"
-        ).value;
-
-    const sc =
-        document.getElementById(
-            "salesShortcode"
-        ).value.trim();
-
-    if (sc !== "") {
-
-        loadedSettings.salesConfigSkipped =
-            false;
-
-    }
-
-    loadedSettings.salesDaraja = {
-
-        backendUrl:
-            MASTER_CONFIG.backendUrl,
-
-        environment:
-            document.getElementById(
-                "salesEnvironment"
-            ).value,
-
-        accountType:
-            document.getElementById(
-                "salesAccountType"
-            ).value,
-
-        shortcode:
-            sc,
-
-        passkey:
-            document.getElementById(
-                "salesPasskey"
-            ).value.trim(),
-
-        consumerKey:
-            document.getElementById(
-                "salesConsumerKey"
-            ).value.trim(),
-
-        consumerSecret:
-            document.getElementById(
-                "salesConsumerSecret"
-            ).value.trim()
-
+    const firebaseConfig = { 
+        apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA", 
+        authDomain: "assetguard-c8c8c.firebaseapp.com", 
+        projectId: "assetguard-c8c8c",
+        databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com"
     };
 
-    localStorage.setItem(
-        `ag_profile_cache_${currentUID}`,
-        JSON.stringify(
-            loadedSettings
-        )
-    );
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const rtdb = firebase.database();
 
-    updateSalesBadge();
+    let currentUID = "unidentified_user"; 
+    let pollInterval = null;
+    
+    const MASTER_CONFIG = {
+        backendUrl: "https://weathered-glade-c60b.assetguardinfo.workers.dev",
+        environment: "production",
+        accountType: "Paybill",
+        shortcode: "257471",
+        passkey: "103f80194fedeaefb352960fb340d766ef3f84a9dcb96aafdd21d0b0bb8dfbab",
+        consumerKey: "AGJGJGGktfRf8OHhos6TJXKupDMb3f2wG9pZDdF8tG5qm0qK",
+        consumerSecret: "xmd2sXJzRA6Chl1KHGvR9jG0qtSBse1oRBCdgBjb4DnO7SEi4QzPVwKNWWraubJd"
+    };
 
-    try {
+    let loadedSettings = { 
+        businessName: "JCorp Kenya Inc", 
+        tagline: "Transformation you need", 
+        logoUrl: "",
+        salesConfigSkipped: false,
+        salesDaraja: {
+            environment: "production",
+            accountType: "Paybill",
+            shortcode: "",
+            passkey: "",
+            consumerKey: "",
+            consumerSecret: ""
+        }
+    };
+    let pendingSubDays = 0;
+    let pendingAmount = 1500;
+    
+    window.onload = function() {
+        resolveUserIdentity();
+        loadLocalSettings();
+        initFirebaseListeners();
+    };
 
-        if (
-            window.AppInventor &&
-            typeof window.AppInventor
-                .setWebViewString ===
-                "function"
-        ) {
-
-            window.AppInventor
-                .setWebViewString(
-                    JSON.stringify({
-                        action:
-                            "settings_updated",
-
-                        uid:
-                            currentUID,
-
-                        data:
-                            loadedSettings
-                    })
-                );
-
+    function initFirebaseListeners() {
+        if (!currentUID || currentUID.startsWith("unidentified")) {
+            lockScreenWithNotice("Account Not Identified", "Your AssetGuard account could not be identified.");
+            return;
         }
 
-    } catch (e) {}
+        rtdb.ref(`user_statuses/${currentUID}`).on("value", function(snapshot) {
+            const status = snapshot.val();
+            if (status && status !== "Active") {
+                lockScreenWithNotice("Account " + status, "Your account has been marked as " + String(status).toLowerCase() + " by the system administrator.");
+            } else {
+                readSubscriptionFromDatabase();
+            }
+        });
 
-    triggerToast(
-        "Settings Saved Successfully"
-    );
+        rtdb.ref(`subscription_pauses/${currentUID}`).on("value", function(snapshot) {
+            const pause = snapshot.val();
+            const now = Date.now();
+            if (pause && pause.active === true && Number(pause.pausedUntil || 0) > now) {
+                unlockScreen();
+                updateSubscriptionDisplay({
+                    status: "active",
+                    active: true,
+                    expiry: Number(pause.pausedUntil),
+                    expiresAt: Number(pause.pausedUntil),
+                    pauseOverride: true
+                });
+            } else {
+                readSubscriptionFromDatabase();
+            }
+        });
 
-}
+        rtdb.ref(`subscriptions/${currentUID}`).on("value", function(snapshot) {
+            evaluateSubscriptionFromDatabase(snapshot.val());
+        });
+    }
 
-function triggerToast(msg) {
+    function readSubscriptionFromDatabase() {
+        if (!currentUID || currentUID.startsWith("unidentified")) return;
+        rtdb.ref(`subscriptions/${currentUID}`).once("value").then(function(snapshot) {
+            evaluateSubscriptionFromDatabase(snapshot.val());
+        }).catch(function(error) {
+            lockScreenWithNotice("Subscription Verification Failed", "AssetGuard could not verify your subscription from the database.");
+        });
+    }
 
-    const box =
-        document.getElementById(
-            "toastBox"
-        );
-
-    document.getElementById(
-        "toastText"
-    ).innerText =
-        msg;
-
-    box.classList.add(
-        "show"
-    );
-
-    setTimeout(
-        function() {
-
-            box.classList.remove(
-                "show"
-            );
-
-        },
-        3000
-    );
-
-}
-
-function exitPortal() {
-
-    try {
-
-        if (
-            window.AppInventor &&
-            typeof window.AppInventor
-                .setWebViewString ===
-                "function"
-        ) {
-
-            window.AppInventor
-                .setWebViewString(
-                    JSON.stringify({
-                        action:
-                            "navigate_back",
-
-                        uid:
-                            currentUID
-                    })
-                );
-
+    function evaluateSubscriptionFromDatabase(subscription) {
+        const now = Date.now();
+        if (!subscription) {
+            lockScreenWithNotice("Subscription Required", "No active AssetGuard subscription was found for this account.");
+            updateSubscriptionDisplay(null);
+            return;
         }
 
-    } catch (e) {}
+        const status = String(subscription.status || "").toLowerCase();
+        const isActiveFlag = subscription.active === true;
 
-    window.location.href =
-        `dashboard.html?uid=${encodeURIComponent(currentUID)}`;
+        if (status === "suspended" || status === "blocked" || status === "inactive") {
+            lockScreenWithNotice("Access Restricted", "Your subscription is suspended or inactive.");
+            updateSubscriptionDisplay(subscription);
+            return;
+        }
 
-}
+        const expiry = Number(subscription.expiry || subscription.expiresAt || 0);
+        if (!expiry || !Number.isFinite(expiry)) {
+            lockScreenWithNotice("Subscription Required", "No valid subscription expiry was found in the database.");
+            updateSubscriptionDisplay(subscription);
+            return;
+        }
 
+        if (now >= expiry || (!isActiveFlag && status !== "active")) {
+            lockScreenWithNotice("Subscription Expired", "Your AssetGuard subscription has expired. Please select a plan below to renew access.");
+            updateSubscriptionDisplay(subscription);
+            return;
+        }
+
+        unlockScreen();
+        updateSubscriptionDisplay(subscription);
+    }
+
+    function lockScreenWithNotice(title, desc) {
+        document.getElementById('subBlockTitle').innerText = title;
+        document.getElementById('subBlockDesc').innerText = desc;
+        document.getElementById('globalSubBlockOverlay').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function unlockScreen() {
+        document.getElementById('globalSubBlockOverlay').style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+
+    function updateSubscriptionDisplay(subscription) {
+        const timerEl = document.getElementById('settingsTimer');
+        const descEl = document.getElementById('subStatusDesc');
+
+        if (!subscription) {
+            timerEl.innerText = "LOCKED";
+            timerEl.style.color = "var(--danger)";
+            descEl.innerText = "Subscription not found";
+            return;
+        }
+
+        const expiry = Number(subscription.expiry || subscription.expiresAt || 0);
+        const now = Date.now();
+
+        if (!expiry || now >= expiry) {
+            timerEl.innerText = "EXPIRED";
+            timerEl.style.color = "var(--danger)";
+            descEl.innerText = "Please renew your plan";
+            return;
+        }
+
+        const remaining = expiry - now;
+        const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+
+        timerEl.innerText = `${days}d ${hours}h`;
+        timerEl.style.color = "var(--success)";
+        descEl.innerText = subscription.plan ? `${subscription.plan} plan active` : "Pro License Active";
+    }
+
+    function toggleSalesConfig() {
+        document.getElementById('salesSection').classList.toggle('expanded');
+    }
+
+    function skipSalesConfig(e) {
+        e.stopPropagation();
+        loadedSettings.salesConfigSkipped = true;
+        document.getElementById('salesSection').classList.remove('expanded');
+        updateSalesBadge();
+        triggerToast("POS Payment Setup Skipped for Now");
+    }
+
+    function updateSalesBadge() {
+        const badge = document.getElementById('salesStatusBadge');
+        if (loadedSettings.salesConfigSkipped) {
+            badge.innerText = "Skipped";
+            badge.className = "status-badge badge-skipped";
+        } else if (document.getElementById('salesShortcode').value.trim() !== "") {
+            badge.innerText = "Configured";
+            badge.className = "status-badge badge-configured";
+        } else {
+            badge.innerText = "Optional";
+            badge.className = "status-badge badge-pending";
+        }
+    }
+
+    function initiateMpesaPayment(daysAdded, amountVal, amountString) {
+        pendingSubDays = daysAdded;
+        pendingAmount = amountVal;
+        document.getElementById('stkAmountDisplay').innerText = amountString;
+        document.getElementById('mpesaNumber').value = "";
+        document.getElementById('stkInputStep').style.display = "block";
+        document.getElementById('stkLoadingStep').style.display = "none";
+        document.getElementById('stkSpinnerIcon').style.display = "block";
+        document.getElementById('stkRetryBtn').style.display = "none";
+        document.getElementById('stkCloseBtn').style.display = "flex";
+        document.getElementById('stkModal').style.display = "flex";
+        if (pollInterval) clearInterval(pollInterval);
+    }
+
+    function closeStkModal() {
+        if (pollInterval) clearInterval(pollInterval);
+        document.getElementById('stkModal').style.display = "none";
+    }
+
+    function resetStkModal() {
+        if (pollInterval) clearInterval(pollInterval);
+        document.getElementById('stkLoadingStep').style.display = "none";
+        document.getElementById('stkInputStep').style.display = "block";
+        document.getElementById('stkCloseBtn').style.display = "flex";
+    }
+
+    async function processStkPush() {
+        const phoneInput = document.getElementById('mpesaNumber');
+        const phone = phoneInput.value.trim();
+        const kenyanPhoneRegex = /^(07|01)\d{8}$/;
+
+        if (!kenyanPhoneRegex.test(phone)) {
+            triggerToast("Invalid Format: Use 07XXXXXXXX or 01XXXXXXXX");
+            phoneInput.style.borderColor = "var(--danger)";
+            return;
+        }
+
+        const formattedPhone = "254" + phone.substring(1);
+        phoneInput.style.borderColor = "var(--border)";
+
+        document.getElementById('stkInputStep').style.display = "none";
+        document.getElementById('stkLoadingStep').style.display = "block";
+        document.getElementById('stkSpinnerIcon').style.display = "block";
+        document.getElementById('stkRetryBtn').style.display = "none";
+        document.getElementById('stkCloseBtn').style.display = "none"; 
+        
+        const titleEl = document.getElementById('stkStatusTitle');
+        const descEl = document.getElementById('stkStatusDesc');
+        titleEl.innerText = "Sending STK Push...";
+        descEl.innerText = "Communicating with Safaricom live gateway...";
+
+        try {
+            const response = await fetch(`${MASTER_CONFIG.backendUrl}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    environment: MASTER_CONFIG.environment,
+                    shortcode: MASTER_CONFIG.shortcode,
+                    passkey: MASTER_CONFIG.passkey,
+                    consumerKey: MASTER_CONFIG.consumerKey,
+                    consumerSecret: MASTER_CONFIG.consumerSecret,
+                    accountType: MASTER_CONFIG.accountType,
+                    amount: parseInt(pendingAmount, 10),
+                    phoneNumber: formattedPhone
+                })
+            });
+            const result = await response.json();
+            if (!response.ok || (result.ResponseCode && result.ResponseCode !== "0")) {
+                throw new Error(result.errorMessage || result.ResponseDescription || "STK request rejected.");
+            }
+            startStatusPolling(result.CheckoutRequestID);
+        } catch (err) {
+            document.getElementById('stkSpinnerIcon').style.display = "none";
+            titleEl.innerText = "Payment cancelled";
+            titleEl.style.color = "var(--danger)";
+            descEl.innerText = err.message || "Timeout or user cannot be reached.";
+            document.getElementById('stkRetryBtn').style.display = "block";
+            document.getElementById('stkCloseBtn').style.display = "flex";
+        }
+    }
+
+    function startStatusPolling(checkoutRequestID) {
+        const titleEl = document.getElementById('stkStatusTitle');
+        const descEl = document.getElementById('stkStatusDesc');
+        titleEl.innerText = "Waiting for PIN Entry...";
+        descEl.innerText = "Please check your phone and enter your M-Pesa PIN.";
+        
+        let attempts = 0;
+        pollInterval = setInterval(async () => {
+            attempts++;
+            if (attempts > 18) {
+                clearInterval(pollInterval);
+                document.getElementById('stkSpinnerIcon').style.display = "none";
+                titleEl.innerText = "Payment cancelled";
+                titleEl.style.color = "var(--danger)";
+                descEl.innerText = "Timeout waiting for user response.";
+                document.getElementById('stkRetryBtn').style.display = "block";
+                document.getElementById('stkCloseBtn').style.display = "flex";
+                return;
+            }
+            try {
+                const response = await fetch(`${MASTER_CONFIG.backendUrl}/query`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        environment: MASTER_CONFIG.environment,
+                        shortcode: MASTER_CONFIG.shortcode,
+                        passkey: MASTER_CONFIG.passkey,
+                        consumerKey: MASTER_CONFIG.consumerKey,
+                        consumerSecret: MASTER_CONFIG.consumerSecret,
+                        checkoutRequestID: checkoutRequestID
+                    })
+                });
+                const data = await response.json();
+                if (data.ResultCode === "0") {
+                    clearInterval(pollInterval);
+                    document.getElementById('stkSpinnerIcon').style.display = "none";
+                    titleEl.innerText = "Payment Received";
+                    titleEl.style.color = "var(--mpesa)";
+                    descEl.innerText = "Updating subscription...";
+                    setTimeout(async () => {
+                        await finalizeSubscriptionRenew(pendingSubDays);
+                        closeStkModal();
+                    }, 1200);
+                } else if (data.ResultCode && data.ResultCode !== "0") {
+                    clearInterval(pollInterval);
+                    document.getElementById('stkSpinnerIcon').style.display = "none";
+                    titleEl.style.color = "var(--danger)";
+                    titleEl.innerText = data.ResultCode === "1032" ? "Payment cancelled" : "Payment failed";
+                    descEl.innerText = data.ResultDesc || "Transaction failed.";
+                    document.getElementById('stkRetryBtn').style.display = "block";
+                    document.getElementById('stkCloseBtn').style.display = "flex";
+                }
+            } catch (err) {}
+        }, 4000);
+    }
+
+    async function finalizeSubscriptionRenew(daysAdded) {
+        const now = Date.now();
+        try {
+            const subscriptionRef = rtdb.ref(`subscriptions/${currentUID}`);
+            const snapshot = await subscriptionRef.once("value");
+            const existing = snapshot.val() || {};
+            const existingExpiry = Number(existing.expiry || existing.expiresAt || 0);
+            const baseTime = existingExpiry > now ? existingExpiry : now;
+            const newExpiry = baseTime + (daysAdded * 24 * 60 * 60 * 1000);
+
+            await subscriptionRef.update({
+                active: true,
+                status: "active",
+                expiry: newExpiry,
+                expiresAt: newExpiry,
+                plan: daysAdded >= 365 ? "yearly" : "monthly",
+                lastPaymentAt: now,
+                updatedAt: now,
+                lastUpdated: now
+            });
+
+            await rtdb.ref(`user_statuses/${currentUID}`).set("Active");
+
+            triggerToast(`Verified! Subscribed for ${daysAdded} Days.`);
+            evaluateSubscriptionFromDatabase({
+                active: true,
+                status: "active",
+                expiry: newExpiry,
+                expiresAt: newExpiry,
+                plan: daysAdded >= 365 ? "yearly" : "monthly"
+            });
+        } catch (error) {
+            lockScreenWithNotice("Activation Error", "Payment was received but the subscription could not be updated in the database.");
+        }
+    }
+
+    function resolveUserIdentity() {
+        let resolved = null;
+        const urlParams = new URLSearchParams(window.location.search);
+        resolved = urlParams.get('uid') || urlParams.get('user') || urlParams.get('userId');
+        if (!resolved) resolved = localStorage.getItem('ag_active_uid');
+        if (resolved && resolved.trim() !== "") {
+            currentUID = resolved.trim();
+            localStorage.setItem('ag_active_uid', currentUID);
+        } else {
+            currentUID = "unidentified_" + Math.random().toString(36).substr(2, 9);
+        }
+    }
+
+    function loadLocalSettings() {
+        const cacheKey = `ag_profile_cache_${currentUID}`;
+        const cachedData = localStorage.getItem(cacheKey);
+        if (cachedData) {
+            try {
+                const parsed = JSON.parse(cachedData);
+                loadedSettings = { ...loadedSettings, ...parsed };
+                if (!loadedSettings.salesDaraja) {
+                    loadedSettings.salesDaraja = { environment: "production", accountType: "Paybill", shortcode: "", passkey: "", consumerKey: "", consumerSecret: "" };
+                }
+            } catch (e) {}
+        }
+
+        document.getElementById('businessNameInput').value = loadedSettings.businessName || "";
+        document.getElementById('taglineInput').value = loadedSettings.tagline || "";
+        document.getElementById('salesEnvironment').value = loadedSettings.salesDaraja.environment || "production";
+        document.getElementById('salesAccountType').value = loadedSettings.salesDaraja.accountType || "Paybill";
+        document.getElementById('salesShortcode').value = loadedSettings.salesDaraja.shortcode || "";
+        document.getElementById('salesPasskey').value = loadedSettings.salesDaraja.passkey || "";
+        document.getElementById('salesConsumerKey').value = loadedSettings.salesDaraja.consumerKey || "";
+        document.getElementById('salesConsumerSecret').value = loadedSettings.salesDaraja.consumerSecret || "";
+
+        updatePreviewCard();
+        updateSalesBadge();
+    }
+
+    function updatePreviewCard() {
+        document.getElementById('prevName').innerText = document.getElementById('businessNameInput').value || "JCorp Kenya Inc";
+        document.getElementById('prevTag').innerText = document.getElementById('taglineInput').value || "Transformation you need";
+        const previewLogoImg = document.getElementById('prevLogo');
+        if (loadedSettings.logoUrl && loadedSettings.logoUrl !== "") {
+            previewLogoImg.src = loadedSettings.logoUrl;
+        }
+    }
+
+    function processLogoFile(uploader) {
+        const emblem = uploader.files[0];
+        if (emblem) {
+            const parser = new FileReader();
+            parser.onload = function(e) {
+                loadedSettings.logoUrl = e.target.result;
+                updatePreviewCard();
+            };
+            parser.readAsDataURL(emblem);
+        }
+    }
+
+    function saveConfiguration() {
+        loadedSettings.businessName = document.getElementById('businessNameInput').value;
+        loadedSettings.tagline = document.getElementById('taglineInput').value;
+        const sc = document.getElementById('salesShortcode').value.trim();
+        if (sc !== "") loadedSettings.salesConfigSkipped = false;
+
+        loadedSettings.salesDaraja = {
+            backendUrl: MASTER_CONFIG.backendUrl,
+            environment: document.getElementById('salesEnvironment').value,
+            accountType: document.getElementById('salesAccountType').value,
+            shortcode: sc,
+            passkey: document.getElementById('salesPasskey').value.trim(),
+            consumerKey: document.getElementById('salesConsumerKey').value.trim(),
+            consumerSecret: document.getElementById('salesConsumerSecret').value.trim()
+        };
+
+        localStorage.setItem(`ag_profile_cache_${currentUID}`, JSON.stringify(loadedSettings));
+        updateSalesBadge();
+
+        try {
+            if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
+                window.AppInventor.setWebViewString(JSON.stringify({ action: "settings_updated", uid: currentUID, data: loadedSettings }));
+            }
+        } catch (e) {}
+
+        triggerToast("Settings Saved Successfully");
+    }
+
+    function triggerToast(msg) {
+        const box = document.getElementById('toastBox');
+        document.getElementById('toastText').innerText = msg;
+        box.classList.add('show');
+        setTimeout(() => { box.classList.remove('show'); }, 3000);
+    }
+
+    function exitPortal() {
+        try {
+            if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
+                window.AppInventor.setWebViewString(JSON.stringify({ action: "navigate_back", uid: currentUID }));
+            }
+        } catch (e) {}
+        window.location.href = `dashboard.html?uid=${encodeURIComponent(currentUID)}`;
+    }
 </script>
-
 </body>
 </html>
