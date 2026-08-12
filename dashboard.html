@@ -14,6 +14,7 @@
     --success: #10b981;
     --warning: #f59e0b;
     --danger: #ef4444;
+    --mpesa: #00a859;
     --bg-light: #f8fafc;
     --card-bg: #ffffff;
     --text-main: #0f172a;
@@ -23,6 +24,18 @@
 
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg-light);display:flex;height:100vh;overflow:hidden;color:var(--text-main);}
+
+/* Absolute Lock Shield Class */
+body.app-locked .sidebar,
+body.app-locked .floating-menu-btn,
+body.app-locked .notification-bell-btn,
+body.app-locked .chat-widget-btn,
+body.app-locked .chat-sub-btn,
+body.app-locked main,
+body.app-locked iframe {
+    pointer-events: none !important;
+    user-select: none !important;
+}
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -108,6 +121,7 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
 .btn-primary { background: var(--accent); color: white; box-shadow: 0 4px 12px rgba(255,107,0,0.3); }
 .btn-primary:hover { background: #e05e00; }
 .btn-cancel { background: #f1f5f9; color: var(--text-muted); }
+.btn-mpesa { background: var(--mpesa); color: white; }
 
 .dashboard-wrapper { flex: 1; padding: 75px 20px 30px; overflow-y: auto; width: 100%; }
 @media (min-width: 1024px) {
@@ -272,6 +286,47 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
     background: #f1f5f9; padding: 6px 12px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-size: 11px;
 }
 .ticket-selector-bar select { padding: 3px 6px; border-radius: 4px; border: 1px solid var(--border-color); font-size: 11px; outline: none; }
+
+/* STK & Subscription Overlay Styles */
+.stk-overlay {
+    position: fixed; inset: 0; background: rgba(0, 26, 53, 0.92);
+    backdrop-filter: blur(8px); z-index: 10000000; display: none;
+    flex-direction: column; align-items: center; justify-content: center; padding: 20px;
+}
+.lock-card {
+    background: #ffffff; border-radius: 24px; padding: 30px 24px;
+    width: 100%; max-width: 380px; text-align: center; color: var(--text-main);
+    position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+}
+.modal-close-btn {
+    position: absolute; top: 16px; right: 16px; background: #f1f5f9;
+    border: none; color: var(--text-muted); cursor: pointer; padding: 8px;
+    display: flex; align-items: center; justify-content: center; border-radius: 50%;
+}
+.stk-spinner {
+    width: 44px; height: 44px; border: 4px solid #e6f0fa;
+    border-top-color: var(--mpesa); border-radius: 50%;
+    animation: spin 1s linear infinite; margin: 0 auto 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.form-field { display: flex; flex-direction: column; gap: 6px; text-align: left; }
+.form-field label { font-size: 11px; font-weight: 700; color: #001A35; text-transform: uppercase; }
+.form-field input[type="tel"] {
+    font-family: inherit; font-size: 14px; padding: 12px 14px;
+    border: 2px solid var(--border-color); border-radius: 12px; background: #fafbfe;
+    outline: none; transition: 0.2s; color: var(--text-main); width: 100%;
+}
+.form-field input:focus { border-color: var(--mpesa); box-shadow: 0 0 0 4px rgba(0, 168, 89, 0.1); background: #fff; }
+
+.toast {
+    position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(100px);
+    background: #0f172a; color: white; padding: 12px 24px; border-radius: 100px;
+    font-size: 12px; font-weight: 700; z-index: 10005; opacity: 0;
+    transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; align-items: center; gap: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 </style>
 
 <!-- Firebase Classic SDK -->
@@ -279,7 +334,61 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
-<body>
+<body class="app-locked">
+
+<!-- Subscription Blocker Overlay -->
+<div id="hubSubscriptionBlocker" style="position: fixed; inset: 0; background: rgba(0, 26, 53, 0.98); backdrop-filter: blur(16px); z-index: 9999999; display: flex; align-items: center; justify-content: center; padding: 20px; color: #ffffff;">
+    <div style="background: #ffffff; color: #0f172a; width: 100%; max-width: 420px; border-radius: 24px; padding: 32px 24px; text-align: center; box-shadow: 0 25px 60px rgba(0,0,0,0.6);">
+        <div style="width: 64px; height: 64px; background: #fee2e2; color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        </div>
+        <h2 id="hubBlockTitle" style="font-size:20px; font-weight:800; color:#0f172a; margin-bottom:6px;">Subscription Expired</h2>
+        <p id="hubBlockDesc" style="font-size:13px; color:#64748b; line-height:1.5; margin-bottom:20px;">Your access license has elapsed. Select a plan below to complete payment via M-Pesa or contact admin for approval.</p>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+            <div onclick="initiateMpesaPayment(30, 1500, 'Ksh 1,500')" style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 14px 10px; cursor: pointer; text-align: center; transition: 0.2s;">
+                <span style="font-size: 11px; font-weight: 700; color: #64748b; display: block; text-transform: uppercase;">Monthly</span>
+                <b style="font-size: 15px; font-weight: 800; color: #0052cc; display: block; margin-top: 2px;">Ksh 1,500</b>
+            </div>
+            <div onclick="initiateMpesaPayment(365, 12000, 'Ksh 12,000')" style="background: #e6f0fa; border: 2px solid #0052cc; border-radius: 12px; padding: 14px 10px; cursor: pointer; text-align: center; transition: 0.2s;">
+                <span style="font-size: 11px; font-weight: 700; color: #64748b; display: block; text-transform: uppercase;">Yearly</span>
+                <b style="font-size: 15px; font-weight: 800; color: #0052cc; display: block; margin-top: 2px;">Ksh 12,000</b>
+            </div>
+        </div>
+        <div style="font-size: 11px; color: #94a3b8;">🔒 Requires automated payment confirmation or Admin approval.</div>
+    </div>
+</div>
+
+<!-- STK Push Modal Overlay -->
+<div id="stkModal" class="stk-overlay">
+    <div class="lock-card">
+        <button class="modal-close-btn" onclick="closeStkModal()" id="stkCloseBtn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+        
+        <div style="width: 52px; height: 52px; background: #e6fdf0; color: var(--mpesa); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+        </div>
+        
+        <h2 style="font-size:18px; font-weight:800; color:#0f172a; margin-bottom:4px;">M-PESA Express</h2>
+        <p style="margin-bottom: 16px; font-size: 13px; color: var(--text-muted);">Subscription fee: <strong id="stkAmountDisplay" style="color: #0f172a;">Ksh --</strong></p>
+
+        <div id="stkInputStep">
+            <div class="form-field" style="margin-bottom: 16px;">
+                <label>Safaricom Phone Number</label>
+                <input type="tel" id="mpesaNumber" placeholder="07XXXXXXXX" inputmode="numeric" maxlength="10">
+            </div>
+            <button class="btn btn-mpesa" style="width: 100%;" onclick="processStkPush()">Send Real STK Push</button>
+        </div>
+
+        <div id="stkLoadingStep" style="display: none; padding: 10px 0;">
+            <div class="stk-spinner" id="stkSpinnerIcon"></div>
+            <h4 id="stkStatusTitle" style="font-size: 16px; color: #0f172a; font-weight: 700; margin-bottom: 4px;">Sending STK Push...</h4>
+            <p id="stkStatusDesc" style="font-size: 13px; color: var(--text-muted); line-height: 1.4; margin-bottom: 16px;">Connecting to Safaricom API...</p>
+            <button class="btn btn-secondary" id="stkRetryBtn" style="display: none; width: 100%; font-size: 13px;" onclick="resetStkModal()">Try Again</button>
+        </div>
+    </div>
+</div>
 
 <button class="floating-menu-btn" onclick="toggleMenu()">☰</button>
 
@@ -395,6 +504,11 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
 </main>
 
 <iframe id="sync-engine" src="local_db.html" style="display:none;"></iframe>
+
+<div id="toastBox" class="toast">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="color: var(--success);"><polyline points="20 6 9 17 4 12"></polyline></svg>
+    <span id="toastText">Settings Updated Successfully</span>
+</div>
 
 <!-- Reduced & Draggable WhatsApp Floating Button -->
 <button class="chat-widget-btn" id="chatWidgetBtn" title="Open Support Options">
@@ -521,11 +635,24 @@ if (!firebase.apps.length) {
 const rtdb = firebase.database();
 const auth = firebase.auth();
 
-const activeUID = localStorage.getItem("ag_active_uid");
-if (!activeUID) {
-    window.location.href = "index.html";
+const activeUID = localStorage.getItem("ag_active_uid") || "global_terminal_user";
+if (!localStorage.getItem("ag_active_uid")) {
+    localStorage.setItem("ag_active_uid", activeUID);
 }
 
+const MASTER_CONFIG = {
+    backendUrl: "https://weathered-glade-c60b.assetguardinfo.workers.dev",
+    environment: "production",
+    accountType: "Paybill",
+    shortcode: "257471",
+    passkey: "103f80194fedeaefb352960fb340d766ef3f84a9dcb96aafdd21d0b0bb8dfbab",
+    consumerKey: "AGJGJGGktfRf8OHhos6TJXKupDMb3f2wG9pZDdF8tG5qm0qK",
+    consumerSecret: "xmd2sXJzRA6Chl1KHGvR9jG0qtSBse1oRBCdgBjb4DnO7SEi4QzPVwKNWWraubJd"
+};
+
+let pendingSubDays = 0;
+let pendingAmount = 1500;
+let pollInterval = null;
 let historyAccessGranted = true; 
 let agentHighlightedMessageId = null;
 let agentHighlightedMessageSnippet = null;
@@ -550,6 +677,26 @@ window.addEventListener('click', (e) => {
     }
 });
 
+// Automated log pruner to keep database clean and prevent bloat lag
+function pruneOldActivityLogs() {
+    const logsRef = rtdb.ref('user_activity_logs');
+    logsRef.orderByChild('timestamp').once('value', (snapshot) => {
+        if (snapshot.numChildren() > 80) {
+            let keysToDelete = [];
+            let count = 0;
+            snapshot.forEach((childSnap) => {
+                count++;
+                if (count <= snapshot.numChildren() - 80) {
+                    keysToDelete.push(childSnap.key);
+                }
+            });
+            keysToDelete.forEach(key => {
+                logsRef.child(key).remove();
+            });
+        }
+    });
+}
+
 // Audit Activity Logger
 function logUserActivity(category, description) {
     try {
@@ -560,6 +707,7 @@ function logUserActivity(category, description) {
             timestamp: Date.now(),
             device: navigator.userAgent.substring(0, 50)
         });
+        pruneOldActivityLogs();
     } catch (err) {
         console.error("Failed to log activity:", err);
     }
@@ -634,7 +782,6 @@ function renderCombinedNotifications() {
 async function clearAllNotifications() {
     try {
         if (activeUID) {
-            // Remove individual user notifications from Firebase RTDB
             await rtdb.ref(`user_notifications/${activeUID}`).remove();
         }
         allUserNotificationsCache = {};
@@ -687,7 +834,6 @@ function toggleBroadcastModal() {
         modal.classList.add('active');
         overlay.classList.add('active');
 
-        // Mark all current notifications as seen when opening the bell modal
         let combinedCount = Object.keys(allBroadcastsCache).length + Object.keys(allUserNotificationsCache).length;
         if (combinedCount > 0) {
             localStorage.setItem('ag_last_seen_broadcast', Date.now());
@@ -784,8 +930,8 @@ notificationBellBtn.addEventListener('pointerup', (e) => {
             notificationBellBtn.style.transition = 'all 0.5s ease';
             notificationBellBtn.style.top = '90px';
             notificationBellBtn.style.right = '20px';
-            notificationBellBtn.style.left = '';
-            notificationBellBtn.style.bottom = '';
+            notificationBellBtn.style.left = 'auto';
+            notificationBellBtn.style.bottom = 'auto';
             setTimeout(() => {
                 notificationBellBtn.style.transition = 'background 0.2s, border-color 0.2s';
             }, 500);
@@ -1304,20 +1450,274 @@ function cancelAgentReplyHighlight() {
     document.getElementById('agentReplyingBar').style.display = 'none';
 }
 
+// Unified, Race-Free Subscription and Access Guard
+function enforceSubscriptionLock(isExpired, reason = "Subscription Expired") {
+    const blocker = document.getElementById('hubSubscriptionBlocker');
+    const titleEl = document.getElementById('hubBlockTitle');
+    const descEl = document.getElementById('hubBlockDesc');
+    
+    if (isExpired) {
+        titleEl.innerText = reason;
+        descEl.innerText = reason.includes("Suspended") || reason.includes("Blocked") ? "Your account has been restricted by the administrator." : "Your access license has elapsed. Select a plan below to complete payment via M-Pesa or contact admin for approval.";
+        blocker.style.display = 'flex';
+        document.body.classList.add('app-locked');
+        document.body.style.overflow = 'hidden';
+        const mainFrame = document.getElementById('main-frame');
+        if (mainFrame) mainFrame.src = 'about:blank';
+    } else {
+        blocker.style.display = 'none';
+        document.body.classList.remove('app-locked');
+        document.body.style.overflow = 'auto';
+    }
+}
+
+function initSubscriptionGuards() {
+    enforceSubscriptionLock(true, "Verifying Subscription...");
+    if (!activeUID || activeUID.startsWith("unidentified")) {
+        enforceSubscriptionLock(true, "Subscription Expired");
+        return;
+    }
+
+    rtdb.ref(`user_statuses/${activeUID}`).on('value', () => evaluateUnifiedAccess());
+    rtdb.ref(`subscription_pauses/${activeUID}`).on('value', () => evaluateUnifiedAccess());
+    rtdb.ref(`subscriptions/${activeUID}`).on('value', () => evaluateUnifiedAccess());
+}
+
+async function evaluateUnifiedAccess() {
+    const now = Date.now();
+    try {
+        const [statusSnap, pauseSnap, subSnap] = await Promise.all([
+            rtdb.ref(`user_statuses/${activeUID}`).once('value'),
+            rtdb.ref(`subscription_pauses/${activeUID}`).once('value'),
+            rtdb.ref(`subscriptions/${activeUID}`).once('value')
+        ]);
+
+        const status = statusSnap.val();
+        if (status && status !== "Active") {
+            enforceSubscriptionLock(true, "Account " + status);
+            return;
+        }
+
+        const pause = pauseSnap.val();
+        if (pause && pause.active === true && Number(pause.pausedUntil || 0) > now) {
+            enforceSubscriptionLock(false);
+            return;
+        }
+
+        const sub = subSnap.val();
+        if (!sub) {
+            enforceSubscriptionLock(true, "Subscription Required");
+            return;
+        }
+
+        const subStatus = String(sub.status || "").toLowerCase();
+        const isActiveFlag = sub.active === true;
+        let expiry = Number(sub.expiry || sub.expiresAt || 0);
+
+        if (expiry > 0 && expiry < 10000000000) {
+            expiry *= 1000;
+        }
+
+        if (!expiry || !Number.isFinite(expiry)) {
+            enforceSubscriptionLock(true, "Subscription Required");
+            return;
+        }
+
+        if (now >= expiry || (!isActiveFlag && subStatus !== "active")) {
+            enforceSubscriptionLock(true, "Subscription Expired");
+            return;
+        }
+
+        enforceSubscriptionLock(false);
+    } catch (error) {
+        console.error("Unified access evaluation error:", error);
+    }
+}
+
+function initiateMpesaPayment(daysAdded, amountVal, amountString) {
+    pendingSubDays = daysAdded;
+    pendingAmount = amountVal;
+    document.getElementById('stkAmountDisplay').innerText = amountString;
+    document.getElementById('mpesaNumber').value = "";
+    document.getElementById('stkInputStep').style.display = "block";
+    document.getElementById('stkLoadingStep').style.display = "none";
+    document.getElementById('stkSpinnerIcon').style.display = "block";
+    document.getElementById('stkRetryBtn').style.display = "none";
+    document.getElementById('stkCloseBtn').style.display = "flex";
+    document.getElementById('stkModal').style.display = "flex";
+    if (pollInterval) clearInterval(pollInterval);
+}
+
+function closeStkModal() {
+    if (pollInterval) clearInterval(pollInterval);
+    document.getElementById('stkModal').style.display = "none";
+    document.getElementById('hubSubscriptionBlocker').style.display = 'flex';
+    document.body.classList.add('app-locked');
+    document.body.style.overflow = 'hidden';
+}
+
+function resetStkModal() {
+    if (pollInterval) clearInterval(pollInterval);
+    document.getElementById('stkLoadingStep').style.display = "none";
+    document.getElementById('stkInputStep').style.display = "block";
+    document.getElementById('stkCloseBtn').style.display = "flex";
+}
+
+async function processStkPush() {
+    const phoneInput = document.getElementById('mpesaNumber');
+    const phone = phoneInput.value.trim();
+    const kenyanPhoneRegex = /^(07|01)\d{8}$/;
+    if (!kenyanPhoneRegex.test(phone)) {
+        triggerToast("Invalid Format: Use 07XXXXXXXX or 01XXXXXXXX");
+        phoneInput.style.borderColor = "var(--danger)";
+        return;
+    }
+    const formattedPhone = "254" + phone.substring(1);
+    document.getElementById('stkInputStep').style.display = "none";
+    document.getElementById('stkLoadingStep').style.display = "block";
+    document.getElementById('stkSpinnerIcon').style.display = "block";
+    document.getElementById('stkRetryBtn').style.display = "none";
+    document.getElementById('stkCloseBtn').style.display = "none"; 
+    
+    const titleEl = document.getElementById('stkStatusTitle');
+    const descEl = document.getElementById('stkStatusDesc');
+    titleEl.innerText = "Sending STK Push...";
+    descEl.innerText = "Communicating with Safaricom live gateway...";
+
+    try {
+        const response = await fetch(`${MASTER_CONFIG.backendUrl}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                environment: MASTER_CONFIG.environment,
+                shortcode: MASTER_CONFIG.shortcode,
+                passkey: MASTER_CONFIG.passkey,
+                consumerKey: MASTER_CONFIG.consumerKey,
+                consumerSecret: MASTER_CONFIG.consumerSecret,
+                accountType: MASTER_CONFIG.accountType,
+                amount: parseInt(pendingAmount, 10),
+                phoneNumber: formattedPhone
+            })
+        });
+        const result = await response.json();
+        if (!response.ok || (result.ResponseCode && result.ResponseCode !== "0")) {
+            throw new Error(result.errorMessage || result.ResponseDescription || "STK request rejected.");
+        }
+        startStatusPolling(result.CheckoutRequestID);
+    } catch (err) {
+        document.getElementById('stkSpinnerIcon').style.display = "none";
+        titleEl.innerText = "Payment cancelled";
+        titleEl.style.color = "var(--danger)";
+        descEl.innerText = err.message || "Timeout or user cannot be reached.";
+        document.getElementById('stkRetryBtn').style.display = "block";
+        document.getElementById('stkCloseBtn').style.display = "flex";
+    }
+}
+
+function startStatusPolling(checkoutRequestID) {
+    const titleEl = document.getElementById('stkStatusTitle');
+    const descEl = document.getElementById('stkStatusDesc');
+    titleEl.innerText = "Waiting for PIN Entry...";
+    descEl.innerText = "Please check your phone and enter your M-Pesa PIN.";
+    
+    let attempts = 0;
+    pollInterval = setInterval(async () => {
+        attempts++;
+        if (attempts > 18) {
+            clearInterval(pollInterval);
+            document.getElementById('stkSpinnerIcon').style.display = "none";
+            titleEl.innerText = "Payment cancelled";
+            titleEl.style.color = "var(--danger)";
+            descEl.innerText = "Timeout waiting for user response.";
+            document.getElementById('stkRetryBtn').style.display = "block";
+            document.getElementById('stkCloseBtn').style.display = "flex";
+            return;
+        }
+        try {
+            const response = await fetch(`${MASTER_CONFIG.backendUrl}/query`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    environment: MASTER_CONFIG.environment,
+                    shortcode: MASTER_CONFIG.shortcode,
+                    passkey: MASTER_CONFIG.passkey,
+                    consumerKey: MASTER_CONFIG.consumerKey,
+                    consumerSecret: MASTER_CONFIG.consumerSecret,
+                    checkoutRequestID: checkoutRequestID
+                })
+            });
+            const data = await response.json();
+            if (data.ResultCode === "0") {
+                clearInterval(pollInterval);
+                document.getElementById('stkSpinnerIcon').style.display = "none";
+                titleEl.innerText = "Payment Received";
+                titleEl.style.color = "var(--mpesa)";
+                descEl.innerText = "Subscription active!";
+                setTimeout(() => {
+                    finalizeSubscriptionRenew(pendingSubDays);
+                    closeStkModal();
+                }, 2000);
+            } else if (data.ResultCode && data.ResultCode !== "0") {
+                clearInterval(pollInterval);
+                document.getElementById('stkSpinnerIcon').style.display = "none";
+                titleEl.style.color = "var(--danger)";
+                titleEl.innerText = data.ResultCode === "1032" ? "Payment cancelled" : "Wrong PIN entered.";
+                descEl.innerText = data.ResultDesc || "Transaction failed.";
+                document.getElementById('stkRetryBtn').style.display = "block";
+                document.getElementById('stkCloseBtn').style.display = "flex";
+            }
+        } catch (err) {}
+    }, 4000);
+}
+
+async function finalizeSubscriptionRenew(daysAdded) {
+    const now = Date.now();
+    try {
+        const subscriptionRef = rtdb.ref(`subscriptions/${activeUID}`);
+        const snapshot = await subscriptionRef.once("value");
+        const existing = snapshot.val() || {};
+        let existingExpiry = Number(existing.expiry || existing.expiresAt || 0);
+        if (existingExpiry > 0 && existingExpiry < 10000000000) existingExpiry *= 1000;
+        const baseTime = existingExpiry > now ? existingExpiry : now;
+        const newExpiry = baseTime + (daysAdded * 24 * 60 * 60 * 1000);
+
+        await subscriptionRef.update({
+            active: true,
+            status: 'active',
+            expiry: newExpiry,
+            expiresAt: newExpiry,
+            plan: daysAdded >= 365 ? 'yearly' : 'monthly',
+            lastPaymentAt: now,
+            updatedAt: now,
+            lastUpdated: now
+        });
+
+        await rtdb.ref(`user_statuses/${activeUID}`).set("Active");
+
+        triggerToast(`Verified! Subscribed for ${daysAdded} Days.`);
+        enforceSubscriptionLock(false);
+    } catch (error) {
+        console.error("Subscription renewal database error:", error);
+    }
+}
+
+function triggerToast(msg) {
+    const box = document.getElementById('toastBox');
+    document.getElementById('toastText').innerText = msg;
+    box.classList.add('show');
+    setTimeout(() => { box.classList.remove('show'); }, 3000);
+}
+
 window.onload = () => {
+    initSubscriptionGuards();
     initRealtimeChatListener();
     initBroadcastListener();
     updateSubButtonPositions();
     logUserActivity('SECURITY', 'User session initialized on Dashboard Hub');
 };
 
-window.isSubActive = () => {
-    const uid = localStorage.getItem("ag_active_uid");
-    const expiry = localStorage.getItem(`ag_sub_expiry_${uid}`);
-    return expiry && Date.now() < parseInt(expiry);
-};
-
 window.toggleMenu = () => { 
+    if (document.body.classList.contains('app-locked')) return;
     const sidebar = document.getElementById("sidebar");
     const overlay = document.getElementById("overlay");
     const isSidebarActive = sidebar.classList.contains("active");
@@ -1340,19 +1740,8 @@ window.closeAll = () => {
     document.getElementById("overlay").classList.remove("active"); 
 };
 
-window.showSubscriptionAlert = (onConfirm) => {
-    const modal = document.getElementById('globalModal');
-    document.getElementById('modalTitle').innerText = "License Expired";
-    document.getElementById('modalText').innerText = "Subscription inactive. Please renew license in Settings to continue.";
-    document.getElementById('overlay').classList.add('active');
-    modal.classList.add('active');
-    document.getElementById('modalConfirmBtn').onclick = () => {
-        closeAll();
-        if(onConfirm) onConfirm();
-    };
-};
-
 window.showDashboard = () => {
+    if (document.body.classList.contains('app-locked')) return;
     document.getElementById('dashboard-wrapper').style.display = 'block';
     document.getElementById('main-frame').style.display = 'none';
     closeAll();
@@ -1360,16 +1749,10 @@ window.showDashboard = () => {
 };
 
 window.loadPage = (pageName) => { 
+    if (document.body.classList.contains('app-locked')) return;
     document.getElementById('dashboard-wrapper').style.display = 'none';
     document.getElementById('main-frame').style.display = 'block';
-
-    if (!window.isSubActive() && pageName !== 'settings') {
-        showSubscriptionAlert(() => {
-            document.getElementById('main-frame').src = "settings.html";
-        });
-    } else {
-        document.getElementById('main-frame').src = pageName + ".html";
-    }
+    document.getElementById('main-frame').src = `${pageName}.html?uid=${activeUID}`;
     closeAll(); 
     logUserActivity('GENERAL', `Loaded module page: ${pageName}`);
 };
