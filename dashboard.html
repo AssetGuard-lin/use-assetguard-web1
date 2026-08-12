@@ -902,6 +902,18 @@ function initSubscriptionGuards() {
         }
     });
 
+    // Listen for admin pause/override node in real-time
+    rtdb.ref(`subscription_pauses/${activeUID}`).on('value', (snapshot) => {
+        const pause = snapshot.val();
+        const now = Date.now();
+        if (pause && pause.active === true && Number(pause.pausedUntil || 0) > now) {
+            localStorage.setItem(`ag_sub_expiry_${activeUID}`, Number(pause.pausedUntil).toString());
+            enforceSubscriptionLock(false);
+        } else {
+            verifyFirebaseSubscriptionState();
+        }
+    });
+
     rtdb.ref(`subscriptions/${activeUID}`).on('value', (snapshot) => {
         evaluateHubSubscription(snapshot.val());
     });
