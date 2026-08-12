@@ -614,6 +614,11 @@ let allUserNotificationsCache = {};
 let isAiSelectiveMode = false;
 let isAgentSelectiveMode = false;
 
+// Cached states for unified guard verification
+let cachedUserStatus = "active";
+let cachedSubscriptionPause = null;
+let cachedSubscription = null;
+
 window.addEventListener('click', (e) => {
     const aiMenu = document.getElementById('aiClearMenu');
     const agentMenu = document.getElementById('agentClearMenu');
@@ -865,7 +870,7 @@ function enforceSubscriptionLock(isExpired, reason = "Subscription Expired") {
     
     if (isExpired) {
         titleEl.innerText = reason;
-        descEl.innerText = reason.includes("Suspended") ? "Your account has been suspended by the administrator." : "Your access license has elapsed. Select a plan below to complete payment via M-Pesa or contact admin for approval.";
+        descEl.innerText = reason.includes("Suspended") ? "Your account has been suspended by the administrator." : "Your access license has elapsed or been cancelled. Select a plan below to complete payment via M-Pesa or contact admin for approval.";
         blocker.style.display = 'flex';
         document.body.classList.add('app-locked');
         document.body.style.overflow = 'hidden';
@@ -879,63 +884,67 @@ function enforceSubscriptionLock(isExpired, reason = "Subscription Expired") {
 }
 
 function initSubscriptionGuards() {
-    // Start completely unlocked; verification happens silently in the background.
     if (!activeUID || activeUID.startsWith("unidentified")) {
         enforceSubscriptionLock(true, "Subscription Required");
         return;
     }
 
+    // 1. Listen to user status
     rtdb.ref(`user_statuses/${activeUID}`).on('value', (snapshot) => {
-        const status = String(snapshot.val() || "").toLowerCase();
-        if (status === "suspended" || status === "blocked" || status === "inactive") {
-            enforceSubscriptionLock(true, "Account " + snapshot.val());
-        } else {
-            readSubscriptionFromDatabase();
-        }
+        cachedUserStatus = String(snapshot.val() || "active").toLowerCase();
+        evaluateMasterAccess();
     });
 
+    // 2. Listen to subscription pause
     rtdb.ref(`subscription_pauses/${activeUID}`).on('value', (snapshot) => {
-        const pause = snapshot.val();
-        const now = Date.now();
-        let pausedUntilTime = Number(pause?.pausedUntil || 0);
-        if (pausedUntilTime > 0 && pausedUntilTime < 10000000000) pausedUntilTime *= 1000;
-        
-        if (pause && pause.active === true && pausedUntilTime > now) {
-            enforceSubscriptionLock(false);
-        } else {
-            readSubscriptionFromDatabase();
-        }
+        cachedSubscriptionPause = snapshot.val();
+        evaluateMasterAccess();
     });
 
+    // 3. Listen to subscription details
     rtdb.ref(`subscriptions/${activeUID}`).on('value', (snapshot) => {
-        evaluateHubSubscription(snapshot.val());
+        cachedSubscription = snapshot.val();
+        evaluateMasterAccess();
     });
 }
 
-function readSubscriptionFromDatabase() {
-    rtdb.ref(`subscriptions/${activeUID}`).once('value', (snapshot) => {
-        evaluateHubSubscription(snapshot.val());
-    });
-}
-
-function evaluateHubSubscription(subscription) {
+function evaluateMasterAccess() {
     const now = Date.now();
 
-    if (!subscription) {
+    // Priority 1: User Account Status Check
+    if (cachedUserStatus === "suspended" || cachedUserStatus === "blocked" || cachedUserStatus === "inactive") {
+        enforceSubscriptionLock(true, `Account ${cachedUserStatus.charAt(0).toUpperCase() + cachedUserStatus.slice(1)}`);
+        return;
+    }
+
+    // Priority 2: Temporary Pause / Free Window Check
+    let pausedUntilTime = Number(cachedSubscriptionPause?.pausedUntil || 0);
+    if (pausedUntilTime > 0 && pausedUntilTime < 10000000000) pausedUntilTime *= 1000;
+    
+    if (cachedSubscriptionPause && cachedSubscriptionPause.active === true && pausedUntilTime > now) {
+        enforceSubscriptionLock(false);
+        return;
+    }
+
+    // Priority 3: Subscription Expiry & Status Check
+    if (!cachedSubscription) {
         enforceSubscriptionLock(true, "Subscription Required");
         return;
     }
 
-    const status = String(subscription.status || "").toLowerCase();
-    const isActiveFlag = subscription.active === true;
+    const subStatus = String(cachedSubscription.status || "").toLowerCase();
+    const isActiveFlag = cachedSubscription.active === true;
 
-    if (status === "suspended" || status === "blocked") {
-        enforceSubscriptionLock(true, "Account " + status);
+    if (subStatus === "suspended" || subStatus === "blocked" || subStatus === "cancelled" || subStatus === "inactive") {
+        if (subStatus === "cancelled") {
+            enforceSubscriptionLock(true, "Subscription Cancelled");
+        } else {
+            enforceSubscriptionLock(true, `Subscription ${subStatus}`);
+        }
         return;
     }
 
-    let expiry = Number(subscription.expiry || subscription.expiresAt || 0);
-
+    let expiry = Number(cachedSubscription.expiry || cachedSubscription.expiresAt || 0);
     if (expiry > 0 && expiry < 10000000000) {
         expiry = expiry * 1000;
     }
@@ -945,11 +954,12 @@ function evaluateHubSubscription(subscription) {
         return;
     }
 
-    if (now >= expiry || (!isActiveFlag && status !== "active" && status !== "trial")) {
+    if (now >= expiry || (!isActiveFlag && subStatus !== "active" && subStatus !== "trial")) {
         enforceSubscriptionLock(true, "Subscription Expired");
         return;
     }
 
+    // All conditions met - Unlocked behind the scenes
     enforceSubscriptionLock(false);
 }
 
