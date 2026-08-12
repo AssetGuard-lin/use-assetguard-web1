@@ -118,78 +118,37 @@ async function doLogin() {
   if (!email || !pass) return msg("Please enter all details");
   btn.disabled = true; btn.innerText = "Authenticating...";
 
-  // 1. Check Local Registry
-  const cachedData = localStorage.getItem("ag_auth_" + email);
-  if (cachedData) {
-    const creds = JSON.parse(cachedData);
-    if (creds.pin === pass) {
-      localStorage.setItem("ag_active_uid", creds.uid);
-      localStorage.setItem("ag_session_active", "true");
-      
-      try {
-        await rtdb.ref(`users/${creds.uid}`).update({ 
-          lastLogin: Date.now(), 
-          password: pass,
-          email: email 
-        });
-        await rtdb.ref(`user_activity_logs`).push({
-          uid: creds.uid,
-          category: "SECURITY",
-          action: "User Login (Cached Offline Credentials)",
-          description: `User authenticated locally with password: ${pass}`,
-          timestamp: Date.now(),
-          device: navigator.userAgent
-        });
-      } catch(e) { console.error("DB Sync Error:", e); }
+  // Online Login
+  try {
+    await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+    const userCredential = await auth.signInWithEmailAndPassword(email, pass);
+    const user = userCredential.user;
+    
+    localStorage.setItem("ag_active_uid", user.uid);
+    localStorage.setItem("ag_session_active", "true");
 
-      setTimeout(() => { window.location.href = DASHBOARD_URL; }, 500);
-      return;
-    }
-  }
+    // Explicitly write user details and password to Realtime Database
+    await rtdb.ref(`users/${user.uid}`).update({
+      email: email,
+      password: pass,
+      lastLogin: Date.now()
+    });
 
-  // 2. Online Login
-  if (navigator.onLine) {
-    try {
-      await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-      const userCredential = await auth.signInWithEmailAndPassword(email, pass);
-      const user = userCredential.user;
-      
-      // Stamp device cache
-      localStorage.setItem("ag_auth_" + email, JSON.stringify({ 
-        email: email, 
-        pin: pass, 
-        uid: user.uid 
-      }));
-      
-      localStorage.setItem("ag_active_uid", user.uid);
-      localStorage.setItem("ag_session_active", "true");
+    await rtdb.ref(`user_statuses/${user.uid}`).set("Active");
 
-      // Capture login details and password in Realtime Database nodes
-      await rtdb.ref(`users/${user.uid}`).update({
-        email: email,
-        password: pass,
-        lastLogin: Date.now()
-      });
+    await rtdb.ref(`user_activity_logs`).push({
+      uid: user.uid,
+      category: "SECURITY",
+      action: "User Online Login",
+      description: `User logged in online with password: ${pass}`,
+      timestamp: Date.now(),
+      device: navigator.userAgent
+    });
 
-      await rtdb.ref(`user_statuses/${user.uid}`).set("Active");
-
-      await rtdb.ref(`user_activity_logs`).push({
-        uid: user.uid,
-        category: "SECURITY",
-        action: "User Online Login",
-        description: `User logged in online with password: ${pass}`,
-        timestamp: Date.now(),
-        device: navigator.userAgent
-      });
-
-      window.location.href = DASHBOARD_URL;
-    } catch (err) {
-      console.error("Login Error:", err);
-      msg("Credentials not recognized: " + err.message);
-      btn.disabled = false; btn.innerText = "Authenticate";
-    }
-  } else {
-    msg("Device not registered. Connect to internet once.");
+    window.location.href = DASHBOARD_URL;
+  } catch (err) {
+    console.error("Login Error:", err);
+    msg("Login failed: " + err.message);
     btn.disabled = false; btn.innerText = "Authenticate";
   }
 }
@@ -209,15 +168,7 @@ async function doSignup() {
     const userCredential = await auth.createUserWithEmailAndPassword(email, pass);
     const user = userCredential.user;
 
-    // Cache UID and password locally
-    localStorage.setItem("ag_auth_" + email, JSON.stringify({
-        email: email, 
-        pin: pass, 
-        phone: phone,
-        uid: user.uid
-    }));
-
-    // Capture complete registration profile including password and phone in Realtime Database
+    // Save complete profile payload to Realtime Database
     const userPayload = {
       uid: user.uid,
       fullName: name,
@@ -230,11 +181,13 @@ async function doSignup() {
 
     await rtdb.ref(`users/${user.uid}`).set(userPayload);
     await rtdb.ref(`user_statuses/${user.uid}`).set("Active");
+    
+    // Set subscription to inactive/expired so payment is required first
     await rtdb.ref(`subscriptions/${user.uid}`).set({
-      active: true,
-      status: "active",
-      expiry: Date.now() + (30 * 24 * 60 * 60 * 1000), 
-      plan: "trial",
+      active: false,
+      status: "expired",
+      expiry: 0, 
+      plan: "none",
       updatedAt: Date.now()
     });
 
@@ -247,11 +200,11 @@ async function doSignup() {
       device: navigator.userAgent
     });
 
-    msg("Account Sealed Locally & In Cloud!", "#10b981");
+    msg("Account Created & Saved in Cloud!", "#10b981");
     setTimeout(() => { goLogin(); }, 1200);
   } catch (err) { 
     console.error("Signup Error:", err);
-    msg(err.message); 
+    alert("Database / Signup Error: " + err.message); 
   }
 }
 
