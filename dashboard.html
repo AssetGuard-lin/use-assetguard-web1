@@ -1243,31 +1243,6 @@ window.onload = () => {
     logUserActivity('SECURITY', 'User session initialized on Dashboard Hub');
 };
 
-// FULLY FIXED SUBSCRIPTION CHECK SUPPORTING BOTH CACHE FORMATS
-window.isSubActive = () => {
-    const uid = localStorage.getItem("ag_active_uid") || "global_terminal_user";
-    const now = Date.now();
-
-    // 1. Check ag_sub_expiry key used by settings page
-    const expiry = localStorage.getItem(`ag_sub_expiry_${uid}`);
-    if (expiry) {
-        if (now < parseInt(expiry)) return true;
-    }
-
-    // 2. Check ag_subscription_cache key used by terminal/sync engine
-    try {
-        const subCache = JSON.parse(localStorage.getItem(`ag_subscription_cache_${uid}`));
-        if (subCache) {
-            if (subCache.active === false) return false;
-            if (subCache.expiresAt && now > subCache.expiresAt) return false;
-            return true;
-        }
-    } catch (e) {}
-
-    // Default fallback to true to prevent blocking legitimate usage if caches are missing
-    return true;
-};
-
 window.toggleMenu = () => { 
     const sidebar = document.getElementById("sidebar");
     const overlay = document.getElementById("overlay");
@@ -1291,18 +1266,6 @@ window.closeAll = () => {
     document.getElementById("overlay").classList.remove("active"); 
 };
 
-window.showSubscriptionAlert = (onConfirm) => {
-    const modal = document.getElementById('globalModal');
-    document.getElementById('modalTitle').innerText = "License Expired";
-    document.getElementById('modalText').innerText = "Subscription inactive. Please renew license in Settings to continue.";
-    document.getElementById('overlay').classList.add('active');
-    modal.classList.add('active');
-    document.getElementById('modalConfirmBtn').onclick = () => {
-        closeAll();
-        if(onConfirm) onConfirm();
-    };
-};
-
 window.showDashboard = () => {
     document.getElementById('dashboard-wrapper').style.display = 'block';
     document.getElementById('main-frame').style.display = 'none';
@@ -1310,20 +1273,14 @@ window.showDashboard = () => {
     logUserActivity('GENERAL', 'Navigated to Institutional Hub Dashboard');
 };
 
-// FULLY UPDATED LOADPAGE FUNCTION WITH PROPER UID QUERY FOR IFRAMES
+// SIMPLIFIED LOADPAGE: Instantly loads requested module file without blocking interference
 window.loadPage = (pageName) => { 
     document.getElementById('dashboard-wrapper').style.display = 'none';
     document.getElementById('main-frame').style.display = 'block';
 
     const activeUID = localStorage.getItem("ag_active_uid") || "global_terminal_user";
-
-    if (!window.isSubActive() && pageName !== 'settings') {
-        showSubscriptionAlert(() => {
-            document.getElementById('main-frame').src = `settings.html?uid=${activeUID}`;
-        });
-    } else {
-        document.getElementById('main-frame').src = `${pageName}.html?uid=${activeUID}`;
-    }
+    document.getElementById('main-frame').src = `${pageName}.html?uid=${activeUID}`;
+    
     closeAll(); 
     logUserActivity('GENERAL', `Loaded module page: ${pageName}`);
 };
