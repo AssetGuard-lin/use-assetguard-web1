@@ -54,14 +54,17 @@ body.app-locked iframe {
 }
 
 .notification-bell-btn {
-    position: fixed; top: 15px; right: 15px; z-index: 1100;
+    position: fixed; top: 90px; right: 20px; z-index: 1100;
     background: white; color: var(--primary-dark); border: 1px solid var(--border-color);
     width: 44px; height: 44px; border-radius: 12px;
-    cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-    display: flex; align-items: center; justify-content: center; transition: 0.2s;
+    cursor: grab; box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    display: flex; align-items: center; justify-content: center;
+    touch-action: none; user-select: none;
+    transition: background 0.2s, border-color 0.2s;
 }
+.notification-bell-btn:active { cursor: grabbing; }
 .notification-bell-btn:hover { background: #f8fafc; border-color: var(--primary); }
-.notification-bell-btn svg { width: 20px; height: 20px; fill: var(--primary-dark); }
+.notification-bell-btn svg { width: 20px; height: 20px; fill: var(--primary-dark); pointer-events: none; }
 
 .sidebar {
     width: 270px; background: var(--primary-dark); color: white;
@@ -324,8 +327,8 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
         <div style="width: 64px; height: 64px; background: #fee2e2; color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
         </div>
-        <h2 id="hubBlockTitle" style="font-size:20px; font-weight:800; color:#0f172a; margin-bottom:6px;">Subscription Required</h2>
-        <p id="hubBlockDesc" style="font-size:13px; color:#64748b; line-height:1.5; margin-bottom:20px;">Your access license has elapsed or is inactive. Select a plan below to complete payment via M-Pesa or contact admin for approval.</p>
+        <h2 id="hubBlockTitle" style="font-size:20px; font-weight:800; color:#0f172a; margin-bottom:6px;">Subscription Expired</h2>
+        <p id="hubBlockDesc" style="font-size:13px; color:#64748b; line-height:1.5; margin-bottom:20px;">Your access license has elapsed. Select a plan below to complete payment via M-Pesa or contact admin for approval.</p>
         
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
             <div onclick="initiateMpesaPayment(30, 1500, 'Ksh 1,500')" style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 14px 10px; cursor: pointer; text-align: center; transition: 0.2s;">
@@ -373,7 +376,7 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
 
 <button class="floating-menu-btn" onclick="toggleMenu()">☰</button>
 
-<button class="notification-bell-btn" id="notificationBellBtn" onclick="toggleBroadcastModal()" title="System Announcements & Direct Notices">
+<button class="notification-bell-btn" id="notificationBellBtn" title="System Announcements & Direct Notices">
     <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/></svg>
     <span id="broadcastBadge" style="display:none; position:absolute; top:4px; right:4px; background:var(--danger); color:white; font-size:9px; font-weight:800; padding:2px 5px; border-radius:10px;">0</span>
 </button>
@@ -591,7 +594,7 @@ if (!firebase.apps.length) {
 const rtdb = firebase.database();
 const auth = firebase.auth();
 
-let activeUID = localStorage.getItem("ag_active_uid") || "global_terminal_user";
+const activeUID = localStorage.getItem("ag_active_uid") || "global_terminal_user";
 if (!localStorage.getItem("ag_active_uid")) {
     localStorage.setItem("ag_active_uid", activeUID);
 }
@@ -615,31 +618,32 @@ let allUserNotificationsCache = {};
 let isAiSelectiveMode = false;
 let isAgentSelectiveMode = false;
 
-// Cached states for unified guard evaluation
-let cachedUserStatus = "active";
-let cachedSubscriptionPause = null;
-let cachedSubscription = null;
-
-let statusRefListener = null;
-let pauseRefListener = null;
-let subRefListener = null;
-
-// Listen to Firebase Auth state changes to dynamically sync authenticated UID
-auth.onAuthStateChanged((user) => {
-    if (user && user.uid) {
-        activeUID = user.uid;
-        localStorage.setItem("ag_active_uid", activeUID);
-    }
-    initSubscriptionGuards();
-    initBroadcastListener();
-});
-
 window.addEventListener('click', (e) => {
     const aiMenu = document.getElementById('aiClearMenu');
     const agentMenu = document.getElementById('agentClearMenu');
     if (aiMenu && !aiMenu.contains(e.target) && !e.target.closest('[onclick*="toggleClearMenu(\'ai\')"]')) aiMenu.classList.remove('active');
     if (agentMenu && !agentMenu.contains(e.target) && !e.target.closest('[onclick*="toggleClearMenu(\'agent\')"]')) agentMenu.classList.remove('active');
 });
+
+// Automated log pruner to keep database clean and prevent bloat lag
+function pruneOldActivityLogs() {
+    const logsRef = rtdb.ref('user_activity_logs');
+    logsRef.orderByChild('timestamp').once('value', (snapshot) => {
+        if (snapshot.numChildren() > 80) {
+            let keysToDelete = [];
+            let count = 0;
+            snapshot.forEach((childSnap) => {
+                count++;
+                if (count <= snapshot.numChildren() - 80) {
+                    keysToDelete.push(childSnap.key);
+                }
+            });
+            keysToDelete.forEach(key => {
+                logsRef.child(key).remove();
+            });
+        }
+    });
+}
 
 function logUserActivity(category, description) {
     try {
@@ -650,6 +654,7 @@ function logUserActivity(category, description) {
             timestamp: Date.now(),
             device: navigator.userAgent.substring(0, 50)
         });
+        pruneOldActivityLogs();
     } catch (err) {}
 }
 
@@ -747,6 +752,69 @@ function renderBroadcastModalList(itemsList) {
     });
     container.innerHTML = html;
 }
+
+// Notification Bell Drag & 12-Second Snap-Back Logic
+const notificationBellBtn = document.getElementById('notificationBellBtn');
+let isBellDragging = false;
+let bellDragStartX = 0, bellDragStartY = 0;
+let bellInitialX = 0, bellInitialY = 0;
+let bellHasMoved = false;
+let bellReturnTimer = null;
+
+notificationBellBtn.addEventListener('pointerdown', (e) => {
+    isBellDragging = true;
+    bellHasMoved = false;
+    bellDragStartX = e.clientX;
+    bellDragStartY = e.clientY;
+    const rect = notificationBellBtn.getBoundingClientRect();
+    bellInitialX = rect.left;
+    bellInitialY = rect.top;
+    notificationBellBtn.setPointerCapture(e.pointerId);
+
+    if (bellReturnTimer) {
+        clearTimeout(bellReturnTimer);
+        bellReturnTimer = null;
+    }
+});
+
+notificationBellBtn.addEventListener('pointermove', (e) => {
+    if (!isBellDragging) return;
+    const dx = e.clientX - bellDragStartX;
+    const dy = e.clientY - bellDragStartY;
+    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) bellHasMoved = true;
+    let newX = bellInitialX + dx;
+    let newY = bellInitialY + dy;
+    const btnWidth = notificationBellBtn.offsetWidth || 44;
+    const btnHeight = notificationBellBtn.offsetHeight || 44;
+    newX = Math.max(10, Math.min(window.innerWidth - btnWidth - 10, newX));
+    newY = Math.max(10, Math.min(window.innerHeight - btnHeight - 10, newY));
+    notificationBellBtn.style.left = `${newX}px`;
+    notificationBellBtn.style.top = `${newY}px`;
+    notificationBellBtn.style.right = 'auto';
+    notificationBellBtn.style.bottom = 'auto';
+});
+
+notificationBellBtn.addEventListener('pointerup', (e) => {
+    if (!isBellDragging) return;
+    isBellDragging = false;
+    notificationBellBtn.releasePointerCapture(e.pointerId);
+
+    if (bellHasMoved) {
+        // Automatically return back to original position after 12 seconds
+        bellReturnTimer = setTimeout(() => {
+            notificationBellBtn.style.transition = 'all 0.5s ease';
+            notificationBellBtn.style.top = '90px';
+            notificationBellBtn.style.right = '20px';
+            notificationBellBtn.style.left = 'auto';
+            notificationBellBtn.style.bottom = 'auto';
+            setTimeout(() => {
+                notificationBellBtn.style.transition = 'background 0.2s, border-color 0.2s';
+            }, 500);
+        }, 12000);
+    } else {
+        toggleBroadcastModal();
+    }
+});
 
 const chatWidgetBtn = document.getElementById('chatWidgetBtn');
 const agentSubBtn = document.getElementById('agentSubBtn');
@@ -878,14 +946,14 @@ function executeClear(type, mode) {
     }
 }
 
-function enforceSubscriptionLock(isExpired, reason = "Subscription Required") {
+function enforceSubscriptionLock(isExpired, reason = "Subscription Expired") {
     const blocker = document.getElementById('hubSubscriptionBlocker');
     const titleEl = document.getElementById('hubBlockTitle');
     const descEl = document.getElementById('hubBlockDesc');
     
     if (isExpired) {
         titleEl.innerText = reason;
-        descEl.innerText = reason.includes("Suspended") ? "Your account has been suspended by the administrator." : "Your access license has elapsed or is inactive. Select a plan below to complete payment via M-Pesa or contact admin for approval.";
+        descEl.innerText = reason.includes("Suspended") || reason.includes("Blocked") ? "Your account has been restricted by the administrator." : "Your access license has elapsed. Select a plan below to complete payment via M-Pesa or contact admin for approval.";
         blocker.style.display = 'flex';
         document.body.classList.add('app-locked');
         document.body.style.overflow = 'hidden';
@@ -898,87 +966,73 @@ function enforceSubscriptionLock(isExpired, reason = "Subscription Required") {
     }
 }
 
+// Unified, Race-Free Subscription and Access Guard
 function initSubscriptionGuards() {
     enforceSubscriptionLock(true, "Verifying Subscription...");
     if (!activeUID || activeUID.startsWith("unidentified")) {
-        enforceSubscriptionLock(true, "Subscription Required");
-        return;
-    }
-
-    if (statusRefListener) rtdb.ref(`user_statuses/${activeUID}`).off('value', statusRefListener);
-    if (pauseRefListener) rtdb.ref(`subscription_pauses/${activeUID}`).off('value', pauseRefListener);
-    if (subRefListener) rtdb.ref(`subscriptions/${activeUID}`).off('value', subRefListener);
-
-    // 1. Unified state listener for user status
-    statusRefListener = rtdb.ref(`user_statuses/${activeUID}`).on('value', (snapshot) => {
-        cachedUserStatus = String(snapshot.val() || "active").toLowerCase();
-        evaluateMasterAccess();
-    });
-
-    // 2. Unified state listener for subscription pause
-    pauseRefListener = rtdb.ref(`subscription_pauses/${activeUID}`).on('value', (snapshot) => {
-        cachedSubscriptionPause = snapshot.val();
-        evaluateMasterAccess();
-    });
-
-    // 3. Unified state listener for subscription details
-    subRefListener = rtdb.ref(`subscriptions/${activeUID}`).on('value', (snapshot) => {
-        cachedSubscription = snapshot.val();
-        evaluateMasterAccess();
-    });
-}
-
-function evaluateMasterAccess() {
-    const now = Date.now();
-
-    // Priority 1: User Account Status Checks (Never bypasses)
-    if (["suspended", "blocked", "inactive", "cancelled"].includes(cachedUserStatus)) {
-        enforceSubscriptionLock(true, `Account ${cachedUserStatus.charAt(0).toUpperCase() + cachedUserStatus.slice(1)}`);
-        return;
-    }
-
-    // Priority 2: Temporary Pause / Free Window Check
-    let pausedUntilTime = Number(cachedSubscriptionPause?.pausedUntil || 0);
-    if (pausedUntilTime > 0 && pausedUntilTime < 10000000000) pausedUntilTime *= 1000;
-    
-    if (cachedSubscriptionPause && cachedSubscriptionPause.active === true && pausedUntilTime > now) {
-        enforceSubscriptionLock(false);
-        return;
-    }
-
-    // Priority 3: Strict Subscription Verification (Never bypasses)
-    if (!cachedSubscription) {
-        enforceSubscriptionLock(true, "Subscription Required");
-        return;
-    }
-
-    const subStatus = String(cachedSubscription.status || "").toLowerCase();
-    const isActiveFlag = cachedSubscription.active === true;
-
-    // Immediate lock on cancelled, suspended, inactive status, or active: false
-    if (subStatus === "cancelled" || subStatus === "suspended" || subStatus === "blocked" || subStatus === "inactive" || !isActiveFlag) {
-        const lockReason = subStatus === "cancelled" ? "Subscription Cancelled" : (!isActiveFlag ? "Subscription Inactive" : `Subscription ${subStatus}`);
-        enforceSubscriptionLock(true, lockReason);
-        return;
-    }
-
-    let expiry = Number(cachedSubscription.expiry || cachedSubscription.expiresAt || 0);
-    if (expiry > 0 && expiry < 10000000000) {
-        expiry = expiry * 1000;
-    }
-
-    if (!expiry || !Number.isFinite(expiry)) {
-        enforceSubscriptionLock(true, "Subscription Required");
-        return;
-    }
-
-    if (now >= expiry) {
         enforceSubscriptionLock(true, "Subscription Expired");
         return;
     }
 
-    // All conditions verified successfully - Unlocked
-    enforceSubscriptionLock(false);
+    // Attach single atomic listeners that trigger a synchronized check
+    rtdb.ref(`user_statuses/${activeUID}`).on('value', () => evaluateUnifiedAccess());
+    rtdb.ref(`subscription_pauses/${activeUID}`).on('value', () => evaluateUnifiedAccess());
+    rtdb.ref(`subscriptions/${activeUID}`).on('value', () => evaluateUnifiedAccess());
+}
+
+async function evaluateUnifiedAccess() {
+    const now = Date.now();
+    try {
+        const [statusSnap, pauseSnap, subSnap] = await Promise.all([
+            rtdb.ref(`user_statuses/${activeUID}`).once('value'),
+            rtdb.ref(`subscription_pauses/${activeUID}`).once('value'),
+            rtdb.ref(`subscriptions/${activeUID}`).once('value')
+        ]);
+
+        // 1. Strict Priority: Check Account Status (Suspended / Blocked takes precedence)
+        const status = statusSnap.val();
+        if (status && status !== "Active") {
+            enforceSubscriptionLock(true, "Account " + status);
+            return;
+        }
+
+        // 2. Priority: Check Admin Pause / Free Access Window
+        const pause = pauseSnap.val();
+        if (pause && pause.active === true && Number(pause.pausedUntil || 0) > now) {
+            enforceSubscriptionLock(false);
+            return;
+        }
+
+        // 3. Priority: Check Subscription Expiry & Active Flag
+        const sub = subSnap.val();
+        if (!sub) {
+            enforceSubscriptionLock(true, "Subscription Required");
+            return;
+        }
+
+        const subStatus = String(sub.status || "").toLowerCase();
+        const isActiveFlag = sub.active === true;
+        let expiry = Number(sub.expiry || sub.expiresAt || 0);
+
+        if (expiry > 0 && expiry < 10000000000) {
+            expiry *= 1000; // Normalize seconds to milliseconds
+        }
+
+        if (!expiry || !Number.isFinite(expiry)) {
+            enforceSubscriptionLock(true, "Subscription Required");
+            return;
+        }
+
+        if (now >= expiry || (!isActiveFlag && subStatus !== "active")) {
+            enforceSubscriptionLock(true, "Subscription Expired");
+            return;
+        }
+
+        // All checks passed successfully
+        enforceSubscriptionLock(false);
+    } catch (error) {
+        console.error("Unified access evaluation error:", error);
+    }
 }
 
 function initiateMpesaPayment(daysAdded, amountVal, amountString) {
@@ -1124,7 +1178,7 @@ async function finalizeSubscriptionRenew(daysAdded) {
         const snapshot = await subscriptionRef.once("value");
         const existing = snapshot.val() || {};
         let existingExpiry = Number(existing.expiry || existing.expiresAt || 0);
-        if (existingExpiry > 0 && existingExpiry < 1000000000) existingExpiry *= 1000;
+        if (existingExpiry > 0 && existingExpiry < 10000000000) existingExpiry *= 1000;
         const baseTime = existingExpiry > now ? existingExpiry : now;
         const newExpiry = baseTime + (daysAdded * 24 * 60 * 60 * 1000);
 
@@ -1156,6 +1210,8 @@ function triggerToast(msg) {
 }
 
 window.onload = () => {
+    initSubscriptionGuards();
+    initBroadcastListener();
     updateSubButtonPositions();
 };
 
