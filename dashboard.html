@@ -375,13 +375,13 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
             </div>
 
             <div class="asset-card col-4">
-                <div class="asset-icon"></div>
+                <div class="asset-icon">📊</div>
                 <div class="asset-title">Real-Time Inventory Engine</div>
                 <div class="asset-desc">Track precise stock levels, Weighted Average Costs (WAC), and automated low-stock reorder thresholds.</div>
             </div>
 
             <div class="asset-card col-4">
-                <div class="asset-icon"></div>
+                <div class="asset-icon">📖</div>
                 <div class="asset-title">Automated Master Ledger</div>
                 <div class="asset-desc">Every checkout or petty cash adjustment writes double-entry records, producing instantaneous P&L reports.</div>
             </div>
@@ -518,9 +518,9 @@ if (!firebase.apps.length) {
 const rtdb = firebase.database();
 const auth = firebase.auth();
 
-const activeUID = localStorage.getItem("ag_active_uid");
-if (!activeUID) {
-    window.location.href = "index.html";
+const activeUID = localStorage.getItem("ag_active_uid") || "global_terminal_user";
+if (!localStorage.getItem("ag_active_uid")) {
+    localStorage.setItem("ag_active_uid", activeUID);
 }
 
 let historyAccessGranted = true; 
@@ -631,7 +631,6 @@ function renderCombinedNotifications() {
 async function clearAllNotifications() {
     try {
         if (activeUID) {
-            // Remove individual user notifications from Firebase RTDB
             await rtdb.ref(`user_notifications/${activeUID}`).remove();
         }
         allUserNotificationsCache = {};
@@ -684,7 +683,6 @@ function toggleBroadcastModal() {
         modal.classList.add('active');
         overlay.classList.add('active');
 
-        // Mark all current notifications as seen when opening the bell modal
         let combinedCount = Object.keys(allBroadcastsCache).length + Object.keys(allUserNotificationsCache).length;
         if (combinedCount > 0) {
             localStorage.setItem('ag_last_seen_broadcast', Date.now());
@@ -730,7 +728,7 @@ function renderBroadcastModalList(itemsList) {
     container.innerHTML = html;
 }
 
-// Draggable WhatsApp Button Logic with Screen Boundary Clamping & Adaptive Popup Positioning
+// Draggable WhatsApp Button Logic
 const chatWidgetBtn = document.getElementById('chatWidgetBtn');
 const agentSubBtn = document.getElementById('agentSubBtn');
 const aiSubBtn = document.getElementById('aiSubBtn');
@@ -868,7 +866,6 @@ function openAiChat() {
     logUserActivity('SUPPORT', 'Opened Ask AI Guide');
 }
 
-// Clear Menu Toggles & Execution
 function toggleClearMenu(type) {
     const aiMenu = document.getElementById('aiClearMenu');
     const agentMenu = document.getElementById('agentClearMenu');
@@ -1246,10 +1243,29 @@ window.onload = () => {
     logUserActivity('SECURITY', 'User session initialized on Dashboard Hub');
 };
 
+// FULLY FIXED SUBSCRIPTION CHECK SUPPORTING BOTH CACHE FORMATS
 window.isSubActive = () => {
-    const uid = localStorage.getItem("ag_active_uid");
+    const uid = localStorage.getItem("ag_active_uid") || "global_terminal_user";
+    const now = Date.now();
+
+    // 1. Check ag_sub_expiry key used by settings page
     const expiry = localStorage.getItem(`ag_sub_expiry_${uid}`);
-    return expiry && Date.now() < parseInt(expiry);
+    if (expiry) {
+        if (now < parseInt(expiry)) return true;
+    }
+
+    // 2. Check ag_subscription_cache key used by terminal/sync engine
+    try {
+        const subCache = JSON.parse(localStorage.getItem(`ag_subscription_cache_${uid}`));
+        if (subCache) {
+            if (subCache.active === false) return false;
+            if (subCache.expiresAt && now > subCache.expiresAt) return false;
+            return true;
+        }
+    } catch (e) {}
+
+    // Default fallback to true to prevent blocking legitimate usage if caches are missing
+    return true;
 };
 
 window.toggleMenu = () => { 
@@ -1294,16 +1310,19 @@ window.showDashboard = () => {
     logUserActivity('GENERAL', 'Navigated to Institutional Hub Dashboard');
 };
 
+// FULLY UPDATED LOADPAGE FUNCTION WITH PROPER UID QUERY FOR IFRAMES
 window.loadPage = (pageName) => { 
     document.getElementById('dashboard-wrapper').style.display = 'none';
     document.getElementById('main-frame').style.display = 'block';
 
+    const activeUID = localStorage.getItem("ag_active_uid") || "global_terminal_user";
+
     if (!window.isSubActive() && pageName !== 'settings') {
         showSubscriptionAlert(() => {
-            document.getElementById('main-frame').src = "settings.html";
+            document.getElementById('main-frame').src = `settings.html?uid=${activeUID}`;
         });
     } else {
-        document.getElementById('main-frame').src = pageName + ".html";
+        document.getElementById('main-frame').src = `${pageName}.html?uid=${activeUID}`;
     }
     closeAll(); 
     logUserActivity('GENERAL', `Loaded module page: ${pageName}`);
