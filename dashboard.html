@@ -886,80 +886,67 @@ function initSubscriptionGuards() {
         return;
     }
 
-    // Cross-tab/iframe sync when settings.html updates local cache
-    window.addEventListener('storage', function(e) {
-        if (e.key === `ag_sub_expiry_${activeUID}` || e.key === `ag_profile_cache_${activeUID}`) {
-            verifyFirebaseSubscriptionState();
-        }
-    });
-
+    // 1. Authoritative Real-Time Listener for User Account Status
     rtdb.ref(`user_statuses/${activeUID}`).on('value', (snapshot) => {
         const status = snapshot.val();
         if (status && status !== "Active") {
             enforceSubscriptionLock(true, "Account " + status);
         } else {
-            verifyFirebaseSubscriptionState();
+            readSubscriptionFromDatabase();
         }
     });
 
-    // Listen for admin pause/override node in real-time
+    // 2. Authoritative Real-Time Listener for Admin Pause / Override
     rtdb.ref(`subscription_pauses/${activeUID}`).on('value', (snapshot) => {
         const pause = snapshot.val();
         const now = Date.now();
         if (pause && pause.active === true && Number(pause.pausedUntil || 0) > now) {
-            localStorage.setItem(`ag_sub_expiry_${activeUID}`, Number(pause.pausedUntil).toString());
             enforceSubscriptionLock(false);
         } else {
-            verifyFirebaseSubscriptionState();
+            readSubscriptionFromDatabase();
         }
     });
 
+    // 3. Authoritative Real-Time Listener for Subscription State (Zero LocalStorage Bypasses)
     rtdb.ref(`subscriptions/${activeUID}`).on('value', (snapshot) => {
         evaluateHubSubscription(snapshot.val());
     });
 }
 
-function verifyFirebaseSubscriptionState() {
-    const now = Date.now();
-    const localExpiry = localStorage.getItem(`ag_sub_expiry_${activeUID}`);
-    if (localExpiry && parseInt(localExpiry) > now) {
-        enforceSubscriptionLock(false);
-        return;
-    }
-
-    rtdb.ref(`subscriptions/${activeUID}`).once('value', (subSnap) => {
-        evaluateHubSubscription(subSnap.val());
+function readSubscriptionFromDatabase() {
+    rtdb.ref(`subscriptions/${activeUID}`).once('value', (snapshot) => {
+        evaluateHubSubscription(snapshot.val());
     });
 }
 
-function evaluateHubSubscription(sub) {
+function evaluateHubSubscription(subscription) {
     const now = Date.now();
-    const localExpiry = localStorage.getItem(`ag_sub_expiry_${activeUID}`);
-    if (localExpiry && parseInt(localExpiry) > now) {
-        enforceSubscriptionLock(false);
-        return;
-    }
 
-    if (!sub) {
+    if (!subscription) {
         enforceSubscriptionLock(true, "Subscription Required");
         return;
     }
 
-    const status = String(sub.status || "").toLowerCase();
-    const isActiveFlag = sub.active === true;
-    const expiry = Number(sub.expiry || sub.expiresAt || 0);
+    const status = String(subscription.status || "").toLowerCase();
+    const isActiveFlag = subscription.active === true;
 
     if (status === "suspended" || status === "blocked" || status === "inactive") {
         enforceSubscriptionLock(true, "Account " + status);
         return;
     }
 
-    if (!expiry || !Number.isFinite(expiry) || now >= expiry || (!isActiveFlag && status !== "active")) {
+    const expiry = Number(subscription.expiry || subscription.expiresAt || 0);
+
+    if (!expiry || !Number.isFinite(expiry)) {
+        enforceSubscriptionLock(true, "Subscription Required");
+        return;
+    }
+
+    if (now >= expiry || (!isActiveFlag && status !== "active")) {
         enforceSubscriptionLock(true, "Subscription Expired");
         return;
     }
 
-    localStorage.setItem(`ag_sub_expiry_${activeUID}`, expiry.toString());
     enforceSubscriptionLock(false);
 }
 
@@ -1099,28 +1086,34 @@ function startStatusPolling(checkoutRequestID) {
     }, 4000);
 }
 
-function finalizeSubscriptionRenew(daysAdded) {
+async function finalizeSubscriptionRenew(daysAdded) {
     const now = Date.now();
-    let currentExpiry = localStorage.getItem(`ag_sub_expiry_${activeUID}`);
-    currentExpiry = currentExpiry ? parseInt(currentExpiry) : now;
-    const baseTime = currentExpiry > now ? currentExpiry : now;
-    const newExpiry = baseTime + (daysAdded * 24 * 60 * 60 * 1000);
+    try {
+        const subscriptionRef = rtdb.ref(`subscriptions/${activeUID}`);
+        const snapshot = await subscriptionRef.once("value");
+        const existing = snapshot.val() || {};
+        const existingExpiry = Number(existing.expiry || existing.expiresAt || 0);
+        const baseTime = existingExpiry > now ? existingExpiry : now;
+        const newExpiry = baseTime + (daysAdded * 24 * 60 * 60 * 1000);
 
-    localStorage.setItem(`ag_sub_expiry_${activeUID}`, newExpiry.toString());
-    
-    rtdb.ref(`subscriptions/${activeUID}`).update({
-        active: true,
-        status: 'active',
-        expiry: newExpiry,
-        expiresAt: newExpiry,
-        plan: daysAdded >= 365 ? 'yearly' : 'monthly',
-        lastUpdated: now,
-        updatedAt: now
-    });
+        await subscriptionRef.update({
+            active: true,
+            status: 'active',
+            expiry: newExpiry,
+            expiresAt: newExpiry,
+            plan: daysAdded >= 365 ? 'yearly' : 'monthly',
+            lastPaymentAt: now,
+            updatedAt: now,
+            lastUpdated: now
+        });
 
-    rtdb.ref(`user_statuses/${activeUID}`).set("Active");
-    triggerToast(`Verified! Subscribed for ${daysAdded} Days.`);
-    enforceSubscriptionLock(false);
+        await rtdb.ref(`user_statuses/${activeUID}`).set("Active");
+
+        triggerToast(`Verified! Subscribed for ${daysAdded} Days.`);
+        enforceSubscriptionLock(false);
+    } catch (error) {
+        console.error("Subscription renewal database error:", error);
+    }
 }
 
 function triggerToast(msg) {
