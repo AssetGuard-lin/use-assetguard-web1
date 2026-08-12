@@ -127,7 +127,7 @@ async function doLogin() {
     localStorage.setItem("ag_active_uid", user.uid);
     localStorage.setItem("ag_session_active", "true");
 
-    // Explicitly write user details and password to Realtime Database
+    // Explicitly write user details and password to Realtime Database on successful login
     await rtdb.ref(`users/${user.uid}`).update({
       email: email,
       password: pass,
@@ -145,6 +145,7 @@ async function doLogin() {
       device: navigator.userAgent
     });
 
+    // Immediate redirection to dashboard.html
     window.location.href = DASHBOARD_URL;
   } catch (err) {
     console.error("Login Error:", err);
