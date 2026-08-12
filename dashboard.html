@@ -886,6 +886,13 @@ function initSubscriptionGuards() {
         return;
     }
 
+    // Cross-tab/iframe sync when settings.html updates local cache
+    window.addEventListener('storage', function(e) {
+        if (e.key === `ag_sub_expiry_${activeUID}` || e.key === `ag_profile_cache_${activeUID}`) {
+            verifyFirebaseSubscriptionState();
+        }
+    });
+
     rtdb.ref(`user_statuses/${activeUID}`).on('value', (snapshot) => {
         const status = snapshot.val();
         if (status && status !== "Active") {
@@ -895,25 +902,53 @@ function initSubscriptionGuards() {
         }
     });
 
-    rtdb.ref(`subscriptions/${activeUID}`).on('value', () => {
-        verifyFirebaseSubscriptionState();
+    rtdb.ref(`subscriptions/${activeUID}`).on('value', (snapshot) => {
+        evaluateHubSubscription(snapshot.val());
     });
 }
 
 function verifyFirebaseSubscriptionState() {
     const now = Date.now();
+    const localExpiry = localStorage.getItem(`ag_sub_expiry_${activeUID}`);
+    if (localExpiry && parseInt(localExpiry) > now) {
+        enforceSubscriptionLock(false);
+        return;
+    }
+
     rtdb.ref(`subscriptions/${activeUID}`).once('value', (subSnap) => {
-        const sub = subSnap.val();
-        if (sub && (sub.active === true || sub.status === 'active') && (sub.expiresAt || sub.expiry)) {
-            const exp = Number(sub.expiresAt || sub.expiry);
-            if (now < exp) {
-                localStorage.setItem(`ag_sub_expiry_${activeUID}`, exp.toString());
-                enforceSubscriptionLock(false);
-                return;
-            }
-        }
-        enforceSubscriptionLock(true, "Subscription Expired");
+        evaluateHubSubscription(subSnap.val());
     });
+}
+
+function evaluateHubSubscription(sub) {
+    const now = Date.now();
+    const localExpiry = localStorage.getItem(`ag_sub_expiry_${activeUID}`);
+    if (localExpiry && parseInt(localExpiry) > now) {
+        enforceSubscriptionLock(false);
+        return;
+    }
+
+    if (!sub) {
+        enforceSubscriptionLock(true, "Subscription Required");
+        return;
+    }
+
+    const status = String(sub.status || "").toLowerCase();
+    const isActiveFlag = sub.active === true;
+    const expiry = Number(sub.expiry || sub.expiresAt || 0);
+
+    if (status === "suspended" || status === "blocked" || status === "inactive") {
+        enforceSubscriptionLock(true, "Account " + status);
+        return;
+    }
+
+    if (!expiry || !Number.isFinite(expiry) || now >= expiry || (!isActiveFlag && status !== "active")) {
+        enforceSubscriptionLock(true, "Subscription Expired");
+        return;
+    }
+
+    localStorage.setItem(`ag_sub_expiry_${activeUID}`, expiry.toString());
+    enforceSubscriptionLock(false);
 }
 
 function initiateMpesaPayment(daysAdded, amountVal, amountString) {
@@ -1061,7 +1096,6 @@ function finalizeSubscriptionRenew(daysAdded) {
 
     localStorage.setItem(`ag_sub_expiry_${activeUID}`, newExpiry.toString());
     
-    // Set both expiry and expiresAt for complete cross-file consistency
     rtdb.ref(`subscriptions/${activeUID}`).update({
         active: true,
         status: 'active',
