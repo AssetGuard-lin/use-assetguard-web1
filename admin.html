@@ -46,7 +46,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg-light);color
 }
 .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,82,204,0.1); }
 
-.btn { padding: 12px 20px; border-radius: 10px; border: none; font-weight: 700; cursor: pointer; width: 100%; font-size: 14px; transition: 0.2s; }
+.btn { padding: 12px 20px; border-radius: 10px; border: none; font-weight: 700; cursor: pointer; width: 100%; font-size: 14px; transition: 0.2s; text-align: center; display: inline-block; text-decoration: none;}
 .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(0,82,204,0.3); }
 .btn-primary:hover { background: #0043a5; }
 
@@ -483,8 +483,17 @@ tr:hover { background: #fafafa; }
             </div>
         </div>
 
+        <!-- Grant / Extend Subscription Section -->
+        <div style="background: #f8fafc; border: 1px solid var(--border-color); padding: 16px; border-radius: 12px; margin-top: 10px;">
+            <label style="font-size: 11px; font-weight: 800; color: var(--primary-dark); text-transform: uppercase; margin-bottom: 8px; display: block;">Grant / Extend Subscription License (Millisecond Timestamp)</label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button class="btn btn-primary" style="font-size: 12px; padding: 10px;" onclick="adminGrantSubscription(30)">Grant 30 Days</button>
+                <button class="btn btn-success" style="font-size: 12px; padding: 10px;" onclick="adminGrantSubscription(365)">Grant 1 Year</button>
+            </div>
+        </div>
+
         <!-- Subscription Pause Control Section -->
-        <div style="background: #f8fafc; border: 1px solid var(--border-color); padding: 16px; border-radius: 12px; margin-top: 5px;">
+        <div style="background: #f8fafc; border: 1px solid var(--border-color); padding: 16px; border-radius: 12px; margin-top: 10px;">
             <label style="font-size: 11px; font-weight: 800; color: var(--primary-dark); text-transform: uppercase; margin-bottom: 8px; display: block;">Temporary Subscription Pause / Free Access Window</label>
             <div id="pauseStatusDisplay" style="font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 10px;">Status: Checking pause state...</div>
             <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
@@ -988,6 +997,37 @@ function openUserProfilePopup(uid) {
     document.getElementById('userProfileModal').classList.add('active');
 }
 
+async function adminGrantSubscription(days) {
+    if (!currentSelectedProfileUid) return;
+    const now = Date.now();
+    try {
+        const subscriptionRef = rtdb.ref(`subscriptions/${currentSelectedProfileUid}`);
+        const snapshot = await subscriptionRef.once("value");
+        const existing = snapshot.val() || {};
+        let existingExpiry = Number(existing.expiry || existing.expiresAt || 0);
+        if (existingExpiry > 0 && existingExpiry < 10000000000) existingExpiry *= 1000;
+        const baseTime = existingExpiry > now ? existingExpiry : now;
+        const newExpiry = baseTime + (days * 24 * 60 * 60 * 1000);
+
+        await subscriptionRef.update({
+            active: true,
+            status: 'active',
+            expiry: newExpiry,
+            expiresAt: newExpiry,
+            plan: days >= 365 ? 'yearly' : 'monthly',
+            grantedByAdminAt: now,
+            updatedAt: now
+        });
+
+        await rtdb.ref(`user_statuses/${currentSelectedProfileUid}`).set("Active");
+
+        alert(`Successfully granted ${days} days subscription to user!`);
+        openUserProfilePopup(currentSelectedProfileUid);
+    } catch (error) {
+        alert("Failed to grant subscription: " + error.message);
+    }
+}
+
 function updateProfilePauseUI(uid) {
     const display = document.getElementById('pauseStatusDisplay');
     if (!display) return;
@@ -1011,9 +1051,9 @@ async function applyUserSubscriptionPause() {
         return;
     }
 
-    let durationMs = durationVal * 60 * 1000; // minutes
+    let durationMs = durationVal * 60 * 1000;
     if (unit === 'hours') {
-        durationMs = durationVal * 60 * 60 * 1000; // hours
+        durationMs = durationVal * 60 * 60 * 1000;
     }
 
     const pausedUntil = Date.now() + durationMs;
@@ -1049,7 +1089,6 @@ function closeUserProfileModal() {
     document.getElementById('userProfileModal').classList.remove('active');
 }
 
-// Jump to Helpdesk filtered by selected user UID
 function viewUserTicketsFromProfile() {
     if (!currentSelectedProfileUid) return;
     closeUserProfileModal();
@@ -1058,7 +1097,6 @@ function viewUserTicketsFromProfile() {
     filterTicketsTable();
 }
 
-// Direct Interaction / Notification Modal Logic
 function openInteractWithUserModal() {
     if (!currentSelectedProfileUid) return;
     document.getElementById('interactModalMeta').innerText = `To User UID: ${currentSelectedProfileUid}`;
@@ -1097,7 +1135,6 @@ async function sendDirectUserMessage() {
     }
 }
 
-// Broadcast Hub Logic
 async function sendBroadcastNotification() {
     const title = document.getElementById('broadcastTitle').value.trim();
     const priority = document.getElementById('broadcastPriority').value;
