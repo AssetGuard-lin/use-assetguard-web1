@@ -591,7 +591,7 @@ if (!firebase.apps.length) {
 const rtdb = firebase.database();
 const auth = firebase.auth();
 
-const activeUID = localStorage.getItem("ag_active_uid") || "global_terminal_user";
+let activeUID = localStorage.getItem("ag_active_uid") || "global_terminal_user";
 if (!localStorage.getItem("ag_active_uid")) {
     localStorage.setItem("ag_active_uid", activeUID);
 }
@@ -619,6 +619,20 @@ let isAgentSelectiveMode = false;
 let cachedUserStatus = "active";
 let cachedSubscriptionPause = null;
 let cachedSubscription = null;
+
+let statusRefListener = null;
+let pauseRefListener = null;
+let subRefListener = null;
+
+// Listen to Firebase Auth state changes to dynamically sync authenticated UID
+auth.onAuthStateChanged((user) => {
+    if (user && user.uid) {
+        activeUID = user.uid;
+        localStorage.setItem("ag_active_uid", activeUID);
+    }
+    initSubscriptionGuards();
+    initBroadcastListener();
+});
 
 window.addEventListener('click', (e) => {
     const aiMenu = document.getElementById('aiClearMenu');
@@ -891,20 +905,24 @@ function initSubscriptionGuards() {
         return;
     }
 
+    if (statusRefListener) rtdb.ref(`user_statuses/${activeUID}`).off('value', statusRefListener);
+    if (pauseRefListener) rtdb.ref(`subscription_pauses/${activeUID}`).off('value', pauseRefListener);
+    if (subRefListener) rtdb.ref(`subscriptions/${activeUID}`).off('value', subRefListener);
+
     // 1. Unified state listener for user status
-    rtdb.ref(`user_statuses/${activeUID}`).on('value', (snapshot) => {
+    statusRefListener = rtdb.ref(`user_statuses/${activeUID}`).on('value', (snapshot) => {
         cachedUserStatus = String(snapshot.val() || "active").toLowerCase();
         evaluateMasterAccess();
     });
 
     // 2. Unified state listener for subscription pause
-    rtdb.ref(`subscription_pauses/${activeUID}`).on('value', (snapshot) => {
+    pauseRefListener = rtdb.ref(`subscription_pauses/${activeUID}`).on('value', (snapshot) => {
         cachedSubscriptionPause = snapshot.val();
         evaluateMasterAccess();
     });
 
     // 3. Unified state listener for subscription details
-    rtdb.ref(`subscriptions/${activeUID}`).on('value', (snapshot) => {
+    subRefListener = rtdb.ref(`subscriptions/${activeUID}`).on('value', (snapshot) => {
         cachedSubscription = snapshot.val();
         evaluateMasterAccess();
     });
@@ -1138,8 +1156,6 @@ function triggerToast(msg) {
 }
 
 window.onload = () => {
-    initSubscriptionGuards();
-    initBroadcastListener();
     updateSubButtonPositions();
 };
 
