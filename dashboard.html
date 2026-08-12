@@ -1379,7 +1379,6 @@ function enforceSubscriptionLock(isExpired, reason = "Subscription Expired") {
         document.body.classList.add('app-locked');
         document.body.style.overflow = 'hidden';
 
-        // Instantly blank out any open iframe page (like Settings) so it cannot be viewed
         const mainFrame = document.getElementById('main-frame');
         if (mainFrame) mainFrame.src = 'about:blank';
     } else {
@@ -1390,7 +1389,6 @@ function enforceSubscriptionLock(isExpired, reason = "Subscription Expired") {
 }
 
 function initSubscriptionGuards() {
-    // Default to locked instantly on startup until Firebase database confirms active status
     enforceSubscriptionLock(true, "Verifying Subscription...");
 
     if (!activeUID || activeUID.startsWith("unidentified")) {
@@ -1398,7 +1396,6 @@ function initSubscriptionGuards() {
         return;
     }
 
-    // Real-time Firebase Authority Listeners
     rtdb.ref(`user_statuses/${activeUID}`).on('value', (snapshot) => {
         const status = snapshot.val();
         if (status && status !== "Active") {
@@ -1432,7 +1429,6 @@ function verifyFirebaseSubscriptionState() {
                 return;
             }
 
-            // If Firebase shows expired/inactive, completely lock down interface and clear local cache
             localStorage.removeItem(`ag_sub_expiry_${activeUID}`);
             enforceSubscriptionLock(true, "Subscription Expired");
         });
@@ -1456,7 +1452,14 @@ function initiateMpesaPayment(daysAdded, amountVal, amountString) {
 function closeStkModal() {
     if (pollInterval) clearInterval(pollInterval);
     document.getElementById('stkModal').style.display = "none";
-    // Main subscription blocker remains fully active and locked!
+    
+    // Explicitly force the main subscription lock blocker to stay active and visible
+    const blocker = document.getElementById('hubSubscriptionBlocker');
+    if (blocker) {
+        blocker.style.display = 'flex';
+    }
+    document.body.classList.add('app-locked');
+    document.body.style.overflow = 'hidden';
 }
 
 function resetStkModal() {
@@ -1615,7 +1618,6 @@ function finalizeSubscriptionRenew(daysAdded) {
 
     localStorage.setItem(`ag_sub_expiry_${activeUID}`, newExpiry.toString());
     
-    // Commit new expiry to Firebase database
     rtdb.ref(`subscriptions/${activeUID}`).update({
         active: true,
         expiresAt: newExpiry,
