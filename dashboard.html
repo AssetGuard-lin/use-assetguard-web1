@@ -500,7 +500,7 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
         </div>
     </div>
 
-    <iframe id="main-frame" src="sales.html"></iframe>
+    <iframe id="main-frame" src="about:blank"></iframe>
 </main>
 
 <iframe id="sync-engine" src="local_db.html" style="display:none;"></iframe>
@@ -1366,7 +1366,7 @@ function cancelAgentReplyHighlight() {
     document.getElementById('agentReplyingBar').style.display = 'none';
 }
 
-/* Prison-Grade Absolute Lock Function */
+/* Prison-Grade Absolute Lock Function with Iframe Unloading */
 function enforceSubscriptionLock(isExpired, reason = "Subscription Expired") {
     const blocker = document.getElementById('hubSubscriptionBlocker');
     const titleEl = document.getElementById('hubBlockTitle');
@@ -1378,6 +1378,10 @@ function enforceSubscriptionLock(isExpired, reason = "Subscription Expired") {
         blocker.style.display = 'flex';
         document.body.classList.add('app-locked');
         document.body.style.overflow = 'hidden';
+
+        // Instantly blank out any open iframe page (like Settings) so it cannot be viewed
+        const mainFrame = document.getElementById('main-frame');
+        if (mainFrame) mainFrame.src = 'about:blank';
     } else {
         blocker.style.display = 'none';
         document.body.classList.remove('app-locked');
@@ -1428,7 +1432,8 @@ function verifyFirebaseSubscriptionState() {
                 return;
             }
 
-            // If Firebase shows expired/inactive, completely lock down interface
+            // If Firebase shows expired/inactive, completely lock down interface and clear local cache
+            localStorage.removeItem(`ag_sub_expiry_${activeUID}`);
             enforceSubscriptionLock(true, "Subscription Expired");
         });
     });
