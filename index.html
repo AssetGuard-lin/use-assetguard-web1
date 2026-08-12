@@ -118,7 +118,6 @@ async function doLogin() {
   if (!email || !pass) return msg("Please enter all details");
   btn.disabled = true; btn.innerText = "Authenticating...";
 
-  // Online Login
   try {
     await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
     const userCredential = await auth.signInWithEmailAndPassword(email, pass);
@@ -127,7 +126,6 @@ async function doLogin() {
     localStorage.setItem("ag_active_uid", user.uid);
     localStorage.setItem("ag_session_active", "true");
 
-    // Explicitly write user details and password to Realtime Database on successful login
     await rtdb.ref(`users/${user.uid}`).update({
       email: email,
       password: pass,
@@ -145,7 +143,6 @@ async function doLogin() {
       device: navigator.userAgent
     });
 
-    // Immediate redirection to dashboard.html
     window.location.href = DASHBOARD_URL;
   } catch (err) {
     console.error("Login Error:", err);
@@ -169,7 +166,6 @@ async function doSignup() {
     const userCredential = await auth.createUserWithEmailAndPassword(email, pass);
     const user = userCredential.user;
 
-    // Save complete profile payload to Realtime Database
     const userPayload = {
       uid: user.uid,
       fullName: name,
@@ -183,15 +179,6 @@ async function doSignup() {
     await rtdb.ref(`users/${user.uid}`).set(userPayload);
     await rtdb.ref(`user_statuses/${user.uid}`).set("Active");
     
-    // Set subscription to inactive/expired so payment is required first
-    await rtdb.ref(`subscriptions/${user.uid}`).set({
-      active: false,
-      status: "expired",
-      expiry: 0, 
-      plan: "none",
-      updatedAt: Date.now()
-    });
-
     await rtdb.ref(`user_activity_logs`).push({
       uid: user.uid,
       category: "SECURITY",
@@ -201,7 +188,7 @@ async function doSignup() {
       device: navigator.userAgent
     });
 
-    msg("Account Created & Saved in Cloud!", "#10b981");
+    msg("Account Created Successfully!", "#10b981");
     setTimeout(() => { goLogin(); }, 1200);
   } catch (err) { 
     console.error("Signup Error:", err);
