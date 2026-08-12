@@ -190,7 +190,7 @@
 
         #globalSubBlockOverlay {
             position: fixed; inset: 0; background: rgba(0, 26, 53, 0.96);
-            backdrop-filter: blur(16px); z-index: 1000000; display: none;
+            backdrop-filter: blur(16px); z-index: 1000000; display: flex;
             align-items: center; justify-content: center; padding: 20px; color: #ffffff;
         }
         .sub-block-card {
@@ -491,16 +491,18 @@
     window.onload = function() {
         resolveUserIdentity();
         loadLocalSettings();
-        initFirebaseListeners();
+        initSubscriptionGuards();
     };
 
-    function initFirebaseListeners() {
+    function initSubscriptionGuards() {
+        lockScreenWithNotice("Verifying Subscription...", "Checking your account status...");
         if (!currentUID || currentUID.startsWith("unidentified")) {
-            lockScreenWithNotice("Account Not Identified", "Your AssetGuard account could not be identified.");
+            lockScreenWithNotice("Subscription Required", "Your AssetGuard account could not be identified.");
             return;
         }
 
-        rtdb.ref(`user_statuses/${currentUID}`).on("value", function(snapshot) {
+        // 1. Authoritative Real-Time Listener for User Account Status
+        rtdb.ref(`user_statuses/${currentUID}`).on('value', (snapshot) => {
             const status = snapshot.val();
             if (status && status !== "Active") {
                 lockScreenWithNotice("Account " + status, "Your account has been marked as " + String(status).toLowerCase() + " by the system administrator.");
@@ -509,7 +511,8 @@
             }
         });
 
-        rtdb.ref(`subscription_pauses/${currentUID}`).on("value", function(snapshot) {
+        // 2. Authoritative Real-Time Listener for Admin Pause / Override
+        rtdb.ref(`subscription_pauses/${currentUID}`).on('value', (snapshot) => {
             const pause = snapshot.val();
             const now = Date.now();
             if (pause && pause.active === true && Number(pause.pausedUntil || 0) > now) {
@@ -519,21 +522,22 @@
                     active: true,
                     expiry: Number(pause.pausedUntil),
                     expiresAt: Number(pause.pausedUntil),
-                    pauseOverride: true
+                    plan: "Admin Override"
                 });
             } else {
                 readSubscriptionFromDatabase();
             }
         });
 
-        rtdb.ref(`subscriptions/${currentUID}`).on("value", function(snapshot) {
+        // 3. Authoritative Real-Time Listener for Subscription State
+        rtdb.ref(`subscriptions/${currentUID}`).on('value', (snapshot) => {
             evaluateSubscriptionFromDatabase(snapshot.val());
         });
     }
 
     function readSubscriptionFromDatabase() {
         if (!currentUID || currentUID.startsWith("unidentified")) return;
-        rtdb.ref(`subscriptions/${currentUID}`).once("value").then(function(snapshot) {
+        rtdb.ref(`subscriptions/${currentUID}`).once('value').then(function(snapshot) {
             evaluateSubscriptionFromDatabase(snapshot.val());
         }).catch(function(error) {
             lockScreenWithNotice("Subscription Verification Failed", "AssetGuard could not verify your subscription from the database.");
@@ -803,6 +807,7 @@
             await rtdb.ref(`user_statuses/${currentUID}`).set("Active");
 
             triggerToast(`Verified! Subscribed for ${daysAdded} Days.`);
+            unlockScreen();
             evaluateSubscriptionFromDatabase({
                 active: true,
                 status: "active",
