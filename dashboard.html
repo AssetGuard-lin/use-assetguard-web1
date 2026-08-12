@@ -25,6 +25,18 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg-light);display:flex;height:100vh;overflow:hidden;color:var(--text-main);}
 
+/* Absolute Lock Shield Class */
+body.app-locked .sidebar,
+body.app-locked .floating-menu-btn,
+body.app-locked .notification-bell-btn,
+body.app-locked .chat-widget-btn,
+body.app-locked .chat-sub-btn,
+body.app-locked main,
+body.app-locked iframe {
+    pointer-events: none !important;
+    user-select: none !important;
+}
+
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -320,9 +332,9 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
-<body>
+<body class="app-locked">
 
-<!-- Prison-Grade Permanent Subscription & Payment Lock Overlay (No close button, unclosable unless verified active) -->
+<!-- Prison-Grade Permanent Subscription & Payment Lock Overlay -->
 <div id="hubSubscriptionBlocker" style="position: fixed; inset: 0; background: rgba(0, 26, 53, 0.98); backdrop-filter: blur(16px); z-index: 9999999; display: flex; align-items: center; justify-content: center; padding: 20px; color: #ffffff;">
     <div style="background: #ffffff; color: #0f172a; width: 100%; max-width: 420px; border-radius: 24px; padding: 32px 24px; text-align: center; box-shadow: 0 25px 60px rgba(0,0,0,0.6);">
         <div style="width: 64px; height: 64px; background: #fee2e2; color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
@@ -345,7 +357,7 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
     </div>
 </div>
 
-<!-- STK Push Processing Modal (Can be closed, but closing returns to locked subscription screen) -->
+<!-- STK Push Processing Modal -->
 <div id="stkModal" class="stk-overlay">
     <div class="lock-card">
         <button class="modal-close-btn" onclick="closeStkModal()" id="stkCloseBtn">
@@ -783,6 +795,10 @@ function showAdminNotificationPopup(title, message) {
 }
 
 function toggleBroadcastModal() {
+    const blocker = document.getElementById('hubSubscriptionBlocker');
+    if (blocker && blocker.style.display === 'flex') return;
+    if (document.body.classList.contains('app-locked')) return;
+
     const modal = document.getElementById('broadcastModal');
     const overlay = document.getElementById('overlay');
     
@@ -927,6 +943,10 @@ chatWidgetBtn.addEventListener('pointerup', (e) => {
 });
 
 function togglePopupIcons() {
+    const blocker = document.getElementById('hubSubscriptionBlocker');
+    if (blocker && blocker.style.display === 'flex') return;
+    if (document.body.classList.contains('app-locked')) return;
+
     const agentContainer = document.getElementById('agentChatContainer');
     const aiContainer = document.getElementById('aiChatContainer');
     const areSubsActive = agentSubBtn.classList.contains('active');
@@ -1346,7 +1366,7 @@ function cancelAgentReplyHighlight() {
     document.getElementById('agentReplyingBar').style.display = 'none';
 }
 
-// Prison-Grade Unbypassable Subscription & Firebase Authority Guards
+/* Prison-Grade Absolute Lock Function */
 function enforceSubscriptionLock(isExpired, reason = "Subscription Expired") {
     const blocker = document.getElementById('hubSubscriptionBlocker');
     const titleEl = document.getElementById('hubBlockTitle');
@@ -1356,9 +1376,11 @@ function enforceSubscriptionLock(isExpired, reason = "Subscription Expired") {
         titleEl.innerText = reason;
         descEl.innerText = reason.includes("Suspended") ? "Your account has been suspended by the administrator." : "Your access license has elapsed. Select a plan below to complete payment via M-Pesa or contact admin for approval.";
         blocker.style.display = 'flex';
+        document.body.classList.add('app-locked');
         document.body.style.overflow = 'hidden';
     } else {
         blocker.style.display = 'none';
+        document.body.classList.remove('app-locked');
         document.body.style.overflow = 'auto';
     }
 }
@@ -1406,7 +1428,7 @@ function verifyFirebaseSubscriptionState() {
                 return;
             }
 
-            // If Firebase shows expired/inactive, completely lock down regardless of local storage
+            // If Firebase shows expired/inactive, completely lock down interface
             enforceSubscriptionLock(true, "Subscription Expired");
         });
     });
@@ -1588,7 +1610,7 @@ function finalizeSubscriptionRenew(daysAdded) {
 
     localStorage.setItem(`ag_sub_expiry_${activeUID}`, newExpiry.toString());
     
-    // Commit new expiry to Firebase database (Grants instant un-lock and admin synchronization)
+    // Commit new expiry to Firebase database
     rtdb.ref(`subscriptions/${activeUID}`).update({
         active: true,
         expiresAt: newExpiry,
@@ -1620,6 +1642,7 @@ window.onload = () => {
 window.toggleMenu = () => { 
     const blocker = document.getElementById('hubSubscriptionBlocker');
     if (blocker && blocker.style.display === 'flex') return;
+    if (document.body.classList.contains('app-locked')) return;
     
     const sidebar = document.getElementById("sidebar");
     const overlay = document.getElementById("overlay");
@@ -1646,6 +1669,7 @@ window.closeAll = () => {
 window.showDashboard = () => {
     const blocker = document.getElementById('hubSubscriptionBlocker');
     if (blocker && blocker.style.display === 'flex') return;
+    if (document.body.classList.contains('app-locked')) return;
 
     document.getElementById('dashboard-wrapper').style.display = 'block';
     document.getElementById('main-frame').style.display = 'none';
@@ -1656,6 +1680,7 @@ window.showDashboard = () => {
 window.loadPage = (pageName) => { 
     const blocker = document.getElementById('hubSubscriptionBlocker');
     if (blocker && blocker.style.display === 'flex') return;
+    if (document.body.classList.contains('app-locked')) return;
 
     document.getElementById('dashboard-wrapper').style.display = 'none';
     document.getElementById('main-frame').style.display = 'block';
