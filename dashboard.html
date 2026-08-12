@@ -14,6 +14,7 @@
     --success: #10b981;
     --warning: #f59e0b;
     --danger: #ef4444;
+    --mpesa: #00a859;
     --bg-light: #f8fafc;
     --card-bg: #ffffff;
     --text-main: #0f172a;
@@ -105,6 +106,7 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
 .btn-primary { background: var(--accent); color: white; box-shadow: 0 4px 12px rgba(255,107,0,0.3); }
 .btn-primary:hover { background: #e05e00; }
 .btn-cancel { background: #f1f5f9; color: var(--text-muted); }
+.btn-mpesa { background: var(--mpesa); color: white; }
 
 .dashboard-wrapper { flex: 1; padding: 75px 20px 30px; overflow-y: auto; width: 100%; }
 @media (min-width: 1024px) {
@@ -269,6 +271,48 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
     background: #f1f5f9; padding: 6px 12px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-size: 11px;
 }
 .ticket-selector-bar select { padding: 3px 6px; border-radius: 4px; border: 1px solid var(--border-color); font-size: 11px; outline: none; }
+
+/* STK Push Modal & Form Elements */
+.stk-overlay {
+    position: fixed; inset: 0; background: rgba(0, 26, 53, 0.92);
+    backdrop-filter: blur(8px); z-index: 10000000; display: none;
+    flex-direction: column; align-items: center; justify-content: center; padding: 20px;
+}
+.lock-card {
+    background: #ffffff; border-radius: 24px; padding: 30px 24px;
+    width: 100%; max-width: 380px; text-align: center; color: var(--text-main);
+    position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+}
+.modal-close-btn {
+    position: absolute; top: 16px; right: 16px; background: #f1f5f9;
+    border: none; color: var(--text-muted); cursor: pointer; padding: 8px;
+    display: flex; align-items: center; justify-content: center; border-radius: 50%;
+}
+.stk-spinner {
+    width: 44px; height: 44px; border: 4px solid #e6f0fa;
+    border-top-color: var(--mpesa); border-radius: 50%;
+    animation: spin 1s linear infinite; margin: 0 auto 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.form-field { display: flex; flex-direction: column; gap: 6px; text-align: left; }
+.form-field label { font-size: 11px; font-weight: 700; color: #001A35; text-transform: uppercase; }
+.form-field input[type="tel"] {
+    font-family: inherit; font-size: 14px; padding: 12px 14px;
+    border: 2px solid var(--border-color); border-radius: 12px; background: #fafbfe;
+    outline: none; transition: 0.2s; color: var(--text-main); width: 100%;
+}
+.form-field input:focus { border-color: var(--mpesa); box-shadow: 0 0 0 4px rgba(0, 168, 89, 0.1); background: #fff; }
+
+/* Toast Notifications */
+.toast {
+    position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(100px);
+    background: #0f172a; color: white; padding: 12px 24px; border-radius: 100px;
+    font-size: 12px; font-weight: 700; z-index: 10005; opacity: 0;
+    transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; align-items: center; gap: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 </style>
 
 <!-- Firebase Classic SDK -->
@@ -278,15 +322,58 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
 </head>
 <body>
 
-<!-- Strict Hub-Level Subscription Enforcement Overlay -->
-<div id="hubSubscriptionBlocker" style="position: fixed; inset: 0; background: rgba(0, 26, 53, 0.96); backdrop-filter: blur(16px); z-index: 999999; display: none; align-items: center; justify-content: center; padding: 20px; color: #ffffff;">
-    <div style="background: #ffffff; color: #0f172a; width: 100%; max-width: 420px; border-radius: 24px; padding: 32px 24px; text-align: center; box-shadow: 0 25px 60px rgba(0,0,0,0.5);">
-        <div style="width: 64px; height: 64px; background: #fee2e2; color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+<!-- Strict Hub-Level Full-Screen Subscription Block & Payment Overlay -->
+<div id="hubSubscriptionBlocker" style="position: fixed; inset: 0; background: rgba(0, 26, 53, 0.97); backdrop-filter: blur(16px); z-index: 9999999; display: none; align-items: center; justify-content: center; padding: 20px; color: #ffffff;">
+    <div style="background: #ffffff; color: #0f172a; width: 100%; max-width: 420px; border-radius: 24px; padding: 32px 24px; text-align: center; box-shadow: 0 25px 60px rgba(0,0,0,0.6);">
+        <div style="width: 64px; height: 64px; background: #fee2e2; color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
         </div>
-        <h2 id="hubBlockTitle" style="font-size:20px; font-weight:800; color:#0f172a; margin-bottom:8px;">Subscription Expired</h2>
-        <p id="hubBlockDesc" style="font-size:13px; color:#64748b; line-height:1.5; margin-bottom:20px;">Your platform access license has elapsed. Please proceed to settings to renew your subscription and unlock your platform instantly.</p>
-        <button onclick="redirectToSettings()" style="background:#0052cc; color:white; border:none; border-radius:12px; padding:14px 20px; font-weight:700; width:100%; cursor:pointer; font-size:14px;">Go to Settings & Renew</button>
+        <h2 id="hubBlockTitle" style="font-size:20px; font-weight:800; color:#0f172a; margin-bottom:6px;">Subscription Expired</h2>
+        <p id="hubBlockDesc" style="font-size:13px; color:#64748b; line-height:1.5; margin-bottom:20px;">Your access license has elapsed. Please select a plan below to prompt payment and resume interaction.</p>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div onclick="initiateMpesaPayment(30, 1500, 'Ksh 1,500')" style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 14px 10px; cursor: pointer; text-align: center; transition: 0.2s;">
+                <span style="font-size: 11px; font-weight: 700; color: #64748b; display: block; text-transform: uppercase;">Monthly</span>
+                <b style="font-size: 15px; font-weight: 800; color: #0052cc; display: block; margin-top: 2px;">Ksh 1,500</b>
+            </div>
+            <div onclick="initiateMpesaPayment(365, 12000, 'Ksh 12,000')" style="background: #e6f0fa; border: 2px solid #0052cc; border-radius: 12px; padding: 14px 10px; cursor: pointer; text-align: center; transition: 0.2s;">
+                <span style="font-size: 11px; font-weight: 700; color: #64748b; display: block; text-transform: uppercase;">Yearly</span>
+                <b style="font-size: 15px; font-weight: 800; color: #0052cc; display: block; margin-top: 2px;">Ksh 12,000</b>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- STK Push Processing Modal -->
+<div id="stkModal" class="stk-overlay">
+    <div class="lock-card">
+        <button class="modal-close-btn" onclick="closeStkModal()" id="stkCloseBtn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+        
+        <div style="width: 52px; height: 52px; background: #e6fdf0; color: var(--mpesa); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+        </div>
+        
+        <h2 style="font-size:18px; font-weight:800; color:#0f172a; margin-bottom:4px;">M-PESA Express</h2>
+        <p style="margin-bottom: 16px; font-size: 13px; color: var(--text-muted);">Subscription fee: <strong id="stkAmountDisplay" style="color: #0f172a;">Ksh --</strong></p>
+
+        <!-- STEP 1: Phone input -->
+        <div id="stkInputStep">
+            <div class="form-field" style="margin-bottom: 16px;">
+                <label>Safaricom Phone Number</label>
+                <input type="tel" id="mpesaNumber" placeholder="07XXXXXXXX" inputmode="numeric" maxlength="10">
+            </div>
+            <button class="btn btn-mpesa" style="width: 100%;" onclick="processStkPush()">Send Real STK Push</button>
+        </div>
+
+        <!-- STEP 2: Loading & Status Polling -->
+        <div id="stkLoadingStep" style="display: none; padding: 10px 0;">
+            <div class="stk-spinner" id="stkSpinnerIcon"></div>
+            <h4 id="stkStatusTitle" style="font-size: 16px; color: #0f172a; font-weight: 700; margin-bottom: 4px;">Sending STK Push...</h4>
+            <p id="stkStatusDesc" style="font-size: 13px; color: var(--text-muted); line-height: 1.4; margin-bottom: 16px;">Connecting to Safaricom API...</p>
+            <button class="btn btn-secondary" id="stkRetryBtn" style="display: none; width: 100%; font-size: 13px;" onclick="resetStkModal()">Try Again</button>
+        </div>
     </div>
 </div>
 
@@ -404,6 +491,12 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
 </main>
 
 <iframe id="sync-engine" src="local_db.html" style="display:none;"></iframe>
+
+<!-- Toast Notification -->
+<div id="toastBox" class="toast">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="color: var(--success);"><polyline points="20 6 9 17 4 12"></polyline></svg>
+    <span id="toastText">Settings Updated Successfully</span>
+</div>
 
 <!-- Reduced & Draggable WhatsApp Floating Button -->
 <button class="chat-widget-btn" id="chatWidgetBtn" title="Open Support Options">
@@ -535,6 +628,19 @@ if (!localStorage.getItem("ag_active_uid")) {
     localStorage.setItem("ag_active_uid", activeUID);
 }
 
+const MASTER_CONFIG = {
+    backendUrl: "https://weathered-glade-c60b.assetguardinfo.workers.dev",
+    environment: "production",
+    accountType: "Paybill",
+    shortcode: "257471",
+    passkey: "103f80194fedeaefb352960fb340d766ef3f84a9dcb96aafdd21d0b0bb8dfbab",
+    consumerKey: "AGJGJGGktfRf8OHhos6TJXKupDMb3f2wG9pZDdF8tG5qm0qK",
+    consumerSecret: "xmd2sXJzRA6Chl1KHGvR9jG0qtSBse1oRBCdgBjb4DnO7SEi4QzPVwKNWWraubJd"
+};
+
+let pendingSubDays = 0;
+let pendingAmount = 1500;
+let pollInterval = null;
 let historyAccessGranted = true; 
 let agentHighlightedMessageId = null;
 let agentHighlightedMessageSnippet = null;
@@ -1239,7 +1345,7 @@ function cancelAgentReplyHighlight() {
     document.getElementById('agentReplyingBar').style.display = 'none';
 }
 
-// Check Subscription State Locally
+// Subscription & M-Pesa STK Push Integration Logic on Hub Overlay
 function checkHubSubscription() {
     const now = Date.now();
     const expiry = localStorage.getItem(`ag_sub_expiry_${activeUID}`);
@@ -1259,20 +1365,201 @@ function checkHubSubscription() {
     return true;
 }
 
-function redirectToSettings() {
-    window.location.href = `settings.html?uid=${activeUID}`;
+function initiateMpesaPayment(daysAdded, amountVal, amountString) {
+    pendingSubDays = daysAdded;
+    pendingAmount = amountVal;
+    document.getElementById('stkAmountDisplay').innerText = amountString;
+    document.getElementById('mpesaNumber').value = "";
+    document.getElementById('stkInputStep').style.display = "block";
+    document.getElementById('stkLoadingStep').style.display = "none";
+    document.getElementById('stkSpinnerIcon').style.display = "block";
+    document.getElementById('stkRetryBtn').style.display = "none";
+    document.getElementById('stkCloseBtn').style.display = "flex";
+    document.getElementById('stkModal').style.display = "flex";
+    if (pollInterval) clearInterval(pollInterval);
 }
 
-// Listen for Realtime Admin Status or Expiry Changes
+function closeStkModal() {
+    if (pollInterval) clearInterval(pollInterval);
+    document.getElementById('stkModal').style.display = "none";
+}
+
+function resetStkModal() {
+    if (pollInterval) clearInterval(pollInterval);
+    document.getElementById('stkLoadingStep').style.display = "none";
+    document.getElementById('stkInputStep').style.display = "block";
+    document.getElementById('stkCloseBtn').style.display = "flex";
+}
+
+async function processStkPush() {
+    const phoneInput = document.getElementById('mpesaNumber');
+    const phone = phoneInput.value.trim();
+    const backendUrl = MASTER_CONFIG.backendUrl;
+    const kenyanPhoneRegex = /^(07|01)\d{8}$/;
+
+    if (!kenyanPhoneRegex.test(phone)) {
+        triggerToast("Invalid Format: Use 07XXXXXXXX or 01XXXXXXXX");
+        phoneInput.style.borderColor = "var(--danger)";
+        return;
+    }
+
+    const formattedPhone = "254" + phone.substring(1);
+    phoneInput.style.borderColor = "var(--border-color)";
+
+    document.getElementById('stkInputStep').style.display = "none";
+    document.getElementById('stkLoadingStep').style.display = "block";
+    document.getElementById('stkSpinnerIcon').style.display = "block";
+    document.getElementById('stkRetryBtn').style.display = "none";
+    document.getElementById('stkCloseBtn').style.display = "none"; 
+    
+    const titleEl = document.getElementById('stkStatusTitle');
+    const descEl = document.getElementById('stkStatusDesc');
+    
+    titleEl.innerText = "Sending STK Push...";
+    descEl.innerText = "Communicating with Safaricom live gateway...";
+
+    try {
+        const response = await fetch(`${backendUrl.replace(/\/+$/, '')}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                environment: MASTER_CONFIG.environment,
+                shortcode: MASTER_CONFIG.shortcode,
+                passkey: MASTER_CONFIG.passkey,
+                consumerKey: MASTER_CONFIG.consumerKey,
+                consumerSecret: MASTER_CONFIG.consumerSecret,
+                accountType: MASTER_CONFIG.accountType,
+                amount: parseInt(pendingAmount, 10),
+                phoneNumber: formattedPhone
+            })
+        });
+
+        let result;
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+            result = await response.json();
+        } else {
+            const textResponse = await response.text();
+            throw new Error(`Server returned non-JSON: ${textResponse.substring(0, 100)}`);
+        }
+
+        if (!response.ok || (result.ResponseCode && result.ResponseCode !== "0")) {
+            throw new Error(result.errorMessage || result.ResponseDescription || "STK request rejected.");
+        }
+
+        const checkoutRequestID = result.CheckoutRequestID;
+        if (!checkoutRequestID) throw new Error("No CheckoutRequestID returned from server.");
+
+        startStatusPolling(checkoutRequestID);
+
+    } catch (err) {
+        console.error("STK Error:", err);
+        document.getElementById('stkSpinnerIcon').style.display = "none";
+        titleEl.innerText = "Payment cancelled";
+        titleEl.style.color = "var(--danger)";
+        descEl.innerText = err.message || "Timeout or user cannot be reached.";
+        document.getElementById('stkRetryBtn').style.display = "block";
+        document.getElementById('stkCloseBtn').style.display = "flex";
+    }
+}
+
+function startStatusPolling(checkoutRequestID) {
+    const titleEl = document.getElementById('stkStatusTitle');
+    const descEl = document.getElementById('stkStatusDesc');
+    
+    titleEl.innerText = "Waiting for PIN Entry...";
+    descEl.innerText = "Please check your phone and enter your M-Pesa PIN.";
+    
+    let attempts = 0;
+    const maxAttempts = 18;
+
+    pollInterval = setInterval(async () => {
+        attempts++;
+        if (attempts > maxAttempts) {
+            clearInterval(pollInterval);
+            document.getElementById('stkSpinnerIcon').style.display = "none";
+            titleEl.innerText = "Payment cancelled";
+            titleEl.style.color = "var(--danger)";
+            descEl.innerText = "Timeout waiting for user response.";
+            document.getElementById('stkRetryBtn').style.display = "block";
+            document.getElementById('stkCloseBtn').style.display = "flex";
+            return;
+        }
+
+        try {
+            const response = await fetch(`${MASTER_CONFIG.backendUrl.replace(/\/+$/, '')}/query`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    environment: MASTER_CONFIG.environment,
+                    shortcode: MASTER_CONFIG.shortcode,
+                    passkey: MASTER_CONFIG.passkey,
+                    consumerKey: MASTER_CONFIG.consumerKey,
+                    consumerSecret: MASTER_CONFIG.consumerSecret,
+                    checkoutRequestID: checkoutRequestID
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.ResultCode === "0") {
+                clearInterval(pollInterval);
+                document.getElementById('stkSpinnerIcon').style.display = "none";
+                titleEl.innerText = "Payment Received";
+                titleEl.style.color = "var(--mpesa)";
+                descEl.innerText = "Subscription active!";
+
+                setTimeout(() => {
+                    finalizeSubscriptionRenew(pendingSubDays);
+                    closeStkModal();
+                    titleEl.style.color = "#0f172a";
+                }, 2000);
+            } 
+            else if (data.ResultCode && data.ResultCode !== "0") {
+                clearInterval(pollInterval);
+                document.getElementById('stkSpinnerIcon').style.display = "none";
+                titleEl.style.color = "var(--danger)";
+                titleEl.innerText = data.ResultCode === "1032" ? "Payment cancelled" : "Wrong PIN entered.";
+                descEl.innerText = data.ResultDesc || "Transaction failed.";
+                document.getElementById('stkRetryBtn').style.display = "block";
+                document.getElementById('stkCloseBtn').style.display = "flex";
+            }
+        } catch (err) {
+            console.error("Polling query error:", err);
+        }
+    }, 4000);
+}
+
+function finalizeSubscriptionRenew(daysAdded) {
+    const now = Date.now();
+    let currentExpiry = localStorage.getItem(`ag_sub_expiry_${activeUID}`);
+    currentExpiry = currentExpiry ? parseInt(currentExpiry) : now;
+    
+    const baseTime = currentExpiry > now ? currentExpiry : now;
+    const newExpiry = baseTime + (daysAdded * 24 * 60 * 60 * 1000);
+
+    localStorage.setItem(`ag_sub_expiry_${activeUID}`, newExpiry.toString());
+    triggerToast(`Verified! Subscribed for ${daysAdded} Days.`);
+    
+    // Hide blocker overlay immediately upon successful renewal
+    document.getElementById('hubSubscriptionBlocker').style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+function triggerToast(msg) {
+    const box = document.getElementById('toastBox');
+    document.getElementById('toastText').innerText = msg;
+    box.classList.add('show');
+    setTimeout(() => { box.classList.remove('show'); }, 3000);
+}
+
 function initSubscriptionGuards() {
-    // 1. Initial Local Check
     if (!checkHubSubscription()) {
         document.getElementById('hubSubscriptionBlocker').style.display = 'flex';
         document.body.style.overflow = 'hidden';
         return false;
     }
 
-    // 2. Realtime Firebase Guard (User Statuses & Suspensions)
     if (activeUID && !activeUID.startsWith("unidentified")) {
         rtdb.ref(`user_statuses/${activeUID}`).on('value', (snapshot) => {
             const status = snapshot.val();
@@ -1288,7 +1575,9 @@ function initSubscriptionGuards() {
 }
 
 window.onload = () => {
-    if (!initSubscriptionGuards()) return;
+    if (!initSubscriptionGuards()) {
+        // Even if blocked, let notification listener and chat setup run if needed or skip
+    }
     initRealtimeChatListener();
     initBroadcastListener();
     updateSubButtonPositions();
@@ -1296,6 +1585,7 @@ window.onload = () => {
 };
 
 window.toggleMenu = () => { 
+    if (!checkHubSubscription()) return;
     const sidebar = document.getElementById("sidebar");
     const overlay = document.getElementById("overlay");
     const isSidebarActive = sidebar.classList.contains("active");
@@ -1319,6 +1609,10 @@ window.closeAll = () => {
 };
 
 window.showDashboard = () => {
+    if (!checkHubSubscription()) {
+        document.getElementById('hubSubscriptionBlocker').style.display = 'flex';
+        return;
+    }
     document.getElementById('dashboard-wrapper').style.display = 'block';
     document.getElementById('main-frame').style.display = 'none';
     closeAll();
