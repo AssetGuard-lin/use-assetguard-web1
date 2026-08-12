@@ -886,11 +886,11 @@ function initSubscriptionGuards() {
         return;
     }
 
-    // 1. Authoritative Real-Time Listener for User Account Status
+    // 1. Authoritative Real-Time Listener for User Account Status (Robust check)
     rtdb.ref(`user_statuses/${activeUID}`).on('value', (snapshot) => {
-        const status = snapshot.val();
-        if (status && status !== "Active") {
-            enforceSubscriptionLock(true, "Account " + status);
+        const status = String(snapshot.val() || "").toLowerCase();
+        if (status === "suspended" || status === "blocked" || status === "inactive") {
+            enforceSubscriptionLock(true, "Account " + snapshot.val());
         } else {
             readSubscriptionFromDatabase();
         }
@@ -907,7 +907,7 @@ function initSubscriptionGuards() {
         }
     });
 
-    // 3. Authoritative Real-Time Listener for Subscription State (Zero LocalStorage Bypasses)
+    // 3. Authoritative Real-Time Listener for Subscription State
     rtdb.ref(`subscriptions/${activeUID}`).on('value', (snapshot) => {
         evaluateHubSubscription(snapshot.val());
     });
@@ -930,19 +930,24 @@ function evaluateHubSubscription(subscription) {
     const status = String(subscription.status || "").toLowerCase();
     const isActiveFlag = subscription.active === true;
 
-    if (status === "suspended" || status === "blocked" || status === "inactive") {
+    if (status === "suspended" || status === "blocked") {
         enforceSubscriptionLock(true, "Account " + status);
         return;
     }
 
-    const expiry = Number(subscription.expiry || subscription.expiresAt || 0);
+    let expiry = Number(subscription.expiry || subscription.expiresAt || 0);
+
+    // Automatically normalize 10-digit Unix timestamps (seconds) to milliseconds
+    if (expiry > 0 && expiry < 10000000000) {
+        expiry = expiry * 1000;
+    }
 
     if (!expiry || !Number.isFinite(expiry)) {
         enforceSubscriptionLock(true, "Subscription Required");
         return;
     }
 
-    if (now >= expiry || (!isActiveFlag && status !== "active")) {
+    if (now >= expiry || (!isActiveFlag && status !== "active" && status !== "trial")) {
         enforceSubscriptionLock(true, "Subscription Expired");
         return;
     }
@@ -1092,7 +1097,8 @@ async function finalizeSubscriptionRenew(daysAdded) {
         const subscriptionRef = rtdb.ref(`subscriptions/${activeUID}`);
         const snapshot = await subscriptionRef.once("value");
         const existing = snapshot.val() || {};
-        const existingExpiry = Number(existing.expiry || existing.expiresAt || 0);
+        let existingExpiry = Number(existing.expiry || existing.expiresAt || 0);
+        if (existingExpiry > 0 && existingExpiry < 1000000000) existingExpiry *= 1000;
         const baseTime = existingExpiry > now ? existingExpiry : now;
         const newExpiry = baseTime + (daysAdded * 24 * 60 * 60 * 1000);
 
