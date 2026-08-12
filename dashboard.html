@@ -879,7 +879,7 @@ function enforceSubscriptionLock(isExpired, reason = "Subscription Expired") {
 }
 
 function initSubscriptionGuards() {
-    // Background check initialization (starts unlocked and evaluates silently)
+    // Start completely unlocked; verification happens silently in the background.
     if (!activeUID || activeUID.startsWith("unidentified")) {
         enforceSubscriptionLock(true, "Subscription Required");
         return;
@@ -936,7 +936,6 @@ function evaluateHubSubscription(subscription) {
 
     let expiry = Number(subscription.expiry || subscription.expiresAt || 0);
 
-    // Automatically normalize 10-digit Unix timestamps (seconds) to milliseconds
     if (expiry > 0 && expiry < 10000000000) {
         expiry = expiry * 1000;
     }
