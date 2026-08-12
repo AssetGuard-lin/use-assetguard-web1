@@ -367,23 +367,25 @@
         document.getElementById('salesSection').classList.toggle('expanded');
     }
 
-    function skipSalesConfig(e) {
+    // Instantly saves and synchronizes when skipped
+    async function skipSalesConfig(e) {
         e.stopPropagation();
         loadedSettings.salesConfigSkipped = true;
-        // Clear credential inputs so they don't conflict with the skipped state
         document.getElementById('salesShortcode').value = "";
         document.getElementById('salesPasskey').value = "";
         document.getElementById('salesConsumerKey').value = "";
         document.getElementById('salesConsumerSecret').value = "";
         document.getElementById('salesSection').classList.remove('expanded');
         updateSalesBadge();
-        triggerToast("POS Payment Setup Skipped");
+        
+        // Instantly save to local storage and sync to Firebase
+        await saveConfiguration(true);
     }
 
     function handleShortcodeInput() {
         const sc = document.getElementById('salesShortcode').value.trim();
         if (sc !== "") {
-            loadedSettings.salesConfigSkipped = false; // Automatically unskip if user begins typing credentials
+            loadedSettings.salesConfigSkipped = false;
         }
         updateSalesBadge();
     }
@@ -415,7 +417,6 @@
                 }
             } catch (e) {}
         } else {
-            // Ensure brand new accounts start with skipped configured as true by default
             loadedSettings.salesConfigSkipped = true;
         }
 
@@ -453,13 +454,12 @@
         }
     }
 
-    async function saveConfiguration() {
+    async function saveConfiguration(isSkipAction = false) {
         loadedSettings.businessName = document.getElementById('businessNameInput').value;
         loadedSettings.tagline = document.getElementById('taglineInput').value;
         const sc = document.getElementById('salesShortcode').value.trim();
 
-        // Only mark skipped as false if a shortcode is explicitly provided; otherwise respect current skip state
-        if (sc !== "") {
+        if (!isSkipAction && sc !== "") {
             loadedSettings.salesConfigSkipped = false;
         }
 
@@ -493,7 +493,7 @@
             await rtdb.ref('user_activity_logs').push({
                 uid: activeUID,
                 category: "SETTINGS",
-                description: "Corporate business and payment settings updated",
+                description: isSkipAction ? "POS Payment Setup Skipped" : "Corporate business and payment settings updated",
                 timestamp: Date.now(),
                 device: navigator.userAgent.substring(0, 50)
             });
@@ -507,7 +507,7 @@
             }
         } catch (e) {}
 
-        triggerToast("Settings Saved & Synchronized");
+        triggerToast(isSkipAction ? "POS Payment Setup Skipped" : "Settings Saved & Synchronized");
     }
 
     function triggerToast(msg) {
