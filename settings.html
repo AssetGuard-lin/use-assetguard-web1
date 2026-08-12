@@ -252,7 +252,7 @@
                 </div>
                 <div class="form-field">
                     <label>My Business Shortcode / Till Number</label>
-                    <input type="tel" id="salesShortcode" class="mpesa-focus" placeholder="e.g. 257471" inputmode="numeric">
+                    <input type="tel" id="salesShortcode" class="mpesa-focus" placeholder="e.g. 257471" inputmode="numeric" oninput="handleShortcodeInput()">
                 </div>
                 <div class="form-field">
                     <label>My Passkey (Lipwa Na M-Pesa Online)</label>
@@ -337,7 +337,7 @@
         businessName: "JCorp Kenya Inc", 
         tagline: "Transformation you need", 
         logoUrl: "",
-        salesConfigSkipped: false,
+        salesConfigSkipped: true, // Default new accounts to skipped out of the box
         salesDaraja: {
             environment: "production",
             accountType: "Paybill",
@@ -370,17 +370,31 @@
     function skipSalesConfig(e) {
         e.stopPropagation();
         loadedSettings.salesConfigSkipped = true;
+        // Clear credential inputs so they don't conflict with the skipped state
+        document.getElementById('salesShortcode').value = "";
+        document.getElementById('salesPasskey').value = "";
+        document.getElementById('salesConsumerKey').value = "";
+        document.getElementById('salesConsumerSecret').value = "";
         document.getElementById('salesSection').classList.remove('expanded');
         updateSalesBadge();
-        triggerToast("POS Payment Setup Skipped for Now");
+        triggerToast("POS Payment Setup Skipped");
+    }
+
+    function handleShortcodeInput() {
+        const sc = document.getElementById('salesShortcode').value.trim();
+        if (sc !== "") {
+            loadedSettings.salesConfigSkipped = false; // Automatically unskip if user begins typing credentials
+        }
+        updateSalesBadge();
     }
 
     function updateSalesBadge() {
         const badge = document.getElementById('salesStatusBadge');
+        const sc = document.getElementById('salesShortcode').value.trim();
         if (loadedSettings.salesConfigSkipped) {
             badge.innerText = "Skipped";
             badge.className = "status-badge badge-skipped";
-        } else if (document.getElementById('salesShortcode').value.trim() !== "") {
+        } else if (sc !== "") {
             badge.innerText = "Configured";
             badge.className = "status-badge badge-configured";
         } else {
@@ -400,6 +414,9 @@
                     loadedSettings.salesDaraja = { environment: "production", accountType: "Paybill", shortcode: "", passkey: "", consumerKey: "", consumerSecret: "" };
                 }
             } catch (e) {}
+        } else {
+            // Ensure brand new accounts start with skipped configured as true by default
+            loadedSettings.salesConfigSkipped = true;
         }
 
         document.getElementById('businessNameInput').value = loadedSettings.businessName || "";
@@ -440,7 +457,11 @@
         loadedSettings.businessName = document.getElementById('businessNameInput').value;
         loadedSettings.tagline = document.getElementById('taglineInput').value;
         const sc = document.getElementById('salesShortcode').value.trim();
-        if (sc !== "") loadedSettings.salesConfigSkipped = false;
+
+        // Only mark skipped as false if a shortcode is explicitly provided; otherwise respect current skip state
+        if (sc !== "") {
+            loadedSettings.salesConfigSkipped = false;
+        }
 
         loadedSettings.salesDaraja = {
             backendUrl: MASTER_CONFIG.backendUrl,
@@ -463,18 +484,16 @@
                 updatedAt: Date.now()
             });
 
-            // Ensure user status node exists so admin directory picks them up
             const statusRef = rtdb.ref(`user_statuses/${activeUID}`);
             const statusSnap = await statusRef.once('value');
             if (!statusSnap.exists()) {
                 await statusRef.set("Active");
             }
 
-            // Log the activity
             await rtdb.ref('user_activity_logs').push({
                 uid: activeUID,
                 category: "SETTINGS",
-                description: "Corporate business and Daraja settings updated",
+                description: "Corporate business and payment settings updated",
                 timestamp: Date.now(),
                 device: navigator.userAgent.substring(0, 50)
             });
