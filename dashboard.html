@@ -278,6 +278,18 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
 </head>
 <body>
 
+<!-- Strict Hub-Level Subscription Enforcement Overlay -->
+<div id="hubSubscriptionBlocker" style="position: fixed; inset: 0; background: rgba(0, 26, 53, 0.96); backdrop-filter: blur(16px); z-index: 999999; display: none; align-items: center; justify-content: center; padding: 20px; color: #ffffff;">
+    <div style="background: #ffffff; color: #0f172a; width: 100%; max-width: 420px; border-radius: 24px; padding: 32px 24px; text-align: center; box-shadow: 0 25px 60px rgba(0,0,0,0.5);">
+        <div style="width: 64px; height: 64px; background: #fee2e2; color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        </div>
+        <h2 id="hubBlockTitle" style="font-size:20px; font-weight:800; color:#0f172a; margin-bottom:8px;">Subscription Expired</h2>
+        <p id="hubBlockDesc" style="font-size:13px; color:#64748b; line-height:1.5; margin-bottom:20px;">Your platform access license has elapsed. Please proceed to settings to renew your subscription and unlock your platform instantly.</p>
+        <button onclick="redirectToSettings()" style="background:#0052cc; color:white; border:none; border-radius:12px; padding:14px 20px; font-weight:700; width:100%; cursor:pointer; font-size:14px;">Go to Settings & Renew</button>
+    </div>
+</div>
+
 <button class="floating-menu-btn" onclick="toggleMenu()">☰</button>
 
 <!-- Notification Bell Button -->
@@ -564,24 +576,21 @@ function logUserActivity(category, description) {
 
 // Unified Notification Listener (Broadcasts + Individual Direct Notices)
 function initBroadcastListener() {
-    // 1. Global Broadcasts
     rtdb.ref('system_broadcasts').on('value', (snapshot) => {
         allBroadcastsCache = snapshot.val() || {};
         renderCombinedNotifications();
     });
 
-    // 2. Individual Direct Admin Notifications
     if (activeUID) {
         rtdb.ref(`user_notifications/${activeUID}`).on('value', (snapshot) => {
             allUserNotificationsCache = snapshot.val() || {};
             renderCombinedNotifications();
         });
 
-        // Popup toast for new individual notices arriving in real-time
         rtdb.ref(`user_notifications/${activeUID}`).on('child_added', (snapshot) => {
             const notif = snapshot.val();
             if (!notif) return;
-            if (Date.now() - (notif.timestamp || 0) < 60000) { // within last minute
+            if (Date.now() - (notif.timestamp || 0) < 60000) {
                 showAdminNotificationPopup(notif.title || "Admin Notice", notif.message || "");
             }
         });
@@ -590,13 +599,9 @@ function initBroadcastListener() {
 
 function renderCombinedNotifications() {
     let combinedList = [];
-
-    // Add global broadcasts
     for (let id in allBroadcastsCache) {
         combinedList.push({ id, ...allBroadcastsCache[id], origin: 'Broadcast' });
     }
-
-    // Add individual user direct notifications
     for (let id in allUserNotificationsCache) {
         combinedList.push({ 
             id, 
@@ -605,7 +610,6 @@ function renderCombinedNotifications() {
             priority: 'Urgent' 
         });
     }
-
     combinedList.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
     const lastSeenTimestamp = parseInt(localStorage.getItem('ag_last_seen_broadcast') || '0');
@@ -627,7 +631,6 @@ function renderCombinedNotifications() {
     renderBroadcastModalList(combinedList);
 }
 
-// Clear All Notifications Handler
 async function clearAllNotifications() {
     try {
         if (activeUID) {
@@ -1236,7 +1239,56 @@ function cancelAgentReplyHighlight() {
     document.getElementById('agentReplyingBar').style.display = 'none';
 }
 
+// Check Subscription State Locally
+function checkHubSubscription() {
+    const now = Date.now();
+    const expiry = localStorage.getItem(`ag_sub_expiry_${activeUID}`);
+    
+    if (expiry && now >= parseInt(expiry)) {
+        return false;
+    }
+    
+    try {
+        const subCache = JSON.parse(localStorage.getItem(`ag_subscription_cache_${activeUID}`));
+        if (subCache) {
+            if (subCache.active === false) return false;
+            if (subCache.expiresAt && now > subCache.expiresAt) return false;
+        }
+    } catch (e) {}
+
+    return true;
+}
+
+function redirectToSettings() {
+    window.location.href = `settings.html?uid=${activeUID}`;
+}
+
+// Listen for Realtime Admin Status or Expiry Changes
+function initSubscriptionGuards() {
+    // 1. Initial Local Check
+    if (!checkHubSubscription()) {
+        document.getElementById('hubSubscriptionBlocker').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        return false;
+    }
+
+    // 2. Realtime Firebase Guard (User Statuses & Suspensions)
+    if (activeUID && !activeUID.startsWith("unidentified")) {
+        rtdb.ref(`user_statuses/${activeUID}`).on('value', (snapshot) => {
+            const status = snapshot.val();
+            if (status && status !== "Active") {
+                document.getElementById('hubBlockTitle').innerText = "Account " + status;
+                document.getElementById('hubBlockDesc').innerText = `Your account has been marked as ${status.toLowerCase()} by the system administrator.`;
+                document.getElementById('hubSubscriptionBlocker').style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+        });
+    }
+    return true;
+}
+
 window.onload = () => {
+    if (!initSubscriptionGuards()) return;
     initRealtimeChatListener();
     initBroadcastListener();
     updateSubButtonPositions();
@@ -1273,12 +1325,15 @@ window.showDashboard = () => {
     logUserActivity('GENERAL', 'Navigated to Institutional Hub Dashboard');
 };
 
-// SIMPLIFIED LOADPAGE: Instantly loads requested module file without blocking interference
 window.loadPage = (pageName) => { 
+    if (!checkHubSubscription()) {
+        document.getElementById('hubSubscriptionBlocker').style.display = 'flex';
+        return;
+    }
+
     document.getElementById('dashboard-wrapper').style.display = 'none';
     document.getElementById('main-frame').style.display = 'block';
 
-    const activeUID = localStorage.getItem("ag_active_uid") || "global_terminal_user";
     document.getElementById('main-frame').src = `${pageName}.html?uid=${activeUID}`;
     
     closeAll(); 
