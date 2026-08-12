@@ -128,7 +128,7 @@
         .upload-text b { color: var(--primary); font-size: 12px; }
         .upload-text p { font-size: 10px; color: var(--text-muted); }
 
-        /* Collapsible Section (Skip Configuration Feature) */
+        /* Collapsible Section */
         .collapsible-section {
             border: 1px solid var(--border); border-radius: var(--radius-lg);
             background: #fff; overflow: hidden; transition: box-shadow 0.3s;
@@ -211,8 +211,8 @@
 
         /* Global Subscription Enforcement Guard Overlay */
         #globalSubBlockOverlay {
-            position: fixed; inset: 0; background: rgba(0, 26, 53, 0.96);
-            backdrop-filter: blur(16px); z-index: 1000000; display: none;
+            position: fixed; inset: 0; background: rgba(0, 26, 53, 0.98);
+            backdrop-filter: blur(16px); z-index: 1000000; display: flex;
             align-items: center; justify-content: center; padding: 20px; color: #ffffff;
         }
         .sub-block-card {
@@ -279,8 +279,8 @@
         <div class="sub-block-icon">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
         </div>
-        <h2 id="subBlockTitle" style="font-size:20px; font-weight:800; color:var(--dark); margin-bottom:8px;">Subscription Expired</h2>
-        <p id="subBlockDesc" style="font-size:13px; color:var(--text-muted); line-height:1.5; margin-bottom:20px;">Your platform access license has elapsed. Click a plan below to prompt payment and unlock your platform instantly.</p>
+        <h2 id="subBlockTitle" style="font-size:20px; font-weight:800; color:var(--dark); margin-bottom:8px;">Verifying Subscription...</h2>
+        <p id="subBlockDesc" style="font-size:13px; color:var(--text-muted); line-height:1.5; margin-bottom:20px;">Please wait while we verify your access license status with the server.</p>
         
         <div class="sub-block-plans">
             <div class="sub-plan-option" onclick="initiateMpesaPayment(30, 1500, 'Ksh 1,500')">
@@ -401,7 +401,7 @@
         <div class="collapsible-section" id="salesSection">
             <div class="section-toggle-header" onclick="toggleSalesConfig()">
                 <div class="toggle-title-wrap">
-                    <h3>Accept Customer Payments(STK push)) <span id="salesStatusBadge" class="status-badge badge-pending">Optional</span></h3>
+                    <h3>Accept Customer Payments (STK push) <span id="salesStatusBadge" class="status-badge badge-pending">Optional</span></h3>
                     <p>Configure your own Paybill/Till for customer sales</p>
                 </div>
                 <div class="chevron-icon">
@@ -530,7 +530,10 @@
     };
 
     function initFirebaseListeners() {
-        if (!currentUID || currentUID.startsWith("unidentified")) return;
+        if (!currentUID || currentUID.startsWith("unidentified")) {
+            lockScreenWithNotice("Subscription Expired", "Your access license has elapsed. Please select a plan below to prompt payment and resume interaction.");
+            return;
+        }
 
         // 1. Listen for Admin Account Status (Active, Suspended, Blocked)
         rtdb.ref(`user_statuses/${currentUID}`).on('value', (snapshot) => {
@@ -538,32 +541,57 @@
             if (status && status !== "Active") {
                 lockScreenWithNotice("Account " + status, `Your account has been marked as ${status.toLowerCase()} by the system administrator.`);
             } else {
-                recheckSubscriptionState();
+                verifyFirebaseSubscriptionState();
             }
         });
 
-        // 2. Listen for Admin Subscription Pause / Free Access Window
+        // 2. Real-time Firebase Subscription Listeners
+        rtdb.ref(`subscriptions/${currentUID}`).on('value', (snapshot) => {
+            verifyFirebaseSubscriptionState();
+        });
+
+        rtdb.ref(`users/${currentUID}/subscription`).on('value', (snapshot) => {
+            verifyFirebaseSubscriptionState();
+        });
+
+        // 3. Listen for Admin Subscription Pause / Free Access Window
         rtdb.ref(`subscription_pauses/${currentUID}`).on('value', (snapshot) => {
             const pause = snapshot.val();
             const now = Date.now();
             if (pause && pause.active && pause.pausedUntil > now) {
                 unlockScreen();
             } else {
-                recheckSubscriptionState();
+                verifyFirebaseSubscriptionState();
             }
         });
     }
 
-    function recheckSubscriptionState() {
-        const expiry = localStorage.getItem(`ag_sub_expiry_${currentUID}`);
+    function verifyFirebaseSubscriptionState() {
         const now = Date.now();
+        
+        rtdb.ref(`subscriptions/${currentUID}`).once('value', (subSnap) => {
+            const sub = subSnap.val();
+            if (sub && sub.active === true && sub.expiresAt && now < sub.expiresAt) {
+                localStorage.setItem(`ag_sub_expiry_${currentUID}`, sub.expiresAt.toString());
+                unlockScreen();
+                checkSubscriptionStatusLocally();
+                return;
+            }
 
-        if (!expiry || now >= parseInt(expiry)) {
-            lockScreenWithNotice("Subscription Expired", "Your access license has elapsed. Please select a plan below to prompt payment and resume interaction.");
-        } else {
-            unlockScreen();
-            checkSubscriptionStatusLocally();
-        }
+            rtdb.ref(`users/${currentUID}/subscription`).once('value', (userSubSnap) => {
+                const userSub = userSubSnap.val();
+                if (userSub && userSub.active === true && userSub.expiresAt && now < userSub.expiresAt) {
+                    localStorage.setItem(`ag_sub_expiry_${currentUID}`, userSub.expiresAt.toString());
+                    unlockScreen();
+                    checkSubscriptionStatusLocally();
+                    return;
+                }
+
+                // If Firebase shows expired/inactive, remove local cache and lock down
+                localStorage.removeItem(`ag_sub_expiry_${currentUID}`);
+                lockScreenWithNotice("Subscription Expired", "Your access license has elapsed. Please select a plan below to prompt payment and resume interaction.");
+            });
+        });
     }
 
     function lockScreenWithNotice(title, desc) {
@@ -641,6 +669,8 @@
     function closeStkModal() {
         if (pollInterval) clearInterval(pollInterval);
         document.getElementById('stkModal').style.display = "none";
+        // Keep subscription block overlay active if expired
+        verifyFirebaseSubscriptionState();
     }
 
     function resetStkModal() {
@@ -798,6 +828,17 @@
         const newExpiry = baseTime + (daysAdded * 24 * 60 * 60 * 1000);
 
         localStorage.setItem(`ag_sub_expiry_${currentUID}`, newExpiry.toString());
+        
+        // Commit new expiry to Firebase database
+        rtdb.ref(`subscriptions/${currentUID}`).update({
+            active: true,
+            expiresAt: newExpiry,
+            status: 'Active',
+            lastUpdated: Date.now()
+        });
+
+        rtdb.ref(`user_statuses/${currentUID}`).set("Active");
+
         triggerToast(`Verified! Subscribed for ${daysAdded} Days.`);
         unlockScreen();
         checkSubscriptionStatusLocally();
