@@ -25,7 +25,6 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg-light);display:flex;height:100vh;overflow:hidden;color:var(--text-main);}
 
-/* Absolute Lock Shield Class */
 body.app-locked .sidebar,
 body.app-locked .floating-menu-btn,
 body.app-locked .notification-bell-btn,
@@ -886,7 +885,6 @@ function initSubscriptionGuards() {
         return;
     }
 
-    // 1. Authoritative Real-Time Listener for User Account Status (Robust check)
     rtdb.ref(`user_statuses/${activeUID}`).on('value', (snapshot) => {
         const status = String(snapshot.val() || "").toLowerCase();
         if (status === "suspended" || status === "blocked" || status === "inactive") {
@@ -896,18 +894,19 @@ function initSubscriptionGuards() {
         }
     });
 
-    // 2. Authoritative Real-Time Listener for Admin Pause / Override
     rtdb.ref(`subscription_pauses/${activeUID}`).on('value', (snapshot) => {
         const pause = snapshot.val();
         const now = Date.now();
-        if (pause && pause.active === true && Number(pause.pausedUntil || 0) > now) {
+        let pausedUntilTime = Number(pause?.pausedUntil || 0);
+        if (pausedUntilTime > 0 && pausedUntilTime < 10000000000) pausedUntilTime *= 1000;
+        
+        if (pause && pause.active === true && pausedUntilTime > now) {
             enforceSubscriptionLock(false);
         } else {
             readSubscriptionFromDatabase();
         }
     });
 
-    // 3. Authoritative Real-Time Listener for Subscription State
     rtdb.ref(`subscriptions/${activeUID}`).on('value', (snapshot) => {
         evaluateHubSubscription(snapshot.val());
     });
@@ -937,7 +936,7 @@ function evaluateHubSubscription(subscription) {
 
     let expiry = Number(subscription.expiry || subscription.expiresAt || 0);
 
-    // Automatically normalize 10-digit Unix timestamps (seconds) to milliseconds
+    // Corrected threshold: catches 10-digit Unix timestamps in seconds (e.g. ~1.78 billion)
     if (expiry > 0 && expiry < 10000000000) {
         expiry = expiry * 1000;
     }
@@ -1098,7 +1097,7 @@ async function finalizeSubscriptionRenew(daysAdded) {
         const snapshot = await subscriptionRef.once("value");
         const existing = snapshot.val() || {};
         let existingExpiry = Number(existing.expiry || existing.expiresAt || 0);
-        if (existingExpiry > 0 && existingExpiry < 1000000000) existingExpiry *= 1000;
+        if (existingExpiry > 0 && existingExpiry < 10000000000) existingExpiry *= 1000;
         const baseTime = existingExpiry > now ? existingExpiry : now;
         const newExpiry = baseTime + (daysAdded * 24 * 60 * 60 * 1000);
 
