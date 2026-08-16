@@ -3,12 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>RouteStock Pro — Field Stock & Live GPS</title>
-
-<link rel="stylesheet"
-href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-integrity="sha256-p4NxAoJBhIINfQ3i3m6uG8j7a7x6f7Q2r3f7F7jJ0pQ="
-crossorigin="">
+<title>RouteStock Pro — Field Stock & Dispatches</title>
 
 <style>
 :root{
@@ -105,6 +100,10 @@ padding:12px 15px;
 font-weight:800;
 font-size:13px;
 min-height:44px;
+display:inline-flex;
+align-items:center;
+justify-content:center;
+text-decoration:none;
 }
 
 .btn.primary{
@@ -301,109 +300,6 @@ text-overflow:ellipsis;
 white-space:nowrap;
 }
 
-.gps-card{
-position:relative;
-}
-
-.gps-consent{
-background:#eff6ff;
-border:1px solid #bfdbfe;
-border-radius:13px;
-padding:13px;
-margin-bottom:12px;
-color:#1e40af;
-font-size:12px;
-line-height:1.55;
-}
-
-.gps-status{
-display:flex;
-align-items:center;
-gap:10px;
-padding:12px;
-border:1px solid var(--line);
-background:#fafcff;
-border-radius:13px;
-font-size:12px;
-font-weight:800;
-margin-bottom:12px;
-}
-
-.status-dot{
-width:12px;
-height:12px;
-border-radius:50%;
-background:#94a3b8;
-flex:none;
-}
-
-.status-dot.live{
-background:var(--green);
-box-shadow:0 0 0 5px #dcfce7;
-}
-
-.status-dot.error{
-background:var(--red);
-}
-
-.status-dot.waiting{
-background:var(--amber);
-}
-
-.gps-actions{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:10px;
-margin-bottom:12px;
-}
-
-.gps-data{
-display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:9px;
-margin-bottom:12px;
-}
-
-.gps-stat{
-background:#f8fafc;
-border:1px solid var(--line);
-border-radius:13px;
-padding:12px;
-min-width:0;
-}
-
-.gps-stat small{
-display:block;
-font-size:10px;
-font-weight:800;
-color:#7b879a;
-}
-
-.gps-stat strong{
-display:block;
-font-size:16px;
-margin-top:5px;
-overflow:hidden;
-text-overflow:ellipsis;
-white-space:nowrap;
-}
-
-#map{
-height:370px;
-width:100%;
-border-radius:15px;
-overflow:hidden;
-border:1px solid var(--line);
-background:#e5e7eb;
-}
-
-.map-note{
-font-size:10px;
-color:var(--muted);
-margin-top:8px;
-line-height:1.4;
-}
-
 .ledger-tools{
 display:flex;
 gap:8px;
@@ -426,7 +322,6 @@ color:white;
 border-color:var(--blue);
 }
 
-/* RESPONSIVE LEDGER CARDS */
 .ledger-container{
 display:flex;
 flex-direction:column;
@@ -626,7 +521,6 @@ border-bottom:1px solid var(--line);
 padding-bottom:12px;
 }
 
-/* ENHANCED DRAWER STYLING */
 .drawer-section{
 background:#f8fafc;
 border:1px solid var(--line);
@@ -693,11 +587,6 @@ background:var(--green);
 height:100%;
 }
 
-.chart-fill-returned{
-background:var(--amber);
-height:100%;
-}
-
 .detail-grid{
 display:grid;
 grid-template-columns:repeat(3,1fr);
@@ -755,22 +644,6 @@ background:#991b1b;
 background:#166534;
 }
 
-.gps-help{
-background:#fff7ed;
-border:1px solid #fed7aa;
-color:#9a3412;
-border-radius:12px;
-padding:12px;
-font-size:11px;
-line-height:1.5;
-margin-top:10px;
-display:none;
-}
-
-.gps-help.show{
-display:block;
-}
-
 @media(max-width:700px){
 .main{
 padding:10px;
@@ -802,10 +675,11 @@ display:none;
 <div class="topbar">
 <div class="page-title">
 <h2>New Route Dispatch</h2>
-<p>Manage crew, assign products, and track live routes.</p>
+<p>Manage crew, assign products, and track dispatches.</p>
 </div>
 
 <div class="top-actions">
+<a href="live-tracking.html" class="btn secondary">Live Tracking</a>
 <button class="btn secondary" onclick="showPage('ledgerPage')">
 View Ledger
 </button>
@@ -813,7 +687,7 @@ View Ledger
 </div>
 
 <div id="currentDispatchBanner" class="dispatch-banner">
-<small>ACTIVE GPS DISPATCH</small>
+<small>ACTIVE DISPATCH</small>
 <strong id="bannerDispatch">—</strong>
 <span id="bannerRoute">—</span>
 </div>
@@ -899,53 +773,8 @@ View Ledger
 <button class="btn primary"
 style="width:100%;"
 onclick="createDispatch()">
-Create Dispatch & Start Route
+Create Dispatch & Save
 </button>
-</div>
-
-<!-- ================= GPS ================= -->
-<div class="card gps-card">
-<div class="card-head">
-<div>
-<div class="card-title">Live GPS Route</div>
-<div class="card-sub">Location is recorded only after you give permission.</div>
-</div>
-</div>
-
-<div class="gps-consent">
-<strong>Location consent</strong>
-When you press <b>Allow & Start GPS</b>, your browser will request location permission. RouteStock records GPS points for your active dispatch so the actual vehicle route and distance can be reconstructed.
-</div>
-
-<div class="gps-status">
-<span id="gpsDot" class="status-dot"></span>
-<span id="gpsStatus">GPS is not running</span>
-</div>
-
-<div class="gps-actions">
-<button id="startGpsBtn" class="btn primary" onclick="requestAndStartGPS()">📍 Allow & Start GPS</button>
-<button class="btn secondary" onclick="stopGPS()">Stop GPS</button>
-</div>
-
-<div id="gpsHelp" class="gps-help">
-<strong id="gpsHelpTitle">GPS cannot start</strong>
-<span id="gpsHelpText"></span>
-</div>
-
-<div class="gps-data">
-<div class="gps-stat"><small>LATITUDE</small><strong id="gpsLat">—</strong></div>
-<div class="gps-stat"><small>LONGITUDE</small><strong id="gpsLng">—</strong></div>
-<div class="gps-stat"><small>ACCURACY</small><strong id="gpsAccuracy">—</strong></div>
-<div class="gps-stat"><small>SPEED</small><strong id="gpsSpeed">—</strong></div>
-<div class="gps-stat"><small>DISTANCE</small><strong id="gpsDistance">0.00 km</strong></div>
-<div class="gps-stat"><small>GPS POINTS</small><strong id="gpsPoints">0</strong></div>
-</div>
-
-<div id="map"></div>
-
-<div class="map-note">
-Blue line = actual GPS route recorded by the device. Green marker = latest vehicle position.
-</div>
 </div>
 
 </section>
@@ -955,7 +784,7 @@ Blue line = actual GPS route recorded by the device. Green marker = latest vehic
 <div class="topbar">
 <div class="page-title">
 <h2>Dispatch Ledger</h2>
-<p>Complete dispatch, stock, crew, cash and GPS route history.</p>
+<p>Complete dispatch, stock, crew, and cash history.</p>
 </div>
 
 <div class="top-actions">
@@ -983,18 +812,13 @@ Blue line = actual GPS route recorded by the device. Green marker = latest vehic
 <div class="drawer" id="drawer">
     <div class="drawer-head">
         <button class="btn secondary" onclick="hideDrawer()" style="display:flex;align-items:center;gap:6px;font-size:12px;padding:8px 12px;min-height:36px;">← Back to Ledger</button>
-        <button class="close" onclick="hideDrawer()">×</button>
+        <button class="remove" onclick="hideDrawer()" style="width:36px;height:36px;">×</button>
     </div>
     <div id="drawerContent"></div>
 </div>
 </div>
 
 <div class="toast" id="toast"></div>
-
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-crossorigin="">
-</script>
 
 <script>
 const STORAGE_KEY = "routestock_pro_gps_v8";
@@ -1015,15 +839,6 @@ try {
 
 let currentFilter = "all";
 let currentDispatchId = null;
-let watchId = null;
-let gpsRunning = false;
-let map = null;
-let vehicleMarker = null;
-let routeLine = null;
-let accuracyCircle = null;
-let gpsPoints = [];
-let lastPosition = null;
-let totalDistance = 0;
 
 function saveData() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(dispatches));
@@ -1037,14 +852,6 @@ function esc(s) {
     return String(s??"").replace(/[&<>"']/g,m=>({
         "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
     }[m]));
-}
-
-function distanceKm(lat1, lon1, lat2, lon2) {
-    const R = 6371;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
 function totals(d) {
@@ -1072,9 +879,6 @@ function showPage(id) {
     document.getElementById(id).classList.add("active");
     window.scrollTo({top:0, behavior:"smooth"});
     if(id === "ledgerPage") { renderLedger(); }
-    if(id === "entryPage") {
-        setTimeout(() => { if(map){ map.invalidateSize(); } }, 250);
-    }
 }
 
 function addAgent(data={}) {
@@ -1180,8 +984,7 @@ function createDispatch() {
         id: "RS-" + Date.now().toString().slice(-8),
         agents, route, date, vehicle, notes,
         status: "Active",
-        items,
-        gps: { points: [], distance: 0, startedAt: null, endedAt: null }
+        items
     };
 
     dispatches.unshift(d);
@@ -1210,42 +1013,6 @@ function updateDispatchBanner() {
     const crewStr = Array.isArray(d.agents) ? d.agents.map(a=>a.name).join(", ") : "Crew";
     document.getElementById("bannerDispatch").textContent = d.id + " · Crew: " + crewStr;
     document.getElementById("bannerRoute").textContent = d.vehicle + " · " + d.route;
-}
-
-function requestAndStartGPS() {
-    if(!navigator.geolocation) {
-        toast("GPS not supported by your browser.", "error");
-        return;
-    }
-    if(!currentDispatchId) {
-        toast("Create a dispatch first before starting GPS tracking.", "error");
-        return;
-    }
-    gpsRunning = true;
-    setGPSStatus("LIVE GPS TRACKING", "live");
-    toast("GPS started successfully.", "success");
-}
-
-function stopGPS() {
-    gpsRunning = false;
-    setGPSStatus("GPS stopped", "");
-    toast("GPS tracking stopped.", "success");
-}
-
-function setGPSStatus(text, type="") {
-    document.getElementById("gpsStatus").textContent = text;
-    const dot = document.getElementById("gpsDot");
-    dot.className = "status-dot";
-    if(type === "live") dot.classList.add("live");
-    if(type === "error") dot.classList.add("error");
-    if(type === "waiting") dot.classList.add("waiting");
-}
-
-function initMap() {
-    if(map) { setTimeout(() => { map.invalidateSize(); }, 200); return; }
-    map = L.map("map", {zoomControl:true}).setView([-0.3031, 36.0800], 12);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom: 19}).addTo(map);
-    routeLine = L.polyline([], {color:"#2563eb", weight:6}).addTo(map);
 }
 
 function renderLedger() {
@@ -1306,7 +1073,7 @@ function renderLedger() {
                 </div>
 
                 <div class="ledger-footer">
-                    <span class="badge settled">GPS Tracked</span>
+                    <span class="badge settled">Saved</span>
                     <button class="action" onclick="openDispatch('${d.id}')">View Details</button>
                 </div>
             </div>
@@ -1325,8 +1092,6 @@ function openDispatch(id) {
     const d = dispatches.find(x => x.id === id);
     if(!d) return;
     const t = totals(d);
-    const gpsCount = d.gps && Array.isArray(d.gps.points) ? d.gps.points.length : 0;
-    const distance = d.gps ? Number(d.gps.distance) || 0 : 0;
     const salesPercentage = t.issued > 0 ? Math.round((t.sold / t.issued) * 100) : 0;
 
     const agentsArr = Array.isArray(d.agents) ? d.agents : [{name: "Driver", role: "Driver"}];
@@ -1369,7 +1134,7 @@ function openDispatch(id) {
         <div class="detail-grid">
             <div class="detail"><small>ROUTE / TERRITORY</small><strong style="font-size:13px">${esc(d.route)}</strong></div>
             <div class="detail"><small>SALES RATIO</small><strong style="font-size:13px;color:var(--green)">${salesPercentage}% Cleared</strong></div>
-            <div class="detail"><small>GPS DISTANCE</small><strong style="font-size:13px">${distance.toFixed(2)} km</strong></div>
+            <div class="detail"><small>STATUS</small><strong style="font-size:13px">${esc(d.status)}</strong></div>
         </div>
 
         <div class="performance">
@@ -1377,7 +1142,6 @@ function openDispatch(id) {
             <div class="perf"><b style="color:var(--green)">${t.sold}</b><span>Total Sold</span></div>
             <div class="perf"><b>${t.returned}</b><span>Returned</span></div>
             <div class="perf"><b style="color:var(--blue)">${money(t.cash)}</b><span>Cash Realized</span></div>
-            <div class="perf"><b>${gpsCount}</b><span>GPS Points</span></div>
             <div class="perf"><b style="color:var(--amber)">${t.remaining}</b><span>Unsold Stock</span></div>
         </div>
 
@@ -1459,7 +1223,6 @@ document.getElementById("date").value = new Date().toISOString().slice(0,10);
 addAgent({name:"", role:"Driver"});
 addItem();
 renderLedger();
-setTimeout(initMap, 150);
 </script>
 
 </body>
