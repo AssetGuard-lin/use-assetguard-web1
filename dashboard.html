@@ -2,2108 +2,3217 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
 <title>AssetGuard Pro - The Hub</title>
+
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-:root {
-    --primary: #0052cc;
-    --primary-dark: #071952;
-    --accent: #ff6b00;
-    --whatsapp: #25D366;
-    --success: #10b981;
-    --warning: #f59e0b;
-    --danger: #ef4444;
-    --mpesa: #00a859;
-    --bg-light: #f8fafc;
-    --card-bg: #ffffff;
-    --text-main: #0f172a;
-    --text-muted: #64748b;
-    --border-color: #e2e8f0;
-}
 
-*{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg-light);display:flex;height:100vh;overflow:hidden;color:var(--text-main);}
-
-/* Absolute Lock Shield Class */
-body.app-locked .sidebar,
-body.app-locked .floating-menu-btn,
-body.app-locked .notification-bell-btn,
-body.app-locked .chat-widget-btn,
-body.app-locked .chat-sub-btn,
-body.app-locked main,
-body.app-locked iframe {
-    pointer-events: none !important;
-    user-select: none !important;
-}
-
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-
-.floating-menu-btn {
-    position: fixed; top: 15px; left: 15px; z-index: 1100;
-    background: var(--primary); color: white; border: none;
-    width: 44px; height: 44px; border-radius: 12px;
-    cursor: pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(0,82,204,0.3);
-    display: flex; align-items: center; justify-content: center; font-size: 20px;
-}
-
-@media (min-width: 1024px) {
-    .floating-menu-btn { display: none; }
-}
-
-/* Updated Draggable Notification Bell Button */
-.notification-bell-btn {
-    position: fixed; top: 90px; right: 20px; z-index: 1100;
-    background: white; color: var(--primary-dark); border: 1px solid var(--border-color);
-    width: 44px; height: 44px; border-radius: 12px;
-    cursor: grab; box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-    display: flex; align-items: center; justify-content: center;
-    touch-action: none; user-select: none;
-    transition: background 0.2s, border-color 0.2s;
-}
-.notification-bell-btn:active { cursor: grabbing; }
-.notification-bell-btn:hover { background: #f8fafc; border-color: var(--primary); }
-.notification-bell-btn svg { width: 20px; height: 20px; fill: var(--primary-dark); pointer-events: none; }
-
-.sidebar {
-    width: 270px; background: var(--primary-dark); color: white;
-    position: fixed; left: 0; top: 0; bottom: 0;
-    display: flex; flex-direction: column; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 1200; box-shadow: 10px 0 30px rgba(0,0,0,0.25);
-}
-
-@media (max-width: 1023px) {
-    .sidebar { left: -290px; top: 0; bottom: 0; border-radius: 0 20px 20px 0; }
-    .sidebar.active { left: 0; }
-}
-
-.sidebar-header { padding: 22px 20px; font-size: 17px; font-weight: 800; background: rgba(0,0,0,0.25); text-align: center; letter-spacing: 0.5px; }
-@media (max-width: 1023px) {
-    .sidebar-header { border-radius: 0 20px 0 0; }
-}
-
-.menu-section { flex: 1; overflow-y: auto; padding: 10px 0; -webkit-overflow-scrolling: touch; }
-.label { padding: 12px 22px 4px; font-size: 10px; text-transform: uppercase; color: #93c5fd; font-weight: 800; letter-spacing: 0.5px; }
-.nav-link { padding: 11px 22px; cursor: pointer; font-size: 13px; color: #d1d8e0; transition: 0.2s; display: block; text-decoration: none; font-weight: 500;}
-.nav-link:hover { background: rgba(255,255,255,0.1); color: white; padding-left: 26px; }
-
-.sidebar-footer { border-top: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25); padding: 5px 0; }
-@media (max-width: 1023px) {
-    .sidebar-footer { border-radius: 0 0 20px 0; }
-}
-.notebook-link { color: #fbd38d !important; font-weight: 700; }
-.logout-link { color: #fca5a5 !important; font-weight: 700; }
-
-.main { flex: 1; width: 100%; height: 100vh; position: relative; display: flex; flex-direction: column; }
-@media (min-width: 1024px) {
-    .main { margin-left: 270px; width: calc(100% - 270px); }
-}
-
-iframe { width: 100%; height: 100%; border: none; display: none; }
-
-.overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.65); backdrop-filter: blur(4px); z-index: 1050; }
-.overlay.active { display: block; }
-@media (min-width: 1024px) {
-    .overlay.active { display: none; }
-}
-
-.custom-modal {
-    display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    background: white; padding: 25px; border-radius: 16px; z-index: 2000;
-    width: 90%; max-width: 420px; text-align: left; color: var(--text-main);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-}
-.custom-modal.active { display: block; }
-.modal-btns { display: flex; gap: 12px; margin-top: 20px; }
-.btn { padding: 10px 18px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; flex: 1; transition: 0.2s; text-decoration: none; display: inline-block; text-align: center; font-size: 13px;}
-.btn-primary { background: var(--accent); color: white; box-shadow: 0 4px 12px rgba(255,107,0,0.3); }
-.btn-primary:hover { background: #e05e00; }
-.btn-cancel { background: #f1f5f9; color: var(--text-muted); }
-.btn-mpesa { background: var(--mpesa); color: white; }
-
-.dashboard-wrapper { flex: 1; padding: 75px 20px 30px; overflow-y: auto; width: 100%; }
-@media (min-width: 1024px) {
-    .dashboard-wrapper { padding: 35px 35px 35px; }
-}
-
-.dashboard-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 20px; max-width: 1300px; margin: 0 auto; }
-
-.col-12 { grid-column: span 12; }
-.col-6 { grid-column: span 6; }
-.col-4 { grid-column: span 4; }
-.col-3 { grid-column: span 3; }
-
-@media (max-width: 1024px) {
-    .col-6, .col-4, .col-3 { grid-column: span 12; }
-}
-
-/* Institutional Broker-Style Hero */
-.broker-hero {
-    background: linear-gradient(135deg, #071952 0%, #0b2545 100%);
-    color: white; border-radius: 18px; padding: 35px;
-    box-shadow: 0 15px 35px rgba(7, 25, 82, 0.2);
-    display: flex; flex-direction: column; gap: 16px; position: relative; overflow: hidden;
-}
-.broker-hero::after {
-    content: ''; position: absolute; right: -50px; bottom: -50px; width: 250px; height: 250px;
-    background: radial-gradient(circle, rgba(255,107,0,0.15) 0%, transparent 70%); border-radius: 50%; pointer-events: none;
-}
-.broker-hero h1 { font-size: 26px; font-weight: 800; line-height: 1.25; max-width: 700px; }
-.broker-hero h1 span { color: var(--accent); }
-.broker-hero p { font-size: 14px; color: #cbd5e1; max-width: 600px; line-height: 1.5; }
-.hero-cta-group { display: flex; gap: 12px; margin-top: 5px; }
-
-/* Stats Hub Card */
-.stats-hub-card {
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-    color: white; border-radius: 16px; padding: 28px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; border: 1px solid rgba(255,255,255,0.05);
-}
-.stats-hub-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #38bdf8; font-weight: 800; margin-bottom: 6px; }
-.stats-hub-value { font-size: 40px; font-weight: 800; color: #ffffff; margin-bottom: 4px; }
-.stats-hub-desc { font-size: 12px; color: #94a3b8; font-weight: 600; }
-
-/* Feature Cards Style */
-.asset-card {
-    background: var(--card-bg); border-radius: 16px; padding: 22px;
-    border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.02);
-    display: flex; flex-direction: column; gap: 10px; transition: transform 0.2s, border-color 0.2s;
-}
-.asset-card:hover { transform: translateY(-3px); border-color: var(--primary); }
-.asset-icon { width: 38px; height: 38px; border-radius: 10px; background: #e0f2fe; color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 18px; }
-.asset-title { font-size: 15px; font-weight: 800; color: var(--text-main); }
-.asset-desc { font-size: 12px; color: var(--text-muted); line-height: 1.45; }
-
-/* Reduced & Draggable WhatsApp Chat Widget Button Styles */
-.chat-widget-btn {
-    position: fixed; bottom: 20px; right: 20px; z-index: 1400;
-    background: var(--whatsapp); color: white; border: none;
-    width: 44px; height: 44px; border-radius: 50%;
-    cursor: grab; box-shadow: 0 5px 20px rgba(37,211,102,0.5);
-    display: flex; align-items: center; justify-content: center;
-    touch-action: none; user-select: none;
-    animation: pulseGrow 2.5s infinite ease-in-out;
-    transition: box-shadow 0.2s;
-}
-.chat-widget-btn:active { cursor: grabbing; }
-.chat-widget-btn:hover { animation: none; transform: scale(1.1); }
-.chat-widget-btn svg { width: 24px; height: 24px; fill: white; pointer-events: none; }
-
-@keyframes pulseGrow {
-    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.6); }
-    50% { transform: scale(1.08); box-shadow: 0 0 0 10px rgba(37, 211, 102, 0); }
-    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
-}
-
-/* Separate Pill-Shaped Tagged Popup Buttons for Agent & AI */
-.chat-sub-btn {
-    position: fixed; z-index: 1399; height: 38px; border-radius: 19px;
-    border: none; display: flex; align-items: center; gap: 8px; padding: 0 14px 0 8px;
-    cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.25);
-    opacity: 0; transform: scale(0); pointer-events: none;
-    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease, background-color 0.2s;
-    color: white; font-weight: 700; font-size: 12px; white-space: nowrap;
-}
-.chat-sub-btn.active {
-    opacity: 1; transform: scale(1); pointer-events: auto;
-}
-.chat-sub-btn svg { width: 20px; height: 20px; fill: white; flex-shrink: 0; pointer-events: none; }
-.chat-sub-btn.agent-btn { background: var(--whatsapp); }
-.chat-sub-btn.ai-btn { background: var(--primary); }
-
-/* Separate Chat Containers/Pages */
-.chat-container {
-    position: fixed; bottom: 85px; right: 20px; z-index: 1400;
-    width: 380px; max-width: calc(100vw - 30px); height: 540px;
-    background: var(--card-bg); border-radius: 16px;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
-    border: 1px solid var(--border-color);
-    display: none; flex-direction: column; overflow: hidden;
-}
-.chat-container.active { display: flex; }
-.chat-header {
-    background: var(--primary-dark); color: white; padding: 12px 15px;
-    font-weight: 800; font-size: 13px; display: flex; justify-content: space-between; align-items: center;
-}
-.chat-header span {
-    background: linear-gradient(90deg, #38bdf8, #ff6b00, #25D366, #38bdf8);
-    background-size: 300% auto;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: rainbowText 6s linear infinite;
-}
-@keyframes rainbowText {
-    0% { background-position: 0% center; }
-    100% { background-position: 300% center; }
-}
-
-.chat-header-actions { display: flex; gap: 8px; align-items: center; position: relative; }
-.chat-header-actions button { background: rgba(255,255,255,0.15); border: none; color: white; font-size: 11px; padding: 4px 8px; border-radius: 4px; cursor: pointer; }
-.chat-header-actions button:hover { background: rgba(255,255,255,0.25); }
-
-/* Clear Options Dropdown Menu */
-.clear-dropdown-menu {
-    display: none; position: absolute; right: 0; top: 30px; background: white; color: var(--text-main);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2); border-radius: 8px; z-index: 1500; width: 140px; overflow: hidden; border: 1px solid var(--border-color);
-}
-.clear-dropdown-menu.active { display: block; }
-.clear-dropdown-item { padding: 9px 12px; font-size: 12px; cursor: pointer; border-bottom: 1px solid #f1f5f9; text-align: left; font-weight: 600; }
-.clear-dropdown-item:hover { background: #f8fafc; color: var(--primary); }
-
-.chat-messages {
-    flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; font-size: 12px; background: #f8fafc;
-}
-.chat-bubble {
-    max-width: 85%; padding: 12px 16px; border-radius: 12px; line-height: 1.45; word-wrap: break-word; position: relative;
-    touch-action: pan-y; transition: transform 0.1s ease-out, background-color 0.3s ease; user-select: none;
-}
-.chat-bubble.bot { background: white; color: var(--text-main); align-self: flex-start; border-bottom-left-radius: 2px; border: 1px solid var(--border-color); box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-.chat-bubble.user { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
-.chat-bubble.agent-reply { background: #e0f2fe; color: var(--primary-dark); align-self: flex-start; border-left: 3px solid var(--primary); }
-.chat-bubble.selectable { cursor: pointer; }
-.chat-bubble.selectable.selected { border: 2px solid var(--accent); background: #fff7ed; color: var(--text-main); }
-.bubble-meta { font-size: 10px; opacity: 0.8; margin-top: 4px; display: block; text-align: right; }
-
-.chat-input-area {
-    padding: 12px; border-top: 1px solid var(--border-color); display: flex; gap: 8px; background: white; flex-direction: column;
-}
-.chat-input-row { display: flex; gap: 8px; width: 100%; }
-.chat-input-row input {
-    flex: 1; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 12px; outline: none; font-family: inherit;
-}
-.chat-input-row button {
-    background: var(--primary); color: white; border: none; padding: 9px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 12px;
-}
-.chat-actions { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
-.chat-chip {
-    background: #e0f2fe; color: var(--primary); border: none; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; transition: 0.2s;
-}
-.chat-chip:hover { background: #bae6fd; }
-
-.ticket-selector-bar {
-    background: #f1f5f9; padding: 6px 12px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-size: 11px;
-}
-.ticket-selector-bar select { padding: 3px 6px; border-radius: 4px; border: 1px solid var(--border-color); font-size: 11px; outline: none; }
-
-/* STK & Subscription Overlay Styles */
-.stk-overlay {
-    position: fixed; inset: 0; background: rgba(0, 26, 53, 0.92);
-    backdrop-filter: blur(8px); z-index: 10000000; display: none;
-    flex-direction: column; align-items: center; justify-content: center; padding: 20px;
-}
-.lock-card {
-    background: #ffffff; border-radius: 24px; padding: 30px 24px;
-    width: 100%; max-width: 380px; text-align: center; color: var(--text-main);
-    position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.4);
-}
-.modal-close-btn {
-    position: absolute; top: 16px; right: 16px; background: #f1f5f9;
-    border: none; color: var(--text-muted); cursor: pointer; padding: 8px;
-    display: flex; align-items: center; justify-content: center; border-radius: 50%;
-}
-.stk-spinner {
-    width: 44px; height: 44px; border: 4px solid #e6f0fa;
-    border-top-color: var(--mpesa); border-radius: 50%;
-    animation: spin 1s linear infinite; margin: 0 auto 16px;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-.form-field { display: flex; flex-direction: column; gap: 6px; text-align: left; }
-.form-field label { font-size: 11px; font-weight: 700; color: #001A35; text-transform: uppercase; }
-.form-field input[type="tel"] {
-    font-family: inherit; font-size: 14px; padding: 12px 14px;
-    border: 2px solid var(--border-color); border-radius: 12px; background: #fafbfe;
-    outline: none; transition: 0.2s; color: var(--text-main); width: 100%;
-}
-.form-field input:focus { border-color: var(--mpesa); box-shadow: 0 0 0 4px rgba(0, 168, 89, 0.1); background: #fff; }
-
-.toast {
-    position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(100px);
-    background: #0f172a; color: white; padding: 12px 24px; border-radius: 100px;
-    font-size: 12px; font-weight: 700; z-index: 10005; opacity: 0;
-    transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; align-items: center; gap: 8px;
-    border: 1px solid rgba(255,255,255,0.1);
-}
-.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-</style>
-
-<!-- Firebase Classic SDK -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<style>
+:root{
+    --primary:#0052cc;
+    --primary-dark:#071952;
+    --accent:#ff6b00;
+    --success:#10b981;
+    --warning:#f59e0b;
+    --danger:#ef4444;
+    --bg-light:#f8fafc;
+    --card-bg:#ffffff;
+    --text-main:#0f172a;
+    --text-muted:#64748b;
+    --border-color:#e2e8f0;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html,body{
+    width:100%;
+    height:100%;
+}
+
+body{
+    font-family:'Plus Jakarta Sans',sans-serif;
+    background:var(--bg-light);
+    color:var(--text-main);
+    overflow:hidden;
+}
+
+button,input{
+    font-family:inherit;
+}
+
+::-webkit-scrollbar{
+    width:6px;
+    height:6px;
+}
+
+::-webkit-scrollbar-thumb{
+    background:#cbd5e1;
+    border-radius:10px;
+}
+
+/* =========================
+   MENU
+========================= */
+
+.floating-menu-btn{
+    position:fixed;
+    top:15px;
+    left:15px;
+    z-index:3000;
+    width:54px;
+    height:54px;
+    border:0;
+    border-radius:14px;
+    background:var(--primary);
+    color:#fff;
+    font-size:25px;
+    cursor:pointer;
+    box-shadow:0 5px 20px rgba(0,82,204,.35);
+}
+
+.sidebar{
+    position:fixed;
+    left:0;
+    top:0;
+    bottom:0;
+    width:270px;
+    background:var(--primary-dark);
+    color:#fff;
+    z-index:2500;
+    display:flex;
+    flex-direction:column;
+    box-shadow:10px 0 30px rgba(0,0,0,.25);
+}
+
+.sidebar-header{
+    padding:22px;
+    text-align:center;
+    font-size:17px;
+    font-weight:800;
+    background:rgba(0,0,0,.25);
+}
+
+.menu-section{
+    flex:1;
+    overflow-y:auto;
+    padding:10px 0;
+}
+
+.label{
+    padding:14px 22px 5px;
+    color:#93c5fd;
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:1px;
+    text-transform:uppercase;
+}
+
+.nav-link{
+    padding:11px 22px;
+    color:#d1d8e0;
+    font-size:13px;
+    cursor:pointer;
+    font-weight:500;
+    transition:.2s;
+}
+
+.nav-link:hover{
+    background:rgba(255,255,255,.1);
+    color:#fff;
+    padding-left:27px;
+}
+
+.sidebar-footer{
+    border-top:1px solid rgba(255,255,255,.1);
+    background:rgba(0,0,0,.25);
+}
+
+.notebook-link{
+    color:#fbd38d!important;
+    font-weight:700;
+}
+
+.logout-link{
+    color:#fca5a5!important;
+    font-weight:700;
+}
+
+.overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:2400;
+    background:rgba(15,23,42,.65);
+    backdrop-filter:blur(4px);
+}
+
+.overlay.active{
+    display:block;
+}
+
+/* =========================
+   MAIN
+========================= */
+
+.main{
+    width:calc(100% - 270px);
+    margin-left:270px;
+    height:100vh;
+    position:relative;
+}
+
+.dashboard-wrapper{
+    height:100%;
+    overflow-y:auto;
+    padding:35px;
+}
+
+.dashboard-grid{
+    display:grid;
+    grid-template-columns:repeat(12,1fr);
+    gap:20px;
+    max-width:1300px;
+    margin:auto;
+}
+
+.col-12{grid-column:span 12}
+.col-6{grid-column:span 6}
+.col-4{grid-column:span 4}
+
+.broker-hero{
+    position:relative;
+    overflow:hidden;
+    padding:35px;
+    border-radius:18px;
+    background:linear-gradient(135deg,#071952,#0b2545);
+    color:#fff;
+    box-shadow:0 15px 35px rgba(7,25,82,.2);
+}
+
+.broker-hero h1{
+    font-size:26px;
+    font-weight:800;
+    line-height:1.3;
+}
+
+.broker-hero h1 span{
+    color:var(--accent);
+}
+
+.broker-hero p{
+    max-width:650px;
+    margin-top:15px;
+    color:#cbd5e1;
+    font-size:14px;
+    line-height:1.6;
+}
+
+.hero-cta{
+    display:inline-block;
+    margin-top:20px;
+    padding:11px 20px;
+    background:var(--accent);
+    color:#fff;
+    text-decoration:none;
+    border-radius:9px;
+    font-size:13px;
+    font-weight:800;
+}
+
+.stats-card{
+    padding:28px;
+    border-radius:16px;
+    background:linear-gradient(135deg,#0f172a,#1e293b);
+    color:#fff;
+    text-align:center;
+}
+
+.stats-title{
+    color:#38bdf8;
+    font-size:11px;
+    font-weight:800;
+    letter-spacing:1.4px;
+    text-transform:uppercase;
+}
+
+.stats-value{
+    margin:5px 0;
+    font-size:40px;
+    font-weight:800;
+}
+
+.stats-desc{
+    color:#94a3b8;
+    font-size:12px;
+}
+
+.asset-card{
+    padding:22px;
+    border-radius:16px;
+    background:#fff;
+    border:1px solid var(--border-color);
+    box-shadow:0 4px 15px rgba(0,0,0,.03);
+    transition:.2s;
+}
+
+.asset-card:hover{
+    transform:translateY(-3px);
+    border-color:var(--primary);
+}
+
+.asset-icon{
+    width:40px;
+    height:40px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:10px;
+    background:#e0f2fe;
+    color:var(--primary);
+    font-size:19px;
+}
+
+.asset-title{
+    margin-top:12px;
+    font-size:15px;
+    font-weight:800;
+}
+
+.asset-desc{
+    margin-top:7px;
+    color:var(--text-muted);
+    font-size:12px;
+    line-height:1.5;
+}
+
+#main-frame{
+    display:none;
+    width:100%;
+    height:100%;
+    border:0;
+}
+
+/* =========================
+   MODAL
+========================= */
+
+.custom-modal{
+    display:none;
+    position:fixed;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    width:90%;
+    max-width:360px;
+    padding:25px;
+    background:#fff;
+    border-radius:16px;
+    z-index:4000;
+    text-align:center;
+    box-shadow:0 20px 50px rgba(0,0,0,.3);
+}
+
+.custom-modal.active{
+    display:block;
+}
+
+.modal-title{
+    font-size:16px;
+    font-weight:800;
+}
+
+.modal-text{
+    margin-top:8px;
+    color:var(--text-muted);
+    font-size:12px;
+    line-height:1.5;
+}
+
+.modal-buttons{
+    display:flex;
+    gap:10px;
+    margin-top:20px;
+}
+
+.btn{
+    flex:1;
+    padding:11px;
+    border:0;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:13px;
+    font-weight:800;
+}
+
+.btn-cancel{
+    background:#f1f5f9;
+    color:var(--text-muted);
+}
+
+.btn-primary{
+    background:var(--accent);
+    color:#fff;
+}
+
+/* =========================
+   COMPACT DRAGGABLE SUPPORT WIDGET (RIGHT SIDE ONLY)
+========================= */
+
+.support-floating{
+    position:fixed;
+    left:auto;
+    top:auto;
+    right:20px;
+    bottom:20px;
+    z-index:3500;
+    width:48px;
+    height:48px;
+    display:block;
+    user-select:none;
+    -webkit-user-select:none;
+    touch-action:none;
+    overflow:visible;
+}
+
+.support-floating.hidden{
+    display:none;
+}
+
+.support-floating::after{
+    content:'';
+    position:absolute;
+    inset:-3px;
+    border-radius:50%;
+    background:rgba(37,211,102,.4);
+    z-index:1;
+    animation:supportPulse 2.4s infinite cubic-bezier(0.4, 0, 0.6, 1);
+    pointer-events:none;
+}
+
+@keyframes supportPulse{
+    0%{
+        transform:scale(1);
+        opacity:0.8;
+    }
+    70%{
+        transform:scale(1.3);
+        opacity:0;
+    }
+    100%{
+        transform:scale(1.3);
+        opacity:0;
+    }
+}
+
+.support-main-btn{
+    position:absolute;
+    left:0;
+    top:0;
+    width:48px;
+    height:48px;
+    min-width:48px;
+    min-height:48px;
+    padding:0;
+    border:0;
+    border-radius:50%;
+    background:linear-gradient(135deg, #25D366, #128C7E);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:grab;
+    box-shadow:0 6px 20px rgba(37,211,102,.4);
+    z-index:3;
+    touch-action:none;
+    -webkit-tap-highlight-color:transparent;
+    transition:transform .2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow .2s ease;
+}
+
+.support-main-btn:hover{
+    transform:scale(1.06);
+    box-shadow:0 8px 25px rgba(37,211,102,.55);
+}
+
+.support-main-btn:active{
+    cursor:grabbing;
+    transform:scale(0.92);
+}
+
+.support-main-btn svg{
+    width:24px;
+    height:24px;
+    fill:#fff;
+    pointer-events:none;
+    filter:drop-shadow(0 1px 3px rgba(0,0,0,0.15));
+}
+
+.support-options{
+    position:absolute;
+    display:none;
+    z-index:2;
+    pointer-events:none;
+    margin:0;
+    padding:6px;
+    background:rgba(255, 255, 255, 0.92);
+    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
+    border:1px solid rgba(226, 232, 240, 0.8);
+    border-radius:16px;
+    box-shadow:0 15px 35px rgba(15, 23, 42, 0.15);
+    opacity:0;
+    transform:scale(0.9);
+    transition:opacity .2s cubic-bezier(0.16, 1, 0.3, 1), transform .2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.support-options.active{
+    display:flex;
+    opacity:1;
+    transform:scale(1);
+    pointer-events:auto;
+}
+
+.support-options.popup-below{
+    flex-direction:column;
+    left:auto;
+    right:0;
+    top:56px;
+    bottom:auto;
+    align-items:stretch;
+}
+
+.support-options.popup-above{
+    flex-direction:column;
+    left:auto;
+    right:0;
+    top:auto;
+    bottom:56px;
+    align-items:stretch;
+}
+
+.support-options.popup-right{
+    flex-direction:column;
+    left:56px;
+    right:auto;
+    top:0;
+    bottom:auto;
+    align-items:stretch;
+}
+
+.support-options.popup-left{
+    flex-direction:column;
+    left:auto;
+    right:56px;
+    top:0;
+    bottom:auto;
+    align-items:stretch;
+}
+
+.support-float-btn{
+    border:0;
+    width:max-content;
+    min-width:140px;
+    height:40px;
+    padding:0 14px;
+    border-radius:10px;
+    color:#fff;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    cursor:pointer;
+    box-shadow:0 3px 12px rgba(0,0,0,.1);
+    font-size:11px;
+    font-weight:700;
+    white-space:nowrap;
+    flex-shrink:0;
+    -webkit-tap-highlight-color:transparent;
+    transition:transform .15s ease, filter .15s ease;
+}
+
+.support-float-btn:hover{
+    transform:translateX(-2px);
+    filter:brightness(1.08);
+}
+
+.support-float-btn:active{
+    transform:scale(0.96);
+}
+
+.support-options{
+    gap:6px;
+}
+
+.support-float-btn svg{
+    width:18px;
+    height:18px;
+    fill:#fff;
+    flex-shrink:0;
+}
+
+.ask-ai-btn{
+    background:linear-gradient(135deg, #7c3aed, #6d28d9);
+    box-shadow:0 3px 12px rgba(124, 58, 237, 0.3);
+}
+
+.agent-btn{
+    background:linear-gradient(135deg, var(--primary), var(--primary-dark));
+    box-shadow:0 3px 12px rgba(0, 82, 204, 0.3);
+}
+
+/* =========================
+   CHAT WINDOWS
+========================= */
+
+.chat-container{
+    display:none;
+    position:fixed;
+    right:20px;
+    bottom:20px;
+    z-index:3500;
+    width:370px;
+    max-width:calc(100vw - 25px);
+    height:520px;
+    background:#fff;
+    border:1px solid var(--border-color);
+    border-radius:17px;
+    overflow:hidden;
+    box-shadow:0 20px 50px rgba(0,0,0,.25);
+    flex-direction:column;
+}
+
+.chat-container.active{
+    display:flex;
+}
+
+.chat-header{
+    flex:0 0 auto;
+    height:58px;
+    padding:0 15px;
+    background:var(--primary-dark);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    font-size:14px;
+    font-weight:800;
+}
+
+.ai-container .chat-header{
+    background:#4c1d95;
+}
+
+.chat-close{
+    background:none;
+    border:0;
+    color:#fff;
+    font-size:23px;
+    cursor:pointer;
+}
+
+.chat-messages{
+    flex:1;
+    min-height:0;
+    overflow-y:auto;
+    padding:15px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    background:#f8fafc;
+}
+
+.chat-bubble{
+    max-width:80%;
+    padding:12px 16px;
+    border-radius:12px;
+    line-height:1.45;
+    font-size:13px;
+    word-wrap:break-word;
+}
+
+.chat-bubble.user{
+    background:white;
+    border:1px solid var(--border-color);
+    align-self:flex-start;
+    color:var(--text-main);
+}
+
+.chat-bubble.admin{
+    background:#e0f2fe;
+    color:var(--primary-dark);
+    align-self:flex-end;
+    border-left:3px solid var(--primary);
+}
+
+.chat-bubble.ai{
+    background:#ede9fe;
+    color:#3b0764;
+    align-self:flex-end;
+    border-left:3px solid #7c3aed;
+}
+
+.chat-bubble.system{
+    background:#f1f5f9;
+    border-left:3px solid var(--accent);
+    align-self:center;
+    width:100%;
+    max-width:100%;
+    font-size:12px;
+    color:#334155;
+}
+
+.chat-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    margin-top:9px;
+}
+
+.chat-chip{
+    padding:7px 10px;
+    border:0;
+    border-radius:7px;
+    background:#e0f2fe;
+    color:var(--primary);
+    font-size:11px;
+    font-weight:800;
+    cursor:pointer;
+}
+
+.chat-chip:hover{
+    background:#bae6fd;
+}
+
+.chat-error{
+    align-self:flex-start;
+    padding:10px 14px;
+    border-radius:10px;
+    background:#fee2e2;
+    color:#991b1b;
+    font-size:12px;
+}
+
+.chat-input-area{
+    flex:0 0 auto;
+    display:flex;
+    gap:8px;
+    padding:12px;
+    background:#fff;
+    border-top:1px solid var(--border-color);
+}
+
+.chat-input-area input{
+    flex:1;
+    min-width:0;
+    height:42px;
+    padding:0 12px;
+    border:1px solid var(--border-color);
+    border-radius:9px;
+    outline:none;
+    font-size:12px;
+}
+
+.chat-input-area input:focus{
+    border-color:var(--primary);
+}
+
+.ai-container .chat-input-area input:focus{
+    border-color:#7c3aed;
+}
+
+.chat-send{
+    width:72px;
+    border:0;
+    border-radius:9px;
+    background:var(--primary);
+    color:#fff;
+    font-size:12px;
+    font-weight:800;
+    cursor:pointer;
+}
+
+.ai-send{
+    background:#7c3aed;
+}
+
+.chat-send:disabled{
+    opacity:.6;
+    cursor:not-allowed;
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media(max-width:1023px){
+
+    .sidebar{
+        left:-290px;
+        width:270px;
+        border-radius:0 20px 20px 0;
+        transition:left .25s ease;
+    }
+
+    .sidebar.active{
+        left:0;
+    }
+
+    .main{
+        width:100%;
+        margin-left:0;
+    }
+
+    .dashboard-wrapper{
+        padding:75px 20px 30px;
+    }
+
+    .col-6,
+    .col-4{
+        grid-column:span 12;
+    }
+
+    .broker-hero{
+        padding:28px 22px;
+    }
+
+    .broker-hero h1{
+        font-size:22px;
+    }
+
+    .stats-value{
+        font-size:35px;
+    }
+
+    .chat-container{
+        right:12px;
+        bottom:12px;
+        width:calc(100vw - 24px);
+        height:calc(100vh - 24px);
+        max-height:540px;
+    }
+
+    .support-floating{
+        width:46px;
+        height:46px;
+    }
+
+    .support-main-btn{
+        width:46px;
+        height:46px;
+        min-width:46px;
+        min-height:46px;
+    }
+
+    .support-main-btn svg{
+        width:22px;
+        height:22px;
+    }
+
+    .support-options{
+        gap:6px;
+    }
+
+    .support-options.popup-below{
+        top:54px;
+        right:0;
+        left:auto;
+    }
+
+    .support-options.popup-above{
+        bottom:54px;
+        right:0;
+        left:auto;
+    }
+
+    .support-options.popup-right{
+        left:54px;
+        right:auto;
+        top:0;
+    }
+
+    .support-options.popup-left{
+        right:54px;
+        left:auto;
+        top:0;
+    }
+
+    .support-float-btn{
+        height:38px;
+        min-height:38px;
+        min-width:130px;
+        padding:0 12px;
+        font-size:11px;
+    }
+}
+
+@media(min-width:1024px){
+
+    .floating-menu-btn{
+        display:none;
+    }
+}
+</style>
 </head>
-<body class="app-locked">
 
-<!-- Subscription Blocker Overlay -->
-<div id="hubSubscriptionBlocker" style="position: fixed; inset: 0; background: rgba(0, 26, 53, 0.98); backdrop-filter: blur(16px); z-index: 9999999; display: flex; align-items: center; justify-content: center; padding: 20px; color: #ffffff;">
-    <div style="background: #ffffff; color: #0f172a; width: 100%; max-width: 420px; border-radius: 24px; padding: 32px 24px; text-align: center; box-shadow: 0 25px 60px rgba(0,0,0,0.6);">
-        <div style="width: 64px; height: 64px; background: #fee2e2; color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-        </div>
-        <h2 id="hubBlockTitle" style="font-size:20px; font-weight:800; color:#0f172a; margin-bottom:6px;">Subscription Expired</h2>
-        <p id="hubBlockDesc" style="font-size:13px; color:#64748b; line-height:1.5; margin-bottom:20px;">Your access license has elapsed. Select a plan below to complete payment via M-Pesa or contact admin for approval.</p>
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
-            <div onclick="initiateMpesaPayment(30, 1500, 'Ksh 1,500')" style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 14px 10px; cursor: pointer; text-align: center; transition: 0.2s;">
-                <span style="font-size: 11px; font-weight: 700; color: #64748b; display: block; text-transform: uppercase;">Monthly</span>
-                <b style="font-size: 15px; font-weight: 800; color: #0052cc; display: block; margin-top: 2px;">Ksh 1,500</b>
-            </div>
-            <div onclick="initiateMpesaPayment(365, 12000, 'Ksh 12,000')" style="background: #e6f0fa; border: 2px solid #0052cc; border-radius: 12px; padding: 14px 10px; cursor: pointer; text-align: center; transition: 0.2s;">
-                <span style="font-size: 11px; font-weight: 700; color: #64748b; display: block; text-transform: uppercase;">Yearly</span>
-                <b style="font-size: 15px; font-weight: 800; color: #0052cc; display: block; margin-top: 2px;">Ksh 12,000</b>
-            </div>
-        </div>
-        <div style="font-size: 11px; color: #94a3b8;">🔒 Requires automated payment confirmation or Admin approval.</div>
+<body>
+
+<button class="floating-menu-btn" onclick="toggleMenu()" aria-label="Open menu">☰</button>
+
+<div id="overlay" class="overlay" onclick="closeAll()"></div>
+
+<div id="globalModal" class="custom-modal">
+
+    <div id="modalTitle" class="modal-title">
+        Notification
     </div>
-</div>
 
-<!-- STK Push Modal Overlay -->
-<div id="stkModal" class="stk-overlay">
-    <div class="lock-card">
-        <button class="modal-close-btn" onclick="closeStkModal()" id="stkCloseBtn">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    <div id="modalText" class="modal-text">
+        Message goes here...
+    </div>
+
+    <div class="modal-buttons">
+
+        <button class="btn btn-cancel" onclick="closeAll()">
+            Cancel
         </button>
-        
-        <div style="width: 52px; height: 52px; background: #e6fdf0; color: var(--mpesa); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
-        </div>
-        
-        <h2 style="font-size:18px; font-weight:800; color:#0f172a; margin-bottom:4px;">M-PESA Express</h2>
-        <p style="margin-bottom: 16px; font-size: 13px; color: var(--text-muted);">Subscription fee: <strong id="stkAmountDisplay" style="color: #0f172a;">Ksh --</strong></p>
 
-        <div id="stkInputStep">
-            <div class="form-field" style="margin-bottom: 16px;">
-                <label>Safaricom Phone Number</label>
-                <input type="tel" id="mpesaNumber" placeholder="07XXXXXXXX" inputmode="numeric" maxlength="10">
-            </div>
-            <button class="btn btn-mpesa" style="width: 100%;" onclick="processStkPush()">Send Real STK Push</button>
-        </div>
+        <button id="modalConfirmBtn" class="btn btn-primary">
+            OK
+        </button>
 
-        <div id="stkLoadingStep" style="display: none; padding: 10px 0;">
-            <div class="stk-spinner" id="stkSpinnerIcon"></div>
-            <h4 id="stkStatusTitle" style="font-size: 16px; color: #0f172a; font-weight: 700; margin-bottom: 4px;">Sending STK Push...</h4>
-            <p id="stkStatusDesc" style="font-size: 13px; color: var(--text-muted); line-height: 1.4; margin-bottom: 16px;">Connecting to Safaricom API...</p>
-            <button class="btn btn-secondary" id="stkRetryBtn" style="display: none; width: 100%; font-size: 13px;" onclick="resetStkModal()">Try Again</button>
-        </div>
     </div>
 </div>
 
-<button class="floating-menu-btn" onclick="toggleMenu()">☰</button>
+<aside id="sidebar" class="sidebar">
 
-<!-- Draggable Notification Bell Button -->
-<button class="notification-bell-btn" id="notificationBellBtn" title="System Announcements & Direct Notices">
-    <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/></svg>
-    <span id="broadcastBadge" style="display:none; position:absolute; top:4px; right:4px; background:var(--danger); color:white; font-size:9px; font-weight:800; padding:2px 5px; border-radius:10px;">0</span>
-</button>
-
-<div class="overlay" id="overlay" onclick="closeAll()"></div>
-
-<!-- Notifications Modal -->
-<div class="custom-modal" id="broadcastModal">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding-bottom:10px; border-bottom:1px solid var(--border-color);">
-        <div style="font-size: 16px; font-weight: 800; color:var(--primary-dark);">Notifications & Direct Notices</div>
-        <div style="display: flex; gap: 8px; align-items: center;">
-            <button onclick="clearAllNotifications()" style="background: #fef2f2; border: 1px solid #fecaca; color: var(--danger); font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: 0.2s;" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#fef2f2'">🗑️ Clear All</button>
-            <button onclick="closeBroadcastModal()" style="background:#f1f5f9; border:none; color:var(--text-muted); width: 28px; height: 28px; border-radius: 8px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">✕</button>
-        </div>
+    <div class="sidebar-header">
+        AssetGuard Pro
     </div>
-    <div id="broadcastListContainer" style="max-height: 350px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
-        <!-- Notifications loaded dynamically -->
-    </div>
-    <div class="modal-btns">
-        <button class="btn btn-primary" onclick="closeBroadcastModal()">Got It</button>
-    </div>
-</div>
 
-<div class="custom-modal" id="globalModal">
-    <div class="modal-title" id="modalTitle" style="font-size: 15px; font-weight: 800; margin-bottom:8px;">Notification</div>
-    <div class="modal-text" id="modalText" style="font-size: 12px; color: var(--text-muted);">Message goes here...</div>
-    <div class="modal-btns">
-        <button class="btn btn-cancel" onclick="closeAll()">Cancel</button>
-        <button class="btn btn-primary" id="modalConfirmBtn">OK</button>
-    </div>
-</div>
-
-<aside class="sidebar" id="sidebar">
-    <div class="sidebar-header">AssetGuard Pro</div>
     <div class="menu-section">
-        <div class="nav-link" onclick="showDashboard()" style="border-left: 3px solid #60a5fa; padding-left: 19px; background: rgba(255,255,255,0.1);">Institutional Hub</div>
-        
+
+        <div class="nav-link"
+             onclick="showDashboard()"
+             style="border-left:3px solid #60a5fa;padding-left:19px;background:rgba(255,255,255,.1)">
+            Institutional Hub
+        </div>
+
         <div class="label">Operations</div>
-        <div class="nav-link" onclick="loadPage('sales')">Sales Terminal</div>
-        <div class="nav-link" onclick="loadPage('purchases')">Purchases</div>
-        
+
+        <div class="nav-link" onclick="loadPage('sales')">
+            Sales Terminal
+        </div>
+
+        <div class="nav-link" onclick="loadPage('purchases')">
+            Purchases
+        </div>
+
+        <div class="nav-link" onclick="loadPage('dispatch')">
+            Dispatch Management
+        </div>
+
         <div class="label">Relationships</div>
-        <div class="nav-link" onclick="loadPage('crm')" style="color:#4ade80;">Customer Registry</div>
-        
+
+        <div class="nav-link"
+             onclick="loadPage('crm')"
+             style="color:#4ade80">
+            Customer Registry
+        </div>
+
         <div class="label">Inventory</div>
-        <div class="nav-link" onclick="loadPage('stock')">Current Stock</div>
-        
+
+        <div class="nav-link" onclick="loadPage('stock')">
+            Current Stock
+        </div>
+
         <div class="label">Finance</div>
-        <div class="nav-link" onclick="loadPage('expenses')">Record Expense</div>
-        <div class="nav-link" onclick="loadPage('master-ledger')">Master Ledger</div>
-        
+
+        <div class="nav-link" onclick="loadPage('expenses')">
+            Record Expense
+        </div>
+
+        <div class="nav-link" onclick="loadPage('master-ledger')">
+            Master Ledger
+        </div>
+
+        <div class="nav-link" onclick="loadPage('bi_dashboard')">
+            BI Dashboard
+        </div>
+
         <div class="label">Reports</div>
-        <div class="nav-link" onclick="loadPage('cash-report')">Cash Report</div>
-        <div class="nav-link" onclick="loadPage('mpesa-report')">M-Pesa Report</div>
-        <div class="nav-link" onclick="loadPage('credit-report')" style="border-left: 3px solid #fbd38d; padding-left: 19px;">Credit Report</div>
+
+        <div class="nav-link" onclick="loadPage('cash-report')">
+            Cash Report
+        </div>
+
+        <div class="nav-link" onclick="loadPage('mpesa-report')">
+            M-Pesa Report
+        </div>
+
+        <div class="nav-link"
+             onclick="loadPage('credit-report')"
+             style="border-left:3px solid #fbd38d;padding-left:19px">
+            Credit Report
+        </div>
+
     </div>
+
     <div class="sidebar-footer">
-        <div class="nav-link notebook-link" onclick="loadPage('notebook')">📒 Notebook</div>
-        <div class="nav-link" onclick="loadPage('settings')">⚙️ Settings</div>
-        <div class="nav-link logout-link" onclick="customLogoutTrigger()">Logout</div>
+
+        <div class="nav-link notebook-link"
+             onclick="loadPage('notebook')">
+            📒 Notebook
+        </div>
+
+        <div class="nav-link"
+             onclick="loadPage('settings')">
+            ⚙️ Settings
+        </div>
+
+        <div class="nav-link logout-link"
+             onclick="customLogoutTrigger()">
+            Logout
+        </div>
+
     </div>
+
 </aside>
 
 <main class="main">
-    <div class="dashboard-wrapper" id="dashboard-wrapper">
+
+    <div id="dashboard-wrapper" class="dashboard-wrapper">
+
         <div class="dashboard-grid">
+
             <div class="broker-hero col-12">
-                <h1>Institutional-Grade <span>Offline Execution Hub</span></h1>
-                <p>Process retail checkouts instantly with sub-millisecond local database sync, multi-tender payment routing, and real-time inventory adjustments built for high-performance retail enterprises.</p>
-                <div class="hero-cta-group">
-                    <a href="#" onclick="loadPage('sales'); return false;" class="btn btn-primary" style="max-width: 200px;">Launch Terminal</a>
+
+                <h1>
+                    Institutional-Grade
+                    <span>Offline Execution Hub</span>
+                </h1>
+
+                <p>
+                    Process retail checkouts instantly with local transaction
+                    buffering, multi-tender payment routing and real-time
+                    inventory adjustments built for high-performance retail
+                    enterprises.
+                </p>
+
+                <div>
+                    <a href="#"
+                       class="hero-cta"
+                       onclick="loadPage('sales');return false;">
+                        Launch Terminal
+                    </a>
                 </div>
+
             </div>
 
-            <div class="stats-hub-card col-6">
-                <div class="stats-hub-title">Local IndexedDB Sync Engine</div>
-                <div class="stats-hub-value">&lt;5ms</div>
-                <div class="stats-hub-desc">Local Database Transaction Execution Latency</div>
+            <div class="stats-card col-6">
+
+                <div class="stats-title">
+                    Local Transaction Engine
+                </div>
+
+                <div class="stats-value">
+                    &lt;5ms
+                </div>
+
+                <div class="stats-desc">
+                    Local Database Transaction Execution
+                </div>
+
             </div>
 
-            <div class="stats-hub-card col-6">
-                <div class="stats-hub-title">Offline Transaction Buffer</div>
-                <div class="stats-hub-value">100%</div>
-                <div class="stats-hub-desc">Zero Data Loss Guaranteed During Network Outages</div>
+            <div class="stats-card col-6">
+
+                <div class="stats-title">
+                    Offline Transaction Buffer
+                </div>
+
+                <div class="stats-value">
+                    100%
+                </div>
+
+                <div class="stats-desc">
+                    Transactions Buffered During Network Outages
+                </div>
+
             </div>
 
             <div class="asset-card col-4">
+
                 <div class="asset-icon">⚡</div>
-                <div class="asset-title">High-Speed Terminal</div>
-                <div class="asset-desc">Execute sales seamlessly with barcode scanning, instant product lookup, and split-tender payment processing.</div>
+
+                <div class="asset-title">
+                    High-Speed Terminal
+                </div>
+
+                <div class="asset-desc">
+                    Execute sales with barcode scanning,
+                    instant product lookup and split-tender
+                    payment processing.
+                </div>
+
             </div>
 
             <div class="asset-card col-4">
+
                 <div class="asset-icon"></div>
-                <div class="asset-title">Real-Time Inventory Engine</div>
-                <div class="asset-desc">Track precise stock levels, Weighted Average Costs (WAC), and automated low-stock reorder thresholds.</div>
+
+                <div class="asset-title">
+                    Real-Time Inventory Engine
+                </div>
+
+                <div class="asset-desc">
+                    Track stock levels, weighted average costs
+                    and low-stock thresholds.
+                </div>
+
             </div>
 
             <div class="asset-card col-4">
+
                 <div class="asset-icon"></div>
-                <div class="asset-title">Automated Master Ledger</div>
-                <div class="asset-desc">Every checkout or petty cash adjustment writes double-entry records, producing instantaneous P&L reports.</div>
+
+                <div class="asset-title">
+                    Automated Master Ledger
+                </div>
+
+                <div class="asset-desc">
+                    Every transaction can be synchronized into
+                    your financial records and reporting system.
+                </div>
+
             </div>
+
         </div>
     </div>
 
     <iframe id="main-frame" src="sales.html"></iframe>
+
 </main>
 
-<iframe id="sync-engine" src="local_db.html" style="display:none;"></iframe>
+<iframe id="sync-engine"
+        src="local_db.html"
+        style="display:none">
+</iframe>
 
-<div id="toastBox" class="toast">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="color: var(--success);"><polyline points="20 6 9 17 4 12"></polyline></svg>
-    <span id="toastText">Settings Updated Successfully</span>
+<!-- DRAGGABLE WHATSAPP SUPPORT -->
+
+<div id="supportFloating"
+     class="support-floating">
+
+    <div id="supportOptions"
+         class="support-options">
+
+        <button class="support-float-btn ask-ai-btn"
+                onclick="toggleAskAI()"
+                title="AI">
+
+            <svg viewBox="0 0 24 24">
+                <path d="M12 2a10 10 0 0 0-10 10c0 2.1.65 4.05 1.76 5.66L2 22l4.34-1.76A9.95 9.95 0 0 0 12 22a10 10 0 1 0 0-20zm-1 5h2v2h-2V7zm-3 4h8v2H8v-2zm2 4h4v2h-4v-2z"/>
+            </svg>
+
+            Ask AI
+
+        </button>
+
+        <button class="support-float-btn agent-btn"
+                onclick="toggleAgentChat()"
+                title="Talk to an agent">
+
+            <svg viewBox="0 0 24 24">
+                <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1.9-2 2-2z"/>
+            </svg>
+
+            Live Agent
+
+        </button>
+
+    </div>
+
+    <button id="supportMainBtn"
+            class="support-main-btn"
+            aria-label="Open support"
+            title="Support">
+
+        <svg viewBox="0 0 24 24">
+            <path d="M20.05 3.95A11.92 11.92 0 0 0 12.03 1C5.42 1 1.02 5.96 1.02 12.06c0 2.02.53 3.99 1.53 5.72L1 23l5.37-1.5a11.04 11.04 0 0 0 5.61 1.53h.05c6.61 0 11.97-5.05 11.97-11.04 0-3.2-1.4-6.08-3.95-8.04z"/>
+        </svg>
+
+    </button>
+
 </div>
 
-<!-- Reduced & Draggable WhatsApp Floating Button -->
-<button class="chat-widget-btn" id="chatWidgetBtn" title="Open Support Options">
-    <svg viewBox="0 0 24 24"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01-1.87-1.87-4.36-2.9-7.01-2.9zm0 1.67c2.2 0 4.27.86 5.82 2.42 1.56 1.55 2.42 3.63 2.42 5.82 0 4.54-3.69 8.24-8.24 8.24-1.46 0-2.88-.39-4.12-1.13l-.3-.18-3.11.82.83-3.03-.19-.31c-.81-1.28-1.24-2.77-1.24-4.31 0-4.54 3.69-8.24 8.24-8.24zm4.51 5.92c-.17-.09-.98-.48-1.13-.54-.15-.06-.26-.09-.37.09-.11.17-.43.54-.53.65-.1.11-.21.13-.38.05-.17-.09-.72-.27-1.37-.84-.51-.45-.85-1-1.0-1.17-.15-.17-.02-.26.07-.35.07-.07.15-.17.23-.26.08-.09.11-.15.17-.26.06-.11.03-.2-.01-.28-.04-.09-.37-.89-.51-1.22-.13-.32-.27-.28-.37-.28h-.32c-.11 0-.28.04-.43.2-.15.17-.57.55-.57 1.34 0 .79.58 1.55.66 1.66.08.11 1.14 1.74 2.77 2.44.39.17.69.27.93.35.39.12.74.1 1.02.06.31-.05.98-.4 1.12-.79.14-.39.14-.72.1-.79-.04-.07-.15-.11-.32-.2z"/></svg>
-</button>
+<!-- ASK AI -->
 
-<!-- Separate Tagged Popup Floating Buttons (Talk to an Agent & Ask AI) -->
-<button class="chat-sub-btn agent-btn" id="agentSubBtn" onclick="openAgentChat()">
-    <svg viewBox="0 0 24 24"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01-1.87-1.87-4.36-2.9-7.01-2.9z"/></svg>
-    Talk to an Agent
-</button>
-<button class="chat-sub-btn ai-btn" id="aiSubBtn" onclick="openAiChat()">
-    <svg viewBox="0 0 24 24"><path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2M7.5 13a1.5 1.5 0 0 0-1.5 1.5A1.5 1.5 0 0 0 7.5 16a1.5 1.5 0 0 0 1.5-1.5A1.5 1.5 0 0 0 7.5 13m9 0a1.5 1.5 0 0 0-1.5 1.5a1.5 1.5 0 0 0 1.5 1.5a1.5 1.5 0 0 0 1.5-1.5a1.5 1.5 0 0 0-1.5-1.5z"/></svg>
-    Ask AI
-</button>
+<div id="aiContainer"
+     class="chat-container ai-container">
 
-<!-- Separate Chat Page 1: Agent Support Chat Container -->
-<div class="chat-container" id="agentChatContainer">
     <div class="chat-header">
-        <span>WhatsApp Support Agent Chat</span>
-        <div class="chat-header-actions">
-            <button onclick="toggleClearMenu('agent')" title="Clear Options">🗑️ Clear</button>
-            <div class="clear-dropdown-menu" id="agentClearMenu">
-                <div class="clear-dropdown-item" onclick="executeClear('agent', 'all')">Clear All</div>
-                <div class="clear-dropdown-item" onclick="executeClear('agent', 'selective')">Select 1 by 1</div>
-            </div>
-            <button onclick="closeAllChatContainers()">✕</button>
-        </div>
-    </div>
-    <div class="ticket-selector-bar" id="ticketSelectorBar" style="display:none;">
-        <span>Active Ticket:</span>
-        <select id="ticketSelectDropdown" onchange="switchActiveTicket(this.value)"></select>
+
+        <span>AssetGuard AI</span>
+
+        <button class="chat-close"
+                onclick="toggleAskAI()">
+            ×
+        </button>
+
     </div>
 
-    <!-- Pinned Always-Visible Quick Actions Bar at the TOP -->
-    <div style="background:#f1f5f9; padding:8px 12px; border-bottom:1px solid var(--border-color); display:flex; flex-direction:column; gap:4px; flex-shrink:0;">
-        <span style="font-size:10px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Quick Support Actions:</span>
-        <div class="chat-actions" style="margin-top:0;">
-            <button class="chat-chip" onclick="handleAgentChoice('new')">New Issue</button>
-            <button class="chat-chip" onclick="handleAgentChoice('followup')">Follow-up</button>
-            <button class="chat-chip" onclick="requestHistoryRetrieval()">Request History Access</button>
-        </div>
-    </div>
-
-    <div class="chat-messages" id="agentChatMessages">
-        <!-- Messages stream here dynamically -->
+    <div id="aiMessages"
+         class="chat-messages">
     </div>
 
     <div class="chat-input-area">
-        <div id="agentReplyingBar" style="display:none; background:#e0f2fe; padding:6px 10px; border-radius:6px; font-size:11px; color:var(--primary-dark); justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <span id="agentReplyingTextSnippet">Replying to message...</span>
-            <button onclick="cancelAgentReplyHighlight()" style="background:none; border:none; cursor:pointer; font-weight:bold; color:var(--danger);">✕</button>
-        </div>
-        <div id="agentEditingBar" style="display:none; background:#fef08a; padding:6px 10px; border-radius:6px; font-size:11px; color:#713f12; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <span id="agentEditingTextSnippet">Editing message...</span>
-            <button onclick="cancelAgentEdit()" style="background:none; border:none; cursor:pointer; font-weight:bold; color:var(--danger);">✕</button>
-        </div>
-        <div id="agentSelectiveActionBar" style="display:none; background:#fff7ed; padding:8px 12px; border-radius:6px; font-size:11px; color:#c2410c; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <span>Tap messages to select for deletion</span>
-            <button onclick="deleteSelectedAgentMessages()" class="btn btn-primary" style="padding:4px 10px; font-size:11px; flex:unset;">Delete Selected</button>
-        </div>
-        <div class="chat-input-row">
-            <input type="text" id="agentChatInputBox" placeholder="Type message to agent..." onkeypress="handleAgentKeyPress(event)">
-            <button onclick="sendAgentMessage()" id="agentSendBtn">Send</button>
-        </div>
+
+        <input id="aiInputBox"
+               type="text"
+               autocomplete="off"
+               placeholder="Ask AI about AssetGuard Pro..."
+               onkeypress="handleAIKeyPress(event)">
+
+        <button id="aiSendButton"
+                class="chat-send ai-send"
+                onclick="sendAIMessage()">
+            Ask
+        </button>
+
     </div>
+
 </div>
 
-<!-- Separate Chat Page 2: Ask AI Chat Container -->
-<div class="chat-container" id="aiChatContainer">
+<!-- AGENT -->
+
+<div id="agentContainer"
+     class="chat-container">
+
     <div class="chat-header">
-        <span>Ask AI — AssetGuard Pro Guide</span>
-        <div class="chat-header-actions">
-            <button onclick="toggleClearMenu('ai')" title="Clear AI Chat">🗑️ Clear</button>
-            <div class="clear-dropdown-menu" id="aiClearMenu">
-                <div class="clear-dropdown-item" onclick="executeClear('ai', 'all')">Clear All</div>
-                <div class="clear-dropdown-item" onclick="executeClear('ai', 'selective')">Select 1 by 1</div>
-            </div>
-            <button onclick="closeAllChatContainers()">✕</button>
-        </div>
+
+        <span>AssetGuard Support Agent</span>
+
+        <button class="chat-close"
+                onclick="toggleAgentChat()">
+            ×
+        </button>
+
     </div>
-    <div class="chat-messages" id="aiChatMessages">
-        <div class="chat-bubble bot">
-            Hello! I am your AssetGuard Pro Guide. I can explain all 12 key features one by one, or answer greetings and general questions. Tap any item below or type your question:
-            <div class="chat-actions">
-                <button class="chat-chip" onclick="handleAiChoice('general')">1. General Info</button>
-                <button class="chat-chip" onclick="handleAiChoice('sales')">2. Sales Terminal</button>
-                <button class="chat-chip" onclick="handleAiChoice('purchases')">3. Purchases</button>
-                <button class="chat-chip" onclick="handleAiChoice('crm')">4. Customer Registry</button>
-                <button class="chat-chip" onclick="handleAiChoice('stock')">5. Current Stock</button>
-                <button class="chat-chip" onclick="handleAiChoice('expenses')">6. Record Expense</button>
-                <button class="chat-chip" onclick="handleAiChoice('ledger')">7. Master Ledger</button>
-                <button class="chat-chip" onclick="handleAiChoice('cash')">8. Cash Report</button>
-                <button class="chat-chip" onclick="handleAiChoice('mpesa')">9. M-Pesa Report</button>
-                <button class="chat-chip" onclick="handleAiChoice('notebook')">10. Notebook</button>
-                <button class="chat-chip" onclick="handleAiChoice('settings')">11. Settings</button>
-                <button class="chat-chip" onclick="handleAiChoice('logout')">12. Logout</button>
-            </div>
-        </div>
+
+    <div id="agentMessages"
+         class="chat-messages">
     </div>
-    <div id="aiSelectiveActionBar" style="display:none; background:#fff7ed; padding:8px 12px; border-radius:6px; font-size:11px; color:#c2410c; justify-content:space-between; align-items:center; margin:8px 12px 0;">
-        <span>Tap messages to select for deletion</span>
-        <button onclick="deleteSelectedAiMessages()" class="btn btn-primary" style="padding:4px 10px; font-size:11px; flex:unset;">Delete Selected</button>
-    </div>
+
     <div class="chat-input-area">
-        <div class="chat-input-row">
-            <input type="text" id="aiChatInputBox" placeholder="Ask about any feature or say hello..." onkeypress="handleAiKeyPress(event)">
-            <button onclick="sendAiMessage()">Send</button>
-        </div>
+
+        <input id="agentInputBox"
+               type="text"
+               autocomplete="off"
+               placeholder="Message Support Agent..."
+               onkeypress="handleAgentKeyPress(event)">
+
+        <button id="agentSendButton"
+                class="chat-send"
+                onclick="sendAgentMessage()">
+            Send
+        </button>
+
     </div>
+
 </div>
 
 <script>
-const firebaseConfig = { 
-    apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA", 
-    authDomain: "assetguard-c8c8c.firebaseapp.com", 
-    projectId: "assetguard-c8c8c",
-    databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com"
+
+const firebaseConfig={
+    apiKey:"AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA",
+    authDomain:"assetguard-c8c8c.firebaseapp.com",
+    projectId:"assetguard-c8c8c",
+    databaseURL:"https://assetguard-c8c8c-default-rtdb.firebaseio.com"
 };
 
-if (!firebase.apps.length) {
+if(!firebase.apps.length){
     firebase.initializeApp(firebaseConfig);
 }
-const rtdb = firebase.database();
-const auth = firebase.auth();
 
-const activeUID = localStorage.getItem("ag_active_uid") || "global_terminal_user";
-if (!localStorage.getItem("ag_active_uid")) {
-    localStorage.setItem("ag_active_uid", activeUID);
+const rtdb=firebase.database();
+const auth=firebase.auth();
+
+const activeUID=
+    localStorage.getItem("ag_active_uid");
+
+if(!activeUID){
+    window.location.href="index.html";
 }
 
-const MASTER_CONFIG = {
-    backendUrl: "https://weathered-glade-c60b.assetguardinfo.workers.dev",
-    environment: "production",
-    accountType: "Paybill",
-    shortcode: "257471",
-    passkey: "103f80194fedeaefb352960fb340d766ef3f84a9dcb96aafdd21d0b0bb8dfbab",
-    consumerKey: "AGJGJGGktfRf8OHhos6TJXKupDMb3f2wG9pZDdF8tG5qm0qK",
-    consumerSecret: "xmd2sXJzRA6Chl1KHGvR9jG0qtSBse1oRBCdgBjb4DnO7SEi4QzPVwKNWWraubJd"
-};
+const SEVENTY_TWO_HOURS=
+    72*60*60*1000;
 
-let pendingSubDays = 0;
-let pendingAmount = 1500;
-let pollInterval = null;
-let historyAccessGranted = true; 
-let agentHighlightedMessageId = null;
-let agentHighlightedMessageSnippet = null;
-let activeSelectedTicketId = null;
-let agentEditingMessageKey = null;
-let allUserTicketsData = {};
-let allBroadcastsCache = {};
-let allUserNotificationsCache = {};
-let isAiSelectiveMode = false;
-let isAgentSelectiveMode = false;
+let historyAccessGranted=false;
+let agentFlowState=null;
 
-// Global Window Click Listener to Shrink/Close Clear Menus When Clicking Outside
-window.addEventListener('click', (e) => {
-    const aiMenu = document.getElementById('aiClearMenu');
-    const agentMenu = document.getElementById('agentClearMenu');
-    
-    if (aiMenu && !aiMenu.contains(e.target) && !e.target.closest('[onclick*="toggleClearMenu(\'ai\')"]')) {
-        aiMenu.classList.remove('active');
+let currentAgentConversationId=
+    localStorage.getItem(
+        "ag_support_conversation_"+activeUID
+    );
+
+let aiConversationId=
+    localStorage.getItem(
+        "ag_ai_conversation_"+activeUID
+    );
+
+function ensureAgentConversationId(){
+
+    if(!currentAgentConversationId){
+
+        currentAgentConversationId=
+            "AGENT-CONV-"+Date.now()+"-"+
+            Math.random().toString(36).substring(2,9);
+
+        localStorage.setItem(
+            "ag_support_conversation_"+activeUID,
+            currentAgentConversationId
+        );
     }
-    if (agentMenu && !agentMenu.contains(e.target) && !e.target.closest('[onclick*="toggleClearMenu(\'agent\')"]')) {
-        agentMenu.classList.remove('active');
-    }
-});
 
-// Automated log pruner to keep database clean and prevent bloat lag
-function pruneOldActivityLogs() {
-    const logsRef = rtdb.ref('user_activity_logs');
-    logsRef.orderByChild('timestamp').once('value', (snapshot) => {
-        if (snapshot.numChildren() > 80) {
-            let keysToDelete = [];
-            let count = 0;
-            snapshot.forEach((childSnap) => {
-                count++;
-                if (count <= snapshot.numChildren() - 80) {
-                    keysToDelete.push(childSnap.key);
-                }
-            });
-            keysToDelete.forEach(key => {
-                logsRef.child(key).remove();
-            });
-        }
-    });
+    return currentAgentConversationId;
 }
 
-// Audit Activity Logger
-function logUserActivity(category, description) {
-    try {
-        rtdb.ref('user_activity_logs').push({
-            uid: activeUID || "Anonymous",
-            category: category,
-            description: description,
-            timestamp: Date.now(),
-            device: navigator.userAgent.substring(0, 50)
-        });
-        pruneOldActivityLogs();
-    } catch (err) {
-        console.error("Failed to log activity:", err);
-    }
-}
+function ensureAIConversationId(){
 
-// Unified Notification Listener (Broadcasts + Individual Direct Notices)
-function initBroadcastListener() {
-    // 1. Global Broadcasts
-    rtdb.ref('system_broadcasts').on('value', (snapshot) => {
-        allBroadcastsCache = snapshot.val() || {};
-        renderCombinedNotifications();
-    });
+    if(!aiConversationId){
 
-    // 2. Individual Direct Admin Notifications
-    if (activeUID) {
-        rtdb.ref(`user_notifications/${activeUID}`).on('value', (snapshot) => {
-            allUserNotificationsCache = snapshot.val() || {};
-            renderCombinedNotifications();
-        });
+        aiConversationId=
+            "AI-CONV-"+Date.now()+"-"+
+            Math.random().toString(36).substring(2,9);
 
-        // Popup toast for new individual notices arriving in real-time
-        rtdb.ref(`user_notifications/${activeUID}`).on('child_added', (snapshot) => {
-            const notif = snapshot.val();
-            if (!notif) return;
-            if (Date.now() - (notif.timestamp || 0) < 60000) { // within last minute
-                showAdminNotificationPopup(notif.title || "Admin Notice", notif.message || "");
-            }
-        });
-    }
-}
-
-function renderCombinedNotifications() {
-    let combinedList = [];
-
-    // Add global broadcasts
-    for (let id in allBroadcastsCache) {
-        combinedList.push({ id, ...allBroadcastsCache[id], origin: 'Broadcast' });
+        localStorage.setItem(
+            "ag_ai_conversation_"+activeUID,
+            aiConversationId
+        );
     }
 
-    // Add individual user direct notifications
-    for (let id in allUserNotificationsCache) {
-        combinedList.push({ 
-            id, 
-            ...allUserNotificationsCache[id], 
-            origin: 'Direct Notice', 
-            priority: 'Urgent' 
-        });
+    return aiConversationId;
+}
+
+function startNewAgentConversation(){
+
+    currentAgentConversationId=
+        "AGENT-CONV-"+Date.now()+"-"+
+        Math.random().toString(36).substring(2,9);
+
+    localStorage.setItem(
+        "ag_support_conversation_"+activeUID,
+        currentAgentConversationId
+    );
+
+    agentFlowState=null;
+}
+
+function cleanText(value){
+
+    if(
+        value===null ||
+        value===undefined
+    ){
+        return "";
     }
 
-    combinedList.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    return String(value).trim();
+}
 
-    const lastSeenTimestamp = parseInt(localStorage.getItem('ag_last_seen_broadcast') || '0');
-    let unreadCount = 0;
-    combinedList.forEach(item => {
-        if ((item.timestamp || 0) > lastSeenTimestamp) {
-            unreadCount++;
-        }
-    });
+function escapeHTML(value){
 
-    const badge = document.getElementById('broadcastBadge');
-    if (unreadCount > 0) {
-        badge.innerText = unreadCount;
-        badge.style.display = 'block';
-    } else {
-        badge.style.display = 'none';
+    return String(value)
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+}
+
+function formatChatText(value){
+
+    return escapeHTML(value)
+        .replace(
+            /\*\*(.*?)\*\*/g,
+            "<strong>$1</strong>"
+        );
+}
+
+function createBubble(sender,text,extraHTML=""){
+
+    const safeText=cleanText(text);
+    const safeExtra=cleanText(extraHTML);
+
+    if(!safeText && !safeExtra){
+        return null;
     }
 
-    renderBroadcastModalList(combinedList);
-}
+    const bubble=document.createElement("div");
 
-// Clear All Notifications Handler
-async function clearAllNotifications() {
-    try {
-        if (activeUID) {
-            await rtdb.ref(`user_notifications/${activeUID}`).remove();
-        }
-        allUserNotificationsCache = {};
-        allBroadcastsCache = {};
-        localStorage.setItem('ag_last_seen_broadcast', Date.now());
-        document.getElementById('broadcastBadge').style.display = 'none';
-        renderBroadcastModalList([]);
-        logUserActivity('GENERAL', 'Cleared all notifications from bell center');
-    } catch (err) {
-        console.error("Failed to clear notifications:", err);
-    }
-}
+    if(sender==="agent"){
 
-function showAdminNotificationPopup(title, message) {
-    let banner = document.getElementById('userNotificationBanner');
-    if (!banner) {
-        banner = document.createElement('div');
-        banner.id = 'userNotificationBanner';
-        banner.style.cssText = `
-            position: fixed; top: 15px; right: 15px; z-index: 9999;
-            background: #0f172a; color: #ffffff; padding: 12px 16px;
-            border-radius: 10px; box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-            max-width: 300px; width: 100%; border-left: 4px solid #ff6b00;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-        `;
-        document.body.appendChild(banner);
-    }
+        bubble.className="chat-bubble admin";
 
-    banner.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-            <strong style="font-size: 12px; color: #ff6b00;">${escapeHtml(title)}</strong>
-            <button onclick="document.getElementById('userNotificationBanner').remove()" style="background:none; border:none; color:#94a3b8; font-size:14px; cursor:pointer;">✕</button>
-        </div>
-        <div style="font-size: 11px; line-height: 1.35; color: #cbd5e1;">${escapeHtml(message)}</div>
-    `;
-
-    setTimeout(() => {
-        if (banner) banner.remove();
-    }, 12000);
-}
-
-function toggleBroadcastModal() {
-    const modal = document.getElementById('broadcastModal');
-    const overlay = document.getElementById('overlay');
-    
-    if (modal.classList.contains('active')) {
-        closeBroadcastModal();
-    } else {
-        document.getElementById('sidebar').classList.remove('active');
-        modal.classList.add('active');
-        overlay.classList.add('active');
-
-        let combinedCount = Object.keys(allBroadcastsCache).length + Object.keys(allUserNotificationsCache).length;
-        if (combinedCount > 0) {
-            localStorage.setItem('ag_last_seen_broadcast', Date.now());
-            document.getElementById('broadcastBadge').style.display = 'none';
-        }
-    }
-}
-
-function closeBroadcastModal() {
-    document.getElementById('broadcastModal').classList.remove('active');
-    document.getElementById('overlay').classList.remove('active');
-}
-
-function renderBroadcastModalList(itemsList) {
-    const container = document.getElementById('broadcastListContainer');
-    if (itemsList.length === 0) {
-        container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:20px; font-size:13px;">No notifications available.</div>`;
-        return;
-    }
-    let html = "";
-    itemsList.forEach((item) => {
-        const dateStr = item.timestamp ? new Date(item.timestamp).toLocaleString() : '';
-        let priorityColor = 'var(--primary)';
-        if (item.priority === 'Important') priorityColor = 'var(--warning)';
-        if (item.priority === 'Urgent') priorityColor = 'var(--danger)';
-
-        let originBadge = item.origin === 'Direct Notice' ? `<span style="background:#e0f2fe; color:var(--primary); padding:2px 6px; border-radius:4px; font-size:10px; font-weight:800; margin-left:6px;">DIRECT MESSAGE</span>` : '';
-
-        html += `
-            <div style="background:#f8fafc; border:1px solid var(--border-color); border-left:4px solid ${priorityColor}; padding:12px; border-radius:8px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                    <div>
-                        <strong style="font-size:13px; color:var(--text-main);">${escapeHtml(item.title)}</strong>
-                        ${originBadge}
-                    </div>
-                    <span style="font-size:10px; font-weight:800; color:${priorityColor}; text-transform:uppercase;">${item.priority || 'Normal'}</span>
-                </div>
-                <div style="font-size:12px; color:var(--text-muted); line-height:1.4; margin-bottom:6px;">${escapeHtml(item.message)}</div>
-                <div style="font-size:10px; color:#94a3b8; text-align:right;">${dateStr}</div>
-            </div>
-        `;
-    });
-    container.innerHTML = html;
-}
-
-// Notification Bell Drag & 12-Second Snap-Back Logic
-const notificationBellBtn = document.getElementById('notificationBellBtn');
-let isBellDragging = false;
-let bellDragStartX = 0, bellDragStartY = 0;
-let bellInitialX = 0, bellInitialY = 0;
-let bellHasMoved = false;
-let bellReturnTimer = null;
-
-notificationBellBtn.addEventListener('pointerdown', (e) => {
-    isBellDragging = true;
-    bellHasMoved = false;
-    bellDragStartX = e.clientX;
-    bellDragStartY = e.clientY;
-    const rect = notificationBellBtn.getBoundingClientRect();
-    bellInitialX = rect.left;
-    bellInitialY = rect.top;
-    notificationBellBtn.setPointerCapture(e.pointerId);
-
-    if (bellReturnTimer) {
-        clearTimeout(bellReturnTimer);
-        bellReturnTimer = null;
-    }
-});
-
-notificationBellBtn.addEventListener('pointermove', (e) => {
-    if (!isBellDragging) return;
-    const dx = e.clientX - bellDragStartX;
-    const dy = e.clientY - bellDragStartY;
-    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) bellHasMoved = true;
-    let newX = bellInitialX + dx;
-    let newY = bellInitialY + dy;
-    const btnWidth = notificationBellBtn.offsetWidth || 44;
-    const btnHeight = notificationBellBtn.offsetHeight || 44;
-    newX = Math.max(10, Math.min(window.innerWidth - btnWidth - 10, newX));
-    newY = Math.max(10, Math.min(window.innerHeight - btnHeight - 10, newY));
-    notificationBellBtn.style.left = `${newX}px`;
-    notificationBellBtn.style.top = `${newY}px`;
-    notificationBellBtn.style.right = 'auto';
-    notificationBellBtn.style.bottom = 'auto';
-});
-
-notificationBellBtn.addEventListener('pointerup', (e) => {
-    if (!isBellDragging) return;
-    isBellDragging = false;
-    notificationBellBtn.releasePointerCapture(e.pointerId);
-
-    if (bellHasMoved) {
-        bellReturnTimer = setTimeout(() => {
-            notificationBellBtn.style.transition = 'all 0.5s ease';
-            notificationBellBtn.style.top = '90px';
-            notificationBellBtn.style.right = '20px';
-            notificationBellBtn.style.left = 'auto';
-            notificationBellBtn.style.bottom = 'auto';
-            setTimeout(() => {
-                notificationBellBtn.style.transition = 'background 0.2s, border-color 0.2s';
-            }, 500);
-        }, 12000);
-    } else {
-        toggleBroadcastModal();
-    }
-});
-
-// Draggable WhatsApp Button Logic with Screen Boundary Clamping & Adaptive Popup Positioning
-const chatWidgetBtn = document.getElementById('chatWidgetBtn');
-const agentSubBtn = document.getElementById('agentSubBtn');
-const aiSubBtn = document.getElementById('aiSubBtn');
-let isDraggingBtn = false;
-let dragStartX = 0, dragStartY = 0;
-let btnInitialX = 0, btnInitialY = 0;
-let hasMoved = false;
-
-function updateSubButtonPositions() {
-    const rect = chatWidgetBtn.getBoundingClientRect();
-    const btnLeft = rect.left;
-    const btnTop = rect.top;
-    const btnHeight = rect.height || 44;
-    const subBtnWidth = 150;
-    const screenWidth = window.innerWidth;
-
-    let leftPos = btnLeft;
-    if (leftPos + subBtnWidth > screenWidth - 10) {
-        leftPos = screenWidth - subBtnWidth - 10;
-    }
-    if (leftPos < 10) {
-        leftPos = 10;
-    }
-
-    if (btnTop < 110) {
-        agentSubBtn.style.left = `${leftPos}px`;
-        agentSubBtn.style.top = `${btnTop + btnHeight + 8}px`;
-
-        aiSubBtn.style.left = `${leftPos}px`;
-        aiSubBtn.style.top = `${btnTop + btnHeight + 54}px`;
-    } else {
-        agentSubBtn.style.left = `${leftPos}px`;
-        agentSubBtn.style.top = `${btnTop - 46}px`;
-
-        aiSubBtn.style.left = `${leftPos}px`;
-        aiSubBtn.style.top = `${btnTop - 92}px`;
-    }
-}
-
-chatWidgetBtn.addEventListener('pointerdown', (e) => {
-    isDraggingBtn = true;
-    hasMoved = false;
-    dragStartX = e.clientX;
-    dragStartY = e.clientY;
-    const rect = chatWidgetBtn.getBoundingClientRect();
-    btnInitialX = rect.left;
-    btnInitialY = rect.top;
-    chatWidgetBtn.setPointerCapture(e.pointerId);
-});
-
-chatWidgetBtn.addEventListener('pointermove', (e) => {
-    if (!isDraggingBtn) return;
-    const dx = e.clientX - dragStartX;
-    const dy = e.clientY - dragStartY;
-    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
-        hasMoved = true;
-    }
-    let newX = btnInitialX + dx;
-    let newY = btnInitialY + dy;
-
-    const btnWidth = chatWidgetBtn.offsetWidth || 44;
-    const btnHeight = chatWidgetBtn.offsetHeight || 44;
-    const minX = 10;
-    const minY = 10;
-    const maxX = window.innerWidth - btnWidth - 10;
-    const maxY = window.innerHeight - btnHeight - 10;
-
-    newX = Math.max(minX, Math.min(maxX, newX));
-    newY = Math.max(minY, Math.min(maxY, newY));
-    
-    chatWidgetBtn.style.left = `${newX}px`;
-    chatWidgetBtn.style.top = `${newY}px`;
-    chatWidgetBtn.style.right = 'auto';
-    chatWidgetBtn.style.bottom = 'auto';
-
-    updateSubButtonPositions();
-});
-
-chatWidgetBtn.addEventListener('pointerup', (e) => {
-    if (!isDraggingBtn) return;
-    isDraggingBtn = false;
-    chatWidgetBtn.releasePointerCapture(e.pointerId);
-    if (!hasMoved) {
-        togglePopupIcons();
-    }
-});
-
-function togglePopupIcons() {
-    const agentContainer = document.getElementById('agentChatContainer');
-    const aiContainer = document.getElementById('aiChatContainer');
-    const areSubsActive = agentSubBtn.classList.contains('active');
-    const isAgentOpen = agentContainer.classList.contains('active');
-    const isAiOpen = aiContainer.classList.contains('active');
-
-    if (areSubsActive || isAgentOpen || isAiOpen) {
-        closeAllChatContainers();
-    } else {
-        updateSubButtonPositions();
-        agentSubBtn.classList.add('active');
-        aiSubBtn.classList.add('active');
-    }
-}
-
-function closeAllChatContainers() {
-    document.getElementById('agentChatContainer').classList.remove('active');
-    document.getElementById('aiChatContainer').classList.remove('active');
-    agentSubBtn.classList.remove('active');
-    aiSubBtn.classList.remove('active');
-    document.getElementById('aiClearMenu').classList.remove('active');
-    document.getElementById('agentClearMenu').classList.remove('active');
-
-    isAiSelectiveMode = false;
-    isAgentSelectiveMode = false;
-    document.getElementById('aiSelectiveActionBar').style.display = 'none';
-    document.getElementById('agentSelectiveActionBar').style.display = 'none';
-    document.querySelectorAll('.chat-bubble.selected').forEach(b => b.classList.remove('selected'));
-    document.querySelectorAll('.chat-bubble.selectable').forEach(b => b.classList.remove('selectable'));
-}
-
-function openAgentChat() {
-    agentSubBtn.classList.remove('active');
-    aiSubBtn.classList.remove('active');
-    document.getElementById('aiChatContainer').classList.remove('active');
-    document.getElementById('agentChatContainer').classList.add('active');
-    document.getElementById('agentChatInputBox').focus();
-    logUserActivity('SUPPORT', 'Opened Agent Support Chat');
-}
-
-function openAiChat() {
-    agentSubBtn.classList.remove('active');
-    aiSubBtn.classList.remove('active');
-    document.getElementById('agentChatContainer').classList.remove('active');
-    document.getElementById('aiChatContainer').classList.add('active');
-    document.getElementById('aiChatInputBox').focus();
-    logUserActivity('SUPPORT', 'Opened Ask AI Guide');
-}
-
-// Clear Menu Toggles & Execution
-function toggleClearMenu(type) {
-    const aiMenu = document.getElementById('aiClearMenu');
-    const agentMenu = document.getElementById('agentClearMenu');
-    if (type === 'ai') {
-        aiMenu.classList.toggle('active');
-        agentMenu.classList.remove('active');
-    } else {
-        agentMenu.classList.toggle('active');
-        aiMenu.classList.remove('active');
-    }
-}
-
-function executeClear(type, mode) {
-    if (type === 'ai') {
-        document.getElementById('aiClearMenu').classList.remove('active');
-        if (mode === 'all') {
-            isAiSelectiveMode = false;
-            document.getElementById('aiSelectiveActionBar').style.display = 'none';
-            const messagesDiv = document.getElementById('aiChatMessages');
-            messagesDiv.innerHTML = `
-                <div class="chat-bubble bot">
-                    AI chat cleared. How can I help you?
-                    <div class="chat-actions">
-                        <button class="chat-chip" onclick="handleAiChoice('general')">1. General Info</button>
-                        <button class="chat-chip" onclick="handleAiChoice('sales')">2. Sales Terminal</button>
-                        <button class="chat-chip" onclick="handleAiChoice('purchases')">3. Purchases</button>
-                        <button class="chat-chip" onclick="handleAiChoice('stock')">5. Current Stock</button>
-                        <button class="chat-chip" onclick="handleAiChoice('ledger')">7. Master Ledger</button>
-                    </div>
-                </div>
-            `;
-        } else {
-            isAiSelectiveMode = true;
-            document.getElementById('aiSelectiveActionBar').style.display = 'flex';
-            makeAiBubblesSelectable();
-        }
-    } else {
-        document.getElementById('agentClearMenu').classList.remove('active');
-        if (mode === 'all') {
-            isAgentSelectiveMode = false;
-            document.getElementById('agentSelectiveActionBar').style.display = 'none';
-            clearAgentChat();
-        } else {
-            isAgentSelectiveMode = true;
-            document.getElementById('agentSelectiveActionBar').style.display = 'flex';
-            makeAgentBubblesSelectable();
-        }
-    }
-}
-
-function makeAiBubblesSelectable() {
-    const bubbles = document.querySelectorAll('#aiChatMessages .chat-bubble');
-    bubbles.forEach(b => {
-        b.classList.add('selectable');
-        b.onclick = () => {
-            if (isAiSelectiveMode) {
-                b.classList.toggle('selected');
-            }
-        };
-    });
-}
-
-function deleteSelectedAiMessages() {
-    const selected = document.querySelectorAll('#aiChatMessages .chat-bubble.selected');
-    selected.forEach(s => s.remove());
-    isAiSelectiveMode = false;
-    document.getElementById('aiSelectiveActionBar').style.display = 'none';
-}
-
-function makeAgentBubblesSelectable() {
-    const bubbles = document.querySelectorAll('#agentChatMessages .chat-bubble');
-    bubbles.forEach(b => {
-        b.classList.add('selectable');
-        b.onclick = () => {
-            if (isAgentSelectiveMode) {
-                b.classList.toggle('selected');
-            }
-        };
-    });
-}
-
-async function deleteSelectedAgentMessages() {
-    const selected = document.querySelectorAll('#agentChatMessages .chat-bubble.selected');
-    if (!activeSelectedTicketId) return;
-    
-    try {
-        for (let s of selected) {
-            const msgKey = s.getAttribute('data-msg-key');
-            if (msgKey) {
-                if (msgKey.startsWith('root_')) {
-                    await rtdb.ref(`support_tickets/${activeSelectedTicketId}`).remove();
-                } else {
-                    await rtdb.ref(`support_tickets/${activeSelectedTicketId}/conversation/${msgKey}`).remove();
-                }
-            }
-        }
-    } catch (err) {
-        console.error("Failed to delete messages:", err);
-    }
-    isAgentSelectiveMode = false;
-    document.getElementById('agentSelectiveActionBar').style.display = 'none';
-}
-
-function clearAgentChat() {
-    const messagesDiv = document.getElementById('agentChatMessages');
-    messagesDiv.innerHTML = ``;
-    document.getElementById('ticketSelectorBar').style.display = 'none';
-}
-
-window.requestHistoryRetrieval = () => {
-    appendAgentMessage('user', 'Request History Access');
-    appendAgentMessage('agent-reply', '🔄 Retrieving full chat history...');
-    
-    rtdb.ref('history_requests').push({
-        uid: activeUID,
-        reason: 'User requested history access from chat widget',
-        status: 'Pending',
-        timestamp: Date.now()
-    });
-
-    setTimeout(() => {
-        initRealtimeChatListener();
-        appendAgentMessage('agent-reply', '✅ History retrieved successfully. All historical records are now loaded.');
-    }, 1200);
-};
-
-function initRealtimeChatListener() {
-    rtdb.ref('support_tickets').orderByChild('uid').equalTo(activeUID).on('value', (snapshot) => {
-        const messagesDiv = document.getElementById('agentChatMessages');
-        messagesDiv.innerHTML = ``;
-
-        if (!snapshot.exists()) {
-            const noHistoryBubble = document.createElement('div');
-            noHistoryBubble.className = 'chat-bubble bot';
-            noHistoryBubble.innerHTML = `<em>No chat history was found.</em>`;
-            messagesDiv.appendChild(noHistoryBubble);
-            document.getElementById('ticketSelectorBar').style.display = 'none';
-            return;
+        if(safeText){
+            const textDiv=document.createElement("div");
+            textDiv.innerHTML=
+                "<strong>Agent:</strong> "+
+                formatChatText(safeText);
+            bubble.appendChild(textDiv);
         }
 
-        allUserTicketsData = snapshot.val();
-        let sortedTickets = [];
+    }else if(sender==="ai"){
 
-        for (let key in allUserTicketsData) {
-            sortedTickets.push({ id: key, ...allUserTicketsData[key] });
-        }
-        sortedTickets.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+        bubble.className="chat-bubble ai";
 
-        if (sortedTickets.length === 0) {
-            const noHistoryBubble = document.createElement('div');
-            noHistoryBubble.className = 'chat-bubble bot';
-            noHistoryBubble.innerHTML = `<em>No chat history was found.</em>`;
-            messagesDiv.appendChild(noHistoryBubble);
-            document.getElementById('ticketSelectorBar').style.display = 'none';
-            return;
+        if(safeText){
+            const textDiv=document.createElement("div");
+            textDiv.innerHTML=
+                "<strong>AI:</strong> "+
+                formatChatText(safeText);
+            bubble.appendChild(textDiv);
         }
 
-        const dropdown = document.getElementById('ticketSelectDropdown');
-        dropdown.innerHTML = "";
-        sortedTickets.forEach(t => {
-            const opt = document.createElement('option');
-            opt.value = t.id;
-            opt.innerText = `${t.ticketNumber || 'Ticket'} (${new Date(t.timestamp).toLocaleDateString()})`;
-            dropdown.appendChild(opt);
-        });
+    }else if(sender==="user"){
 
-        if (sortedTickets.length > 1) {
-            document.getElementById('ticketSelectorBar').style.display = 'flex';
-        } else {
-            document.getElementById('ticketSelectorBar').style.display = 'none';
+        bubble.className="chat-bubble user";
+
+        if(safeText){
+            const textDiv=document.createElement("div");
+            textDiv.innerHTML=
+                "<strong>You:</strong> "+
+                formatChatText(safeText);
+            bubble.appendChild(textDiv);
         }
 
-        if (!activeSelectedTicketId || !allUserTicketsData[activeSelectedTicketId]) {
-            activeSelectedTicketId = sortedTickets[sortedTickets.length - 1].id;
-        }
-        dropdown.value = activeSelectedTicketId;
+    }else{
 
-        const currentTicket = allUserTicketsData[activeSelectedTicketId];
-        if (currentTicket) {
-            if (currentTicket.conversation && typeof currentTicket.conversation === 'object') {
-                const convList = Object.entries(currentTicket.conversation);
-                convList.sort((a, b) => (a[1].timestamp || 0) - (b[1].timestamp || 0));
+        bubble.className="chat-bubble system";
 
-                convList.forEach(([msgKey, item]) => {
-                    const isUser = item.sender === 'user';
-                    const bubble = document.createElement('div');
-                    bubble.className = `chat-bubble ${isUser ? 'user' : 'agent-reply'}`;
-                    bubble.setAttribute('data-msg-text', item.text);
-                    bubble.setAttribute('data-msg-key', msgKey);
-                    
-                    let replyHighlightHtml = "";
-                    if (item.replyToText) {
-                        const safeSnippet = escapeHtml(item.replyToText).replace(/'/g, "\\'");
-                        replyHighlightHtml = `<div onclick="scrollToOriginalAgentMessage('${safeSnippet}')" style="background:rgba(0,0,0,0.06); border-left:3px solid var(--primary); padding:4px 8px; margin-bottom:6px; font-size:11px; border-radius:4px; cursor:pointer;" title="Click to view original message">Replying to: "${escapeHtml(item.replyToText)}"</div>`;
-                    }
-
-                    const timeStr = item.timestamp ? new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-                    
-                    bubble.innerHTML = `${replyHighlightHtml}<strong>${isUser ? 'You' : 'Agent'}:</strong> ${escapeHtml(item.text)}<span class="bubble-meta">${timeStr}</span>`;
-                    
-                    if (isUser) {
-                        attachLongPressToEdit(bubble, msgKey, item.text);
-                    }
-                    attachSwipeToReply(bubble, item.text, currentTicket.id);
-                    messagesDiv.appendChild(bubble);
-                });
-            } else if (currentTicket.message) {
-                const userBubble = document.createElement('div');
-                userBubble.className = 'chat-bubble user';
-                userBubble.setAttribute('data-msg-text', currentTicket.message);
-                userBubble.setAttribute('data-msg-key', 'root_' + currentTicket.id);
-                const timeStr = currentTicket.timestamp ? new Date(currentTicket.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-                userBubble.innerHTML = `${escapeHtml(currentTicket.message)}<span class="bubble-meta">${timeStr}</span>`;
-                
-                attachLongPressToEdit(userBubble, 'root_' + currentTicket.id, currentTicket.message);
-                attachSwipeToReply(userBubble, currentTicket.message, currentTicket.id);
-                messagesDiv.appendChild(userBubble);
-
-                if (currentTicket.admin_reply) {
-                    const agentBubble = document.createElement('div');
-                    agentBubble.className = 'chat-bubble agent-reply';
-                    agentBubble.setAttribute('data-msg-text', currentTicket.admin_reply);
-                    const repTime = currentTicket.reply_timestamp ? new Date(currentTicket.reply_timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-                    agentBubble.innerHTML = `<strong>Agent:</strong> ${escapeHtml(currentTicket.admin_reply)}<span class="bubble-meta">${repTime}</span>`;
-                    messagesDiv.appendChild(agentBubble);
-                }
-            }
-
-            const currentStatus = currentTicket.status || 'Pending';
-            const statusBubble = document.createElement('div');
-            statusBubble.className = 'chat-bubble bot';
-            let statusColor = '#d97706';
-            if (currentStatus === 'In Progress') statusColor = '#0369a1';
-            else if (currentStatus === 'Resolved') statusColor = '#166534';
-            statusBubble.innerHTML = `<em>Ticket Status (${currentTicket.ticketNumber || 'Ticket'}):</em> <strong style="color:${statusColor}">${currentStatus}</strong>`;
-            messagesDiv.appendChild(statusBubble);
-        }
-
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    });
-}
-
-function switchActiveTicket(ticketId) {
-    activeSelectedTicketId = ticketId;
-    initRealtimeChatListener();
-}
-
-function attachLongPressToEdit(bubbleElement, msgKey, currentText) {
-    let holdTimer = null;
-    const startHold = () => {
-        holdTimer = setTimeout(() => {
-            enableAgentMessageEdit(msgKey, currentText);
-        }, 2000);
-    };
-    const cancelHold = () => {
-        if (holdTimer) clearTimeout(holdTimer);
-    };
-
-    bubbleElement.addEventListener('mousedown', startHold);
-    bubbleElement.addEventListener('mouseup', cancelHold);
-    bubbleElement.addEventListener('mouseleave', cancelHold);
-    bubbleElement.addEventListener('touchstart', startHold, { passive: true });
-    bubbleElement.addEventListener('touchend', cancelHold);
-    bubbleElement.addEventListener('touchmove', cancelHold);
-}
-
-function enableAgentMessageEdit(msgKey, currentText) {
-    agentEditingMessageKey = msgKey;
-    document.getElementById('agentEditingTextSnippet').innerText = `Editing: "${currentText.substring(0, 35)}..."`;
-    document.getElementById('agentEditingBar').style.display = 'flex';
-    const inputBox = document.getElementById('agentChatInputBox');
-    inputBox.value = currentText;
-    inputBox.focus();
-}
-
-function cancelAgentEdit() {
-    agentEditingMessageKey = null;
-    document.getElementById('agentEditingBar').style.display = 'none';
-    document.getElementById('agentChatInputBox').value = '';
-}
-
-function scrollToOriginalAgentMessage(targetText) {
-    const messagesDiv = document.getElementById('agentChatMessages');
-    const bubbles = messagesDiv.querySelectorAll('.chat-bubble');
-    let targetBubble = null;
-    for (let b of bubbles) {
-        const msgText = b.getAttribute('data-msg-text');
-        if (msgText && msgText.includes(targetText)) {
-            targetBubble = b;
-            break;
+        if(safeText){
+            const textDiv=document.createElement("div");
+            textDiv.innerHTML=
+                formatChatText(safeText);
+            bubble.appendChild(textDiv);
         }
     }
-    if (targetBubble) {
-        targetBubble.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        const originalBg = targetBubble.style.backgroundColor;
-        targetBubble.style.backgroundColor = '#fef08a';
-        setTimeout(() => {
-            targetBubble.style.backgroundColor = originalBg;
-        }, 1200);
-    }
-}
 
-function attachSwipeToReply(bubbleElement, textSnippet, ticketId) {
-    let startX = 0;
-    let currentX = 0;
-    let isDragging = false;
+    if(safeExtra){
 
-    bubbleElement.addEventListener('touchstart', (e) => {
-        startX = e.touches[0].clientX;
-        isDragging = true;
-    }, { passive: true });
-
-    bubbleElement.addEventListener('touchmove', (e) => {
-        if (!isDragging) return;
-        currentX = e.touches[0].clientX;
-        const diff = currentX - startX;
-        if (diff > 0 && diff < 90) {
-            bubbleElement.style.transform = `translateX(${diff}px)`;
-        }
-    }, { passive: true });
-
-    bubbleElement.addEventListener('touchend', () => {
-        if (!isDragging) return;
-        isDragging = false;
-        const diff = currentX - startX;
-        bubbleElement.style.transform = 'translateX(0px)';
-        if (diff > 45) {
-            highlightAgentMessageForReply(textSnippet, ticketId);
-        }
-    });
-
-    bubbleElement.addEventListener('mousedown', (e) => {
-        startX = e.clientX;
-        isDragging = true;
-    });
-
-    window.addEventListener('mousemove', (e) => {
-        if (!isDragging) return;
-        currentX = e.clientX;
-        const diff = currentX - startX;
-        if (diff > 0 && diff < 90) {
-            bubbleElement.style.transform = `translateX(${diff}px)`;
-        }
-    });
-
-    window.addEventListener('mouseup', () => {
-        if (!isDragging) return;
-        isDragging = false;
-        const diff = currentX - startX;
-        bubbleElement.style.transform = 'translateX(0px)';
-        if (diff > 45) {
-            highlightAgentMessageForReply(textSnippet, ticketId);
-        }
-    });
-}
-
-function highlightAgentMessageForReply(textSnippet, ticketId) {
-    agentHighlightedMessageId = ticketId;
-    agentHighlightedMessageSnippet = textSnippet;
-    document.getElementById('agentReplyingTextSnippet').innerText = `Replying to: "${textSnippet.substring(0, 40)}..."`;
-    document.getElementById('agentReplyingBar').style.display = 'flex';
-    document.getElementById('agentChatInputBox').focus();
-}
-
-function cancelAgentReplyHighlight() {
-    agentHighlightedMessageId = null;
-    agentHighlightedMessageSnippet = null;
-    document.getElementById('agentReplyingBar').style.display = 'none';
-}
-
-// Unified, Race-Free Subscription and Access Guard
-function enforceSubscriptionLock(isExpired, reason = "Subscription Expired") {
-    const blocker = document.getElementById('hubSubscriptionBlocker');
-    const titleEl = document.getElementById('hubBlockTitle');
-    const descEl = document.getElementById('hubBlockDesc');
-    
-    if (isExpired) {
-        titleEl.innerText = reason;
-        descEl.innerText = reason.includes("Suspended") || reason.includes("Blocked") ? "Your account has been restricted by the administrator." : "Your access license has elapsed. Select a plan below to complete payment via M-Pesa or contact admin for approval.";
-        blocker.style.display = 'flex';
-        document.body.classList.add('app-locked');
-        document.body.style.overflow = 'hidden';
-        const mainFrame = document.getElementById('main-frame');
-        if (mainFrame) mainFrame.src = 'about:blank';
-    } else {
-        blocker.style.display = 'none';
-        document.body.classList.remove('app-locked');
-        document.body.style.overflow = 'auto';
-    }
-}
-
-function initSubscriptionGuards() {
-    enforceSubscriptionLock(true, "Verifying Subscription...");
-    if (!activeUID || activeUID.startsWith("unidentified")) {
-        enforceSubscriptionLock(true, "Subscription Expired");
-        return;
-    }
-
-    rtdb.ref(`user_statuses/${activeUID}`).on('value', () => evaluateUnifiedAccess());
-    rtdb.ref(`subscription_pauses/${activeUID}`).on('value', () => evaluateUnifiedAccess());
-    rtdb.ref(`subscriptions/${activeUID}`).on('value', () => evaluateUnifiedAccess());
-}
-
-async function evaluateUnifiedAccess() {
-    const now = Date.now();
-    try {
-        const [statusSnap, pauseSnap, subSnap] = await Promise.all([
-            rtdb.ref(`user_statuses/${activeUID}`).once('value'),
-            rtdb.ref(`subscription_pauses/${activeUID}`).once('value'),
-            rtdb.ref(`subscriptions/${activeUID}`).once('value')
-        ]);
-
-        const status = statusSnap.val();
-        if (status && status !== "Active") {
-            enforceSubscriptionLock(true, "Account " + status);
-            return;
-        }
-
-        const pause = pauseSnap.val();
-        if (pause && pause.active === true && Number(pause.pausedUntil || 0) > now) {
-            enforceSubscriptionLock(false);
-            return;
-        }
-
-        const sub = subSnap.val();
-        if (!sub) {
-            enforceSubscriptionLock(true, "Subscription Required");
-            return;
-        }
-
-        const subStatus = String(sub.status || "").toLowerCase();
-        const isActiveFlag = sub.active === true;
-        let expiry = Number(sub.expiry || sub.expiresAt || 0);
-
-        if (expiry > 0 && expiry < 10000000000) {
-            expiry *= 1000;
-        }
-
-        if (!expiry || !Number.isFinite(expiry)) {
-            enforceSubscriptionLock(true, "Subscription Required");
-            return;
-        }
-
-        if (now >= expiry || (!isActiveFlag && subStatus !== "active")) {
-            enforceSubscriptionLock(true, "Subscription Expired");
-            return;
-        }
-
-        enforceSubscriptionLock(false);
-    } catch (error) {
-        console.error("Unified access evaluation error:", error);
-    }
-}
-
-function initiateMpesaPayment(daysAdded, amountVal, amountString) {
-    pendingSubDays = daysAdded;
-    pendingAmount = amountVal;
-    document.getElementById('stkAmountDisplay').innerText = amountString;
-    document.getElementById('mpesaNumber').value = "";
-    document.getElementById('stkInputStep').style.display = "block";
-    document.getElementById('stkLoadingStep').style.display = "none";
-    document.getElementById('stkSpinnerIcon').style.display = "block";
-    document.getElementById('stkRetryBtn').style.display = "none";
-    document.getElementById('stkCloseBtn').style.display = "flex";
-    document.getElementById('stkModal').style.display = "flex";
-    if (pollInterval) clearInterval(pollInterval);
-}
-
-function closeStkModal() {
-    if (pollInterval) clearInterval(pollInterval);
-    document.getElementById('stkModal').style.display = "none";
-    document.getElementById('hubSubscriptionBlocker').style.display = 'flex';
-    document.body.classList.add('app-locked');
-    document.body.style.overflow = 'hidden';
-}
-
-function resetStkModal() {
-    if (pollInterval) clearInterval(pollInterval);
-    document.getElementById('stkLoadingStep').style.display = "none";
-    document.getElementById('stkInputStep').style.display = "block";
-    document.getElementById('stkCloseBtn').style.display = "flex";
-}
-
-async function processStkPush() {
-    const phoneInput = document.getElementById('mpesaNumber');
-    const phone = phoneInput.value.trim();
-    const kenyanPhoneRegex = /^(07|01)\d{8}$/;
-    if (!kenyanPhoneRegex.test(phone)) {
-        triggerToast("Invalid Format: Use 07XXXXXXXX or 01XXXXXXXX");
-        phoneInput.style.borderColor = "var(--danger)";
-        return;
-    }
-    const formattedPhone = "254" + phone.substring(1);
-    document.getElementById('stkInputStep').style.display = "none";
-    document.getElementById('stkLoadingStep').style.display = "block";
-    document.getElementById('stkSpinnerIcon').style.display = "block";
-    document.getElementById('stkRetryBtn').style.display = "none";
-    document.getElementById('stkCloseBtn').style.display = "none"; 
-    
-    const titleEl = document.getElementById('stkStatusTitle');
-    const descEl = document.getElementById('stkStatusDesc');
-    titleEl.innerText = "Sending STK Push...";
-    descEl.innerText = "Communicating with Safaricom live gateway...";
-
-    try {
-        const response = await fetch(`${MASTER_CONFIG.backendUrl}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                environment: MASTER_CONFIG.environment,
-                shortcode: MASTER_CONFIG.shortcode,
-                passkey: MASTER_CONFIG.passkey,
-                consumerKey: MASTER_CONFIG.consumerKey,
-                consumerSecret: MASTER_CONFIG.consumerSecret,
-                accountType: MASTER_CONFIG.accountType,
-                amount: parseInt(pendingAmount, 10),
-                phoneNumber: formattedPhone
-            })
-        });
-        const result = await response.json();
-        if (!response.ok || (result.ResponseCode && result.ResponseCode !== "0")) {
-            throw new Error(result.errorMessage || result.ResponseDescription || "STK request rejected.");
-        }
-        startStatusPolling(result.CheckoutRequestID);
-    } catch (err) {
-        document.getElementById('stkSpinnerIcon').style.display = "none";
-        titleEl.innerText = "Payment cancelled";
-        titleEl.style.color = "var(--danger)";
-        descEl.innerText = err.message || "Timeout or user cannot be reached.";
-        document.getElementById('stkRetryBtn').style.display = "block";
-        document.getElementById('stkCloseBtn').style.display = "flex";
-    }
-}
-
-function startStatusPolling(checkoutRequestID) {
-    const titleEl = document.getElementById('stkStatusTitle');
-    const descEl = document.getElementById('stkStatusDesc');
-    titleEl.innerText = "Waiting for PIN Entry...";
-    descEl.innerText = "Please check your phone and enter your M-Pesa PIN.";
-    
-    let attempts = 0;
-    pollInterval = setInterval(async () => {
-        attempts++;
-        if (attempts > 18) {
-            clearInterval(pollInterval);
-            document.getElementById('stkSpinnerIcon').style.display = "none";
-            titleEl.innerText = "Payment cancelled";
-            titleEl.style.color = "var(--danger)";
-            descEl.innerText = "Timeout waiting for user response.";
-            document.getElementById('stkRetryBtn').style.display = "block";
-            document.getElementById('stkCloseBtn').style.display = "flex";
-            return;
-        }
-        try {
-            const response = await fetch(`${MASTER_CONFIG.backendUrl}/query`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    environment: MASTER_CONFIG.environment,
-                    shortcode: MASTER_CONFIG.shortcode,
-                    passkey: MASTER_CONFIG.passkey,
-                    consumerKey: MASTER_CONFIG.consumerKey,
-                    consumerSecret: MASTER_CONFIG.consumerSecret,
-                    checkoutRequestID: checkoutRequestID
-                })
-            });
-            const data = await response.json();
-            if (data.ResultCode === "0") {
-                clearInterval(pollInterval);
-                document.getElementById('stkSpinnerIcon').style.display = "none";
-                titleEl.innerText = "Payment Received";
-                titleEl.style.color = "var(--mpesa)";
-                descEl.innerText = "Subscription active!";
-                setTimeout(() => {
-                    finalizeSubscriptionRenew(pendingSubDays);
-                    closeStkModal();
-                }, 2000);
-            } else if (data.ResultCode && data.ResultCode !== "0") {
-                clearInterval(pollInterval);
-                document.getElementById('stkSpinnerIcon').style.display = "none";
-                titleEl.style.color = "var(--danger)";
-                titleEl.innerText = data.ResultCode === "1032" ? "Payment cancelled" : "Wrong PIN entered.";
-                descEl.innerText = data.ResultDesc || "Transaction failed.";
-                document.getElementById('stkRetryBtn').style.display = "block";
-                document.getElementById('stkCloseBtn').style.display = "flex";
-            }
-        } catch (err) {}
-    }, 4000);
-}
-
-async function finalizeSubscriptionRenew(daysAdded) {
-    const now = Date.now();
-    try {
-        const subscriptionRef = rtdb.ref(`subscriptions/${activeUID}`);
-        const snapshot = await subscriptionRef.once("value");
-        const existing = snapshot.val() || {};
-        let existingExpiry = Number(existing.expiry || existing.expiresAt || 0);
-        if (existingExpiry > 0 && existingExpiry < 10000000000) existingExpiry *= 1000;
-        const baseTime = existingExpiry > now ? existingExpiry : now;
-        const newExpiry = baseTime + (daysAdded * 24 * 60 * 60 * 1000);
-
-        await subscriptionRef.update({
-            active: true,
-            status: 'active',
-            expiry: newExpiry,
-            expiresAt: newExpiry,
-            plan: daysAdded >= 365 ? 'yearly' : 'monthly',
-            lastPaymentAt: now,
-            updatedAt: now,
-            lastUpdated: now
-        });
-
-        await rtdb.ref(`user_statuses/${activeUID}`).set("Active");
-
-        triggerToast(`Verified! Subscribed for ${daysAdded} Days.`);
-        enforceSubscriptionLock(false);
-    } catch (error) {
-        console.error("Subscription renewal database error:", error);
-    }
-}
-
-function triggerToast(msg) {
-    const box = document.getElementById('toastBox');
-    document.getElementById('toastText').innerText = msg;
-    box.classList.add('show');
-    setTimeout(() => { box.classList.remove('show'); }, 3000);
-}
-
-window.onload = () => {
-    initSubscriptionGuards();
-    initRealtimeChatListener();
-    initBroadcastListener();
-    updateSubButtonPositions();
-    logUserActivity('SECURITY', 'User session initialized on Dashboard Hub');
-};
-
-window.toggleMenu = () => { 
-    if (document.body.classList.contains('app-locked')) return;
-    const sidebar = document.getElementById("sidebar");
-    const overlay = document.getElementById("overlay");
-    const isSidebarActive = sidebar.classList.contains("active");
-
-    if (isSidebarActive) {
-        sidebar.classList.remove("active");
-        overlay.classList.remove("active");
-    } else {
-        document.getElementById("broadcastModal").classList.remove("active");
-        closeAllChatContainers();
-        sidebar.classList.add("active");
-        overlay.classList.add("active");
-    }
-};
-
-window.closeAll = () => { 
-    document.getElementById("sidebar").classList.remove("active"); 
-    document.getElementById("globalModal").classList.remove("active"); 
-    document.getElementById("broadcastModal").classList.remove("active");
-    document.getElementById("overlay").classList.remove("active"); 
-};
-
-window.showDashboard = () => {
-    if (document.body.classList.contains('app-locked')) return;
-    document.getElementById('dashboard-wrapper').style.display = 'block';
-    document.getElementById('main-frame').style.display = 'none';
-    closeAll();
-    logUserActivity('GENERAL', 'Navigated to Institutional Hub Dashboard');
-};
-
-window.loadPage = (pageName) => { 
-    if (document.body.classList.contains('app-locked')) return;
-    document.getElementById('dashboard-wrapper').style.display = 'none';
-    document.getElementById('main-frame').style.display = 'block';
-    document.getElementById('main-frame').src = `${pageName}.html?uid=${activeUID}`;
-    closeAll(); 
-    logUserActivity('GENERAL', `Loaded module page: ${pageName}`);
-};
-
-window.customLogoutTrigger = () => {
-    const modal = document.getElementById('globalModal');
-    document.getElementById('modalTitle').innerText = "Confirm Logout";
-    document.getElementById('modalText').innerText = "Are you sure you want to log out?";
-    document.getElementById('overlay').classList.add('active');
-    modal.classList.add('active');
-    document.getElementById('modalConfirmBtn').onclick = () => {
-        logUserActivity('SECURITY', 'User logged out');
-        localStorage.removeItem("ag_active_uid");
-        localStorage.removeItem("ag_session_active");
-        auth.signOut().then(() => { window.location.href = "index.html"; });
-    };
-};
-
-let agentFlowState = null;
-
-function appendAiMessage(sender, text, htmlContent = '') {
-    const messagesDiv = document.getElementById('aiChatMessages');
-    const bubble = document.createElement('div');
-    bubble.className = `chat-bubble ${sender}`;
-    if (isAiSelectiveMode) {
-        bubble.classList.add('selectable');
-        bubble.onclick = () => bubble.classList.toggle('selected');
-    }
-    bubble.innerText = text;
-    if (htmlContent) {
-        const extra = document.createElement('div');
-        extra.innerHTML = htmlContent;
+        const extra=document.createElement("div");
+        extra.innerHTML=safeExtra;
         bubble.appendChild(extra);
     }
-    messagesDiv.appendChild(bubble);
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+    return bubble;
 }
 
-function handleIntelligentAIResponse(query) {
-    const q = query.toLowerCase().trim();
-    let responseText = "";
+function appendToContainer(containerId,element){
 
-    if (q.match(/^(hi|hello|hey|greetings|good morning|good afternoon|good evening|how are you|thanks|thank you|help)$/)) {
-        responseText = "Hello! I am your AssetGuard Pro Guide. I can help you understand all 12 features of our application one by one: General Info, Sales Terminal, Purchases, Customer Registry, Current Stock, Record Expense, Master Ledger, Cash Report, M-Pesa Report, Notebook, Settings, and Logout. What would you like to know?";
-    } else if (q.includes('code') || q.includes('backend') || q.includes('source') || q.includes('programming') || q.includes('script')) {
-        responseText = "Please ask an agent.";
-    } else if (q.includes('general') || q.includes('about') || q.includes('asset guard') || q.includes('overview') || q.includes('hub')) {
-        responseText = "1. **General Information about Asset Guard:** AssetGuard Pro is an institutional-grade system with a 100% offline transaction buffer guaranteeing zero data loss during network outages.";
-    } else if (q.includes('sales terminal') || q.includes('terminal') || q.includes('checkout') || q.includes('pos')) {
-        responseText = "2. **Sales Terminal:** Located under Operations in your sidebar menu. It allows cashiers to scan barcodes, look up items instantly, and process retail checkouts across multiple payment tenders (Cash, M-Pesa, Credit).";
-    } else if (q.includes('purchase') || q.includes('restock') || q.includes('supplier')) {
-        responseText = "3. **Purchases:** Located under Operations in your sidebar. Use this section to record incoming stock deliveries from suppliers, log invoice costs, and automatically increase your inventory quantities.";
-    } else if (q.includes('customer registry') || q.includes('crm') || q.includes('customer')) {
-        responseText = "4. **Customer Registry:** Located under Relationships in your sidebar. It allows you to track customer contact information, set credit limits, monitor balances, and review purchase history.";
-    } else if (q.includes('current stock') || q.includes('stock') || q.includes('inventory')) {
-        responseText = "5. **Current Stock:** Located under Inventory in your sidebar. This page displays live stock quantities, Weighted Average Costs (WAC), and automated low-stock reorder alerts.";
-    } else if (q.includes('record expense') || q.includes('expense') || q.includes('petty cash')) {
-        responseText = "6. **Record Expense:** Located under Finance in your sidebar. Use this page to log operational overheads, utility bills, and petty cash outflows so they accurately update your financial records.";
-    } else if (q.includes('master ledger') || q.includes('ledger') || q.includes('p&l') || q.includes('finance')) {
-        responseText = "7. **Master Ledger:** Located under Finance in your sidebar. Every sale, purchase, or expense automatically records double-entry transactions here, providing instant Profit & Loss (P&L) statements.";
-    } else if (q.includes('cash report') || q.includes('cash drawer') || q.includes('cash')) {
-        responseText = "8. **Cash Report:** Located under Reports in your sidebar. It summarizes cash drawer collections, opening balances, cash sales, and shift reconciliation totals.";
-    } else if (q.includes('mpesa report') || q.includes('m-pesa') || q.includes('mpesa') || q.includes('daraja')) {
-        responseText = "9. **M-Pesa Report:** Located under Reports in your sidebar. This displays automated mobile money transactions, STK push payment statuses, and confirmation codes.";
-    } else if (q.includes('notebook') || q.includes('notes')) {
-        responseText = "10. **Notebook:** Located in the sidebar footer. A built-in scratchpad for staff memos, daily reminders, shift handovers, and quick notes.";
-    } else if (q.includes('settings') || q.includes('license') || q.includes('subscription')) {
-        responseText = "11. **Settings:** Located in the sidebar footer. Allows you to manage your business profile, system preferences, and check or renew your active subscription license.";
-    } else if (q.includes('logout') || q.includes('sign out')) {
-        responseText = "12. **Logout:** Located at the very bottom of the sidebar. Safely terminates your current session and redirects you back to the login page.";
-    } else {
-        responseText = "Please ask an agent.";
+    if(!element){
+        return;
     }
 
-    setTimeout(() => {
-        appendAiMessage('bot', responseText);
-    }, 600);
+    const messages=
+        document.getElementById(containerId);
+
+    if(!messages){
+        return;
+    }
+
+    messages.appendChild(element);
+
+    messages.scrollTop=messages.scrollHeight;
 }
 
-window.handleAiChoice = (choice) => {
-    const mapping = {
-        'general': '1. General Info',
-        'sales': '2. Sales Terminal',
-        'purchases': '3. Purchases',
-        'crm': '4. Customer Registry',
-        'stock': '5. Current Stock',
-        'expenses': '6. Record Expense',
-        'ledger': '7. Master Ledger',
-        'cash': '8. Cash Report',
-        'mpesa': '9. M-Pesa Report',
-        'notebook': '10. Notebook',
-        'settings': '11. Settings',
-        'logout': '12. Logout'
+function appendAgentMessage(sender,text,htmlContent=""){
+
+    appendToContainer(
+        "agentMessages",
+        createBubble(sender,text,htmlContent)
+    );
+}
+
+function appendAIMessage(sender,text){
+
+    appendToContainer(
+        "aiMessages",
+        createBubble(sender,text)
+    );
+}
+
+/* =========================
+   DRAGGABLE SUPPORT ICON
+========================= */
+
+const supportFloating=
+    document.getElementById("supportFloating");
+
+const supportMainBtn=
+    document.getElementById("supportMainBtn");
+
+const supportOptions=
+    document.getElementById("supportOptions");
+
+let supportDragging=false;
+let supportMoved=false;
+let supportPointerId=null;
+
+let supportStartX=0;
+let supportStartY=0;
+
+let supportDragOffsetX=0;
+let supportDragOffsetY=0;
+
+let supportClickBlocked=false;
+
+function getVisibleViewport(){
+
+    const vv=window.visualViewport;
+
+    if(vv){
+
+        return {
+            left:vv.offsetLeft,
+            top:vv.offsetTop,
+            width:vv.width,
+            height:vv.height
+        };
+    }
+
+    return {
+        left:0,
+        top:0,
+        width:
+            document.documentElement.clientWidth ||
+            window.innerWidth,
+        height:
+            document.documentElement.clientHeight ||
+            window.innerHeight
     };
-    const label = mapping[choice] || choice;
-    appendAiMessage('user', label);
-    handleIntelligentAIResponse(label);
-};
-
-window.handleAiKeyPress = (e) => {
-    if (e.key === 'Enter') {
-        sendAiMessage();
-    }
-};
-
-window.sendAiMessage = () => {
-    const input = document.getElementById('aiChatInputBox');
-    const text = input.value.trim();
-    if (!text) return;
-    input.value = '';
-
-    appendAiMessage('user', text);
-    handleIntelligentAIResponse(text);
-};
-
-window.handleAgentChoice = (choice) => {
-    if (choice === 'new') {
-        appendAgentMessage('user', 'New Issue');
-        agentFlowState = 'awaiting_new_msg';
-        setTimeout(() => {
-            appendAgentMessage('agent-reply', 'Please type your detailed request for your new issue below and press Send.');
-        }, 400);
-    } else if (choice === 'followup') {
-        appendAgentMessage('user', 'Follow-up');
-        agentFlowState = 'awaiting_followup_ticket_number';
-        setTimeout(() => {
-            appendAgentMessage('agent-reply', 'Please enter your ticket number (e.g., AG-1234):');
-        }, 400);
-    }
-};
-
-function appendAgentMessage(senderClass, text) {
-    const messagesDiv = document.getElementById('agentChatMessages');
-    const bubble = document.createElement('div');
-    bubble.className = `chat-bubble ${senderClass}`;
-    bubble.innerText = text;
-    messagesDiv.appendChild(bubble);
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
-window.handleAgentKeyPress = (e) => {
-    if (e.key === 'Enter') {
+function getSupportButtonSize(){
+
+    const rect=
+        supportMainBtn.getBoundingClientRect();
+
+    return {
+        width:rect.width,
+        height:rect.height
+    };
+}
+
+function clampSupportPosition(left,top){
+
+    const size=getSupportButtonSize();
+    const viewport=getVisibleViewport();
+
+    const minLeft=viewport.left+(viewport.width/2);
+    const minTop=viewport.top;
+
+    const maxLeft=
+        viewport.left+
+        Math.max(
+            0,
+            viewport.width-size.width
+        );
+
+    const maxTop=
+        viewport.top+
+        Math.max(
+            0,
+            viewport.height-size.height
+        );
+
+    return {
+        left:Math.min(
+            Math.max(left,minLeft),
+            maxLeft
+        ),
+
+        top:Math.min(
+            Math.max(top,minTop),
+            maxTop
+        )
+    };
+}
+
+function keepSupportInViewport(save=true){
+
+    if(
+        !supportFloating ||
+        !supportMainBtn
+    ){
+        return;
+    }
+
+    const current=
+        supportMainBtn.getBoundingClientRect();
+
+    const position=
+        clampSupportPosition(
+            current.left,
+            current.top
+        );
+
+    supportFloating.style.left=
+        position.left+"px";
+
+    supportFloating.style.top=
+        position.top+"px";
+
+    supportFloating.style.right="auto";
+    supportFloating.style.bottom="auto";
+
+    if(save){
+
+        localStorage.setItem(
+            "ag_support_left",
+            String(position.left)
+        );
+
+        localStorage.setItem(
+            "ag_support_top",
+            String(position.top)
+        );
+    }
+
+    positionSupportOptions();
+}
+
+function restoreSupportPosition(){
+
+    const savedLeft=
+        parseFloat(
+            localStorage.getItem("ag_support_left")
+        );
+
+    const savedTop=
+        parseFloat(
+            localStorage.getItem("ag_support_top")
+        );
+
+    const size=getSupportButtonSize();
+    const viewport=getVisibleViewport();
+
+    let left;
+    let top;
+
+    const isDraggedToTop=
+        Number.isFinite(savedTop) &&
+        (savedTop < (viewport.top + (viewport.height / 2)));
+
+    if(isDraggedToTop){
+        left=
+            Number.isFinite(savedLeft) ?
+            savedLeft :
+            (viewport.left+viewport.width-size.width-16);
+
+        top=savedTop;
+    }else{
+        left=
+            viewport.left+
+            viewport.width-
+            size.width-
+            16;
+
+        top=
+            viewport.top+
+            viewport.height-
+            size.height-
+            18;
+    }
+
+    const position=
+        clampSupportPosition(left,top);
+
+    supportFloating.style.left=
+        position.left+"px";
+
+    supportFloating.style.top=
+        position.top+"px";
+
+    supportFloating.style.right="auto";
+    supportFloating.style.bottom="auto";
+
+    positionSupportOptions();
+}
+
+function positionSupportOptions(){
+
+    if(
+        !supportFloating ||
+        !supportMainBtn ||
+        !supportOptions
+    ){
+        return;
+    }
+
+    const rect=
+        supportMainBtn.getBoundingClientRect();
+
+    const viewport=getVisibleViewport();
+
+    const viewportRight=
+        viewport.left+
+        viewport.width;
+
+    const viewportBottom=
+        viewport.top+
+        viewport.height;
+
+    const isMobile=
+        viewport.width<=1023;
+
+    const buttonGap=
+        isMobile ? 8 : 10;
+
+    const buttons=
+        Array.from(
+            supportOptions.querySelectorAll(
+                ".support-float-btn"
+            )
+        );
+
+    let popupWidth=0;
+    let popupHeight=0;
+
+    if(buttons.length){
+
+        const sizes=
+            buttons.map(function(button){
+
+                const style=
+                    window.getComputedStyle(button);
+
+                const width=
+                    button.getBoundingClientRect().width ||
+                    parseFloat(style.width) ||
+                    130;
+
+                const height=
+                    button.getBoundingClientRect().height ||
+                    parseFloat(style.height) ||
+                    40;
+
+                return {
+                    width:width,
+                    height:height
+                };
+            });
+
+        popupWidth=
+            Math.max.apply(
+                null,
+                sizes.map(function(item){
+                    return item.width;
+                })
+            );
+
+        popupHeight=
+            sizes.reduce(
+                function(total,item){
+                    return total+item.height;
+                },
+                0
+            )+
+            Math.max(
+                0,
+                sizes.length-1
+            )*6;
+    }else{
+
+        popupWidth=140;
+        popupHeight=86;
+    }
+
+    const leftSpace=
+        rect.left-
+        viewport.left;
+
+    const rightSpace=
+        viewportRight-
+        rect.right;
+
+    const topSpace=
+        rect.top-
+        viewport.top;
+
+    const bottomSpace=
+        viewportBottom-
+        rect.bottom;
+
+    supportOptions.classList.remove(
+        "popup-above",
+        "popup-below",
+        "popup-left",
+        "popup-right"
+    );
+
+    if(topSpace<=popupHeight+buttonGap){
+        supportOptions.classList.add("popup-below");
+        return;
+    }
+
+    if(bottomSpace<=popupHeight+buttonGap){
+        supportOptions.classList.add("popup-above");
+        return;
+    }
+
+    if(leftSpace<=popupWidth+buttonGap){
+        supportOptions.classList.add("popup-right");
+        return;
+    }
+
+    if(rightSpace<=popupWidth+buttonGap){
+        supportOptions.classList.add("popup-left");
+        return;
+    }
+
+    const nearestHorizontal=
+        Math.min(leftSpace,rightSpace);
+
+    const nearestVertical=
+        Math.min(topSpace,bottomSpace);
+
+    if(nearestVertical<=nearestHorizontal){
+
+        if(topSpace<=bottomSpace){
+            supportOptions.classList.add("popup-below");
+        }else{
+            supportOptions.classList.add("popup-above");
+        }
+
+    }else{
+
+        if(leftSpace<=rightSpace){
+            supportOptions.classList.add("popup-right");
+        }else{
+            supportOptions.classList.add("popup-left");
+        }
+    }
+}
+
+function startSupportDrag(event){
+
+    if(
+        event.pointerType==="mouse" &&
+        event.button!==0
+    ){
+        return;
+    }
+
+    supportDragging=true;
+    supportMoved=false;
+    supportPointerId=event.pointerId;
+
+    const rect=
+        supportMainBtn.getBoundingClientRect();
+
+    supportStartX=event.clientX;
+    supportStartY=event.clientY;
+
+    supportDragOffsetX=
+        event.clientX-
+        rect.left;
+
+    supportDragOffsetY=
+        event.clientY-
+        rect.top;
+
+    supportMainBtn.setPointerCapture?.(
+        event.pointerId
+    );
+
+    supportMainBtn.style.cursor="grabbing";
+
+    event.preventDefault();
+}
+
+function moveSupportDrag(event){
+
+    if(
+        !supportDragging ||
+        event.pointerId!==supportPointerId
+    ){
+        return;
+    }
+
+    const moveX=
+        event.clientX-supportStartX;
+
+    const moveY=
+        event.clientY-supportStartY;
+
+    if(
+        Math.abs(moveX)>3 ||
+        Math.abs(moveY)>3
+    ){
+        supportMoved=true;
+    }
+
+    if(!supportMoved){
+        return;
+    }
+
+    let newLeft=
+        event.clientX-
+        supportDragOffsetX;
+
+    let newTop=
+        event.clientY-
+        supportDragOffsetY;
+
+    const position=
+        clampSupportPosition(
+            newLeft,
+            newTop
+        );
+
+    supportFloating.style.left=
+        position.left+"px";
+
+    supportFloating.style.top=
+        position.top+"px";
+
+    supportFloating.style.right="auto";
+    supportFloating.style.bottom="auto";
+
+    supportOptions.classList.remove(
+        "active"
+    );
+
+    event.preventDefault();
+}
+
+function endSupportDrag(event){
+
+    if(
+        !supportDragging ||
+        (
+            supportPointerId!==null &&
+            event.pointerId!==supportPointerId
+        )
+    ){
+        return;
+    }
+
+    supportDragging=false;
+    supportMainBtn.style.cursor="grab";
+
+    if(supportMoved){
+
+        const rect=
+            supportMainBtn.getBoundingClientRect();
+
+        const position=
+            clampSupportPosition(
+                rect.left,
+                rect.top
+            );
+
+        supportFloating.style.left=
+            position.left+"px";
+
+        supportFloating.style.top=
+            position.top+"px";
+
+        supportFloating.style.right="auto";
+        supportFloating.style.bottom="auto";
+
+        localStorage.setItem(
+            "ag_support_left",
+            String(position.left)
+        );
+
+        localStorage.setItem(
+            "ag_support_top",
+            String(position.top)
+        );
+
+        supportClickBlocked=true;
+
+        setTimeout(function(){
+
+            supportClickBlocked=false;
+
+        },180);
+
+    }else{
+
+        toggleSupportMenu();
+    }
+
+    supportPointerId=null;
+
+    try{
+
+        supportMainBtn.releasePointerCapture?.(
+            event.pointerId
+        );
+
+    }catch(e){}
+}
+
+supportMainBtn.addEventListener(
+    "pointerdown",
+    startSupportDrag,
+    {passive:false}
+);
+
+supportMainBtn.addEventListener(
+    "pointermove",
+    moveSupportDrag,
+    {passive:false}
+);
+
+supportMainBtn.addEventListener(
+    "pointerup",
+    endSupportDrag,
+    {passive:false}
+);
+
+supportMainBtn.addEventListener(
+    "pointercancel",
+    endSupportDrag,
+    {passive:false}
+);
+
+supportMainBtn.addEventListener(
+    "click",
+    function(event){
+
+        if(supportClickBlocked){
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            return;
+        }
+    },
+    true
+);
+
+window.toggleSupportMenu=function(){
+
+    if(supportClickBlocked){
+        return;
+    }
+
+    const options=
+        document.getElementById(
+            "supportOptions"
+        );
+
+    const opening=
+        !options.classList.contains(
+            "active"
+        );
+
+    if(opening){
+
+        restoreSupportPosition();
+        options.classList.add("active");
+        positionSupportOptions();
+
+        requestAnimationFrame(function(){
+            restoreSupportPosition();
+            positionSupportOptions();
+        });
+
+    }else{
+
+        options.classList.remove(
+            "active"
+        );
+        restoreSupportPosition();
+    }
+};
+
+function hideSupportIcon(){
+
+    const support=
+        document.getElementById(
+            "supportFloating"
+        );
+
+    const options=
+        document.getElementById(
+            "supportOptions"
+        );
+
+    support.classList.add("hidden");
+    options.classList.remove("active");
+}
+
+function showSupportIcon(){
+
+    const support=
+        document.getElementById(
+            "supportFloating"
+        );
+
+    const options=
+        document.getElementById(
+            "supportOptions"
+        );
+
+    support.classList.remove("hidden");
+    options.classList.remove("active");
+
+    localStorage.removeItem("ag_support_left");
+    localStorage.removeItem("ag_support_top");
+
+    restoreSupportPosition();
+    positionSupportOptions();
+}
+
+/* =========================
+   MENU
+========================= */
+
+window.toggleMenu=function(){
+
+    const sidebar=
+        document.getElementById(
+            "sidebar"
+        );
+
+    const overlay=
+        document.getElementById(
+            "overlay"
+        );
+
+    if(
+        sidebar.classList.contains("active")
+    ){
+
+        sidebar.classList.remove(
+            "active"
+        );
+
+        overlay.classList.remove(
+            "active"
+        );
+
+    }else{
+
+        sidebar.classList.add(
+            "active"
+        );
+
+        overlay.classList.add(
+            "active"
+        );
+
+        closeSupportWindows();
+    }
+};
+
+window.closeAll=function(){
+
+    document.getElementById(
+        "sidebar"
+    ).classList.remove("active");
+
+    document.getElementById(
+        "globalModal"
+    ).classList.remove("active");
+
+    document.getElementById(
+        "overlay"
+    ).classList.remove("active");
+};
+
+function closeSupportWindows(){
+
+    document
+        .getElementById("aiContainer")
+        .classList.remove("active");
+
+    document
+        .getElementById("agentContainer")
+        .classList.remove("active");
+
+    showSupportIcon();
+}
+
+window.isSubActive=function(){
+
+    const uid=
+        localStorage.getItem(
+            "ag_active_uid"
+        );
+
+    if(!uid){
+        return false;
+    }
+
+    const expiry=
+        localStorage.getItem(
+            "ag_sub_expiry_"+uid
+        );
+
+    if(!expiry){
+        return false;
+    }
+
+    return Date.now()<
+        parseInt(expiry,10);
+};
+
+window.showSubscriptionAlert=
+function(onConfirm){
+
+    const modal=
+        document.getElementById(
+            "globalModal"
+        );
+
+    document.getElementById(
+        "modalTitle"
+    ).innerText=
+        "License Expired";
+
+    document.getElementById(
+        "modalText"
+    ).innerText=
+        "Subscription inactive. Please renew your license in Settings to continue.";
+
+    document.getElementById(
+        "overlay"
+    ).classList.add("active");
+
+    modal.classList.add("active");
+
+    document.getElementById(
+        "modalConfirmBtn"
+    ).onclick=function(){
+
+        closeAll();
+
+        if(
+            typeof onConfirm==="function"
+        ){
+
+            onConfirm();
+        }
+
+    };
+};
+
+window.showDashboard=function(){
+
+    document.getElementById(
+        "dashboard-wrapper"
+    ).style.display="block";
+
+    document.getElementById(
+        "main-frame"
+    ).style.display="none";
+
+    closeAll();
+};
+
+window.loadPage=function(pageName){
+
+    document.getElementById(
+        "dashboard-wrapper"
+    ).style.display="none";
+
+    document.getElementById(
+        "main-frame"
+    ).style.display="block";
+
+    if(
+        !window.isSubActive() &&
+        pageName!=="settings"
+    ){
+
+        showSubscriptionAlert(
+            function(){
+
+                document.getElementById(
+                    "main-frame"
+                ).src="settings.html";
+
+            }
+        );
+
+    }else{
+
+        document.getElementById(
+            "main-frame"
+        ).src=
+            pageName+".html";
+    }
+
+    closeAll();
+};
+
+window.customLogoutTrigger=
+function(){
+
+    const modal=
+        document.getElementById(
+            "globalModal"
+        );
+
+    document.getElementById(
+        "modalTitle"
+    ).innerText=
+        "Confirm Logout";
+
+    document.getElementById(
+        "modalText"
+    ).innerText=
+        "Are you sure you want to log out?";
+
+    document.getElementById(
+        "overlay"
+    ).classList.add("active");
+
+    modal.classList.add("active");
+
+    document.getElementById(
+        "modalConfirmBtn"
+    ).onclick=function(){
+
+        localStorage.removeItem(
+            "ag_active_uid"
+        );
+
+        localStorage.removeItem(
+            "ag_session_active"
+        );
+
+        auth.signOut()
+        .then(function(){
+
+            window.location.href=
+                "index.html";
+
+        })
+        .catch(function(){
+
+            window.location.href=
+                "index.html";
+
+        });
+
+    };
+};
+
+/* =========================
+   ASK AI
+========================= */
+
+window.toggleAskAI=function(){
+
+    const ai=
+        document.getElementById(
+            "aiContainer"
+        );
+
+    const agent=
+        document.getElementById(
+            "agentContainer"
+        );
+
+    const sidebar=
+        document.getElementById(
+            "sidebar"
+        );
+
+    const overlay=
+        document.getElementById(
+            "overlay"
+        );
+
+    agent.classList.remove("active");
+    sidebar.classList.remove("active");
+    overlay.classList.remove("active");
+
+    ai.classList.toggle("active");
+
+    if(ai.classList.contains("active")){
+
+        hideSupportIcon();
+        ensureAIConversationId();
+
+        if(
+            document.getElementById(
+                "aiMessages"
+            ).children.length===0
+        ){
+
+            appendAIMessage(
+                "ai",
+                "Hello! I am the AssetGuard Pro AI Assistant. Ask me general questions about using AssetGuard Pro, its features, sales, purchases, inventory, customers, reports or other app functions."
+            );
+        }
+
+        setTimeout(function(){
+
+            document
+                .getElementById(
+                    "aiInputBox"
+                )
+                .focus();
+
+        },100);
+
+    }else{
+
+        showSupportIcon();
+    }
+};
+
+/* =========================
+   TALK TO AN AGENT
+========================= */
+
+window.toggleAgentChat=function(){
+
+    const agent=
+        document.getElementById(
+            "agentContainer"
+        );
+
+    const ai=
+        document.getElementById(
+            "aiContainer"
+        );
+
+    const sidebar=
+        document.getElementById(
+            "sidebar"
+        );
+
+    const overlay=
+        document.getElementById(
+            "overlay"
+        );
+
+    ai.classList.remove("active");
+    sidebar.classList.remove("active");
+    overlay.classList.remove("active");
+
+    agent.classList.toggle("active");
+
+    if(agent.classList.contains("active")){
+
+        hideSupportIcon();
+        ensureAgentConversationId();
+        initAgentRealtimeChat();
+
+        setTimeout(function(){
+
+            document
+                .getElementById(
+                    "agentInputBox"
+                )
+                .focus();
+
+        },100);
+
+    }else{
+
+        showSupportIcon();
+    }
+};
+
+/* =========================
+   AI PROMPT & LOGIC
+========================= */
+
+const ASSETGUARD_AI_PROMPT=`
+You are the AssetGuard Pro AI Assistant.
+
+Your job is to answer GENERAL questions about the
+AssetGuard Pro application.
+
+You may explain:
+- How AssetGuard Pro features work
+- Sales Terminal
+- Purchases
+- Customer Registry
+- Current Stock
+- Expenses
+- Master Ledger
+- Cash Report
+- M-Pesa Report
+- Credit Report
+- Notebook
+- Settings
+- General application usage
+
+You must NOT create support tickets.
+You must NOT mix your conversation with the human
+Support Agent conversation.
+You must NOT pretend to be a human support agent.
+
+If a user has a technical problem that requires
+a human agent, tell them that they can use the
+"Live Agent" button.
+
+Keep answers clear and practical.
+`;
+
+function getAssetGuardAIResponse(question){
+
+    const q=question.toLowerCase();
+
+    if(
+        q.includes("sales") ||
+        q.includes("sell") ||
+        q.includes("checkout")
+    ){
+        return "The Sales Terminal is used to process customer sales, select products, enter quantities and record the customer's payment method. For a technical problem with the Sales Terminal, use Live Agent.";
+    }
+
+    if(
+        q.includes("purchase") ||
+        q.includes("buying")
+    ){
+        return "The Purchases section is used to record incoming stock and supplier purchases. Purchase records can then be used for inventory and financial reporting.";
+    }
+
+    if(
+        q.includes("stock") ||
+        q.includes("inventory")
+    ){
+        return "Current Stock shows the products and quantities available in your inventory. Stock changes when purchases and sales are recorded.";
+    }
+
+    if(
+        q.includes("customer") ||
+        q.includes("crm")
+    ){
+        return "Customer Registry is the customer-management section of AssetGuard Pro. It is used to maintain customer information and support customer-related operations.";
+    }
+
+    if(q.includes("expense")){
+        return "Record Expense is used to enter business expenses so they can be included in your financial records and reporting.";
+    }
+
+    if(q.includes("ledger")){
+        return "The Master Ledger provides a consolidated view of financial transactions recorded throughout AssetGuard Pro.";
+    }
+
+    if(q.includes("mpesa")){
+        return "The M-Pesa Report is used to review transactions recorded through M-Pesa payment activity.";
+    }
+
+    if(q.includes("cash")){
+        return "Cash Report provides a view of cash transactions recorded by the system.";
+    }
+
+    if(q.includes("credit")){
+        return "Credit Report is used to review customer credit transactions and outstanding credit-related records.";
+    }
+
+    if(q.includes("notebook")){
+        return "Notebook provides a place to keep business notes and other information you want to retain inside AssetGuard Pro.";
+    }
+
+    if(
+        q.includes("setting") ||
+        q.includes("settings")
+    ){
+        return "Settings is where configurable application options can be managed. If you need help changing a specific setting, tell me what you want to change.";
+    }
+
+    return "I can help with general AssetGuard Pro questions, including Sales, Purchases, Customers, Stock, Expenses, the Master Ledger, Cash, M-Pesa, Credit Reports, Notebook and Settings. If you are experiencing a technical problem, use Live Agent.";
+}
+
+window.sendAIMessage=async function(){
+
+    const input=
+        document.getElementById(
+            "aiInputBox"
+        );
+
+    const sendButton=
+        document.getElementById(
+            "aiSendButton"
+        );
+
+    const text=
+        cleanText(input.value);
+
+    if(!text){
+        return;
+    }
+
+    input.value="";
+    sendButton.disabled=true;
+
+    appendAIMessage("user",text);
+
+    const conversationId=
+        ensureAIConversationId();
+
+    try{
+
+        await rtdb.ref(
+            "ai_conversations/"+
+            activeUID+"/"+
+            conversationId+
+            "/messages"
+        ).push({
+
+            uid:activeUID,
+            conversationId:conversationId,
+            role:"user",
+            prompt:ASSETGUARD_AI_PROMPT,
+            message:text,
+            timestamp:Date.now()
+
+        });
+
+        const response=
+            getAssetGuardAIResponse(text);
+
+        setTimeout(async function(){
+
+            appendAIMessage("ai",response);
+
+            await rtdb.ref(
+                "ai_conversations/"+
+                activeUID+"/"+
+                conversationId+
+                "/messages"
+            ).push({
+
+                uid:activeUID,
+                conversationId:conversationId,
+                role:"assistant",
+                message:response,
+                timestamp:Date.now()
+
+            });
+
+        },450);
+
+    }catch(error){
+
+        appendAIMessage(
+            "ai",
+            "I could not save this AI conversation right now. Please try again."
+        );
+
+    }finally{
+
+        sendButton.disabled=false;
+
+        setTimeout(function(){
+            input.focus();
+        },500);
+    }
+};
+
+window.handleAIKeyPress=function(event){
+
+    if(event.key==="Enter"){
+        event.preventDefault();
+        sendAIMessage();
+    }
+};
+
+/* =========================
+   AGENT HELPERS & REALTIME
+========================= */
+
+function getAdminReply(ticket){
+
+    if(!ticket){
+        return "";
+    }
+
+    const possibleFields=[
+        "admin_reply",
+        "adminReply",
+        "agent_reply",
+        "agentReply",
+        "support_reply",
+        "supportReply",
+        "reply",
+        "response",
+        "adminMessage",
+        "agentMessage"
+    ];
+
+    for(let i=0;i<possibleFields.length;i++){
+        const value=
+            cleanText(ticket[possibleFields[i]]);
+        if(value){
+            return value;
+        }
+    }
+
+    const sender=
+        cleanText(
+            ticket.sender ||
+            ticket.from ||
+            ticket.author ||
+            ticket.role ||
+            ticket.userType ||
+            ticket.type
+        ).toLowerCase();
+
+    const message=
+        cleanText(
+            ticket.message ||
+            ticket.text ||
+            ticket.content
+        );
+
+    const adminIndicators=[
+        "admin",
+        "agent",
+        "support",
+        "staff",
+        "administrator"
+    ];
+
+    const isAdminSender=
+        adminIndicators.some(function(item){
+            return sender===item ||
+                sender.includes(item);
+        });
+
+    if(isAdminSender && message){
+        return message;
+    }
+
+    return "";
+}
+
+function hasAdminResponse(ticket){
+    return getAdminReply(ticket).length>0;
+}
+
+window.handleBotChoice=function(choice){
+
+    if(choice==="agent"){
+
+        startNewAgentConversation();
+
+        appendAgentMessage(
+            "user",
+            "I want to speak to an agent"
+        );
+
+        agentFlowState="awaiting_type";
+
+        setTimeout(function(){
+
+            appendAgentMessage(
+                "bot",
+                "Is this a **New Issue** or a **Follow-up** on an existing ticket?",
+                `
+                <div class="chat-actions">
+                    <button class="chat-chip" onclick="handleAgentType('new')">
+                        New Issue
+                    </button>
+                    <button class="chat-chip" onclick="handleAgentType('followup')">
+                        Follow-up
+                    </button>
+                </div>
+                `
+            );
+
+        },300);
+    }
+};
+
+window.handleAgentType=function(type){
+
+    if(type==="new"){
+
+        appendAgentMessage("user","New Issue");
+        agentFlowState="awaiting_new_msg";
+
+        setTimeout(function(){
+            appendAgentMessage(
+                "bot",
+                "Please type your detailed request for your new issue below and press Send."
+            );
+        },300);
+
+    }else if(type==="followup"){
+
+        appendAgentMessage("user","Follow-up");
+        agentFlowState="awaiting_followup_msg";
+
+        setTimeout(function(){
+            appendAgentMessage(
+                "bot",
+                "Please enter your message below."
+            );
+        },300);
+    }
+};
+
+window.handleAgentKeyPress=function(event){
+
+    if(event.key==="Enter"){
+        event.preventDefault();
         sendAgentMessage();
     }
 };
 
-window.sendAgentMessage = async () => {
-    const input = document.getElementById('agentChatInputBox');
-    const text = input.value.trim();
-    if (!text) return;
+window.sendAgentMessage=async function(){
 
-    input.value = '';
+    const input=
+        document.getElementById(
+            "agentInputBox"
+        );
 
-    if (agentEditingMessageKey && activeSelectedTicketId) {
-        try {
-            if (agentEditingMessageKey.startsWith('root_')) {
-                await rtdb.ref(`support_tickets/${activeSelectedTicketId}`).update({
-                    message: text,
-                    edited_timestamp: Date.now()
-                });
-            } else {
-                await rtdb.ref(`support_tickets/${activeSelectedTicketId}/conversation/${agentEditingMessageKey}`).update({
-                    text: text,
-                    edited_timestamp: Date.now()
-                });
-            }
-            cancelAgentEdit();
-            logUserActivity('SUPPORT', 'Edited support message');
-        } catch (error) {
-            console.error("Failed to edit message:", error);
-        }
+    const sendButton=
+        document.getElementById(
+            "agentSendButton"
+        );
+
+    const text=
+        cleanText(input.value);
+
+    if(!text){
         return;
     }
 
-    if (agentFlowState === 'awaiting_followup_ticket_number') {
-        const enteredTicketNum = text.toUpperCase();
-        let foundTicketId = null;
+    input.value="";
+    sendButton.disabled=true;
 
-        for (let key in allUserTicketsData) {
-            const t = allUserTicketsData[key];
-            if (t.ticketNumber && t.ticketNumber.toUpperCase() === enteredTicketNum) {
-                foundTicketId = key;
+    try{
+
+        const lowerText=text.toLowerCase();
+
+        const agentKeywords=[
+            "agent",
+            "human",
+            "person",
+            "speak to someone",
+            "talk to someone",
+            "call",
+            "manager",
+            "support team"
+        ];
+
+        const wantsAgent=
+            agentKeywords.some(function(keyword){
+                return lowerText.includes(keyword);
+            });
+
+        if(wantsAgent && !agentFlowState){
+
+            appendAgentMessage("user",text);
+            startNewAgentConversation();
+            agentFlowState="awaiting_type";
+
+            setTimeout(function(){
+
+                appendAgentMessage(
+                    "bot",
+                    "Is this a **New Issue** or a **Follow-up** on an existing ticket?",
+                    `
+                    <div class="chat-actions">
+                        <button class="chat-chip" onclick="handleAgentType('new')">
+                            New Issue
+                        </button>
+                        <button class="chat-chip" onclick="handleAgentType('followup')">
+                            Follow-up
+                        </button>
+                    </div>
+                    `
+                );
+
+            },300);
+
+            return;
+        }
+
+        appendAgentMessage("user",text);
+
+        if(
+            agentFlowState==="awaiting_new_msg" ||
+            agentFlowState==="awaiting_followup_msg"
+        ){
+
+            const isFollowUp=
+                agentFlowState==="awaiting_followup_msg";
+
+            agentFlowState=null;
+
+            const ticketNumber=
+                "AG-"+Math.floor(1000+Math.random()*9000);
+
+            const conversationId=
+                ensureAgentConversationId();
+
+            await rtdb.ref(
+                "support_tickets"
+            ).push({
+
+                uid:activeUID,
+                conversationId:conversationId,
+                ticketNumber:ticketNumber,
+                isFollowUp:isFollowUp,
+                message:text,
+                ticket_status:"Pending",
+                timestamp:Date.now()
+
+            });
+
+            return;
+        }
+
+        const conversationId=
+            ensureAgentConversationId();
+
+        await rtdb.ref(
+            "support_tickets"
+        ).push({
+
+            uid:activeUID,
+            conversationId:conversationId,
+            message:text,
+            timestamp:Date.now()
+
+        });
+
+    }catch(error){
+
+        console.error(
+            "Firebase agent error:",
+            error
+        );
+
+        appendAgentMessage(
+            "chat-error",
+            "Unable to send your message: "+
+            cleanText(error.message)
+        );
+
+    }finally{
+
+        sendButton.disabled=false;
+
+        setTimeout(function(){
+            input.focus();
+        },50);
+    }
+};
+
+function initAgentRealtimeChat(){
+
+    const query=
+        rtdb.ref(
+            "support_tickets"
+        )
+        .orderByChild("uid")
+        .equalTo(activeUID);
+
+    query.on("value",function(snapshot){
+
+        const messagesDiv=
+            document.getElementById(
+                "agentMessages"
+            );
+
+        messagesDiv.innerHTML="";
+
+        const welcome=
+            createBubble(
+                "bot",
+                "Hello! You are connected to AssetGuard Pro Support. Choose New Issue or Follow-up to start an agent conversation.",
+                `
+                <div class="chat-actions">
+                    <button class="chat-chip" onclick="handleBotChoice('agent')">
+                        Speak to an Agent
+                    </button>
+                </div>
+                `
+            );
+
+        appendToContainer(
+            "agentMessages",
+            welcome
+        );
+
+        if(!snapshot.exists()){
+            return;
+        }
+
+        const tickets=snapshot.val();
+        const now=Date.now();
+        const allTickets=[];
+
+        for(const key in tickets){
+
+            if(
+                !tickets[key] ||
+                typeof tickets[key]!=="object"
+            ){
+                continue;
+            }
+
+            const record={
+                id:key,
+                ...tickets[key]
+            };
+
+            const timestamp=
+                Number(record.timestamp || 0);
+
+            const age=
+                timestamp ? now-timestamp : 0;
+
+            const isExpired=
+                timestamp>0 &&
+                age>SEVENTY_TWO_HOURS;
+
+            if(
+                isExpired &&
+                !historyAccessGranted
+            ){
+                continue;
+            }
+
+            allTickets.push(record);
+        }
+
+        allTickets.sort(function(a,b){
+            return(
+                Number(a.timestamp || 0)-
+                Number(b.timestamp || 0)
+            );
+        });
+
+        allTickets.forEach(function(ticket){
+
+            const message=
+                cleanText(ticket.message);
+
+            if(
+                message &&
+                !hasAdminResponse(ticket)
+            ){
+                appendToContainer(
+                    "agentMessages",
+                    createBubble("user",message)
+                );
+            }
+
+            const adminReply=
+                getAdminReply(ticket);
+
+            if(adminReply){
+                appendToContainer(
+                    "agentMessages",
+                    createBubble("agent",adminReply)
+                );
+            }
+
+        });
+
+        messagesDiv.scrollTop=
+            messagesDiv.scrollHeight;
+
+    });
+}
+
+function checkHistoryAccessApproval(){
+
+    rtdb.ref(
+        "history_requests"
+    )
+    .orderByChild("uid")
+    .equalTo(activeUID)
+    .on("value",function(snapshot){
+
+        if(!snapshot.exists()){
+            return;
+        }
+
+        const requests=snapshot.val();
+
+        for(const key in requests){
+            if(
+                requests[key] &&
+                requests[key].status==="Approved"
+            ){
+                historyAccessGranted=true;
                 break;
             }
         }
 
-        if (foundTicketId) {
-            activeSelectedTicketId = foundTicketId;
-            document.getElementById('ticketSelectDropdown').value = foundTicketId;
-            initRealtimeChatListener();
-            agentFlowState = 'awaiting_followup_msg';
-            appendAgentMessage('agent-reply', `✅ Ticket ${enteredTicketNum} found! Please type your follow-up message below and press Send.`);
-        } else {
-            appendAgentMessage('agent-reply', '❌ Ticket not found. Please use a correct ticket number.');
+        if(historyAccessGranted){
+            initAgentRealtimeChat();
         }
-        return;
-    }
 
-    if (agentFlowState === 'awaiting_new_msg' || agentFlowState === 'awaiting_followup_msg') {
-        const isFollow = agentFlowState === 'awaiting_followup_msg';
-        agentFlowState = null;
-        try {
-            if (isFollow && activeSelectedTicketId) {
-                const ticketRef = rtdb.ref('support_tickets/' + activeSelectedTicketId);
-                const ticketData = allUserTicketsData[activeSelectedTicketId];
-                if (ticketData) {
-                    if (!ticketData.conversation && ticketData.message) {
-                        const rootMsgKey = ticketRef.child('conversation').push().key;
-                        await ticketRef.child(`conversation/${rootMsgKey}`).set({
-                            sender: 'user',
-                            text: ticketData.message,
-                            timestamp: ticketData.timestamp || Date.now()
-                        });
-                        await ticketRef.child('message').remove();
-                        if (ticketData.admin_reply) {
-                            await ticketRef.child('conversation').push({
-                                sender: 'admin',
-                                text: ticketData.admin_reply,
-                                timestamp: ticketData.reply_timestamp || Date.now()
-                            });
-                        }
-                    }
-                    await ticketRef.child('conversation').push({
-                        sender: 'user',
-                        text: text,
-                        replyToText: agentHighlightedMessageSnippet || null,
-                        timestamp: Date.now()
-                    });
-                    await ticketRef.update({ last_updated: Date.now() });
-                    appendAgentMessage('agent-reply', `✅ Follow-up message added to your active ticket.`);
-                    logUserActivity('SUPPORT', 'Sent follow-up message to active support ticket');
-                }
-            } else {
-                const ticketNumber = "AG-" + Math.floor(1000 + Math.random() * 9000);
-                const newTicketRef = rtdb.ref('support_tickets').push();
-                const initialMsgKey = newTicketRef.child('conversation').push().key;
-                await newTicketRef.set({
-                    uid: activeUID || "Anonymous",
-                    ticketNumber: ticketNumber,
-                    status: "Pending",
-                    timestamp: Date.now(),
-                    conversation: {
-                        [initialMsgKey]: {
-                            sender: 'user',
-                            text: text,
-                            timestamp: Date.now()
-                        }
-                    }
-                });
-                activeSelectedTicketId = newTicketRef.key;
-                initRealtimeChatListener();
-                appendAgentMessage('agent-reply', `✅ New Issue ticket ${ticketNumber} transmitted successfully.`);
-                logUserActivity('SUPPORT', `Created new support issue ticket: ${ticketNumber}`);
-            }
-        } catch (error) {
-            appendAgentMessage('agent-reply', `⚠️ Error: ${error.message}`);
-        }
-        cancelAgentReplyHighlight();
-        return;
-    }
-
-    try {
-        if (agentHighlightedMessageId) {
-            const ticketRef = rtdb.ref('support_tickets/' + agentHighlightedMessageId);
-            const snapshot = await ticketRef.once('value');
-            if (snapshot.exists()) {
-                const data = snapshot.val();
-                let snippetText = agentHighlightedMessageSnippet || data.message || '';
-                if (!data.conversation && data.message) {
-                    const rootMsgKey = ticketRef.child('conversation').push().key;
-                    await ticketRef.child(`conversation/${rootMsgKey}`).set({
-                        sender: 'user',
-                        text: data.message,
-                        timestamp: data.timestamp || Date.now()
-                    });
-                    await ticketRef.child('message').remove();
-                    if (data.admin_reply) {
-                        await ticketRef.child('conversation').push({
-                            sender: 'admin',
-                            text: data.admin_reply,
-                            timestamp: data.reply_timestamp || Date.now()
-                        });
-                    }
-                }
-
-                await ticketRef.child('conversation').push({
-                    sender: 'user',
-                    text: text,
-                    replyToText: snippetText,
-                    timestamp: Date.now()
-                });
-                await ticketRef.update({ last_updated: Date.now() });
-            }
-            cancelAgentReplyHighlight();
-        } else if (activeSelectedTicketId && allUserTicketsData[activeSelectedTicketId]) {
-            const ticketRef = rtdb.ref('support_tickets/' + activeSelectedTicketId);
-            const latestTicketData = allUserTicketsData[activeSelectedTicketId];
-            if (!latestTicketData.conversation && latestTicketData.message) {
-                const rootMsgKey = ticketRef.child('conversation').push().key;
-                await ticketRef.child(`conversation/${rootMsgKey}`).set({
-                    sender: 'user',
-                    text: latestTicketData.message,
-                    timestamp: latestTicketData.timestamp || Date.now()
-                });
-                await ticketRef.child('message').remove();
-                if (latestTicketData.admin_reply) {
-                    await ticketRef.child('conversation').push({
-                        sender: 'admin',
-                        text: latestTicketData.admin_reply,
-                        timestamp: latestTicketData.reply_timestamp || Date.now()
-                    });
-                }
-            }
-            await ticketRef.child('conversation').push({
-                sender: 'user',
-                text: text,
-                replyToText: agentHighlightedMessageSnippet || null,
-                timestamp: Date.now()
-            });
-            await ticketRef.update({ last_updated: Date.now() });
-        } else {
-            const ticketNumber = "AG-" + Math.floor(1000 + Math.random() * 9000);
-            const newTicketRef = rtdb.ref('support_tickets').push();
-            const initialMsgKey = newTicketRef.child('conversation').push().key;
-            await newTicketRef.set({
-                uid: activeUID || "Anonymous",
-                ticketNumber: ticketNumber,
-                status: "Pending",
-                timestamp: Date.now(),
-                conversation: {
-                    [initialMsgKey]: {
-                        sender: 'user',
-                        text: text,
-                        timestamp: Date.now()
-                    }
-                }
-            });
-            activeSelectedTicketId = newTicketRef.key;
-            initRealtimeChatListener();
-        }
-        cancelAgentReplyHighlight();
-        logUserActivity('SUPPORT', 'Sent chat message to support agent');
-    } catch (error) {
-        console.error("Firebase sync error:", error);
-    }
-};
-
-function escapeHtml(text) {
-    if (!text) return '';
-    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    });
 }
+
+rtdb.ref(".info/connected")
+.on("value",function(snapshot){
+
+    const connected=!!snapshot.val();
+
+    const agentInput=
+        document.getElementById(
+            "agentInputBox"
+        );
+
+    const aiInput=
+        document.getElementById(
+            "aiInputBox"
+        );
+
+    if(!connected){
+        agentInput.placeholder=
+            "Support connection offline...";
+        aiInput.placeholder=
+            "AI connection offline...";
+    }else{
+        agentInput.placeholder=
+            "Message Support Agent...";
+        aiInput.placeholder=
+            "Ask AI about AssetGuard Pro...";
+    }
+
+});
+
+window.addEventListener(
+    "load",
+    function(){
+
+        ensureAgentConversationId();
+        ensureAIConversationId();
+
+        requestAnimationFrame(function(){
+
+            restoreSupportPosition();
+
+            requestAnimationFrame(function(){
+                keepSupportInViewport(true);
+                positionSupportOptions();
+            });
+
+        });
+
+        setTimeout(function(){
+            keepSupportInViewport(true);
+        },150);
+
+        setTimeout(function(){
+            keepSupportInViewport(true);
+        },500);
+
+        checkHistoryAccessApproval();
+        initAgentRealtimeChat();
+    }
+);
+
+window.addEventListener(
+    "resize",
+    function(){
+
+        if(!supportDragging){
+            requestAnimationFrame(function(){
+                keepSupportInViewport(true);
+                if(
+                    supportOptions.classList.contains(
+                        "active"
+                    )
+                ){
+                    positionSupportOptions();
+                    requestAnimationFrame(function(){
+                        positionSupportOptions();
+                    });
+                }
+            });
+        }
+    }
+);
+
+window.addEventListener(
+    "orientationchange",
+    function(){
+
+        setTimeout(function(){
+            keepSupportInViewport(true);
+            if(
+                supportOptions.classList.contains(
+                    "active"
+                )
+            ){
+                positionSupportOptions();
+            }
+        },100);
+
+        setTimeout(function(){
+            keepSupportInViewport(true);
+            if(
+                supportOptions.classList.contains(
+                    "active"
+                )
+            ){
+                positionSupportOptions();
+            }
+        },400);
+    }
+);
+
+if(window.visualViewport){
+
+    window.visualViewport.addEventListener(
+        "resize",
+        function(){
+            if(!supportDragging){
+                requestAnimationFrame(function(){
+                    keepSupportInViewport(true);
+                    if(
+                        supportOptions.classList.contains(
+                            "active"
+                        )
+                    ){
+                        positionSupportOptions();
+                    }
+                });
+            }
+        }
+    );
+
+    window.visualViewport.addEventListener(
+        "scroll",
+        function(){
+            if(!supportDragging){
+                requestAnimationFrame(function(){
+                    keepSupportInViewport(true);
+                    if(
+                        supportOptions.classList.contains(
+                            "active"
+                        )
+                    ){
+                        positionSupportOptions();
+                    }
+                });
+            }
+        }
+    );
+}
+
 </script>
+
 </body>
 </html>
