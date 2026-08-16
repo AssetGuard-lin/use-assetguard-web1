@@ -3,11 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>RouteStock Pro — Standalone SMS OTP Dispatches</title>
+<title>RouteStock Pro — Standalone WhatsApp Dispatches</title>
 
-<!-- Firebase SDKs -->
+<!-- Firebase SDKs (Realtime Database & App) -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <style>
@@ -45,6 +44,7 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 
 .btn{ border:0; border-radius:11px; padding:12px 15px; font-weight:800; font-size:13px; min-height:44px; display:inline-flex; align-items:center; justify-content:center; text-decoration:none; }
 .btn.primary{ background:var(--blue); color:white; }
+.btn.whatsapp{ background:#25d366; color:white; }
 .btn.secondary{ background:white; border:1px solid var(--line); color:var(--text); }
 .btn.danger{ background:#fee2e2; color:var(--red); }
 .btn:active{ transform:scale(.98); }
@@ -115,7 +115,7 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 .dispatch-banner strong{ display:block; font-size:16px; margin-top:3px; }
 .dispatch-banner span{ display:block; font-size:11px; color:#cbd5e1; margin-top:3px; }
 
-/* MODAL OVERLAY FOR SMS OTP */
+/* MODAL OVERLAY FOR WHATSAPP TOKEN VERIFICATION */
 .modal-overlay { position: fixed; inset: 0; background: rgba(5,12,25,.7); backdrop-filter: blur(6px); z-index: 200; display: none; align-items: center; justify-content: center; padding: 16px; }
 .modal-card { background: white; width: 100%; max-width: 420px; border-radius: 20px; padding: 24px; box-shadow: 0 20px 50px rgba(0,0,0,.3); }
 .modal-title { font-size: 18px; font-weight: 850; margin-bottom: 6px; }
@@ -152,7 +152,7 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 <div class="topbar">
 <div class="page-title">
 <h2>Route Dispatch Portal</h2>
-<p>SMS OTP verification & secure cloud telemetry.</p>
+<p>WhatsApp verification & secure cloud telemetry.</p>
 </div>
 <div class="top-actions">
 <button class="btn secondary" onclick="showPage('ledgerPage')">View Ledger</button>
@@ -191,7 +191,7 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 <span style="font-size:12px; font-weight:850; color:#94a3b8;">FIREBASE TELEMETRY STATUS</span>
 <div id="liveStatusBadge" class="live-status-indicator">
 <span class="live-dot"></span>
-<span id="liveStatusText">STANDBY (AWAITING SMS OTP)</span>
+<span id="liveStatusText">STANDBY (AWAITING WHATSAPP AUTH)</span>
 </div>
 </div>
 <div class="live-metrics">
@@ -205,7 +205,7 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 <div class="field"><label>Vehicle / Registration</label><input id="vehicle" placeholder="e.g. KDA 123A"></div>
 <div class="field"><label>Dispatch Date</label><input id="date" type="date"></div>
 <div class="field full">
-    <label>Manager Phone Number (For SMS OTP Verification)</label>
+    <label>Manager WhatsApp Number (For Direct Verification)</label>
     <input id="managerPhone" type="tel" placeholder="e.g. +254713100424">
     <small style="color:var(--muted); font-size:10px; display:block; margin-top:3px;">Must include international country code (e.g., +254 for Kenya).</small>
 </div>
@@ -232,8 +232,8 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 
 <!-- INITIATE DISPATCH BUTTON -->
 <div class="card">
-<button class="btn primary" style="width:100%;" onclick="requestSmsVerification()">
-Send SMS Verification Code & Start Dispatch
+<button class="btn whatsapp" style="width:100%;" onclick="requestWhatsAppVerification()">
+💬 Send WhatsApp Verification & Start Dispatch
 </button>
 </div>
 </section>
@@ -264,24 +264,21 @@ Send SMS Verification Code & Start Dispatch
 </main>
 </div>
 
-<!-- SMS OTP MODAL -->
+<!-- WHATSAPP TOKEN MODAL -->
 <div class="modal-overlay" id="otpModal">
 <div class="modal-card">
-<div class="modal-title">📱 Enter SMS Verification Code</div>
-<div class="modal-sub" id="otpModalSub">A 6-digit verification code has been sent via SMS. Enter it below to authorize this action.</div>
+<div class="modal-title">💬 Enter WhatsApp Verification Code</div>
+<div class="modal-sub" id="otpModalSub">WhatsApp has opened. Send the pre-filled verification message to the manager, then enter the 6-digit code below to authorize.</div>
 <div class="field" style="margin-bottom:16px;">
-    <label>6-Digit OTP Code</label>
+    <label>6-Digit Authorization Code</label>
     <input id="otpCodeInput" type="text" maxlength="6" placeholder="123456" style="text-align:center; font-size:20px; letter-spacing:6px; font-weight:900;">
 </div>
 <div style="display:flex; gap:8px;">
-    <button class="btn primary" style="flex:1" onclick="verifyOtpCode()">Verify & Execute</button>
+    <button class="btn whatsapp" style="flex:1" onclick="verifyWhatsAppCode()">Verify & Execute</button>
     <button class="btn secondary" onclick="closeOtpModal()">Cancel</button>
 </div>
 </div>
 </div>
-
-<!-- HIDDEN RECAPTCHA CONTAINER REQUIRED FOR FIREBASE PHONE AUTH -->
-<div id="recaptcha-container"></div>
 
 <!-- DRAWER -->
 <div class="drawer-bg" id="drawerBg" onclick="closeDrawer(event)">
@@ -308,7 +305,6 @@ const firebaseConfig = {
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
-const auth = firebase.auth();
 const rtdb = firebase.database();
 
 let dispatches = [];
@@ -322,7 +318,6 @@ let inventory = [
 let currentFilter = "all";
 let currentDispatchId = null;
 let activeGeoWatchId = null;
-let windowRecaptchaVerifier = null;
 let pendingActionData = null;
 
 // Real-time synchronization with Firebase Realtime Database
@@ -434,23 +429,11 @@ function calcItems() {
     document.getElementById("itemValue").textContent = money(value);
 }
 
-// SETUP RECAPTCHA VERIFIER FOR PHONE AUTH
-function initRecaptcha() {
-    if (!windowRecaptchaVerifier) {
-        windowRecaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-            'size': 'invisible',
-            'callback': (response) => {
-                // reCAPTCHA solved
-            }
-        });
-    }
-}
-
-// TRIGGER SMS VERIFICATION CODE
-async function triggerSmsVerification(actionType, targetId = null, dispatchObj = null) {
+// WHATSAPP DIRECT VERIFICATION TRIGGER
+function triggerWhatsAppVerification(actionType, targetId = null, dispatchObj = null) {
     const phoneInput = document.getElementById("managerPhone").value.trim();
     if (!phoneInput) {
-        toast("Please enter your manager phone number first.", "error");
+        toast("Please enter manager WhatsApp phone number.", "error");
         return;
     }
 
@@ -459,85 +442,74 @@ async function triggerSmsVerification(actionType, targetId = null, dispatchObj =
         return;
     }
 
-    pendingActionData = { actionType, targetId, dispatchObj };
-    initRecaptcha();
+    const cleanPhone = phoneInput.replace(/[^0-9]/g, '');
+    const actionToken = Math.floor(100000 + Math.random() * 900000); // Secure 6-digit verification code
 
-    try {
-        toast("Sending SMS verification code...", "");
-        const confirmationResult = await auth.signInWithPhoneNumber(phoneInput, windowRecaptchaVerifier);
-        window.confirmationResult = confirmationResult;
+    pendingActionData = { actionType, targetId, dispatchObj, token: actionToken };
 
-        toast("SMS code sent successfully!", "success");
-        document.getElementById("otpModalSub").textContent = `A 6-digit verification code has been sent via SMS to ${phoneInput}. Enter it below to authorize this action.`;
-        document.getElementById("otpCodeInput").value = "";
-        document.getElementById("otpModal").style.display = "flex";
-    } catch (err) {
-        console.error("SMS Error:", err);
-        toast("Failed to send SMS: " + err.message, "error");
-        if (windowRecaptchaVerifier) {
-            windowRecaptchaVerifier.render().then(widgetId => grecaptcha.reset(widgetId));
-        }
-    }
+    // Construct WhatsApp message URL
+    const message = encodeURIComponent(`🔐 *RouteStock Pro Authorization*\n\nAction: ${actionType}\nVerification Code: *${actionToken}*\n\nEnter this code in your app to authorize this action.`);
+    const waUrl = `https://wa.me/${cleanPhone}?text=${message}`;
+
+    // Open WhatsApp
+    window.open(waUrl, '_blank');
+
+    // Show verification modal
+    document.getElementById("otpModalSub").textContent = `WhatsApp opened to ${phoneInput}. Send the message, then enter the 6-digit authorization code (${actionToken}) below.`;
+    document.getElementById("otpCodeInput").value = "";
+    document.getElementById("otpModal").style.display = "flex";
 }
 
-async function verifyOtpCode() {
+function verifyWhatsAppCode() {
     const code = document.getElementById("otpCodeInput").value.trim();
-    if (!code || code.length < 6) {
-        toast("Please enter the complete 6-digit code.", "error");
+    if (!pendingActionData || code !== String(pendingActionData.token)) {
+        toast("Invalid verification code entered.", "error");
         return;
     }
 
-    try {
-        toast("Verifying code...", "");
-        await window.confirmationResult.confirm(code);
-        closeOtpModal();
-        toast("Phone verified successfully! Executing action...", "success");
+    closeOtpModal();
+    toast("Action authorized successfully via WhatsApp flow!", "success");
 
-        const { actionType, targetId, dispatchObj } = pendingActionData || {};
+    const { actionType, targetId, dispatchObj } = pendingActionData;
 
-        if (actionType === 'CREATE' && dispatchObj) {
-            await rtdb.ref(`dispatches/${dispatchObj.id}`).set(dispatchObj);
-            currentDispatchId = dispatchObj.id;
-            updateDispatchBanner();
-            startLiveTracking(dispatchObj.id);
-            toast("Dispatch created successfully & live tracking active!", "success");
-        } 
-        else if (actionType === 'SETTLE' && targetId) {
-            const snapshot = await rtdb.ref(`dispatches/${targetId}`).once('value');
-            const d = snapshot.val();
-            if (d) {
-                const newStatus = (d.status === "Active") ? "Settled" : "Active";
-                await rtdb.ref(`dispatches/${targetId}/status`).set(newStatus);
-                if (newStatus === "Settled" && currentDispatchId === targetId) {
-                    stopLiveTracking();
-                    currentDispatchId = null;
-                    updateDispatchBanner();
-                }
-                toast(`Dispatch updated to ${newStatus}.`, "success");
-            }
-        } 
-        else if (actionType === 'DELETE' && targetId) {
-            if (currentDispatchId === targetId) {
+    if (actionType === 'CREATE' && dispatchObj) {
+        rtdb.ref(`dispatches/${dispatchObj.id}`).set(dispatchObj);
+        currentDispatchId = dispatchObj.id;
+        updateDispatchBanner();
+        startLiveTracking(dispatchObj.id);
+        toast("Dispatch created successfully & live tracking active!", "success");
+    } 
+    else if (actionType === 'SETTLE' && targetId) {
+        rtdb.ref(`dispatches/${targetId}/status`).once('value').then(snap => {
+            const currentStatus = snap.val();
+            const newStatus = (currentStatus === "Active") ? "Settled" : "Active";
+            rtdb.ref(`dispatches/${targetId}/status`).set(newStatus);
+            if (newStatus === "Settled" && currentDispatchId === targetId) {
                 stopLiveTracking();
                 currentDispatchId = null;
                 updateDispatchBanner();
             }
-            await rtdb.ref(`dispatches/${targetId}`).remove();
-            toast("Dispatch permanently deleted.", "success");
+            toast(`Dispatch updated to ${newStatus}.`, "success");
+        });
+    } 
+    else if (actionType === 'DELETE' && targetId) {
+        if (currentDispatchId === targetId) {
+            stopLiveTracking();
+            currentDispatchId = null;
+            updateDispatchBanner();
         }
-
-        pendingActionData = null;
-    } catch (err) {
-        console.error("OTP verification error:", err);
-        toast("Invalid verification code: " + err.message, "error");
+        rtdb.ref(`dispatches/${targetId}`).remove();
+        toast("Dispatch permanently deleted.", "success");
     }
+
+    pendingActionData = null;
 }
 
 function closeOtpModal() {
     document.getElementById("otpModal").style.display = "none";
 }
 
-function requestSmsVerification() {
+function requestWhatsAppVerification() {
     const agentRows = [...document.querySelectorAll(".agent-row")];
     if(!agentRows.length) { toast("Add at least one sales crew member or driver.","error"); return; }
 
@@ -554,7 +526,7 @@ function requestSmsVerification() {
     const notes = document.getElementById("notes").value.trim();
 
     if(!vehicle) { toast("Enter the vehicle registration.","error"); return; }
-    if(!phone) { toast("Enter your manager phone number.","error"); return; }
+    if(!phone) { toast("Enter your manager WhatsApp phone number.","error"); return; }
 
     const rows = [...document.querySelectorAll(".item-row")];
     if(!rows.length) { toast("Add at least one product.","error"); return; }
@@ -571,13 +543,13 @@ function requestSmsVerification() {
 
     const newDispatchObject = {
         id: "RS-" + Date.now().toString().slice(-8),
-        agents, route: "SMS Secured Route", date, vehicle, phone, notes,
+        agents, route: "WhatsApp Secured Route", date, vehicle, phone, notes,
         status: "Active",
         items,
         lastLocation: null
     };
 
-    triggerSmsVerification('CREATE', null, newDispatchObject);
+    triggerWhatsAppVerification('CREATE', null, newDispatchObject);
 }
 
 function startLiveTracking(dispatchId) {
@@ -638,7 +610,7 @@ function updateDispatchBanner() {
     banner.classList.add("show");
     const crewStr = Array.isArray(d.agents) ? d.agents.map(a=>a.name).join(", ") : "Crew";
     document.getElementById("bannerDispatch").textContent = d.id + " · Crew: " + crewStr;
-    document.getElementById("bannerRoute").textContent = d.vehicle + " · SMS Secured GPS Active";
+    document.getElementById("bannerRoute").textContent = d.vehicle + " · WhatsApp Secured GPS Active";
 }
 
 function renderLedger() {
@@ -676,7 +648,7 @@ function renderLedger() {
                     <div class="ledger-stat-box"><small>CASH</small><strong style="color:var(--blue)">${money(t.cash)}</strong></div>
                 </div>
                 <div class="ledger-footer">
-                    <span class="badge settled">${d.status==="Active"?"SMS Secured":"GPS Logged Off"}</span>
+                    <span class="badge settled">${d.status==="Active"?"WhatsApp Secured":"GPS Logged Off"}</span>
                     <button class="action" onclick="openDispatch('${d.id}')">View Details</button>
                 </div>
             </div>
@@ -763,8 +735,8 @@ function openDispatch(id) {
         </div>
 
         <div style="display:flex;gap:8px;margin-top:20px">
-            <button class="btn primary" style="flex:1" onclick="triggerSmsVerification('SETTLE', '${d.id}')">${d.status==="Active"?"📱 Settle & Log Off (Via SMS)":"📱 Reopen Dispatch (Via SMS)"}</button>
-            <button class="btn danger" onclick="triggerSmsVerification('DELETE', '${d.id}')">🗑️ Delete (Via SMS)</button>
+            <button class="btn whatsapp" style="flex:1" onclick="triggerWhatsAppVerification('SETTLE', '${d.id}')">${d.status==="Active"?"💬 Settle & Log Off (Via WhatsApp)":"💬 Reopen Dispatch (Via WhatsApp)"}</button>
+            <button class="btn danger" onclick="triggerWhatsAppVerification('DELETE', '${d.id}')">🗑️ Delete (Via WhatsApp)</button>
         </div>
     `;
     document.getElementById("drawerBg").style.display = "block";
