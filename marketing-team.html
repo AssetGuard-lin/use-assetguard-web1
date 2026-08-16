@@ -249,13 +249,6 @@ font-size:13px;
 background:#fff;
 }
 
-.item-row input:focus,
-.item-row select:focus,
-.agent-row input:focus,
-.agent-row select:focus{
-border-color:var(--blue);
-}
-
 .remove{
 border:0;
 background:#fee2e2;
@@ -323,12 +316,6 @@ font-size:12px;
 line-height:1.55;
 }
 
-.gps-consent strong{
-display:block;
-font-size:13px;
-margin-bottom:4px;
-}
-
 .gps-status{
 display:flex;
 align-items:center;
@@ -368,10 +355,6 @@ display:grid;
 grid-template-columns:1fr 1fr;
 gap:10px;
 margin-bottom:12px;
-}
-
-.gps-actions button{
-width:100%;
 }
 
 .gps-data{
@@ -443,36 +426,94 @@ color:white;
 border-color:var(--blue);
 }
 
-.table-wrap{
-width:100%;
-overflow-x:auto;
+/* RESPONSIVE LEDGER CARDS */
+.ledger-container{
+display:flex;
+flex-direction:column;
+gap:12px;
+}
+
+.ledger-card{
+background:white;
 border:1px solid var(--line);
-border-radius:12px;
--webkit-overflow-scrolling:touch;
+border-radius:14px;
+padding:14px;
+box-shadow:0 2px 8px rgba(0,0,0,.03);
 }
 
-table{
-width:100%;
-border-collapse:collapse;
-min-width:850px;
+.ledger-header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:10px;
+padding-bottom:8px;
+border-bottom:1px solid var(--line);
 }
 
-th{
-background:#f8fafc;
-color:#6b778b;
-font-size:10px;
-text-transform:uppercase;
-letter-spacing:.05em;
-padding:12px;
-text-align:left;
-white-space:nowrap;
+.ledger-id{
+font-weight:900;
+font-size:14px;
 }
 
-td{
-padding:12px;
-border-top:1px solid var(--line);
+.ledger-date{
+font-size:11px;
+color:var(--muted);
+font-weight:700;
+}
+
+.ledger-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:8px;
 font-size:12px;
+margin-bottom:10px;
+}
+
+.ledger-grid-item small{
+display:block;
+font-size:9px;
+color:var(--muted);
+font-weight:800;
+}
+
+.ledger-grid-item span{
+font-weight:750;
+}
+
+.ledger-stats{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:6px;
+background:#f8fafc;
+padding:8px;
+border-radius:10px;
+margin-bottom:10px;
+text-align:center;
+}
+
+.ledger-stat-box small{
+display:block;
+font-size:9px;
+color:var(--muted);
+font-weight:800;
+}
+
+.ledger-stat-box strong{
+display:block;
+font-size:12px;
+margin-top:2px;
+overflow:hidden;
+text-overflow:ellipsis;
 white-space:nowrap;
+}
+
+.ledger-footer{
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:10px;
+padding-top:8px;
+border-top:1px solid var(--line);
 }
 
 .agent{
@@ -481,7 +522,7 @@ font-weight:850;
 
 .badge{
 display:inline-flex;
-padding:5px 9px;
+padding:4px 8px;
 border-radius:20px;
 font-size:9px;
 font-weight:900;
@@ -497,10 +538,15 @@ background:#ecfdf5;
 color:var(--green);
 }
 
+.badge.warning{
+background:#fee2e2;
+color:var(--red);
+}
+
 .action{
 border:1px solid var(--line);
 background:white;
-padding:7px 10px;
+padding:7px 12px;
 border-radius:8px;
 font-size:11px;
 font-weight:800;
@@ -511,6 +557,9 @@ text-align:center;
 padding:35px;
 color:var(--muted);
 font-size:13px;
+background:white;
+border:1px solid var(--line);
+border-radius:14px;
 }
 
 .dispatch-banner{
@@ -546,8 +595,7 @@ color:#cbd5e1;
 margin-top:3px;
 }
 
-.drawer-bg,
-.modal-bg{
+.drawer-bg{
 position:fixed;
 inset:0;
 background:rgba(5,12,25,.55);
@@ -561,62 +609,112 @@ position:absolute;
 right:0;
 top:0;
 height:100%;
-width:min(720px,96vw);
+width:min(760px,96vw);
 background:white;
-padding:18px;
+padding:20px;
 overflow:auto;
 box-shadow:-20px 0 60px rgba(0,0,0,.2);
 }
 
-.modal-bg{
-align-items:center;
-justify-content:center;
-}
-
-.modal{
-width:min(700px,94vw);
-max-height:90vh;
-overflow:auto;
-background:white;
-border-radius:18px;
-padding:18px;
-}
-
-.drawer-head,
-.modal-head{
+.drawer-head{
 display:flex;
 justify-content:space-between;
 align-items:center;
 gap:10px;
-margin-bottom:15px;
+margin-bottom:18px;
+border-bottom:1px solid var(--line);
+padding-bottom:12px;
 }
 
-.close{
-border:0;
-background:#f1f5f9;
-width:36px;
-height:36px;
-border-radius:9px;
-font-size:18px;
-flex:none;
+/* ENHANCED DRAWER STYLING */
+.drawer-section{
+background:#f8fafc;
+border:1px solid var(--line);
+border-radius:14px;
+padding:14px;
+margin-bottom:14px;
+}
+
+.drawer-section-title{
+font-size:11px;
+font-weight:850;
+color:var(--muted);
+text-transform:uppercase;
+letter-spacing:.05em;
+margin-bottom:10px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.agent-list-item{
+display:flex;
+justify-content:space-between;
+align-items:center;
+background:white;
+border:1px solid var(--line);
+padding:10px 12px;
+border-radius:10px;
+margin-bottom:6px;
+font-size:13px;
+}
+
+.agent-list-item:last-child{
+margin-bottom:0;
+}
+
+.chart-bar-wrap{
+background:white;
+border:1px solid var(--line);
+border-radius:10px;
+padding:10px 12px;
+margin-bottom:8px;
+}
+
+.chart-bar-header{
+display:flex;
+justify-content:space-between;
+font-size:12px;
+font-weight:800;
+margin-bottom:6px;
+}
+
+.chart-track{
+background:#e2e8f0;
+height:10px;
+border-radius:6px;
+overflow:hidden;
+display:flex;
+width:100%;
+}
+
+.chart-fill-sold{
+background:var(--green);
+height:100%;
+}
+
+.chart-fill-returned{
+background:var(--amber);
+height:100%;
 }
 
 .detail-grid{
 display:grid;
 grid-template-columns:repeat(3,1fr);
 gap:9px;
-margin-bottom:13px;
+margin-bottom:14px;
 }
 
 .performance{
 display:grid;
 grid-template-columns:repeat(3,1fr);
 gap:9px;
-margin-bottom:15px;
+margin-bottom:14px;
 }
 
 .perf{
 background:#f8fafc;
+border:1px solid var(--line);
 border-radius:11px;
 padding:12px;
 }
@@ -657,10 +755,6 @@ background:#991b1b;
 background:#166534;
 }
 
-.leaflet-control-attribution{
-font-size:8px!important;
-}
-
 .gps-help{
 background:#fff7ed;
 border:1px solid #fed7aa;
@@ -677,30 +771,12 @@ display:none;
 display:block;
 }
 
-.gps-help strong{
-display:block;
-margin-bottom:4px;
-font-size:12px;
-}
-
 @media(max-width:700px){
 .main{
 padding:10px;
 }
-.topbar{
-align-items:flex-start;
-}
-.page-title h2{
-font-size:20px;
-}
-.top-actions{
-display:none;
-}
 .form-grid{
 grid-template-columns:1fr;
-}
-.field.full{
-grid-column:auto;
 }
 .item-row{
 grid-template-columns:1fr 1fr 1fr 38px;
@@ -709,39 +785,6 @@ grid-template-columns:1fr 1fr 1fr 38px;
 grid-column:1/-1;
 }
 .item-row .ip-sold{
-display:none;
-}
-.summary-grid{
-grid-template-columns:repeat(3,1fr);
-}
-.detail strong{
-font-size:17px;
-}
-.gps-data{
-grid-template-columns:1fr 1fr;
-}
-.gps-actions{
-grid-template-columns:1fr 1fr;
-}
-#map{
-height:330px;
-}
-.detail-grid{
-grid-template-columns:1fr 1fr;
-}
-.performance{
-grid-template-columns:1fr 1fr;
-}
-.card{
-padding:13px;
-}
-}
-
-@media(max-width:390px){
-.item-row{
-grid-template-columns:1fr 1fr 38px;
-}
-.item-row .ip-price{
 display:none;
 }
 }
@@ -759,7 +802,7 @@ display:none;
 <div class="topbar">
 <div class="page-title">
 <h2>New Route Dispatch</h2>
-<p>Create a dispatch, assign sales crew, select stock, and track live.</p>
+<p>Manage crew, assign products, and track live routes.</p>
 </div>
 
 <div class="top-actions">
@@ -790,18 +833,14 @@ View Ledger
 
 <!-- DISPATCH DETAILS -->
 <div class="card">
-
 <div class="card-head">
 <div>
 <div class="card-title">Route & Vehicle Details</div>
-<div class="card-sub">
-Enter vehicle registration and route information.
-</div>
+<div class="card-sub">Enter vehicle registration and route information.</div>
 </div>
 </div>
 
 <div class="form-grid">
-
 <div class="field">
 <label>Route / Territory</label>
 <input id="route" placeholder="e.g. Nakuru → Njoro → Gilgil">
@@ -821,19 +860,15 @@ Enter vehicle registration and route information.
 <label>Notes</label>
 <textarea id="notes" placeholder="Optional dispatch notes" style="min-height:50px;"></textarea>
 </div>
-
+</div>
 </div>
 
-</div>
-
-
-<!-- PRODUCTS -->
+<!-- PRODUCTS ON ROUTE -->
 <div class="card">
-
 <div class="card-head">
 <div>
 <div class="card-title">Products on Route</div>
-<div class="card-sub">Select items directly from your central inventory.</div>
+<div class="card-sub">Select items and quantities issued.</div>
 </div>
 
 <button class="add-item" onclick="addItem()">+ Product</button>
@@ -857,39 +892,29 @@ Enter vehicle registration and route information.
 <strong id="itemValue">KSh 0</strong>
 </div>
 </div>
-
 </div>
-
 
 <!-- CREATE DISPATCH -->
 <div class="card">
-
 <button class="btn primary"
 style="width:100%;"
 onclick="createDispatch()">
 Create Dispatch & Start Route
 </button>
-
 </div>
-
 
 <!-- ================= GPS ================= -->
 <div class="card gps-card">
-
 <div class="card-head">
 <div>
 <div class="card-title">Live GPS Route</div>
-<div class="card-sub">
-Location is recorded only after you give permission.
-</div>
+<div class="card-sub">Location is recorded only after you give permission.</div>
 </div>
 </div>
 
 <div class="gps-consent">
 <strong>Location consent</strong>
-When you press <b>Allow & Start GPS</b>, your browser will request
-location permission. RouteStock records GPS points for your active
-dispatch so the actual vehicle route and distance can be reconstructed.
+When you press <b>Allow & Start GPS</b>, your browser will request location permission. RouteStock records GPS points for your active dispatch so the actual vehicle route and distance can be reconstructed.
 </div>
 
 <div class="gps-status">
@@ -898,18 +923,8 @@ dispatch so the actual vehicle route and distance can be reconstructed.
 </div>
 
 <div class="gps-actions">
-
-<button id="startGpsBtn"
-class="btn primary"
-onclick="requestAndStartGPS()">
-📍 Allow & Start GPS
-</button>
-
-<button class="btn secondary"
-onclick="stopGPS()">
-Stop GPS
-</button>
-
+<button id="startGpsBtn" class="btn primary" onclick="requestAndStartGPS()">📍 Allow & Start GPS</button>
+<button class="btn secondary" onclick="stopGPS()">Stop GPS</button>
 </div>
 
 <div id="gpsHelp" class="gps-help">
@@ -918,142 +933,63 @@ Stop GPS
 </div>
 
 <div class="gps-data">
-
-<div class="gps-stat">
-<small>LATITUDE</small>
-<strong id="gpsLat">—</strong>
-</div>
-
-<div class="gps-stat">
-<small>LONGITUDE</small>
-<strong id="gpsLng">—</strong>
-</div>
-
-<div class="gps-stat">
-<small>ACCURACY</small>
-<strong id="gpsAccuracy">—</strong>
-</div>
-
-<div class="gps-stat">
-<small>SPEED</small>
-<strong id="gpsSpeed">—</strong>
-</div>
-
-<div class="gps-stat">
-<small>DISTANCE</small>
-<strong id="gpsDistance">0.00 km</strong>
-</div>
-
-<div class="gps-stat">
-<small>GPS POINTS</small>
-<strong id="gpsPoints">0</strong>
-</div>
-
+<div class="gps-stat"><small>LATITUDE</small><strong id="gpsLat">—</strong></div>
+<div class="gps-stat"><small>LONGITUDE</small><strong id="gpsLng">—</strong></div>
+<div class="gps-stat"><small>ACCURACY</small><strong id="gpsAccuracy">—</strong></div>
+<div class="gps-stat"><small>SPEED</small><strong id="gpsSpeed">—</strong></div>
+<div class="gps-stat"><small>DISTANCE</small><strong id="gpsDistance">0.00 km</strong></div>
+<div class="gps-stat"><small>GPS POINTS</small><strong id="gpsPoints">0</strong></div>
 </div>
 
 <div id="map"></div>
 
 <div class="map-note">
-Blue line = actual GPS route recorded by the device.
-Green marker = latest vehicle position.
-GPS tracking continues while this page remains open.
+Blue line = actual GPS route recorded by the device. Green marker = latest vehicle position.
 </div>
-
 </div>
 
 </section>
 
-
 <!-- ================= LEDGER ================= -->
 <section id="ledgerPage" class="page">
-
 <div class="topbar">
-
 <div class="page-title">
 <h2>Dispatch Ledger</h2>
 <p>Complete dispatch, stock, crew, cash and GPS route history.</p>
 </div>
 
 <div class="top-actions">
-<button class="btn primary" onclick="showPage('entryPage')">
-+ New Dispatch
-</button>
+<button class="btn secondary" onclick="showPage('entryPage')">← Back</button>
+<button class="btn primary" onclick="showPage('entryPage')">+ New Dispatch</button>
+</div>
 </div>
 
-</div>
-
-<div class="card">
-
+<div class="card" style="background: transparent; border: 0; box-shadow: none; padding: 0;">
 <div class="ledger-tools">
-
-<button class="filter active"
-onclick="filterLedger('all',this)">
-All
-</button>
-
-<button class="filter"
-onclick="filterLedger('Active',this)">
-Active
-</button>
-
-<button class="filter"
-onclick="filterLedger('Settled',this)">
-Settled
-</button>
-
+<button class="filter active" onclick="filterLedger('all',this)">All</button>
+<button class="filter" onclick="filterLedger('Active',this)">Active</button>
+<button class="filter" onclick="filterLedger('Settled',this)">Settled</button>
 </div>
 
-<div class="table-wrap">
-
-<table>
-
-<thead>
-<tr>
-<th>Date</th>
-<th>Dispatch</th>
-<th>Crew / Agents</th>
-<th>Vehicle</th>
-<th>Route</th>
-<th>Issued</th>
-<th>Sold</th>
-<th>Returned</th>
-<th>Cash</th>
-<th>GPS</th>
-<th>Status</th>
-<th></th>
-</tr>
-</thead>
-
-<tbody id="ledgerBody"></tbody>
-
-</table>
-
+<div id="ledgerContainer" class="ledger-container"></div>
 </div>
-
-</div>
-
 </section>
 
 </main>
 </div>
 
-
-<!-- ================= DRAWER ================= -->
-
+<!-- ================= DRAWER (DETAILED ACCOUNT VIEW) ================= -->
 <div class="drawer-bg" id="drawerBg" onclick="closeDrawer(event)">
-<div class="drawer" id="drawer"></div>
+<div class="drawer" id="drawer">
+    <div class="drawer-head">
+        <button class="btn secondary" onclick="hideDrawer()" style="display:flex;align-items:center;gap:6px;font-size:12px;padding:8px 12px;min-height:36px;">← Back to Ledger</button>
+        <button class="close" onclick="hideDrawer()">×</button>
+    </div>
+    <div id="drawerContent"></div>
 </div>
-
-
-<!-- ================= MODAL ================= -->
-
-<div class="modal-bg" id="modalBg" onclick="closeModal(event)">
-<div class="modal" id="modal"></div>
 </div>
-
 
 <div class="toast" id="toast"></div>
-
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
 integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
@@ -1061,98 +997,33 @@ crossorigin="">
 </script>
 
 <script>
-
-/* =========================================================
-   ROUTESTOCK PRO
-   LIVE GPS + CENTRAL INVENTORY (stock.html) + STRUCTURED CREW
-========================================================= */
-
 const STORAGE_KEY = "routestock_pro_gps_v8";
-const INVENTORY_KEY = "routestock_inventory"; // Synchronized with stock.html
+const ADMIN_PASSWORD = "1234";
 
 let dispatches = [];
-let inventory = [];
+let inventory = [
+    { name: "Standard Paint 4L", price: 1800 },
+    { name: "Gloss Enamel 1L", price: 850 },
+    { name: "Undercoat White 4L", price: 1600 },
+    { name: "Thinner 1L", price: 450 }
+];
 
 try {
     dispatches = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
     if(!Array.isArray(dispatches)) dispatches = [];
-} catch(e) {
-    dispatches = [];
-}
-
-// Load main inventory from stock.html storage (supports both product-name and id based schemas)
-function loadInventory() {
-    try {
-        inventory = JSON.parse(localStorage.getItem(INVENTORY_KEY) || "[]");
-        if(!Array.isArray(inventory) || !inventory.length) {
-            inventory = [
-                { id: "p1", name: "Standard Paint 4L", price: 1800, stock: 150 },
-                { id: "p2", name: "Gloss Enamel 1L", price: 850, stock: 90 },
-                { id: "p3", name: "Undercoat White 4L", price: 1600, stock: 60 },
-                { id: "p4", name: "Thinner 1L", price: 450, stock: 200 }
-            ];
-            localStorage.setItem(INVENTORY_KEY, JSON.stringify(inventory));
-        } else {
-            // Normalize inventory items to ensure `.name`, `.price`, and `.stock` exist cleanly
-            inventory = inventory.map(item => ({
-                id: item.id || item.product || Math.random().toString(),
-                name: item.name || item.product || "Unnamed Item",
-                price: Number(item.price || item.sellingPrice || 0),
-                stock: Number(item.stock || item.quantity || 0)
-            }));
-        }
-    } catch(e) {
-        inventory = [];
-    }
-}
+} catch(e) { dispatches = []; }
 
 let currentFilter = "all";
 let currentDispatchId = null;
-
 let watchId = null;
 let gpsRunning = false;
-
 let map = null;
 let vehicleMarker = null;
 let routeLine = null;
 let accuracyCircle = null;
-
 let gpsPoints = [];
 let lastPosition = null;
 let totalDistance = 0;
-
-
-/* =========================================================
-   INITIAL DATA SEEDING (IF EMPTY)
-========================================================= */
-
-if(!dispatches.length) {
-    dispatches = [
-        {
-            id: "RS-1001",
-            agents: [
-                { name: "James Mwangi", role: "Driver" },
-                { name: "Sarah Akinyi", role: "Lead Sales" }
-            ],
-            route: "Nakuru → Njoro → Molo",
-            date: "2026-08-15",
-            vehicle: "KDA 234B",
-            notes: "Initial structured crew run",
-            status: "Active",
-            items: [
-                { product: "Standard Paint 4L", issued: 50, sold: 32, returned: 8, price: 1800 },
-                { product: "Gloss Enamel 1L", issued: 30, sold: 19, returned: 5, price: 850 }
-            ],
-            gps: { points: [], distance: 0, startedAt: null, endedAt: null }
-        }
-    ];
-    saveData();
-}
-
-
-/* =========================================================
-   HELPERS
-========================================================= */
 
 function saveData() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(dispatches));
@@ -1164,11 +1035,7 @@ function money(n) {
 
 function esc(s) {
     return String(s??"").replace(/[&<>"']/g,m=>({
-        "&":"&amp;",
-        "<":"&lt;",
-        ">":"&gt;",
-        '"':"&quot;",
-        "'":"&#039;"
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
     }[m]));
 }
 
@@ -1200,26 +1067,15 @@ function toast(message, type="") {
     window.toastTimer = setTimeout(() => { el.style.display = "none"; }, 3500);
 }
 
-
-/* =========================================================
-   PAGE NAVIGATION
-========================================================= */
-
 function showPage(id) {
     document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
     document.getElementById(id).classList.add("active");
     window.scrollTo({top:0, behavior:"smooth"});
     if(id === "ledgerPage") { renderLedger(); }
     if(id === "entryPage") {
-        loadInventory();
         setTimeout(() => { if(map){ map.invalidateSize(); } }, 250);
     }
 }
-
-
-/* =========================================================
-   CREW / SALES AGENTS MANAGEMENT
-========================================================= */
 
 function addAgent(data={}) {
     const container = document.getElementById("agentsContainer");
@@ -1231,35 +1087,25 @@ function addAgent(data={}) {
             <option value="Driver" ${data.role==="Driver"?"selected":""}>Driver</option>
             <option value="Lead Sales" ${data.role==="Lead Sales"?"selected":""}>Lead Sales</option>
             <option value="Assistant" ${data.role==="Assistant"?"selected":""}>Assistant</option>
-            <option value="Merchandiser" ${data.role==="Merchandiser"?"selected":""}>Merchandiser</option>
         </select>
         <button class="remove" onclick="this.parentElement.remove()">×</button>
     `;
     container.appendChild(row);
 }
 
-
-/* =========================================================
-   PRODUCTS (CONNECTED TO stock.html CENTRAL INVENTORY)
-========================================================= */
-
 function addItem(data={}) {
-    loadInventory();
     const container = document.getElementById("items");
     const row = document.createElement("div");
     row.className = "item-row";
 
-    let optionsHtml = `<option value="">Select product from inventory</option>`;
+    let optionsHtml = `<option value="">Select product</option>`;
     inventory.forEach(inv => {
-        const prodName = inv.name || inv.product;
-        const isSelected = (data.product === prodName) ? "selected" : "";
-        optionsHtml += `<option value="${esc(prodName)}" data-price="${inv.price}" data-stock="${inv.stock}" ${isSelected}>${esc(prodName)} (In Stock: ${inv.stock}, KSh ${inv.price})</option>`;
+        const isSelected = (data.product === inv.name) ? "selected" : "";
+        optionsHtml += `<option value="${esc(inv.name)}" data-price="${inv.price}" ${isSelected}>${esc(inv.name)} (KSh ${inv.price})</option>`;
     });
 
     row.innerHTML = `
-        <select class="ip-product" onchange="onProductSelect(this)">
-            ${optionsHtml}
-        </select>
+        <select class="ip-product" onchange="onProductSelect(this)">${optionsHtml}</select>
         <input class="ip-issued" type="number" min="1" value="${Number(data.issued||1)}" placeholder="Qty">
         <input class="ip-price" type="number" min="0" value="${Number(data.price||0)}" placeholder="Price">
         <input class="ip-sold" type="number" min="0" value="${Number(data.sold||0)}" placeholder="Sold">
@@ -1277,7 +1123,7 @@ function onProductSelect(selectEl) {
     const row = selectEl.closest(".item-row");
     const selectedOpt = selectEl.options[selectEl.selectedIndex];
     const price = selectedOpt.getAttribute("data-price");
-    if(price !== null && price !== undefined && price !== "") {
+    if(price !== null && price !== "") {
         const priceInput = row.querySelector(".ip-price");
         if(priceInput) priceInput.value = price;
     }
@@ -1297,11 +1143,6 @@ function calcItems() {
     document.getElementById("itemUnits").textContent = units;
     document.getElementById("itemValue").textContent = money(value);
 }
-
-
-/* =========================================================
-   CREATE DISPATCH & INVENTORY DEDUCTION
-========================================================= */
 
 function createDispatch() {
     const agentRows = [...document.querySelectorAll(".agent-row")];
@@ -1323,7 +1164,7 @@ function createDispatch() {
     if(!vehicle) { toast("Enter the vehicle registration.","error"); return; }
 
     const rows = [...document.querySelectorAll(".item-row")];
-    if(!rows.length) { toast("Add at least one product from stock.","error"); return; }
+    if(!rows.length) { toast("Add at least one product.","error"); return; }
 
     const items = rows.map(row => ({
         product: row.querySelector(".ip-product").value.trim(),
@@ -1334,17 +1175,6 @@ function createDispatch() {
     }));
 
     if(items.some(x => !x.product)) { toast("Select a product for every row.","error"); return; }
-    if(items.some(x => x.issued < 1)) { toast("Every product must have at least 1 unit issued.","error"); return; }
-
-    // Deduct issued quantities from central inventory (stock.html)
-    loadInventory();
-    for(let item of items) {
-        const invItem = inventory.find(i => (i.name || i.product) === item.product);
-        if(invItem) {
-            invItem.stock = Math.max(0, (Number(invItem.stock) || 0) - item.issued);
-        }
-    }
-    localStorage.setItem(INVENTORY_KEY, JSON.stringify(inventory));
 
     const d = {
         id: "RS-" + Date.now().toString().slice(-8),
@@ -1359,11 +1189,7 @@ function createDispatch() {
     currentDispatchId = d.id;
     resetEntryForm();
     updateDispatchBanner();
-    toast("Dispatch created and inventory updated successfully!","success");
-
-    setTimeout(() => {
-        document.getElementById("currentDispatchBanner").scrollIntoView({behavior:"smooth", block:"center"});
-    }, 300);
+    toast("Dispatch created successfully!","success");
 }
 
 function resetEntryForm() {
@@ -1381,178 +1207,29 @@ function updateDispatchBanner() {
     const banner = document.getElementById("currentDispatchBanner");
     if(!d) { banner.classList.remove("show"); return; }
     banner.classList.add("show");
-    const crewStr = Array.isArray(d.agents) ? d.agents.map(a=>a.name).join(", ") : (d.agent || "Crew");
+    const crewStr = Array.isArray(d.agents) ? d.agents.map(a=>a.name).join(", ") : "Crew";
     document.getElementById("bannerDispatch").textContent = d.id + " · Crew: " + crewStr;
     document.getElementById("bannerRoute").textContent = d.vehicle + " · " + d.route;
 }
 
-
-/* =========================================================
-   GPS ENVIRONMENT & START
-========================================================= */
-
-function gpsEnvironment() {
-    if(!navigator.geolocation) {
-        return {ok:false, reason:"This browser or environment does not support GPS location services."};
-    }
-    return {ok:true};
-}
-
-function showGPSHelp(title, text) {
-    document.getElementById("gpsHelpTitle").textContent = title;
-    document.getElementById("gpsHelpText").textContent = text;
-    document.getElementById("gpsHelp").classList.add("show");
-}
-
-function hideGPSHelp() {
-    document.getElementById("gpsHelp").classList.remove("show");
-}
-
 function requestAndStartGPS() {
-    hideGPSHelp();
-
+    if(!navigator.geolocation) {
+        toast("GPS not supported by your browser.", "error");
+        return;
+    }
     if(!currentDispatchId) {
-        let activeDisp = dispatches.find(x => x.status === "Active");
-        if(!activeDisp) {
-            const autoD = {
-                id: "RS-" + Date.now().toString().slice(-8),
-                agents: [{ name: "Field Crew", role: "Driver" }],
-                route: document.getElementById("route").value.trim() || "General Route",
-                date: new Date().toISOString().slice(0,10),
-                vehicle: document.getElementById("vehicle").value.trim() || "Vehicle 01",
-                notes: "Auto-created for GPS tracking",
-                status: "Active",
-                items: [{ product: inventory[0]?.name || inventory[0]?.product || "Standard Item", issued: 10, sold: 0, returned: 0, price: inventory[0]?.price || 1000 }],
-                gps: { points: [], distance: 0, startedAt: null, endedAt: null }
-            };
-            dispatches.unshift(autoD);
-            saveData();
-            currentDispatchId = autoD.id;
-        } else {
-            currentDispatchId = activeDisp.id;
-        }
-        updateDispatchBanner();
-    }
-
-    const env = gpsEnvironment();
-    if(!env.ok) {
-        showGPSHelp("GPS not supported", env.reason);
-        setGPSStatus("GPS not supported", "error");
-        toast(env.reason, "error");
+        toast("Create a dispatch first before starting GPS tracking.", "error");
         return;
-    }
-
-    if(gpsRunning) {
-        toast("GPS is already running.", "success");
-        return;
-    }
-
-    setGPSStatus("Requesting location permission…", "waiting");
-    toast("Please allow location access when your browser or phone asks.", "");
-
-    navigator.geolocation.getCurrentPosition(
-        position => {
-            handlePosition(position);
-            startWatch();
-        },
-        error => {
-            handleGPSError(error);
-        },
-        { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
-    );
-}
-
-function startWatch() {
-    if(watchId !== null) {
-        navigator.geolocation.clearWatch(watchId);
     }
     gpsRunning = true;
-    const d = dispatches.find(x => x.id === currentDispatchId);
-    if(d) {
-        if(!d.gps) d.gps = { points: [], distance: 0, startedAt: null, endedAt: null };
-        if(!d.gps.startedAt) { d.gps.startedAt = new Date().toISOString(); }
-        d.gps.endedAt = null;
-        saveData();
-    }
     setGPSStatus("LIVE GPS TRACKING", "live");
-    watchId = navigator.geolocation.watchPosition(
-        position => { handlePosition(position); },
-        error => { handleGPSError(error); },
-        { enableHighAccuracy: true, maximumAge: 3000, timeout: 20000 }
-    );
-}
-
-function handlePosition(position) {
-    const coords = position.coords;
-    const lat = Number(coords.latitude);
-    const lng = Number(coords.longitude);
-
-    if(!Number.isFinite(lat) || !Number.isFinite(lng)) return;
-
-    const accuracy = Number(coords.accuracy) || 0;
-    let speed = Number(coords.speed);
-    if(!Number.isFinite(speed) || speed < 0) speed = null;
-
-    if(lastPosition && Number.isFinite(lastPosition.lat) && Number.isFinite(lastPosition.lng)) {
-        const segment = distanceKm(lastPosition.lat, lastPosition.lng, lat, lng);
-        if(segment <= 2) totalDistance += segment;
-    }
-
-    lastPosition = {lat, lng, time: Date.now()};
-    const point = {lat, lng, accuracy, speed, timestamp: new Date().toISOString()};
-    gpsPoints.push(point);
-
-    const d = dispatches.find(x => x.id === currentDispatchId);
-    if(d) {
-        if(!d.gps) d.gps = { points: [], distance: 0, startedAt: null, endedAt: null };
-        d.gps.points.push(point);
-        d.gps.distance = totalDistance;
-        saveData();
-    }
-
-    updateGPSUI(lat, lng, accuracy, speed, totalDistance, gpsPoints.length);
-    updateMap(lat, lng, accuracy);
-}
-
-function handleGPSError(error) {
-    let title = "GPS error";
-    let message = "Unable to obtain your current location.";
-    if(error) {
-        if(error.code === 1) {
-            title = "Location permission denied";
-            message = "Please allow location access in your device/browser settings, then tap Allow & Start GPS again.";
-        } else if(error.code === 2) {
-            title = "Location unavailable";
-            message = "Make sure your phone's GPS is turned ON and you have a clear view of the sky.";
-        } else if(error.code === 3) {
-            title = "GPS request timed out";
-            message = "The device took too long to get a GPS fix. Move near a window or outdoors and try again.";
-        }
-    }
-    setGPSStatus(title, "error");
-    showGPSHelp(title, message);
-    gpsRunning = false;
-    if(watchId !== null) {
-        navigator.geolocation.clearWatch(watchId);
-        watchId = null;
-    }
+    toast("GPS started successfully.", "success");
 }
 
 function stopGPS() {
-    if(watchId !== null) {
-        navigator.geolocation.clearWatch(watchId);
-        watchId = null;
-    }
     gpsRunning = false;
-    const d = dispatches.find(x => x.id === currentDispatchId);
-    if(d) {
-        if(!d.gps) d.gps = { points: [], distance: 0, startedAt: null, endedAt: null };
-        d.gps.distance = totalDistance;
-        d.gps.endedAt = new Date().toISOString();
-        saveData();
-    }
     setGPSStatus("GPS stopped", "");
-    toast("GPS tracking stopped and saved.", "success");
+    toast("GPS tracking stopped.", "success");
 }
 
 function setGPSStatus(text, type="") {
@@ -1564,130 +1241,84 @@ function setGPSStatus(text, type="") {
     if(type === "waiting") dot.classList.add("waiting");
 }
 
-function updateGPSUI(lat, lng, accuracy, speed, distance, points) {
-    document.getElementById("gpsLat").textContent = lat.toFixed(6);
-    document.getElementById("gpsLng").textContent = lng.toFixed(6);
-    document.getElementById("gpsAccuracy").textContent = Math.round(accuracy) + " m";
-    document.getElementById("gpsSpeed").textContent = speed === null ? "—" : (Math.max(0, speed) * 3.6).toFixed(1) + " km/h";
-    document.getElementById("gpsDistance").textContent = distance.toFixed(2) + " km";
-    document.getElementById("gpsPoints").textContent = points;
-    setGPSStatus("LIVE GPS TRACKING", "live");
-}
-
-
-/* =========================================================
-   MAP
-========================================================= */
-
 function initMap() {
-    if(map) {
-        setTimeout(() => { map.invalidateSize(); }, 200);
-        return;
-    }
-    map = L.map("map", {zoomControl:true, attributionControl:true}).setView([-0.3031, 36.0800], 12);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-        attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-
-    routeLine = L.polyline([], {color:"#2563eb", weight:6, opacity:.85}).addTo(map);
-}
-
-function updateMap(lat, lng, accuracy) {
-    initMap();
-    const point = [lat, lng];
-    if(!vehicleMarker) {
-        vehicleMarker = L.marker(point).addTo(map).bindPopup("Current vehicle position");
-    } else {
-        vehicleMarker.setLatLng(point);
-    }
-
-    if(!accuracyCircle) {
-        accuracyCircle = L.circle(point, {radius:accuracy, color:"#2563eb", fillColor:"#3b82f6", fillOpacity:.10, weight:1}).addTo(map);
-    } else {
-        accuracyCircle.setLatLng(point);
-        accuracyCircle.setRadius(accuracy);
-    }
-
-    const coords = gpsPoints.map(p => [p.lat, p.lng]);
-    routeLine.setLatLngs(coords);
-    map.setView(point, Math.max(map.getZoom(), 15), {animate:true});
-}
-
-function loadRouteOnMap(d) {
-    initMap();
-    if(!d || !d.gps || !Array.isArray(d.gps.points)) return;
-    const points = d.gps.points;
-    if(!points.length) return;
-
-    gpsPoints = points.map(p => ({
-        lat: Number(p.lat),
-        lng: Number(p.lng),
-        accuracy: Number(p.accuracy) || 0,
-        speed: p.speed,
-        timestamp: p.timestamp
-    }));
-
-    totalDistance = Number(d.gps.distance) || 0;
-    const coords = gpsPoints.map(p => [p.lat, p.lng]);
-    routeLine.setLatLngs(coords);
-
-    const last = gpsPoints[gpsPoints.length - 1];
-    if(last) {
-        vehicleMarker = L.marker([last.lat, last.lng]).addTo(map).bindPopup("Last recorded position");
-        accuracyCircle = L.circle([last.lat, last.lng], {radius:last.accuracy||20, color:"#2563eb", fillColor:"#3b82f6", fillOpacity:.10, weight:1}).addTo(map);
-        map.fitBounds(routeLine.getBounds(), {padding:[20,20]});
-        updateGPSUI(last.lat, last.lng, last.accuracy||0, last.speed, totalDistance, gpsPoints.length);
-    }
-}
-
-
-/* =========================================================
-   LEDGER & DRAWER
-========================================================= */
-
-function filterLedger(filter, button) {
-    currentFilter = filter;
-    document.querySelectorAll(".filter").forEach(x => x.classList.remove("active"));
-    button.classList.add("active");
-    renderLedger();
+    if(map) { setTimeout(() => { map.invalidateSize(); }, 200); return; }
+    map = L.map("map", {zoomControl:true}).setView([-0.3031, 36.0800], 12);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom: 19}).addTo(map);
+    routeLine = L.polyline([], {color:"#2563eb", weight:6}).addTo(map);
 }
 
 function renderLedger() {
-    const body = document.getElementById("ledgerBody");
+    const container = document.getElementById("ledgerContainer");
     let rows = dispatches;
     if(currentFilter !== "all") {
         rows = dispatches.filter(d => d.status === currentFilter);
     }
-
     if(!rows.length) {
-        body.innerHTML = `<tr><td colspan="12"><div class="empty">No dispatch records found.</div></td></tr>`;
+        container.innerHTML = `<div class="empty">No dispatch records found.</div>`;
         return;
     }
-
-    body.innerHTML = rows.map(d => {
+    container.innerHTML = rows.map(d => {
         const t = totals(d);
-        const gpsCount = d.gps && Array.isArray(d.gps.points) ? d.gps.points.length : 0;
-        const agentsArr = Array.isArray(d.agents) ? d.agents : [{name: d.agent || "Unassigned", role: "Driver"}];
-        const crewSummary = agentsArr.map(a => `${a.name} (${a.role})`).join(", ");
-
+        const crewSummary = Array.isArray(d.agents) ? d.agents.map(a => `${a.name} (${a.role})`).join(", ") : "Crew";
         return `
-            <tr>
-                <td>${esc(d.date)}</td>
-                <td><b>${esc(d.id)}</b></td>
-                <td class="agent" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;" title="${esc(crewSummary)}">${esc(crewSummary)}</td>
-                <td>${esc(d.vehicle||"—")}</td>
-                <td>${esc(d.route)}</td>
-                <td>${t.issued}</td>
-                <td><b>${t.sold}</b></td>
-                <td>${t.returned}</td>
-                <td><b>${money(t.cash)}</b></td>
-                <td>${gpsCount?`<span class="badge settled">${gpsCount} PTS</span>`:`<span class="badge warning">NO GPS</span>`}</td>
-                <td><span class="badge ${d.status==="Active"?"active":"settled"}">${esc(d.status).toUpperCase()}</span></td>
-                <td><button class="action" onclick="openDispatch('${d.id}')">Open</button></td>
-            </tr>
+            <div class="ledger-card">
+                <div class="ledger-header">
+                    <div>
+                        <div class="ledger-id">${esc(d.id)}</div>
+                        <div class="ledger-date">${esc(d.date)}</div>
+                    </div>
+                    <span class="badge ${d.status==="Active"?"active":"settled"}">${esc(d.status).toUpperCase()}</span>
+                </div>
+
+                <div class="ledger-grid">
+                    <div class="ledger-grid-item">
+                        <small>CREW / AGENTS</small>
+                        <span class="agent">${esc(crewSummary)}</span>
+                    </div>
+                    <div class="ledger-grid-item">
+                        <small>ROUTE / TERRITORY</small>
+                        <span>${esc(d.route)}</span>
+                    </div>
+                    <div class="ledger-grid-item" style="grid-column: 1/-1;">
+                        <small>VEHICLE</small>
+                        <span>${esc(d.vehicle||"—")}</span>
+                    </div>
+                </div>
+
+                <div class="ledger-stats">
+                    <div class="ledger-stat-box">
+                        <small>ISSUED</small>
+                        <strong>${t.issued}</strong>
+                    </div>
+                    <div class="ledger-stat-box">
+                        <small>SOLD</small>
+                        <strong style="color:var(--green)">${t.sold}</strong>
+                    </div>
+                    <div class="ledger-stat-box">
+                        <small>RETURNED</small>
+                        <strong>${t.returned}</strong>
+                    </div>
+                    <div class="ledger-stat-box">
+                        <small>CASH</small>
+                        <strong style="color:var(--blue)">${money(t.cash)}</strong>
+                    </div>
+                </div>
+
+                <div class="ledger-footer">
+                    <span class="badge settled">GPS Tracked</span>
+                    <button class="action" onclick="openDispatch('${d.id}')">View Details</button>
+                </div>
+            </div>
         `;
     }).join("");
+}
+
+function filterLedger(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll(".filter").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    renderLedger();
 }
 
 function openDispatch(id) {
@@ -1696,124 +1327,93 @@ function openDispatch(id) {
     const t = totals(d);
     const gpsCount = d.gps && Array.isArray(d.gps.points) ? d.gps.points.length : 0;
     const distance = d.gps ? Number(d.gps.distance) || 0 : 0;
+    const salesPercentage = t.issued > 0 ? Math.round((t.sold / t.issued) * 100) : 0;
 
-    const agentsArr = Array.isArray(d.agents) ? d.agents : [{name: d.agent || "Unassigned", role: "Driver"}];
+    const agentsArr = Array.isArray(d.agents) ? d.agents : [{name: "Driver", role: "Driver"}];
     let crewListHtml = agentsArr.map(a => `
-        <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--line);font-size:12px;">
-            <span><b>${esc(a.name)}</b></span>
+        <div class="agent-list-item">
+            <div>
+                <strong>${esc(a.name)}</strong>
+            </div>
             <span class="badge settled">${esc(a.role)}</span>
         </div>
     `).join("");
 
-    let itemsListHtml = (d.items || []).map(i => `
-        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);font-size:12px;">
-            <span><b>${esc(i.product)}</b> (Issued: ${i.issued})</span>
-            <span>Sold: <b>${i.sold}</b> @ ${money(i.price)}</span>
-        </div>
-    `).join("");
-
-    document.getElementById("drawer").innerHTML = `
-        <div class="drawer-head">
-            <div>
-                <h2>Dispatch ${esc(d.id)}</h2>
-                <p style="font-size:11px;color:var(--muted);margin-top:4px">${esc(d.date)} · Vehicle: ${esc(d.vehicle||"—")}</p>
+    let itemsVisualGraphHtml = (d.items || []).map(i => {
+        const issued = Number(i.issued) || 1;
+        const sold = Number(i.sold) || 0;
+        const soldPct = Math.min(100, Math.round((sold / issued) * 100));
+        const itemVal = sold * (Number(i.price) || 0);
+        return `
+            <div class="chart-bar-wrap">
+                <div class="chart-bar-header">
+                    <span>${esc(i.product)}</span>
+                    <span style="color:var(--blue)">Sold: ${sold}/${issued} (${money(itemVal)})</span>
+                </div>
+                <div class="chart-track">
+                    <div class="chart-fill-sold" style="width: ${soldPct}%;"></div>
+                </div>
             </div>
-            <button class="close" onclick="hideDrawer()">×</button>
+        `;
+    }).join("");
+
+    document.getElementById("drawerContent").innerHTML = `
+        <div style="margin-bottom:15px;display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+                <h2 style="font-size:20px;letter-spacing:-.5px;">Dispatch ${esc(d.id)}</h2>
+                <p style="font-size:11px;color:var(--muted);margin-top:4px">${esc(d.date)} · Vehicle: <b>${esc(d.vehicle||"—")}</b></p>
+            </div>
+            <span class="badge ${d.status==="Active"?"active":"settled"}" style="font-size:11px;padding:6px 12px;">${esc(d.status).toUpperCase()}</span>
         </div>
 
         <div class="detail-grid">
-            <div class="detail"><small>ROUTE</small><strong style="font-size:13px">${esc(d.route)}</strong></div>
-            <div class="detail"><small>VEHICLE</small><strong style="font-size:13px">${esc(d.vehicle||"—")}</strong></div>
-            <div class="detail"><small>STATUS</small><strong style="font-size:13px">${esc(d.status)}</strong></div>
+            <div class="detail"><small>ROUTE / TERRITORY</small><strong style="font-size:13px">${esc(d.route)}</strong></div>
+            <div class="detail"><small>SALES RATIO</small><strong style="font-size:13px;color:var(--green)">${salesPercentage}% Cleared</strong></div>
+            <div class="detail"><small>GPS DISTANCE</small><strong style="font-size:13px">${distance.toFixed(2)} km</strong></div>
         </div>
 
         <div class="performance">
-            <div class="perf"><b>${t.issued}</b><span>Issued</span></div>
-            <div class="perf"><b>${t.sold}</b><span>Sold</span></div>
+            <div class="perf"><b>${t.issued}</b><span>Total Issued</span></div>
+            <div class="perf"><b style="color:var(--green)">${t.sold}</b><span>Total Sold</span></div>
             <div class="perf"><b>${t.returned}</b><span>Returned</span></div>
-            <div class="perf"><b>${money(t.cash)}</b><span>Cash</span></div>
-            <div class="perf"><b>${distance.toFixed(2)} km</b><span>GPS Dist</span></div>
-            <div class="perf"><b>${gpsCount}</b><span>Points</span></div>
+            <div class="perf"><b style="color:var(--blue)">${money(t.cash)}</b><span>Cash Realized</span></div>
+            <div class="perf"><b>${gpsCount}</b><span>GPS Points</span></div>
+            <div class="perf"><b style="color:var(--amber)">${t.remaining}</b><span>Unsold Stock</span></div>
         </div>
 
-        <div style="margin-bottom:15px;">
-            <h4 style="font-size:13px;margin-bottom:8px;">Assigned Crew & Agents:</h4>
-            ${crewListHtml}
+        <!-- CREW LIST SECTION -->
+        <div class="drawer-section">
+            <div class="drawer-section-title">
+                <span>Assigned Crew & Sales Agents</span>
+                <span class="badge settled">${agentsArr.length} Member(s)</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+                ${crewListHtml}
+            </div>
         </div>
 
-        <div style="margin-bottom:15px;">
-            <h4 style="font-size:13px;margin-bottom:8px;">Products Breakdown:</h4>
-            ${itemsListHtml}
+        <!-- VISUAL PRODUCT GRAPHS & BREAKDOWN -->
+        <div class="drawer-section">
+            <div class="drawer-section-title">
+                <span>Product Stock & Sales Performance</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+                ${itemsVisualGraphHtml}
+            </div>
         </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:15px">
-            <button class="btn primary" onclick="trackThisDispatch('${d.id}')">${gpsCount?"View Route":"Start GPS"}</button>
-            <button class="btn secondary" onclick="exportDispatch('${d.id}')">Export Report</button>
+        <!-- REMARKS & NOTES -->
+        <div class="drawer-section">
+            <div class="drawer-section-title"><span>Dispatch Remarks & Notes</span></div>
+            <p style="font-size:12px;color:var(--text);line-height:1.5;">${esc(d.notes || "No special remarks recorded for this dispatch.")}</p>
         </div>
 
         <div style="display:flex;gap:8px;margin-top:20px">
-            <button class="btn primary" style="flex:1" onclick="toggleDispatch('${d.id}')">${d.status==="Active"?"Settle Dispatch":"Reopen Dispatch"}</button>
-            <button class="btn danger" onclick="deleteDispatch('${d.id}')">Delete</button>
+            <button class="btn primary" style="flex:1" onclick="toggleDispatch('${d.id}')">${d.status==="Active"?"🔒 Settle Dispatch":"🔓 Reopen Dispatch"}</button>
+            <button class="btn danger" onclick="deleteDispatch('${d.id}')">🗑️ Delete</button>
         </div>
     `;
     document.getElementById("drawerBg").style.display = "block";
-}
-
-function trackThisDispatch(id) {
-    currentDispatchId = id;
-    const d = dispatches.find(x => x.id === id);
-    hideDrawer();
-    showPage("entryPage");
-    updateDispatchBanner();
-    gpsPoints = [];
-    lastPosition = null;
-    totalDistance = Number(d?.gps?.distance) || 0;
-    if(d?.gps?.points?.length) { loadRouteOnMap(d); }
-    setTimeout(() => {
-        document.querySelector(".gps-card").scrollIntoView({behavior:"smooth", block:"start"});
-    }, 300);
-}
-
-function toggleDispatch(id) {
-    const d = dispatches.find(x => x.id === id);
-    if(!d) return;
-    d.status = d.status === "Active" ? "Settled" : "Active";
-    saveData();
-    hideDrawer();
-    renderLedger();
-    toast(d.status === "Settled" ? "Dispatch settled." : "Dispatch reopened.", "success");
-}
-
-function deleteDispatch(id) {
-    if(!confirm("Delete this dispatch and its recorded GPS route?")) return;
-    if(currentDispatchId === id) { stopGPS(); currentDispatchId = null; }
-    dispatches = dispatches.filter(x => x.id !== id);
-    saveData();
-    hideDrawer();
-    renderLedger();
-    toast("Dispatch deleted.", "success");
-}
-
-function exportDispatch(id) {
-    const d = dispatches.find(x => x.id === id);
-    if(!d) return;
-    const t = totals(d);
-    const agentsArr = Array.isArray(d.agents) ? d.agents.map(a => `${a.name} (${a.role})`).join(", ") : d.agent;
-    const lines = [];
-    lines.push("ROUTESTOCK PRO REPORT");
-    lines.push("Dispatch ID: " + d.id);
-    lines.push("Sales Crew / Agents: " + agentsArr);
-    lines.push("Vehicle: " + d.vehicle + " | Route: " + d.route);
-    lines.push("Total Sold Units: " + t.sold + " | Total Cash: " + money(t.cash) + " | GPS Distance: " + (Number(d.gps?.distance)||0).toFixed(2) + " km");
-    const blob = new Blob([lines.join("\n")], {type:"text/plain"});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = d.id + "_Report.txt";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
 }
 
 function hideDrawer() {
@@ -1824,21 +1424,42 @@ function closeDrawer(e) {
     if(e.target === document.getElementById("drawerBg")) { hideDrawer(); }
 }
 
+function toggleDispatch(id) {
+    const pwd = prompt("Enter password to settle/reopen dispatch:");
+    if(pwd === null) return;
+    if(pwd !== ADMIN_PASSWORD) {
+        toast("Incorrect password!", "error");
+        return;
+    }
+    const d = dispatches.find(x => x.id === id);
+    if(!d) return;
+    d.status = d.status === "Active" ? "Settled" : "Active";
+    saveData();
+    hideDrawer();
+    renderLedger();
+    toast(d.status === "Settled" ? "Dispatch settled successfully." : "Dispatch reopened successfully.", "success");
+}
 
-/* =========================================================
-   STARTUP
-========================================================= */
+function deleteDispatch(id) {
+    const pwd = prompt("Enter password to delete dispatch record:");
+    if(pwd === null) return;
+    if(pwd !== ADMIN_PASSWORD) {
+        toast("Incorrect password!", "error");
+        return;
+    }
+    if(!confirm("Are you sure you want to permanently delete this dispatch record?")) return;
+    dispatches = dispatches.filter(x => x.id !== id);
+    saveData();
+    hideDrawer();
+    renderLedger();
+    toast("Dispatch deleted successfully.", "success");
+}
 
 document.getElementById("date").value = new Date().toISOString().slice(0,10);
-loadInventory();
 addAgent({name:"", role:"Driver"});
 addItem();
 renderLedger();
-
-setTimeout(() => {
-    initMap();
-}, 150);
-
+setTimeout(initMap, 150);
 </script>
 
 </body>
