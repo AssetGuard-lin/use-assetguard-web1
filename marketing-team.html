@@ -3,11 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>RouteStock Pro — Standalone WhatsApp Dispatches</title>
+<title>RouteStock Pro — WhatsApp-Gated Dispatches & Admin Portal</title>
 
-<!-- Firebase SDKs (Realtime Database & App) -->
+<!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
 <style>
 :root{
@@ -42,11 +43,12 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 .page-title p{ font-size:12px; color:var(--muted); margin-top:4px; }
 .top-actions{ display:flex; gap:8px; }
 
-.btn{ border:0; border-radius:11px; padding:12px 15px; font-weight:800; font-size:13px; min-height:44px; display:inline-flex; align-items:center; justify-content:center; text-decoration:none; }
+.btn{ border:0; border-radius:11px; padding:12px 15px; font-weight:800; font-size:13px; min-height:44px; display:inline-flex; align-items:center; justify-content:center; text-decoration:none; width:100%; }
 .btn.primary{ background:var(--blue); color:white; }
 .btn.whatsapp{ background:#25d366; color:white; }
-.btn.secondary{ background:white; border:1px solid var(--line); color:var(--text); }
-.btn.danger{ background:#fee2e2; color:var(--red); }
+.btn.secondary{ background:white; border:1px solid var(--line); color:var(--text); width:auto; }
+.btn.danger{ background:#fee2e2; color:var(--red); width:auto; }
+.btn:disabled{ background:#cbd5e1; color:#64748b; cursor:not-allowed; transform:none !important; }
 .btn:active{ transform:scale(.98); }
 
 .card{ background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px; margin-bottom:14px; }
@@ -62,11 +64,19 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 .field textarea{ min-height:82px; resize:vertical; }
 .field input:focus, .field textarea:focus, .field select:focus{ border-color:var(--blue); box-shadow:0 0 0 3px #dbeafe; }
 
+/* ADMIN PENDING ALERT QUEUE */
+.admin-alert-banner { background: linear-gradient(135deg, #78350f, #b45309); color: white; border-radius: 14px; padding: 14px; margin-bottom: 14px; display: none; }
+.admin-alert-banner.show { display: block; }
+.admin-alert-banner small { display: block; color: #fde68a; font-size: 10px; font-weight: 850; letter-spacing: .05em; }
+.admin-alert-banner strong { display: block; font-size: 15px; margin-top: 3px; }
+.admin-alert-banner span { display: block; font-size: 11px; color: #fef3c7; margin-top: 2px; }
+
 /* LIVE TRACKING MODULE */
 .live-tracker-box { background: #0f172a; color: #fff; border-radius: 14px; padding: 16px; margin-bottom: 12px; border: 1px solid #1e293b; }
 .live-tracker-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .live-status-indicator { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 850; padding: 5px 10px; border-radius: 20px; background: rgba(220, 38, 38, 0.2); color: #f87171; }
 .live-status-indicator.active { background: rgba(22, 163, 74, 0.2); color: #4ade80; }
+.live-status-indicator.pending { background: rgba(217, 119, 6, 0.2); color: #fbbf24; }
 .live-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse-dot 1.5s infinite; }
 @keyframes pulse-dot { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.2); } 100% { opacity: 1; transform: scale(1); } }
 .live-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
@@ -81,16 +91,19 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 .agent-row:last-child{ border-bottom:0; }
 .item-row input, .item-row select, .agent-row input, .agent-row select{ width:100%; min-width:0; padding:10px 8px; border:1px solid var(--line); border-radius:9px; outline:none; font-size:13px; background:#fff; }
 .remove{ border:0; background:#fee2e2; color:var(--red); width:36px; height:36px; border-radius:9px; font-weight:900; font-size:18px; }
-.add-item{ border:0; background:#eff6ff; color:var(--blue); border-radius:10px; padding:9px 12px; font-size:12px; font-weight:850; }
+.add-item{ border:0; background:#eff6ff; color:var(--blue); border-radius:10px; padding:9px 12px; font-size:12px; font-weight:850; width:auto; }
 
 .summary-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:13px; }
 .detail{ background:#f8fafc; border:1px solid var(--line); border-radius:13px; padding:13px; min-width:0; }
 .detail small{ display:block; font-size:10px; font-weight:800; color:#758198; }
 .detail strong{ display:block; font-size:20px; margin-top:5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
-.ledger-tools{ display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
-.filter{ border:1px solid var(--line); background:#fff; border-radius:9px; padding:9px 13px; font-size:11px; font-weight:800; }
+.ledger-tools{ display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; align-items:center; }
+.filter{ border:1px solid var(--line); background:#fff; border-radius:9px; padding:9px 13px; font-size:11px; font-weight:800; display:inline-flex; align-items:center; gap:6px; }
 .filter.active{ background:var(--blue); color:white; border-color:var(--blue); }
+.filter-badge { background:var(--amber); color:white; padding:2px 6px; border-radius:10px; font-size:9px; font-weight:900; }
+.filter.active .filter-badge { background:white; color:var(--amber); }
+
 .ledger-container{ display:flex; flex-direction:column; gap:12px; }
 .ledger-card{ background:white; border:1px solid var(--line); border-radius:14px; padding:14px; box-shadow:0 2px 8px rgba(0,0,0,.03); }
 .ledger-header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid var(--line); }
@@ -104,8 +117,9 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 .ledger-stat-box strong{ display:block; font-size:12px; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .ledger-footer{ display:flex; justify-content:space-between; align-items:center; gap:10px; padding-top:8px; border-top:1px solid var(--line); }
 .badge{ display:inline-flex; padding:4px 8px; border-radius:20px; font-size:9px; font-weight:900; }
-.badge.active{ background:#fff7ed; color:var(--amber); }
-.badge.settled{ background:#ecfdf5; color:var(--green); }
+.badge.pending{ background:#fef3c7; color:var(--amber); }
+.badge.active{ background:#ecfdf5; color:var(--green); }
+.badge.settled{ background:#f1f5f9; color:var(--muted); }
 .action{ border:1px solid var(--line); background:white; padding:7px 12px; border-radius:8px; font-size:11px; font-weight:800; }
 .empty{ text-align:center; padding:35px; color:var(--muted); font-size:13px; background:white; border:1px solid var(--line); border-radius:14px; }
 
@@ -114,12 +128,6 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 .dispatch-banner small{ display:block; color:#94a3b8; font-size:10px; font-weight:800; }
 .dispatch-banner strong{ display:block; font-size:16px; margin-top:3px; }
 .dispatch-banner span{ display:block; font-size:11px; color:#cbd5e1; margin-top:3px; }
-
-/* MODAL OVERLAY FOR WHATSAPP TOKEN VERIFICATION */
-.modal-overlay { position: fixed; inset: 0; background: rgba(5,12,25,.7); backdrop-filter: blur(6px); z-index: 200; display: none; align-items: center; justify-content: center; padding: 16px; }
-.modal-card { background: white; width: 100%; max-width: 420px; border-radius: 20px; padding: 24px; box-shadow: 0 20px 50px rgba(0,0,0,.3); }
-.modal-title { font-size: 18px; font-weight: 850; margin-bottom: 6px; }
-.modal-sub { font-size: 12px; color: var(--muted); margin-bottom: 16px; line-height: 1.4; }
 
 .drawer-bg{ position:fixed; inset:0; background:rgba(5,12,25,.55); backdrop-filter:blur(5px); z-index:100; display:none; }
 .drawer{ position:absolute; right:0; top:0; height:100%; width:min(760px,96vw); background:white; padding:20px; overflow:auto; box-shadow:-20px 0 60px rgba(0,0,0,.2); }
@@ -152,10 +160,10 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 <div class="topbar">
 <div class="page-title">
 <h2>Route Dispatch Portal</h2>
-<p>WhatsApp verification & secure cloud telemetry.</p>
+<p>WhatsApp-Gated Dispatches & Live Telemetry.</p>
 </div>
 <div class="top-actions">
-<button class="btn secondary" onclick="showPage('ledgerPage')">View Ledger</button>
+<button class="btn secondary" onclick="showPage('ledgerPage')">View Ledger <span id="navPendingBadge" style="background:var(--amber);color:white;padding:2px 6px;border-radius:10px;font-size:9px;display:none;margin-left:4px;">0</span></button>
 </div>
 </div>
 
@@ -182,16 +190,16 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 <div class="card-head">
 <div>
 <div class="card-title">Vehicle & Live Tracking Engine</div>
-<div class="card-sub">GPS telemetry transmits securely to Firebase cloud.</div>
+<div class="card-sub">GPS telemetry remains 100% dormant until WhatsApp approval message is verified.</div>
 </div>
 </div>
 
 <div class="live-tracker-box">
 <div class="live-tracker-header">
-<span style="font-size:12px; font-weight:850; color:#94a3b8;">FIREBASE TELEMETRY STATUS</span>
-<div id="liveStatusBadge" class="live-status-indicator">
+<span style="font-size:12px; font-weight:850; color:#94a3b8;">DISPATCH STATUS</span>
+<div id="liveStatusBadge" class="live-status-indicator pending">
 <span class="live-dot"></span>
-<span id="liveStatusText">STANDBY (AWAITING WHATSAPP AUTH)</span>
+<span id="liveStatusText">Awaiting approval message via WhatsApp</span>
 </div>
 </div>
 <div class="live-metrics">
@@ -199,16 +207,13 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 <div class="live-metric-card"><small>LONGITUDE</small><strong id="liveLng">--.-----</strong></div>
 <div class="live-metric-card"><small>VELOCITY</small><strong id="liveSpeed">0 km/h</strong></div>
 </div>
+<a href="live-tracking.html" class="btn primary" style="margin-top: 10px; width: 100%; font-size: 12px; padding: 10px;">Open Full Live-Tracking Page ↗</a>
 </div>
 
 <div class="form-grid">
 <div class="field"><label>Vehicle / Registration</label><input id="vehicle" placeholder="e.g. KDA 123A"></div>
 <div class="field"><label>Dispatch Date</label><input id="date" type="date"></div>
-<div class="field full">
-    <label>Manager WhatsApp Number (For Direct Verification)</label>
-    <input id="managerPhone" type="tel" placeholder="e.g. +254713100424">
-    <small style="color:var(--muted); font-size:10px; display:block; margin-top:3px;">Must include international country code (e.g., +254 for Kenya).</small>
-</div>
+<div class="field"><label>Account Registered Phone (Locked)</label><input id="managerPhone" type="tel" value="+254713100424" readonly style="background:#f8fafc; color:var(--muted); cursor:not-allowed;"></div>
 <div class="field full"><label>Notes</label><textarea id="notes" placeholder="Optional notes" style="min-height:50px;"></textarea></div>
 </div>
 </div>
@@ -230,20 +235,22 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 </div>
 </div>
 
-<!-- INITIATE DISPATCH BUTTON -->
+<!-- WHATSAPP GATED TRIGGER -->
 <div class="card">
-<button class="btn whatsapp" style="width:100%;" onclick="requestWhatsAppVerification()">
-💬 Send WhatsApp Verification & Start Dispatch
+<div style="display:flex; flex-direction:column; gap:10px;">
+<button id="btnSendWa" class="btn whatsapp" onclick="sendWhatsAppAndLockForReply()">
+📱 Send WhatsApp Dispatch Request (Awaiting Approval)
 </button>
+</div>
 </div>
 </section>
 
-<!-- LEDGER -->
+<!-- LEDGER & ADMIN APPROVAL PORTAL -->
 <section id="ledgerPage" class="page">
 <div class="topbar">
 <div class="page-title">
-<h2>Cloud Dispatch Ledger</h2>
-<p>Synchronized history from Firebase database.</p>
+<h2>Cloud Dispatch Ledger & Admin Portal</h2>
+<p>Synchronized history & WhatsApp approval gate.</p>
 </div>
 <div class="top-actions">
 <button class="btn secondary" onclick="showPage('entryPage')">← Back</button>
@@ -251,9 +258,17 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 </div>
 </div>
 
+<!-- ADMIN ALERT QUEUE BANNER -->
+<div id="adminAlertBanner" class="admin-alert-banner">
+<small>🔔 WHATSAPP APPROVAL GATE ACTIVE</small>
+<strong id="adminAlertTitle">0 Pending Dispatch Request(s) Awaiting Approval</strong>
+<span>Routes and GPS remain locked in Pending status until the approval message via WhatsApp is received.</span>
+</div>
+
 <div class="card" style="background:transparent;border:0;box-shadow:none;padding:0;">
 <div class="ledger-tools">
 <button class="filter active" onclick="filterLedger('all',this)">All</button>
+<button class="filter" onclick="filterLedger('Pending',this)">Pending <span id="filterPendingCount" class="filter-badge" style="display:none">0</span></button>
 <button class="filter" onclick="filterLedger('Active',this)">Active</button>
 <button class="filter" onclick="filterLedger('Settled',this)">Settled</button>
 </div>
@@ -262,22 +277,6 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 </section>
 
 </main>
-</div>
-
-<!-- WHATSAPP TOKEN MODAL -->
-<div class="modal-overlay" id="otpModal">
-<div class="modal-card">
-<div class="modal-title">💬 Enter WhatsApp Verification Code</div>
-<div class="modal-sub" id="otpModalSub">WhatsApp has opened. Send the pre-filled verification message to the manager, then enter the 6-digit code below to authorize.</div>
-<div class="field" style="margin-bottom:16px;">
-    <label>6-Digit Authorization Code</label>
-    <input id="otpCodeInput" type="text" maxlength="6" placeholder="123456" style="text-align:center; font-size:20px; letter-spacing:6px; font-weight:900;">
-</div>
-<div style="display:flex; gap:8px;">
-    <button class="btn whatsapp" style="flex:1" onclick="verifyWhatsAppCode()">Verify & Execute</button>
-    <button class="btn secondary" onclick="closeOtpModal()">Cancel</button>
-</div>
-</div>
 </div>
 
 <!-- DRAWER -->
@@ -306,6 +305,7 @@ if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
 const rtdb = firebase.database();
+const auth = firebase.auth();
 
 let dispatches = [];
 let inventory = [
@@ -318,7 +318,14 @@ let inventory = [
 let currentFilter = "all";
 let currentDispatchId = null;
 let activeGeoWatchId = null;
-let pendingActionData = null;
+let pendingApprovalListenerRef = null;
+let lastKnownPendingCount = 0;
+
+// Strict Binding Configuration
+const STRICT_AUTHORIZED_PHONE = "+254713100424";
+
+// Ensure GPS is strictly dormant on initial load
+stopLiveTracking();
 
 // Real-time synchronization with Firebase Realtime Database
 rtdb.ref("dispatches").on("value", (snapshot) => {
@@ -329,9 +336,39 @@ rtdb.ref("dispatches").on("value", (snapshot) => {
     } else {
         dispatches = [];
     }
+    
+    const pendingCount = dispatches.filter(d => d.status === "Pending").length;
+    updateAdminNotificationBanner(pendingCount);
+
     renderLedger();
     updateDispatchBanner();
 });
+
+function updateAdminNotificationBanner(pendingCount) {
+    const banner = document.getElementById("adminAlertBanner");
+    const navBadge = document.getElementById("navPendingBadge");
+    const filterBadge = document.getElementById("filterPendingCount");
+
+    if (pendingCount > 0) {
+        banner.classList.add("show");
+        document.getElementById("adminAlertTitle").textContent = `${pendingCount} Pending Dispatch Request(s) Awaiting Approval`;
+        
+        navBadge.style.display = "inline-block";
+        navBadge.textContent = pendingCount;
+
+        filterBadge.style.display = "inline-block";
+        filterBadge.textContent = pendingCount;
+
+        if (pendingCount > lastKnownPendingCount) {
+            toast(`New dispatch awaiting approval!`, "error");
+        }
+    } else {
+        banner.classList.remove("show");
+        navBadge.style.display = "none";
+        filterBadge.style.display = "none";
+    }
+    lastKnownPendingCount = pendingCount;
+}
 
 function money(n) { return "KSh " + Number(n||0).toLocaleString("en-KE",{maximumFractionDigits:0}); }
 function esc(s) { return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m])); }
@@ -429,87 +466,16 @@ function calcItems() {
     document.getElementById("itemValue").textContent = money(value);
 }
 
-// WHATSAPP DIRECT VERIFICATION TRIGGER
-function triggerWhatsAppVerification(actionType, targetId = null, dispatchObj = null) {
-    const phoneInput = document.getElementById("managerPhone").value.trim();
-    if (!phoneInput) {
-        toast("Please enter manager WhatsApp phone number.", "error");
-        return;
+function verifyStrictBinding(inputPhone) {
+    if (inputPhone !== STRICT_AUTHORIZED_PHONE) {
+        toast("Security Alert: This phone number is not bound to the authorized admin account.", "error");
+        return false;
     }
-
-    if (!phoneInput.startsWith("+")) {
-        toast("Phone number must include international country code (e.g. +254...).", "error");
-        return;
-    }
-
-    const cleanPhone = phoneInput.replace(/[^0-9]/g, '');
-    const actionToken = Math.floor(100000 + Math.random() * 900000); // Secure 6-digit verification code
-
-    pendingActionData = { actionType, targetId, dispatchObj, token: actionToken };
-
-    // Construct WhatsApp message URL
-    const message = encodeURIComponent(`🔐 *RouteStock Pro Authorization*\n\nAction: ${actionType}\nVerification Code: *${actionToken}*\n\nEnter this code in your app to authorize this action.`);
-    const waUrl = `https://wa.me/${cleanPhone}?text=${message}`;
-
-    // Open WhatsApp
-    window.open(waUrl, '_blank');
-
-    // Show verification modal
-    document.getElementById("otpModalSub").textContent = `WhatsApp opened to ${phoneInput}. Send the message, then enter the 6-digit authorization code (${actionToken}) below.`;
-    document.getElementById("otpCodeInput").value = "";
-    document.getElementById("otpModal").style.display = "flex";
+    return true;
 }
 
-function verifyWhatsAppCode() {
-    const code = document.getElementById("otpCodeInput").value.trim();
-    if (!pendingActionData || code !== String(pendingActionData.token)) {
-        toast("Invalid verification code entered.", "error");
-        return;
-    }
-
-    closeOtpModal();
-    toast("Action authorized successfully via WhatsApp flow!", "success");
-
-    const { actionType, targetId, dispatchObj } = pendingActionData;
-
-    if (actionType === 'CREATE' && dispatchObj) {
-        rtdb.ref(`dispatches/${dispatchObj.id}`).set(dispatchObj);
-        currentDispatchId = dispatchObj.id;
-        updateDispatchBanner();
-        startLiveTracking(dispatchObj.id);
-        toast("Dispatch created successfully & live tracking active!", "success");
-    } 
-    else if (actionType === 'SETTLE' && targetId) {
-        rtdb.ref(`dispatches/${targetId}/status`).once('value').then(snap => {
-            const currentStatus = snap.val();
-            const newStatus = (currentStatus === "Active") ? "Settled" : "Active";
-            rtdb.ref(`dispatches/${targetId}/status`).set(newStatus);
-            if (newStatus === "Settled" && currentDispatchId === targetId) {
-                stopLiveTracking();
-                currentDispatchId = null;
-                updateDispatchBanner();
-            }
-            toast(`Dispatch updated to ${newStatus}.`, "success");
-        });
-    } 
-    else if (actionType === 'DELETE' && targetId) {
-        if (currentDispatchId === targetId) {
-            stopLiveTracking();
-            currentDispatchId = null;
-            updateDispatchBanner();
-        }
-        rtdb.ref(`dispatches/${targetId}`).remove();
-        toast("Dispatch permanently deleted.", "success");
-    }
-
-    pendingActionData = null;
-}
-
-function closeOtpModal() {
-    document.getElementById("otpModal").style.display = "none";
-}
-
-function requestWhatsAppVerification() {
+// WHATSAPP-GATED DISPATCH CREATION: Registers as Pending and GPS stays strictly dormant
+function sendWhatsAppAndLockForReply() {
     const agentRows = [...document.querySelectorAll(".agent-row")];
     if(!agentRows.length) { toast("Add at least one sales crew member or driver.","error"); return; }
 
@@ -526,7 +492,7 @@ function requestWhatsAppVerification() {
     const notes = document.getElementById("notes").value.trim();
 
     if(!vehicle) { toast("Enter the vehicle registration.","error"); return; }
-    if(!phone) { toast("Enter your manager WhatsApp phone number.","error"); return; }
+    if(!verifyStrictBinding(phone)) return;
 
     const rows = [...document.querySelectorAll(".item-row")];
     if(!rows.length) { toast("Add at least one product.","error"); return; }
@@ -541,15 +507,54 @@ function requestWhatsAppVerification() {
 
     if(items.some(x => !x.product)) { toast("Select a product for every row.","error"); return; }
 
-    const newDispatchObject = {
-        id: "RS-" + Date.now().toString().slice(-8),
-        agents, route: "WhatsApp Secured Route", date, vehicle, phone, notes,
-        status: "Active",
+    const dispatchId = "RS-" + Date.now().toString().slice(-8);
+
+    const payload = {
+        id: dispatchId,
+        agents, route: "WhatsApp-Verified Route", date, vehicle, phone, notes,
+        status: "Pending",
         items,
         lastLocation: null
     };
 
-    triggerWhatsAppVerification('CREATE', null, newDispatchObject);
+    // Ensure GPS is strictly dormant before sending WhatsApp request
+    stopLiveTracking();
+
+    const cleanPhone = phone.replace(/[^0-9]/g, '');
+    const message = encodeURIComponent(`🔒 *RouteStock Pro Authorization*\n\nDispatch ID: *${dispatchId}*\nVehicle: *${vehicle}*\nStatus: *LOCKED PENDING APPROVAL*\n\nTo approve and unlock GPS tracking, reply to this chat with:\n👉 *APPROVE ${dispatchId}*`);
+    
+    window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
+
+    // Register dispatch as Pending in Firebase. GPS remains dormant until approval message via WhatsApp is received.
+    rtdb.ref(`dispatches/${dispatchId}`).set(payload).then(() => {
+        toast("WhatsApp request sent. Awaiting approval message via WhatsApp.", "pending");
+        
+        const badge = document.getElementById("liveStatusBadge");
+        badge.className = "live-status-indicator pending";
+        document.getElementById("liveStatusText").textContent = "Awaiting approval message via WhatsApp";
+
+        listenForWhatsAppReply(dispatchId);
+    });
+}
+
+function listenForWhatsAppReply(dispatchId) {
+    if (pendingApprovalListenerRef) {
+        pendingApprovalListenerRef.off();
+    }
+
+    pendingApprovalListenerRef = rtdb.ref(`dispatches/${dispatchId}`);
+    pendingApprovalListenerRef.on("value", (snap) => {
+        const data = snap.val();
+        if (data && data.status === "Active") {
+            pendingApprovalListenerRef.off();
+            currentDispatchId = dispatchId;
+            updateDispatchBanner();
+            
+            // GPS ACTIVATES ONLY AFTER WHATSAPP APPROVAL MESSAGE IS RECEIVED
+            startLiveTracking(dispatchId);
+            toast("WhatsApp approval received! GPS telemetry unlocked and active.", "success");
+        }
+    });
 }
 
 function startLiveTracking(dispatchId) {
@@ -560,13 +565,14 @@ function startLiveTracking(dispatchId) {
 
     const badge = document.getElementById("liveStatusBadge");
     const statusText = document.getElementById("liveStatusText");
-    badge.classList.add("active");
-    statusText.textContent = "LIVE TRACKING ACTIVE (" + dispatchId + ")";
+    badge.className = "live-status-indicator active";
+    statusText.textContent = "WhatsApp Approval Verified — GPS Active (" + dispatchId + ")";
 
     if (activeGeoWatchId !== null) {
         navigator.geolocation.clearWatch(activeGeoWatchId);
     }
 
+    // Geolocation watch starts strictly here upon confirmed WhatsApp approval message
     activeGeoWatchId = navigator.geolocation.watchPosition(
         (p) => {
             const lat = p.coords.latitude;
@@ -592,9 +598,8 @@ function stopLiveTracking() {
         activeGeoWatchId = null;
     }
     const badge = document.getElementById("liveStatusBadge");
-    const statusText = document.getElementById("liveStatusText");
-    badge.classList.remove("active");
-    statusText.textContent = "LOGGED OFF (DISPATCH SETTLED)";
+    badge.className = "live-status-indicator pending";
+    document.getElementById("liveStatusText").textContent = "Awaiting approval message via WhatsApp";
     document.getElementById("liveLat").textContent = "--.-----";
     document.getElementById("liveLng").textContent = "--.-----";
     document.getElementById("liveSpeed").textContent = "0 km/h";
@@ -610,7 +615,7 @@ function updateDispatchBanner() {
     banner.classList.add("show");
     const crewStr = Array.isArray(d.agents) ? d.agents.map(a=>a.name).join(", ") : "Crew";
     document.getElementById("bannerDispatch").textContent = d.id + " · Crew: " + crewStr;
-    document.getElementById("bannerRoute").textContent = d.vehicle + " · WhatsApp Secured GPS Active";
+    document.getElementById("bannerRoute").textContent = d.vehicle + " · WhatsApp Approval Confirmed & GPS Live";
 }
 
 function renderLedger() {
@@ -620,26 +625,30 @@ function renderLedger() {
         rows = dispatches.filter(d => d.status === currentFilter);
     }
     if(!rows.length) {
-        container.innerHTML = `<div class="empty">No dispatch records found in Firebase.</div>`;
+        container.innerHTML = `<div class="empty">No dispatch records found in Firebase for filter: ${currentFilter}.</div>`;
         return;
     }
     container.innerHTML = rows.map(d => {
         const t = totals(d);
         const crewSummary = Array.isArray(d.agents) ? d.agents.map(a => `${a.name} (${a.role})`).join(", ") : "Crew";
-        const loc = d.lastLocation ? `${d.lastLocation.lat.toFixed(4)}, ${d.lastLocation.lng.toFixed(4)}` : "No GPS fix";
+        const loc = d.lastLocation ? `${d.lastLocation.lat.toFixed(4)}, ${d.lastLocation.lng.toFixed(4)}` : "GPS Dormant / No fix";
+        let badgeClass = "settled";
+        if(d.status === "Active") badgeClass = "active";
+        if(d.status === "Pending") badgeClass = "pending";
+
         return `
-            <div class="ledger-card">
+            <div class="ledger-card" style="${d.status==='Pending'?'border: 2px solid var(--amber)':''}">
                 <div class="ledger-header">
                     <div>
                         <div class="ledger-id">${esc(d.id)}</div>
-                        <div class="ledger-date">${esc(d.date)}</div>
+                        <div class="ledger-date">${esc(d.date)} · Phone: ${esc(d.phone||"—")}</div>
                     </div>
-                    <span class="badge ${d.status==="Active"?"active":"settled"}">${esc(d.status).toUpperCase()}</span>
+                    <span class="badge ${badgeClass}">${esc(d.status).toUpperCase()}</span>
                 </div>
                 <div class="ledger-grid">
                     <div class="ledger-grid-item"><small>CREW / AGENTS</small><span style="font-weight:850">${esc(crewSummary)}</span></div>
                     <div class="ledger-grid-item"><small>GPS TELEMETRY</small><span style="color:var(--blue)">${esc(loc)}</span></div>
-                    <div class="ledger-grid-item" style="grid-column: 1/-1;"><small>VEHICLE</small><span>${esc(d.vehicle||"—")}</span></div>
+                    <div class="ledger-grid-item" style="grid-column: 1/-1;"><small>VEHICLE & BOUND PHONE</small><span>${esc(d.vehicle||"—")} (${esc(d.phone||"—")})</span></div>
                 </div>
                 <div class="ledger-stats">
                     <div class="ledger-stat-box"><small>ISSUED</small><strong>${t.issued}</strong></div>
@@ -648,8 +657,8 @@ function renderLedger() {
                     <div class="ledger-stat-box"><small>CASH</small><strong style="color:var(--blue)">${money(t.cash)}</strong></div>
                 </div>
                 <div class="ledger-footer">
-                    <span class="badge settled">${d.status==="Active"?"WhatsApp Secured":"GPS Logged Off"}</span>
-                    <button class="action" onclick="openDispatch('${d.id}')">View Details</button>
+                    <span class="badge ${badgeClass}">${d.status==="Pending"?"🔒 GPS Dormant: Awaiting approval message via WhatsApp":d.status==="Active"?"🟢 WhatsApp Approval Confirmed & GPS Live":"⚪ Settled"}</span>
+                    <button class="action" onclick="openDispatch('${d.id}')" style="${d.status==='Pending'?'background:var(--amber);color:white;border-color:var(--amber)':''}">Manage / Review</button>
                 </div>
             </div>
         `;
@@ -668,7 +677,7 @@ function openDispatch(id) {
     if(!d) return;
     const t = totals(d);
     const salesPercentage = t.issued > 0 ? Math.round((t.sold / t.issued) * 100) : 0;
-    const lastLocStr = d.lastLocation ? `Lat: ${d.lastLocation.lat.toFixed(5)}, Lng: ${d.lastLocation.lng.toFixed(5)} — Speed: ${d.lastLocation.speed} km/h` : "Not recorded";
+    const lastLocStr = d.lastLocation ? `Lat: ${d.lastLocation.lat.toFixed(5)}, Lng: ${d.lastLocation.lng.toFixed(5)} — Speed: ${d.lastLocation.speed} km/h` : "Dormant (No GPS data)";
 
     const agentsArr = Array.isArray(d.agents) ? d.agents : [{name: "Driver", role: "Driver"}];
     let crewListHtml = agentsArr.map(a => `
@@ -696,13 +705,27 @@ function openDispatch(id) {
         `;
     }).join("");
 
+    let badgeClass = "settled";
+    if(d.status === "Active") badgeClass = "active";
+    if(d.status === "Pending") badgeClass = "pending";
+
+    let actionButtonsHtml = "";
+    if (d.status === "Pending") {
+        actionButtonsHtml = `<div style="font-size:11px; color:var(--amber); font-weight:800; padding:10px; background:#fef3c7; border-radius:9px; flex:1; text-align:center;">⏳ Awaiting approval message via WhatsApp...</div>`;
+    } else if (d.status === "Active") {
+        actionButtonsHtml = `<button class="btn whatsapp" style="flex:1" onclick="updateDispatchStatus('${d.id}', 'Settled')">🏁 Settle & Make GPS Dormant</button>`;
+    } else {
+        actionButtonsHtml = `<button class="btn secondary" style="flex:1" onclick="updateDispatchStatus('${d.id}', 'Pending')">🔒 Relock & Make GPS Dormant</button>`;
+    }
+
     document.getElementById("drawerContent").innerHTML = `
         <div style="margin-bottom:15px;display:flex;justify-content:space-between;align-items:flex-start;">
             <div>
                 <h2 style="font-size:20px;letter-spacing:-.5px;">Dispatch ${esc(d.id)}</h2>
                 <p style="font-size:11px;color:var(--muted);margin-top:4px">${esc(d.date)} · Vehicle: <b>${esc(d.vehicle||"—")}</b></p>
+                <p style="font-size:11px;color:var(--muted);margin-top:2px">Bound Phone: <b>${esc(d.phone||"—")}</b></p>
             </div>
-            <span class="badge ${d.status==="Active"?"active":"settled"}" style="font-size:11px;padding:6px 12px;">${esc(d.status).toUpperCase()}</span>
+            <span class="badge ${badgeClass}" style="font-size:11px;padding:6px 12px;">${esc(d.status).toUpperCase()}</span>
         </div>
 
         <div class="detail-grid">
@@ -731,15 +754,43 @@ function openDispatch(id) {
 
         <div class="drawer-section">
             <div class="drawer-section-title"><span>Remarks</span></div>
-            <p style="font-size:12px;color:var::text;line-height:1.5;">${esc(d.notes || "No remarks recorded.")}</p>
+            <p style="font-size:12px;color:var(--text);line-height:1.5;">${esc(d.notes || "No remarks recorded.")}</p>
         </div>
 
         <div style="display:flex;gap:8px;margin-top:20px">
-            <button class="btn whatsapp" style="flex:1" onclick="triggerWhatsAppVerification('SETTLE', '${d.id}')">${d.status==="Active"?"💬 Settle & Log Off (Via WhatsApp)":"💬 Reopen Dispatch (Via WhatsApp)"}</button>
-            <button class="btn danger" onclick="triggerWhatsAppVerification('DELETE', '${d.id}')">🗑️ Delete (Via WhatsApp)</button>
+            ${actionButtonsHtml}
+            <button class="btn danger" onclick="deleteDispatch('${d.id}')">🗑️ Delete</button>
         </div>
     `;
     document.getElementById("drawerBg").style.display = "block";
+}
+
+function updateDispatchStatus(id, newStatus) {
+    rtdb.ref(`dispatches/${id}/status`).set(newStatus).then(() => {
+        if (newStatus !== "Active") {
+            if (currentDispatchId === id) {
+                stopLiveTracking();
+            }
+        }
+        toast(`Dispatch updated to ${newStatus}!`, "success");
+        hideDrawer();
+        renderLedger();
+    });
+}
+
+function deleteDispatch(id) {
+    if(confirm("Are you sure you want to delete this dispatch record?")) {
+        if(currentDispatchId === id) {
+            stopLiveTracking();
+            currentDispatchId = null;
+            updateDispatchBanner();
+        }
+        rtdb.ref(`dispatches/${id}`).remove().then(() => {
+            toast("Dispatch deleted.", "error");
+            hideDrawer();
+            renderLedger();
+        });
+    }
 }
 
 function hideDrawer() { document.getElementById("drawerBg").style.display = "none"; }
