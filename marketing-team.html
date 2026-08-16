@@ -3,7 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>RouteStock Pro — Field Stock & Dispatches</title>
+<title>RouteStock Pro — Standalone Email Link Dispatches</title>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <style>
 :root{
@@ -22,645 +27,118 @@
 --radius:18px;
 }
 
-*{
-box-sizing:border-box;
-margin:0;
-padding:0;
-}
-
-html,body{
-width:100%;
-min-height:100%;
-font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-background:var(--bg);
-color:var(--text);
-}
-
-body{
-overflow-x:hidden;
-}
-
-button,input,textarea,select{
-font:inherit;
-}
-
-button{
-cursor:pointer;
--webkit-tap-highlight-color:transparent;
-}
-
-.app{
-width:100%;
-min-height:100vh;
-}
-
-.main{
-width:100%;
-max-width:1200px;
-margin:auto;
-padding:14px;
-}
-
-.page{
-display:none;
-}
-
-.page.active{
-display:block;
-}
-
-.topbar{
-display:flex;
-justify-content:space-between;
-align-items:center;
-gap:12px;
-margin-bottom:14px;
-}
-
-.page-title h2{
-font-size:22px;
-letter-spacing:-.5px;
-}
-
-.page-title p{
-font-size:12px;
-color:var(--muted);
-margin-top:4px;
-}
-
-.top-actions{
-display:flex;
-gap:8px;
-}
-
-.btn{
-border:0;
-border-radius:11px;
-padding:12px 15px;
-font-weight:800;
-font-size:13px;
-min-height:44px;
-display:inline-flex;
-align-items:center;
-justify-content:center;
-text-decoration:none;
-}
-
-.btn.primary{
-background:var(--blue);
-color:white;
-}
-
-.btn.secondary{
-background:white;
-border:1px solid var(--line);
-color:var(--text);
-}
-
-.btn.danger{
-background:#fee2e2;
-color:var(--red);
-}
-
-.btn:active{
-transform:scale(.98);
-}
-
-.card{
-background:var(--card);
-border:1px solid var(--line);
-border-radius:var(--radius);
-box-shadow:var(--shadow);
-padding:16px;
-margin-bottom:14px;
-}
-
-.card-head{
-display:flex;
-justify-content:space-between;
-align-items:flex-start;
-gap:10px;
-margin-bottom:15px;
-}
-
-.card-title{
-font-size:17px;
-font-weight:850;
-}
-
-.card-sub{
-font-size:11px;
-color:var(--muted);
-margin-top:4px;
-line-height:1.45;
-}
-
-.form-grid{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:12px;
-}
-
-.field{
-margin-bottom:2px;
-}
-
-.field.full{
-grid-column:1/-1;
-}
-
-.field label{
-display:block;
-font-size:11px;
-font-weight:850;
-color:#526176;
-margin-bottom:6px;
-}
-
-.field input,
-.field textarea,
-.field select{
-width:100%;
-border:1px solid var(--line);
-border-radius:11px;
-background:#fff;
-padding:12px;
-outline:none;
-font-size:14px;
-color:var(--text);
-}
-
-.field textarea{
-min-height:82px;
-resize:vertical;
-}
-
-.field input:focus,
-.field textarea:focus,
-.field select:focus{
-border-color:var(--blue);
-box-shadow:0 0 0 3px #dbeafe;
-}
-
-.items{
-border:1px solid var(--line);
-border-radius:14px;
-overflow:hidden;
-}
-
-.item-row{
-display:grid;
-grid-template-columns:minmax(0,1.7fr) .75fr .85fr .85fr 38px;
-gap:7px;
-padding:10px;
-border-bottom:1px solid var(--line);
-align-items:center;
-}
-
-.item-row:last-child{
-border-bottom:0;
-}
-
-.agent-row{
-display:grid;
-grid-template-columns:minmax(0,1.5fr) 1fr 38px;
-gap:7px;
-padding:10px;
-border-bottom:1px solid var(--line);
-align-items:center;
-}
-
-.agent-row:last-child{
-border-bottom:0;
-}
-
-.item-row input,
-.item-row select,
-.agent-row input,
-.agent-row select{
-width:100%;
-min-width:0;
-padding:10px 8px;
-border:1px solid var(--line);
-border-radius:9px;
-outline:none;
-font-size:13px;
-background:#fff;
-}
-
-.remove{
-border:0;
-background:#fee2e2;
-color:var(--red);
-width:36px;
-height:36px;
-border-radius:9px;
-font-weight:900;
-font-size:18px;
-}
-
-.add-item{
-border:0;
-background:#eff6ff;
-color:var(--blue);
-border-radius:10px;
-padding:9px 12px;
-font-size:12px;
-font-weight:850;
-}
-
-.summary-grid{
-display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:10px;
-margin-top:13px;
-}
-
-.detail{
-background:#f8fafc;
-border:1px solid var(--line);
-border-radius:13px;
-padding:13px;
-min-width:0;
-}
-
-.detail small{
-display:block;
-font-size:10px;
-font-weight:800;
-color:#758198;
-}
-
-.detail strong{
-display:block;
-font-size:20px;
-margin-top:5px;
-overflow:hidden;
-text-overflow:ellipsis;
-white-space:nowrap;
-}
-
-.ledger-tools{
-display:flex;
-gap:8px;
-margin-bottom:12px;
-flex-wrap:wrap;
-}
-
-.filter{
-border:1px solid var(--line);
-background:#fff;
-border-radius:9px;
-padding:9px 13px;
-font-size:11px;
-font-weight:800;
-}
-
-.filter.active{
-background:var(--blue);
-color:white;
-border-color:var(--blue);
-}
-
-.ledger-container{
-display:flex;
-flex-direction:column;
-gap:12px;
-}
-
-.ledger-card{
-background:white;
-border:1px solid var(--line);
-border-radius:14px;
-padding:14px;
-box-shadow:0 2px 8px rgba(0,0,0,.03);
-}
-
-.ledger-header{
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin-bottom:10px;
-padding-bottom:8px;
-border-bottom:1px solid var(--line);
-}
-
-.ledger-id{
-font-weight:900;
-font-size:14px;
-}
-
-.ledger-date{
-font-size:11px;
-color:var(--muted);
-font-weight:700;
-}
-
-.ledger-grid{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:8px;
-font-size:12px;
-margin-bottom:10px;
-}
-
-.ledger-grid-item small{
-display:block;
-font-size:9px;
-color:var(--muted);
-font-weight:800;
-}
-
-.ledger-grid-item span{
-font-weight:750;
-}
-
-.ledger-stats{
-display:grid;
-grid-template-columns:repeat(4,1fr);
-gap:6px;
-background:#f8fafc;
-padding:8px;
-border-radius:10px;
-margin-bottom:10px;
-text-align:center;
-}
-
-.ledger-stat-box small{
-display:block;
-font-size:9px;
-color:var(--muted);
-font-weight:800;
-}
-
-.ledger-stat-box strong{
-display:block;
-font-size:12px;
-margin-top:2px;
-overflow:hidden;
-text-overflow:ellipsis;
-white-space:nowrap;
-}
-
-.ledger-footer{
-display:flex;
-justify-content:space-between;
-align-items:center;
-gap:10px;
-padding-top:8px;
-border-top:1px solid var(--line);
-}
-
-.agent{
-font-weight:850;
-}
-
-.badge{
-display:inline-flex;
-padding:4px 8px;
-border-radius:20px;
-font-size:9px;
-font-weight:900;
-}
-
-.badge.active{
-background:#fff7ed;
-color:var(--amber);
-}
-
-.badge.settled{
-background:#ecfdf5;
-color:var(--green);
-}
-
-.badge.warning{
-background:#fee2e2;
-color:var(--red);
-}
-
-.action{
-border:1px solid var(--line);
-background:white;
-padding:7px 12px;
-border-radius:8px;
-font-size:11px;
-font-weight:800;
-}
-
-.empty{
-text-align:center;
-padding:35px;
-color:var(--muted);
-font-size:13px;
-background:white;
-border:1px solid var(--line);
-border-radius:14px;
-}
-
-.dispatch-banner{
-background:linear-gradient(135deg,#0b1220,#172554);
-color:white;
-border-radius:15px;
-padding:14px;
-margin-bottom:13px;
-display:none;
-}
-
-.dispatch-banner.show{
-display:block;
-}
-
-.dispatch-banner small{
-display:block;
-color:#94a3b8;
-font-size:10px;
-font-weight:800;
-}
-
-.dispatch-banner strong{
-display:block;
-font-size:16px;
-margin-top:3px;
-}
-
-.dispatch-banner span{
-display:block;
-font-size:11px;
-color:#cbd5e1;
-margin-top:3px;
-}
-
-.drawer-bg{
-position:fixed;
-inset:0;
-background:rgba(5,12,25,.55);
-backdrop-filter:blur(5px);
-z-index:100;
-display:none;
-}
-
-.drawer{
-position:absolute;
-right:0;
-top:0;
-height:100%;
-width:min(760px,96vw);
-background:white;
-padding:20px;
-overflow:auto;
-box-shadow:-20px 0 60px rgba(0,0,0,.2);
-}
-
-.drawer-head{
-display:flex;
-justify-content:space-between;
-align-items:center;
-gap:10px;
-margin-bottom:18px;
-border-bottom:1px solid var(--line);
-padding-bottom:12px;
-}
-
-.drawer-section{
-background:#f8fafc;
-border:1px solid var(--line);
-border-radius:14px;
-padding:14px;
-margin-bottom:14px;
-}
-
-.drawer-section-title{
-font-size:11px;
-font-weight:850;
-color:var(--muted);
-text-transform:uppercase;
-letter-spacing:.05em;
-margin-bottom:10px;
-display:flex;
-justify-content:space-between;
-align-items:center;
-}
-
-.agent-list-item{
-display:flex;
-justify-content:space-between;
-align-items:center;
-background:white;
-border:1px solid var(--line);
-padding:10px 12px;
-border-radius:10px;
-margin-bottom:6px;
-font-size:13px;
-}
-
-.agent-list-item:last-child{
-margin-bottom:0;
-}
-
-.chart-bar-wrap{
-background:white;
-border:1px solid var(--line);
-border-radius:10px;
-padding:10px 12px;
-margin-bottom:8px;
-}
-
-.chart-bar-header{
-display:flex;
-justify-content:space-between;
-font-size:12px;
-font-weight:800;
-margin-bottom:6px;
-}
-
-.chart-track{
-background:#e2e8f0;
-height:10px;
-border-radius:6px;
-overflow:hidden;
-display:flex;
-width:100%;
-}
-
-.chart-fill-sold{
-background:var(--green);
-height:100%;
-}
-
-.detail-grid{
-display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:9px;
-margin-bottom:14px;
-}
-
-.performance{
-display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:9px;
-margin-bottom:14px;
-}
-
-.perf{
-background:#f8fafc;
-border:1px solid var(--line);
-border-radius:11px;
-padding:12px;
-}
-
-.perf b{
-font-size:18px;
-}
-
-.perf span{
-display:block;
-font-size:10px;
-color:var(--muted);
-margin-top:3px;
-}
-
-.toast{
-position:fixed;
-left:14px;
-right:14px;
-bottom:16px;
-background:#0b1220;
-color:white;
-padding:14px 16px;
-border-radius:12px;
-box-shadow:0 15px 40px rgba(0,0,0,.25);
-z-index:300;
-display:none;
-font-size:12px;
-font-weight:750;
-text-align:center;
-}
-
-.toast.error{
-background:#991b1b;
-}
-
-.toast.success{
-background:#166534;
-}
-
-@media(max-width:700px){
-.main{
-padding:10px;
-}
-.form-grid{
-grid-template-columns:1fr;
-}
-.item-row{
-grid-template-columns:1fr 1fr 1fr 38px;
-}
-.item-row .ip-product{
-grid-column:1/-1;
-}
-.item-row .ip-sold{
-display:none;
-}
-}
+*{ box-sizing:border-box; margin:0; padding:0; }
+html,body{ width:100%; min-height:100%; font-family:'Segoe UI',Roboto,system-ui,sans-serif; background:var(--bg); color:var(--text); }
+body{ overflow-x:hidden; }
+button,input,textarea,select{ font:inherit; }
+button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
+
+.app{ width:100%; min-height:100vh; }
+.main{ width:100%; max-width:1200px; margin:auto; padding:14px; }
+.page{ display:none; }
+.page.active{ display:block; }
+
+.topbar{ display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:14px; }
+.page-title h2{ font-size:22px; letter-spacing:-.5px; }
+.page-title p{ font-size:12px; color:var(--muted); margin-top:4px; }
+.top-actions{ display:flex; gap:8px; }
+
+.btn{ border:0; border-radius:11px; padding:12px 15px; font-weight:800; font-size:13px; min-height:44px; display:inline-flex; align-items:center; justify-content:center; text-decoration:none; }
+.btn.primary{ background:var(--blue); color:white; }
+.btn.secondary{ background:white; border:1px solid var(--line); color:var(--text); }
+.btn.danger{ background:#fee2e2; color:var(--red); }
+.btn:active{ transform:scale(.98); }
+
+.card{ background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px; margin-bottom:14px; }
+.card-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:15px; }
+.card-title{ font-size:17px; font-weight:850; }
+.card-sub{ font-size:11px; color:var(--muted); margin-top:4px; line-height:1.45; }
+
+.form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.field{ margin-bottom:2px; }
+.field.full{ grid-column:1/-1; }
+.field label{ display:block; font-size:11px; font-weight:850; color:#526176; margin-bottom:6px; }
+.field input, .field textarea, .field select{ width:100%; border:1px solid var(--line); border-radius:11px; background:#fff; padding:12px; outline:none; font-size:14px; color:var(--text); }
+.field textarea{ min-height:82px; resize:vertical; }
+.field input:focus, .field textarea:focus, .field select:focus{ border-color:var(--blue); box-shadow:0 0 0 3px #dbeafe; }
+
+/* LIVE TRACKING MODULE */
+.live-tracker-box { background: #0f172a; color: #fff; border-radius: 14px; padding: 16px; margin-bottom: 12px; border: 1px solid #1e293b; }
+.live-tracker-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.live-status-indicator { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 850; padding: 5px 10px; border-radius: 20px; background: rgba(220, 38, 38, 0.2); color: #f87171; }
+.live-status-indicator.active { background: rgba(22, 163, 74, 0.2); color: #4ade80; }
+.live-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse-dot 1.5s infinite; }
+@keyframes pulse-dot { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.2); } 100% { opacity: 1; transform: scale(1); } }
+.live-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+.live-metric-card { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 10px; text-align: center; }
+.live-metric-card small { display: block; font-size: 9px; color: #94a3b8; font-weight: 800; }
+.live-metric-card strong { display: block; font-size: 13px; color: #fff; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.items{ border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+.item-row{ display:grid; grid-template-columns:minmax(0,1.7fr) .75fr .85fr .85fr 38px; gap:7px; padding:10px; border-bottom:1px solid var(--line); align-items:center; }
+.item-row:last-child{ border-bottom:0; }
+.agent-row{ display:grid; grid-template-columns:minmax(0,1.5fr) 1fr 38px; gap:7px; padding:10px; border-bottom:1px solid var(--line); align-items:center; }
+.agent-row:last-child{ border-bottom:0; }
+.item-row input, .item-row select, .agent-row input, .agent-row select{ width:100%; min-width:0; padding:10px 8px; border:1px solid var(--line); border-radius:9px; outline:none; font-size:13px; background:#fff; }
+.remove{ border:0; background:#fee2e2; color:var(--red); width:36px; height:36px; border-radius:9px; font-weight:900; font-size:18px; }
+.add-item{ border:0; background:#eff6ff; color:var(--blue); border-radius:10px; padding:9px 12px; font-size:12px; font-weight:850; }
+
+.summary-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:13px; }
+.detail{ background:#f8fafc; border:1px solid var(--line); border-radius:13px; padding:13px; min-width:0; }
+.detail small{ display:block; font-size:10px; font-weight:800; color:#758198; }
+.detail strong{ display:block; font-size:20px; margin-top:5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+.ledger-tools{ display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+.filter{ border:1px solid var(--line); background:#fff; border-radius:9px; padding:9px 13px; font-size:11px; font-weight:800; }
+.filter.active{ background:var(--blue); color:white; border-color:var(--blue); }
+.ledger-container{ display:flex; flex-direction:column; gap:12px; }
+.ledger-card{ background:white; border:1px solid var(--line); border-radius:14px; padding:14px; box-shadow:0 2px 8px rgba(0,0,0,.03); }
+.ledger-header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid var(--line); }
+.ledger-id{ font-weight:900; font-size:14px; }
+.ledger-date{ font-size:11px; color:var(--muted); font-weight:700; }
+.ledger-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:12px; margin-bottom:10px; }
+.ledger-grid-item small{ display:block; font-size:9px; color:var(--muted); font-weight:800; }
+.ledger-grid-item span{ font-weight:750; }
+.ledger-stats{ display:grid; grid-template-columns:repeat(4,1fr); gap:6px; background:#f8fafc; padding:8px; border-radius:10px; margin-bottom:10px; text-align:center; }
+.ledger-stat-box small{ display:block; font-size:9px; color:var(--muted); font-weight:800; }
+.ledger-stat-box strong{ display:block; font-size:12px; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ledger-footer{ display:flex; justify-content:space-between; align-items:center; gap:10px; padding-top:8px; border-top:1px solid var(--line); }
+.badge{ display:inline-flex; padding:4px 8px; border-radius:20px; font-size:9px; font-weight:900; }
+.badge.active{ background:#fff7ed; color:var(--amber); }
+.badge.settled{ background:#ecfdf5; color:var(--green); }
+.action{ border:1px solid var(--line); background:white; padding:7px 12px; border-radius:8px; font-size:11px; font-weight:800; }
+.empty{ text-align:center; padding:35px; color:var(--muted); font-size:13px; background:white; border:1px solid var(--line); border-radius:14px; }
+
+.dispatch-banner{ background:linear-gradient(135deg,#0b1220,#172554); color:white; border-radius:15px; padding:14px; margin-bottom:13px; display:none; }
+.dispatch-banner.show{ display:block; }
+.dispatch-banner small{ display:block; color:#94a3b8; font-size:10px; font-weight:800; }
+.dispatch-banner strong{ display:block; font-size:16px; margin-top:3px; }
+.dispatch-banner span{ display:block; font-size:11px; color:#cbd5e1; margin-top:3px; }
+
+/* MODAL OVERLAY FOR EMAIL LINK STATUS */
+.modal-overlay { position: fixed; inset: 0; background: rgba(5,12,25,.7); backdrop-filter: blur(6px); z-index: 200; display: none; align-items: center; justify-content: center; padding: 16px; }
+.modal-card { background: white; width: 100%; max-width: 420px; border-radius: 20px; padding: 24px; box-shadow: 0 20px 50px rgba(0,0,0,.3); }
+.modal-title { font-size: 18px; font-weight: 850; margin-bottom: 6px; }
+.modal-sub { font-size: 12px; color: var(--muted); margin-bottom: 16px; line-height: 1.4; }
+
+.drawer-bg{ position:fixed; inset:0; background:rgba(5,12,25,.55); backdrop-filter:blur(5px); z-index:100; display:none; }
+.drawer{ position:absolute; right:0; top:0; height:100%; width:min(760px,96vw); background:white; padding:20px; overflow:auto; box-shadow:-20px 0 60px rgba(0,0,0,.2); }
+.drawer-head{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:18px; border-bottom:1px solid var(--line); padding-bottom:12px; }
+.drawer-section{ background:#f8fafc; border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:14px; }
+.drawer-section-title{ font-size:11px; font-weight:850; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; }
+.agent-list-item{ display:flex; justify-content:space-between; align-items:center; background:white; border:1px solid var(--line); padding:10px 12px; border-radius:10px; margin-bottom:6px; font-size:13px; }
+.chart-bar-wrap{ background:white; border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin-bottom:8px; }
+.chart-bar-header{ display:flex; justify-content:space-between; font-size:12px; font-weight:800; margin-bottom:6px; }
+.chart-track{ background:#e2e8f0; height:10px; border-radius:6px; overflow:hidden; display:flex; width:100%; }
+.chart-fill-sold{ background:var(--green); height:100%; }
+.detail-grid, .performance{ display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-bottom:14px; }
+.perf{ background:#f8fafc; border:1px solid var(--line); border-radius:11px; padding:12px; }
+.perf b{ font-size:18px; }
+.perf span{ display:block; font-size:10px; color:var(--muted); margin-top:3px; }
+
+.toast{ position:fixed; left:14px; right:14px; bottom:16px; background:#0b1220; color:white; padding:14px 16px; border-radius:12px; box-shadow:0 15px 40px rgba(0,0,0,.25); z-index:300; display:none; font-size:12px; font-weight:750; text-align:center; }
+.toast.error{ background:#991b1b; }
+.toast.success{ background:#166534; }
 </style>
 </head>
 
@@ -669,137 +147,112 @@ display:none;
 <div class="app">
 <main class="main">
 
-<!-- ================= ENTRY PAGE ================= -->
+<!-- ENTRY PAGE -->
 <section id="entryPage" class="page active">
-
 <div class="topbar">
 <div class="page-title">
-<h2>New Route Dispatch</h2>
-<p>Manage crew, assign products, and track dispatches.</p>
+<h2>Route Dispatch Portal</h2>
+<p>Standalone email link verification & secure cloud telemetry.</p>
 </div>
-
 <div class="top-actions">
-<a href="live-tracking.html" class="btn secondary">Live Tracking</a>
-<button class="btn secondary" onclick="showPage('ledgerPage')">
-View Ledger
-</button>
+<button class="btn secondary" onclick="showPage('ledgerPage')">View Ledger</button>
 </div>
 </div>
 
 <div id="currentDispatchBanner" class="dispatch-banner">
-<small>ACTIVE DISPATCH</small>
+<small>ACTIVE FIREBASE DISPATCH & CLOUD TELEMETRY</small>
 <strong id="bannerDispatch">—</strong>
 <span id="bannerRoute">—</span>
 </div>
 
-<!-- CREW / SALES AGENTS -->
+<!-- CREW -->
 <div class="card">
 <div class="card-head">
 <div>
 <div class="card-title">Sales Crew & Agents</div>
-<div class="card-sub">Assign drivers and sales representatives for this vehicle.</div>
+<div class="card-sub">Assign drivers and sales representatives.</div>
 </div>
 <button class="add-item" onclick="addAgent()">+ Agent</button>
 </div>
-
 <div class="items" id="agentsContainer"></div>
 </div>
 
-<!-- DISPATCH DETAILS -->
+<!-- VEHICLE & TRACKING -->
 <div class="card">
 <div class="card-head">
 <div>
-<div class="card-title">Route & Vehicle Details</div>
-<div class="card-sub">Enter vehicle registration and route information.</div>
+<div class="card-title">Vehicle & Live Tracking Engine</div>
+<div class="card-sub">GPS telemetry transmits securely to Firebase cloud.</div>
+</div>
+</div>
+
+<div class="live-tracker-box">
+<div class="live-tracker-header">
+<span style="font-size:12px; font-weight:850; color:#94a3b8;">FIREBASE TELEMETRY STATUS</span>
+<div id="liveStatusBadge" class="live-status-indicator">
+<span class="live-dot"></span>
+<span id="liveStatusText">STANDBY (AWAITING EMAIL LINK)</span>
+</div>
+</div>
+<div class="live-metrics">
+<div class="live-metric-card"><small>LATITUDE</small><strong id="liveLat">--.-----</strong></div>
+<div class="live-metric-card"><small>LONGITUDE</small><strong id="liveLng">--.-----</strong></div>
+<div class="live-metric-card"><small>VELOCITY</small><strong id="liveSpeed">0 km/h</strong></div>
 </div>
 </div>
 
 <div class="form-grid">
-<div class="field">
-<label>Route / Territory</label>
-<input id="route" placeholder="e.g. Nakuru → Njoro → Gilgil">
-</div>
-
-<div class="field">
-<label>Dispatch Date</label>
-<input id="date" type="date">
-</div>
-
-<div class="field">
-<label>Vehicle / Registration</label>
-<input id="vehicle" placeholder="e.g. KDA 123A">
-</div>
-
-<div class="field">
-<label>Notes</label>
-<textarea id="notes" placeholder="Optional dispatch notes" style="min-height:50px;"></textarea>
-</div>
+<div class="field"><label>Vehicle / Registration</label><input id="vehicle" placeholder="e.g. KDA 123A"></div>
+<div class="field"><label>Dispatch Date</label><input id="date" type="date"></div>
+<div class="field full"><label>Manager Email (For Standalone Email Link Delivery)</label><input id="managerEmail" type="email" placeholder="manager@company.com"></div>
+<div class="field full"><label>Notes</label><textarea id="notes" placeholder="Optional notes" style="min-height:50px;"></textarea></div>
 </div>
 </div>
 
-<!-- PRODUCTS ON ROUTE -->
+<!-- PRODUCTS -->
 <div class="card">
 <div class="card-head">
 <div>
 <div class="card-title">Products on Route</div>
 <div class="card-sub">Select items and quantities issued.</div>
 </div>
-
 <button class="add-item" onclick="addItem()">+ Product</button>
 </div>
-
 <div class="items" id="items"></div>
-
 <div class="summary-grid">
-<div class="detail">
-<small>VARIETIES</small>
-<strong id="itemCount">0</strong>
-</div>
-
-<div class="detail">
-<small>TOTAL UNITS</small>
-<strong id="itemUnits">0</strong>
-</div>
-
-<div class="detail">
-<small>VALUE</small>
-<strong id="itemValue">KSh 0</strong>
-</div>
+<div class="detail"><small>VARIETIES</small><strong id="itemCount">0</strong></div>
+<div class="detail"><small>TOTAL UNITS</small><strong id="itemUnits">0</strong></div>
+<div class="detail"><small>VALUE</small><strong id="itemValue">KSh 0</strong></div>
 </div>
 </div>
 
-<!-- CREATE DISPATCH -->
+<!-- INITIATE DISPATCH BUTTON -->
 <div class="card">
-<button class="btn primary"
-style="width:100%;"
-onclick="createDispatch()">
-Create Dispatch & Save
+<button class="btn primary" style="width:100%;" onclick="requestEmailLinkVerification()">
+Send Verification Email Link & Start Dispatch
 </button>
 </div>
-
 </section>
 
-<!-- ================= LEDGER ================= -->
+<!-- LEDGER -->
 <section id="ledgerPage" class="page">
 <div class="topbar">
 <div class="page-title">
-<h2>Dispatch Ledger</h2>
-<p>Complete dispatch, stock, crew, and cash history.</p>
+<h2>Cloud Dispatch Ledger</h2>
+<p>Synchronized history from Firebase database.</p>
 </div>
-
 <div class="top-actions">
 <button class="btn secondary" onclick="showPage('entryPage')">← Back</button>
 <button class="btn primary" onclick="showPage('entryPage')">+ New Dispatch</button>
 </div>
 </div>
 
-<div class="card" style="background: transparent; border: 0; box-shadow: none; padding: 0;">
+<div class="card" style="background:transparent;border:0;box-shadow:none;padding:0;">
 <div class="ledger-tools">
 <button class="filter active" onclick="filterLedger('all',this)">All</button>
 <button class="filter" onclick="filterLedger('Active',this)">Active</button>
 <button class="filter" onclick="filterLedger('Settled',this)">Settled</button>
 </div>
-
 <div id="ledgerContainer" class="ledger-container"></div>
 </div>
 </section>
@@ -807,11 +260,22 @@ Create Dispatch & Save
 </main>
 </div>
 
-<!-- ================= DRAWER (DETAILED ACCOUNT VIEW) ================= -->
+<!-- EMAIL LINK STATUS MODAL -->
+<div class="modal-overlay" id="otpModal">
+<div class="modal-card">
+<div class="modal-title">✉️ Verification Link Sent</div>
+<div class="modal-sub" id="otpModalSub">A standalone verification link has been emailed to your inbox. Open your email and click the link to automatically authorize this action.</div>
+<div style="display:flex; gap:8px;">
+<button class="btn secondary" style="width:100%" onclick="closeOtpModal()">Close Window</button>
+</div>
+</div>
+</div>
+
+<!-- DRAWER -->
 <div class="drawer-bg" id="drawerBg" onclick="closeDrawer(event)">
 <div class="drawer" id="drawer">
     <div class="drawer-head">
-        <button class="btn secondary" onclick="hideDrawer()" style="display:flex;align-items:center;gap:6px;font-size:12px;padding:8px 12px;min-height:36px;">← Back to Ledger</button>
+        <button class="btn secondary" onclick="hideDrawer()" style="font-size:12px;padding:8px 12px;min-height:36px;">← Back</button>
         <button class="remove" onclick="hideDrawer()" style="width:36px;height:36px;">×</button>
     </div>
     <div id="drawerContent"></div>
@@ -821,8 +285,19 @@ Create Dispatch & Save
 <div class="toast" id="toast"></div>
 
 <script>
-const STORAGE_KEY = "routestock_pro_gps_v8";
-const ADMIN_PASSWORD = "1234";
+// FIREBASE CONFIGURATION
+const firebaseConfig = {
+  apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA",
+  authDomain: "assetguard-c8c8c.firebaseapp.com",
+  projectId: "assetguard-c8c8c",
+  databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com"
+};
+
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+const auth = firebase.auth();
+const rtdb = firebase.database();
 
 let dispatches = [];
 let inventory = [
@@ -832,27 +307,97 @@ let inventory = [
     { name: "Thinner 1L", price: 450 }
 ];
 
-try {
-    dispatches = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-    if(!Array.isArray(dispatches)) dispatches = [];
-} catch(e) { dispatches = []; }
-
 let currentFilter = "all";
 let currentDispatchId = null;
+let activeGeoWatchId = null;
 
-function saveData() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(dispatches));
-}
+// Real-time synchronization with Firebase Realtime Database
+rtdb.ref("dispatches").on("value", (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+        dispatches = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+        dispatches.sort((a, b) => b.date.localeCompare(a.date));
+    } else {
+        dispatches = [];
+    }
+    renderLedger();
+    updateDispatchBanner();
+});
 
-function money(n) {
-    return "KSh " + Number(n||0).toLocaleString("en-KE",{maximumFractionDigits:0});
-}
+// Auto-fill manager email if logged in
+auth.onAuthStateChanged(user => {
+    if (user && user.email) {
+        const emailField = document.getElementById("managerEmail");
+        if(emailField && !emailField.value) emailField.value = user.email;
+    }
+});
 
-function esc(s) {
-    return String(s??"").replace(/[&<>"']/g,m=>({
-        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-    }[m]));
-}
+// HANDLE INCOMING EMAIL LINK REDIRECT VERIFICATION ON LOAD
+window.addEventListener('DOMContentLoaded', async () => {
+    if (auth.isSignInWithEmailLink(window.location.href)) {
+        let email = window.localStorage.getItem('emailForSignIn');
+        if (!email) {
+            email = window.prompt('Please confirm your manager email address for verification:');
+        }
+        if (email) {
+            try {
+                const result = await auth.signInWithEmailLink(email, window.location.href);
+                window.localStorage.removeItem('emailForSignIn');
+                
+                const actionType = window.localStorage.getItem('pendingActionType');
+                const targetId = window.localStorage.getItem('targetDispatchId');
+                const dispatchObjStr = window.localStorage.getItem('pendingDispatchObj');
+
+                window.localStorage.removeItem('pendingActionType');
+                window.localStorage.removeItem('targetDispatchId');
+                window.localStorage.removeItem('pendingDispatchObj');
+
+                toast("Email verified successfully! Executing action...", "success");
+
+                if (actionType === 'CREATE' && dispatchObjStr) {
+                    const dispObj = JSON.parse(dispatchObjStr);
+                    await rtdb.ref(`dispatches/${dispObj.id}`).set(dispObj);
+                    currentDispatchId = dispObj.id;
+                    updateDispatchBanner();
+                    startLiveTracking(dispObj.id);
+                    toast("Dispatch created successfully & live tracking active!", "success");
+                } 
+                else if (actionType === 'SETTLE' && targetId) {
+                    const snapshot = await rtdb.ref(`dispatches/${targetId}`).once('value');
+                    const d = snapshot.val();
+                    if (d) {
+                        const newStatus = (d.status === "Active") ? "Settled" : "Active";
+                        await rtdb.ref(`dispatches/${targetId}/status`).set(newStatus);
+                        if (newStatus === "Settled" && currentDispatchId === targetId) {
+                            stopLiveTracking();
+                            currentDispatchId = null;
+                            updateDispatchBanner();
+                        }
+                        toast(`Dispatch updated to ${newStatus}.`, "success");
+                    }
+                } 
+                else if (actionType === 'DELETE' && targetId) {
+                    if (currentDispatchId === targetId) {
+                        stopLiveTracking();
+                        currentDispatchId = null;
+                        updateDispatchBanner();
+                    }
+                    await rtdb.ref(`dispatches/${targetId}`).remove();
+                    toast("Dispatch permanently deleted.", "success");
+                }
+
+                // Clean URL hash/params
+                window.history.replaceState({}, document.title, window.location.pathname);
+            } catch (err) {
+                console.error("Email link verification error:", err);
+                toast("Verification failed: " + err.message, "error");
+            }
+        }
+    }
+});
+
+function money(n) { return "KSh " + Number(n||0).toLocaleString("en-KE",{maximumFractionDigits:0}); }
+function esc(s) { return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m])); }
 
 function totals(d) {
     let issued = 0, sold = 0, returned = 0, cash = 0;
@@ -871,7 +416,7 @@ function toast(message, type="") {
     el.className = "toast " + type;
     el.style.display = "block";
     clearTimeout(window.toastTimer);
-    window.toastTimer = setTimeout(() => { el.style.display = "none"; }, 3500);
+    window.toastTimer = setTimeout(() => { el.style.display = "none"; }, 4000);
 }
 
 function showPage(id) {
@@ -901,7 +446,6 @@ function addItem(data={}) {
     const container = document.getElementById("items");
     const row = document.createElement("div");
     row.className = "item-row";
-
     let optionsHtml = `<option value="">Select product</option>`;
     inventory.forEach(inv => {
         const isSelected = (data.product === inv.name) ? "selected" : "";
@@ -948,7 +492,40 @@ function calcItems() {
     document.getElementById("itemValue").textContent = money(value);
 }
 
-function createDispatch() {
+// TRIGGER STANDALONE EMAIL LINK VERIFICATION
+async function triggerEmailLinkVerification(actionType, targetId = null, dispatchObj = null) {
+    const email = document.getElementById("managerEmail").value.trim().toLowerCase();
+    if (!email) {
+        toast("Please enter your manager email address first.", "error");
+        return;
+    }
+
+    const actionCodeSettings = {
+        url: window.location.origin + window.location.pathname,
+        handleCodeInApp: true
+    };
+
+    try {
+        await auth.sendSignInLinkToEmail(email, actionCodeSettings);
+        window.localStorage.setItem('emailForSignIn', email);
+        window.localStorage.setItem('pendingActionType', actionType);
+        if (targetId) window.localStorage.setItem('targetDispatchId', targetId);
+        if (dispatchObj) window.localStorage.setItem('pendingDispatchObj', JSON.stringify(dispatchObj));
+
+        toast(`Standalone verification link sent to ${email}!`, "success");
+        document.getElementById("otpModalSub").textContent = `Firebase has sent a secure email verification link to ${email}. Check your inbox and click the link to instantly authorize your action.`;
+        document.getElementById("otpModal").style.display = "flex";
+    } catch (err) {
+        console.error("Email Link Error:", err);
+        toast("Failed to send verification email: " + err.message, "error");
+    }
+}
+
+function closeOtpModal() {
+    document.getElementById("otpModal").style.display = "none";
+}
+
+function requestEmailLinkVerification() {
     const agentRows = [...document.querySelectorAll(".agent-row")];
     if(!agentRows.length) { toast("Add at least one sales crew member or driver.","error"); return; }
 
@@ -959,13 +536,13 @@ function createDispatch() {
 
     if(agents.some(a => !a.name)) { toast("Enter the full name for every crew member.","error"); return; }
 
-    const route = document.getElementById("route").value.trim();
-    const date = document.getElementById("date").value || new Date().toISOString().slice(0,10);
     const vehicle = document.getElementById("vehicle").value.trim();
+    const date = document.getElementById("date").value || new Date().toISOString().slice(0,10);
+    const email = document.getElementById("managerEmail").value.trim().toLowerCase();
     const notes = document.getElementById("notes").value.trim();
 
-    if(!route) { toast("Enter the route.","error"); return; }
     if(!vehicle) { toast("Enter the vehicle registration.","error"); return; }
+    if(!email) { toast("Enter your manager account email.","error"); return; }
 
     const rows = [...document.querySelectorAll(".item-row")];
     if(!rows.length) { toast("Add at least one product.","error"); return; }
@@ -980,39 +557,76 @@ function createDispatch() {
 
     if(items.some(x => !x.product)) { toast("Select a product for every row.","error"); return; }
 
-    const d = {
+    const newDispatchObject = {
         id: "RS-" + Date.now().toString().slice(-8),
-        agents, route, date, vehicle, notes,
+        agents, route: "Email Link Secured Route", date, vehicle, email, notes,
         status: "Active",
-        items
+        items,
+        lastLocation: null
     };
 
-    dispatches.unshift(d);
-    saveData();
-    currentDispatchId = d.id;
-    resetEntryForm();
-    updateDispatchBanner();
-    toast("Dispatch created successfully!","success");
+    triggerEmailLinkVerification('CREATE', null, newDispatchObject);
 }
 
-function resetEntryForm() {
-    document.getElementById("agentsContainer").innerHTML = "";
-    addAgent({name:"", role:"Driver"});
-    document.getElementById("route").value = "";
-    document.getElementById("vehicle").value = "";
-    document.getElementById("notes").value = "";
-    document.getElementById("items").innerHTML = "";
-    addItem();
+function startLiveTracking(dispatchId) {
+    if (!("geolocation" in navigator)) {
+        toast("Geolocation is not supported by your browser", "error");
+        return;
+    }
+
+    const badge = document.getElementById("liveStatusBadge");
+    const statusText = document.getElementById("liveStatusText");
+    badge.classList.add("active");
+    statusText.textContent = "LIVE TRACKING ACTIVE (" + dispatchId + ")";
+
+    if (activeGeoWatchId !== null) {
+        navigator.geolocation.clearWatch(activeGeoWatchId);
+    }
+
+    activeGeoWatchId = navigator.geolocation.watchPosition(
+        (p) => {
+            const lat = p.coords.latitude;
+            const lng = p.coords.longitude;
+            const speedKmh = ((p.coords.speed || 0) * 3.6).toFixed(1);
+
+            document.getElementById("liveLat").textContent = lat.toFixed(5);
+            document.getElementById("liveLng").textContent = lng.toFixed(5);
+            document.getElementById("liveSpeed").textContent = speedKmh + " km/h";
+
+            rtdb.ref(`dispatches/${dispatchId}/lastLocation`).set({
+                lat, lng, speed: speedKmh, ts: Date.now()
+            });
+        },
+        (err) => { console.error("GPS Error:", err); },
+        { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
+    );
+}
+
+function stopLiveTracking() {
+    if (activeGeoWatchId !== null) {
+        navigator.geolocation.clearWatch(activeGeoWatchId);
+        activeGeoWatchId = null;
+    }
+    const badge = document.getElementById("liveStatusBadge");
+    const statusText = document.getElementById("liveStatusText");
+    badge.classList.remove("active");
+    statusText.textContent = "LOGGED OFF (DISPATCH SETTLED)";
+    document.getElementById("liveLat").textContent = "--.-----";
+    document.getElementById("liveLng").textContent = "--.-----";
+    document.getElementById("liveSpeed").textContent = "0 km/h";
 }
 
 function updateDispatchBanner() {
     const d = dispatches.find(x => x.id === currentDispatchId);
     const banner = document.getElementById("currentDispatchBanner");
-    if(!d) { banner.classList.remove("show"); return; }
+    if(!d || d.status !== "Active") { 
+        banner.classList.remove("show"); 
+        return; 
+    }
     banner.classList.add("show");
     const crewStr = Array.isArray(d.agents) ? d.agents.map(a=>a.name).join(", ") : "Crew";
     document.getElementById("bannerDispatch").textContent = d.id + " · Crew: " + crewStr;
-    document.getElementById("bannerRoute").textContent = d.vehicle + " · " + d.route;
+    document.getElementById("bannerRoute").textContent = d.vehicle + " · Standalone Email Link Secured GPS Active";
 }
 
 function renderLedger() {
@@ -1022,12 +636,13 @@ function renderLedger() {
         rows = dispatches.filter(d => d.status === currentFilter);
     }
     if(!rows.length) {
-        container.innerHTML = `<div class="empty">No dispatch records found.</div>`;
+        container.innerHTML = `<div class="empty">No dispatch records found in Firebase.</div>`;
         return;
     }
     container.innerHTML = rows.map(d => {
         const t = totals(d);
         const crewSummary = Array.isArray(d.agents) ? d.agents.map(a => `${a.name} (${a.role})`).join(", ") : "Crew";
+        const loc = d.lastLocation ? `${d.lastLocation.lat.toFixed(4)}, ${d.lastLocation.lng.toFixed(4)}` : "No GPS fix";
         return `
             <div class="ledger-card">
                 <div class="ledger-header">
@@ -1037,43 +652,19 @@ function renderLedger() {
                     </div>
                     <span class="badge ${d.status==="Active"?"active":"settled"}">${esc(d.status).toUpperCase()}</span>
                 </div>
-
                 <div class="ledger-grid">
-                    <div class="ledger-grid-item">
-                        <small>CREW / AGENTS</small>
-                        <span class="agent">${esc(crewSummary)}</span>
-                    </div>
-                    <div class="ledger-grid-item">
-                        <small>ROUTE / TERRITORY</small>
-                        <span>${esc(d.route)}</span>
-                    </div>
-                    <div class="ledger-grid-item" style="grid-column: 1/-1;">
-                        <small>VEHICLE</small>
-                        <span>${esc(d.vehicle||"—")}</span>
-                    </div>
+                    <div class="ledger-grid-item"><small>CREW / AGENTS</small><span style="font-weight:850">${esc(crewSummary)}</span></div>
+                    <div class="ledger-grid-item"><small>GPS TELEMETRY</small><span style="color:var(--blue)">${esc(loc)}</span></div>
+                    <div class="ledger-grid-item" style="grid-column: 1/-1;"><small>VEHICLE</small><span>${esc(d.vehicle||"—")}</span></div>
                 </div>
-
                 <div class="ledger-stats">
-                    <div class="ledger-stat-box">
-                        <small>ISSUED</small>
-                        <strong>${t.issued}</strong>
-                    </div>
-                    <div class="ledger-stat-box">
-                        <small>SOLD</small>
-                        <strong style="color:var(--green)">${t.sold}</strong>
-                    </div>
-                    <div class="ledger-stat-box">
-                        <small>RETURNED</small>
-                        <strong>${t.returned}</strong>
-                    </div>
-                    <div class="ledger-stat-box">
-                        <small>CASH</small>
-                        <strong style="color:var(--blue)">${money(t.cash)}</strong>
-                    </div>
+                    <div class="ledger-stat-box"><small>ISSUED</small><strong>${t.issued}</strong></div>
+                    <div class="ledger-stat-box"><small>SOLD</small><strong style="color:var(--green)">${t.sold}</strong></div>
+                    <div class="ledger-stat-box"><small>RETURNED</small><strong>${t.returned}</strong></div>
+                    <div class="ledger-stat-box"><small>CASH</small><strong style="color:var(--blue)">${money(t.cash)}</strong></div>
                 </div>
-
                 <div class="ledger-footer">
-                    <span class="badge settled">Saved</span>
+                    <span class="badge settled">${d.status==="Active"?"Email Link Secured":"GPS Logged Off"}</span>
                     <button class="action" onclick="openDispatch('${d.id}')">View Details</button>
                 </div>
             </div>
@@ -1093,13 +684,12 @@ function openDispatch(id) {
     if(!d) return;
     const t = totals(d);
     const salesPercentage = t.issued > 0 ? Math.round((t.sold / t.issued) * 100) : 0;
+    const lastLocStr = d.lastLocation ? `Lat: ${d.lastLocation.lat.toFixed(5)}, Lng: ${d.lastLocation.lng.toFixed(5)} — Speed: ${d.lastLocation.speed} km/h` : "Not recorded";
 
     const agentsArr = Array.isArray(d.agents) ? d.agents : [{name: "Driver", role: "Driver"}];
     let crewListHtml = agentsArr.map(a => `
         <div class="agent-list-item">
-            <div>
-                <strong>${esc(a.name)}</strong>
-            </div>
+            <div><strong>${esc(a.name)}</strong></div>
             <span class="badge settled">${esc(a.role)}</span>
         </div>
     `).join("");
@@ -1132,7 +722,7 @@ function openDispatch(id) {
         </div>
 
         <div class="detail-grid">
-            <div class="detail"><small>ROUTE / TERRITORY</small><strong style="font-size:13px">${esc(d.route)}</strong></div>
+            <div class="detail"><small>TELEMETRY</small><strong style="font-size:11px;color:var(--blue)">${esc(lastLocStr)}</strong></div>
             <div class="detail"><small>SALES RATIO</small><strong style="font-size:13px;color:var(--green)">${salesPercentage}% Cleared</strong></div>
             <div class="detail"><small>STATUS</small><strong style="font-size:13px">${esc(d.status)}</strong></div>
         </div>
@@ -1145,84 +735,35 @@ function openDispatch(id) {
             <div class="perf"><b style="color:var(--amber)">${t.remaining}</b><span>Unsold Stock</span></div>
         </div>
 
-        <!-- CREW LIST SECTION -->
         <div class="drawer-section">
-            <div class="drawer-section-title">
-                <span>Assigned Crew & Sales Agents</span>
-                <span class="badge settled">${agentsArr.length} Member(s)</span>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:6px;">
-                ${crewListHtml}
-            </div>
+            <div class="drawer-section-title"><span>Assigned Crew</span><span class="badge settled">${agentsArr.length} Member(s)</span></div>
+            <div style="display:flex;flex-direction:column;gap:6px;">${crewListHtml}</div>
         </div>
 
-        <!-- VISUAL PRODUCT GRAPHS & BREAKDOWN -->
         <div class="drawer-section">
-            <div class="drawer-section-title">
-                <span>Product Stock & Sales Performance</span>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:8px;">
-                ${itemsVisualGraphHtml}
-            </div>
+            <div class="drawer-section-title"><span>Product Sales Performance</span></div>
+            <div style="display:flex;flex-direction:column;gap:8px;">${itemsVisualGraphHtml}</div>
         </div>
 
-        <!-- REMARKS & NOTES -->
         <div class="drawer-section">
-            <div class="drawer-section-title"><span>Dispatch Remarks & Notes</span></div>
-            <p style="font-size:12px;color:var(--text);line-height:1.5;">${esc(d.notes || "No special remarks recorded for this dispatch.")}</p>
+            <div class="drawer-section-title"><span>Remarks</span></div>
+            <p style="font-size:12px;color:var(--text);line-height:1.5;">${esc(d.notes || "No remarks recorded.")}</p>
         </div>
 
         <div style="display:flex;gap:8px;margin-top:20px">
-            <button class="btn primary" style="flex:1" onclick="toggleDispatch('${d.id}')">${d.status==="Active"?"🔒 Settle Dispatch":"🔓 Reopen Dispatch"}</button>
-            <button class="btn danger" onclick="deleteDispatch('${d.id}')">🗑️ Delete</button>
+            <button class="btn primary" style="flex:1" onclick="triggerEmailLinkVerification('SETTLE', '${d.id}')">${d.status==="Active"?"✉️ Settle & Log Off (Via Email Link)":"✉️ Reopen Dispatch (Via Email Link)"}</button>
+            <button class="btn danger" onclick="triggerEmailLinkVerification('DELETE', '${d.id}')">🗑️ Delete (Via Email Link)</button>
         </div>
     `;
     document.getElementById("drawerBg").style.display = "block";
 }
 
-function hideDrawer() {
-    document.getElementById("drawerBg").style.display = "none";
-}
-
-function closeDrawer(e) {
-    if(e.target === document.getElementById("drawerBg")) { hideDrawer(); }
-}
-
-function toggleDispatch(id) {
-    const pwd = prompt("Enter password to settle/reopen dispatch:");
-    if(pwd === null) return;
-    if(pwd !== ADMIN_PASSWORD) {
-        toast("Incorrect password!", "error");
-        return;
-    }
-    const d = dispatches.find(x => x.id === id);
-    if(!d) return;
-    d.status = d.status === "Active" ? "Settled" : "Active";
-    saveData();
-    hideDrawer();
-    renderLedger();
-    toast(d.status === "Settled" ? "Dispatch settled successfully." : "Dispatch reopened successfully.", "success");
-}
-
-function deleteDispatch(id) {
-    const pwd = prompt("Enter password to delete dispatch record:");
-    if(pwd === null) return;
-    if(pwd !== ADMIN_PASSWORD) {
-        toast("Incorrect password!", "error");
-        return;
-    }
-    if(!confirm("Are you sure you want to permanently delete this dispatch record?")) return;
-    dispatches = dispatches.filter(x => x.id !== id);
-    saveData();
-    hideDrawer();
-    renderLedger();
-    toast("Dispatch deleted successfully.", "success");
-}
+function hideDrawer() { document.getElementById("drawerBg").style.display = "none"; }
+function closeDrawer(e) { if(e.target === document.getElementById("drawerBg")) { hideDrawer(); } }
 
 document.getElementById("date").value = new Date().toISOString().slice(0,10);
 addAgent({name:"", role:"Driver"});
 addItem();
-renderLedger();
 </script>
 
 </body>
