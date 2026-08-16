@@ -679,6 +679,17 @@ window.addEventListener('click', (e) => {
     }
 });
 
+// HTML Escape helper to prevent injection
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 // Automated log pruner to keep database clean and prevent bloat lag
 function pruneOldActivityLogs() {
     const logsRef = rtdb.ref('user_activity_logs');
@@ -2016,96 +2027,42 @@ window.sendAgentMessage = async () => {
         return;
     }
 
-    try {
-        if (agentHighlightedMessageId) {
-            const ticketRef = rtdb.ref('support_tickets/' + agentHighlightedMessageId);
-            const snapshot = await ticketRef.once('value');
-            if (snapshot.exists()) {
-                const data = snapshot.val();
-                let snippetText = agentHighlightedMessageSnippet || data.message || '';
-                if (!data.conversation && data.message) {
-                    const rootMsgKey = ticketRef.child('conversation').push().key;
-                    await ticketRef.child(`conversation/${rootMsgKey}`).set({
-                        sender: 'user',
-                        text: data.message,
-                        timestamp: data.timestamp || Date.now()
-                    });
-                    await ticketRef.child('message').remove();
-                    if (data.admin_reply) {
-                        await ticketRef.child('conversation').push({
-                            sender: 'admin',
-                            text: data.admin_reply,
-                            timestamp: data.reply_timestamp || Date.now()
-                        });
-                    }
-                }
-
-                await ticketRef.child('conversation').push({
+    // Default message sending if no explicit flow state is active
+    if (!activeSelectedTicketId) {
+        const ticketNumber = "AG-" + Math.floor(1000 + Math.random() * 9000);
+        const newTicketRef = rtdb.ref('support_tickets').push();
+        const initialMsgKey = newTicketRef.child('conversation').push().key;
+        newTicketRef.set({
+            uid: activeUID || "Anonymous",
+            ticketNumber: ticketNumber,
+            status: "Pending",
+            timestamp: Date.now(),
+            conversation: {
+                [initialMsgKey]: {
                     sender: 'user',
                     text: text,
-                    replyToText: snippetText,
                     timestamp: Date.now()
-                });
-                await ticketRef.update({ last_updated: Date.now() });
-            }
-            cancelAgentReplyHighlight();
-        } else if (activeSelectedTicketId && allUserTicketsData[activeSelectedTicketId]) {
-            const ticketRef = rtdb.ref('support_tickets/' + activeSelectedTicketId);
-            const latestTicketData = allUserTicketsData[activeSelectedTicketId];
-            if (!latestTicketData.conversation && latestTicketData.message) {
-                const rootMsgKey = ticketRef.child('conversation').push().key;
-                await ticketRef.child(`conversation/${rootMsgKey}`).set({
-                    sender: 'user',
-                    text: latestTicketData.message,
-                    timestamp: latestTicketData.timestamp || Date.now()
-                });
-                await ticketRef.child('message').remove();
-                if (latestTicketData.admin_reply) {
-                    await ticketRef.child('conversation').push({
-                        sender: 'admin',
-                        text: latestTicketData.admin_reply,
-                        timestamp: latestTicketData.reply_timestamp || Date.now()
-                    });
                 }
             }
-            await ticketRef.child('conversation').push({
-                sender: 'user',
-                text: text,
-                replyToText: agentHighlightedMessageSnippet || null,
-                timestamp: Date.now()
-            });
-            await ticketRef.update({ last_updated: Date.now() });
-        } else {
-            const ticketNumber = "AG-" + Math.floor(1000 + Math.random() * 9000);
-            const newTicketRef = rtdb.ref('support_tickets').push();
-            const initialMsgKey = newTicketRef.child('conversation').push().key;
-            await newTicketRef.set({
-                uid: activeUID || "Anonymous",
-                ticketNumber: ticketNumber,
-                status: "Pending",
-                timestamp: Date.now(),
-                conversation: {
-                    [initialMsgKey]: {
-                        sender: 'user',
-                        text: text,
-                        timestamp: Date.now()
-                    }
-                }
-            });
+        }).then(() => {
             activeSelectedTicketId = newTicketRef.key;
             initRealtimeChatListener();
-        }
-        cancelAgentReplyHighlight();
-        logUserActivity('SUPPORT', 'Sent chat message to support agent');
-    } catch (error) {
-        console.error("Firebase sync error:", error);
+            logUserActivity('SUPPORT', `Created support ticket ${ticketNumber} via direct input`);
+        });
+    } else {
+        const ticketRef = rtdb.ref('support_tickets/' + activeSelectedTicketId);
+        ticketRef.child('conversation').push({
+            sender: 'user',
+            text: text,
+            replyToText: agentHighlightedMessageSnippet || null,
+            timestamp: Date.now()
+        }).then(() => {
+            ticketRef.update({ last_updated: Date.now() });
+            logUserActivity('SUPPORT', 'Sent message to existing support ticket');
+        });
     }
+    cancelAgentReplyHighlight();
 };
-
-function escapeHtml(text) {
-    if (!text) return '';
-    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-}
 </script>
 </body>
 </html>
