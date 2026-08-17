@@ -215,10 +215,26 @@ async function doLogin() {
       role: role,
       lastLogin: Date.now()
     };
+
     if (role === "marketing_team") {
       updatePayload.carRegistration = carReg;
       updatePayload.teamRole = teamRole;
       updatePayload.sessionDate = currentDate;
+      // Initialize dispatch status as pending if not already approved/present
+      updatePayload.dispatchApproved = false;
+      updatePayload.dispatchStatus = "pending";
+
+      // Also create a standalone dispatch request node for admin panel tracking
+      await rtdb.ref(`dispatch_requests/${user.uid}`).update({
+        uid: user.uid,
+        email: email,
+        carRegistration: carReg,
+        teamRole: teamRole,
+        sessionDate: currentDate,
+        dispatchApproved: false,
+        status: "pending",
+        requestedAt: Date.now()
+      });
     }
 
     await rtdb.ref(`users/${user.uid}`).update(updatePayload);
@@ -233,7 +249,6 @@ async function doLogin() {
       device: navigator.userAgent
     });
 
-    // Redirect to dashboard.html for all roles
     window.location.href = DASHBOARD_URL;
 
   } catch (err) {
@@ -286,6 +301,8 @@ async function doSignup() {
       userPayload.carRegistration = carReg;
       userPayload.teamRole = teamRole;
       userPayload.registrationDate = currentDate;
+      userPayload.dispatchApproved = false;
+      userPayload.dispatchStatus = "pending";
     }
 
     await rtdb.ref(`users/${user.uid}`).set(userPayload);
