@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>AssetGuard Pro - Portal</title>
+<title>AssetGuard Pro - Advanced Portal</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -19,15 +19,17 @@ body { margin: 0; height: 100vh; background: radial-gradient(circle at center, #
 .logo { color: #fff; font-weight: 800; font-size: 0.75rem; }
 .menu-btn { background: #fff; color: #2c5364; border: none; padding: 6px 15px; border-radius: 20px; cursor: pointer; font-size: 0.75rem; font-weight: 700; }
 .auth-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 3000; backdrop-filter: blur(8px); }
-.scene { width: 340px; height: 640px; perspective: 1200px; }
+.scene { width: 360px; height: 680px; perspective: 1200px; }
 .card { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.8s; }
 .card.flip-register { transform: rotateY(180deg); }
-.face { position: absolute; inset: 0; background: #fff; border-radius: 20px; padding: 20px 25px; backface-visibility: hidden; display: flex; flex-direction: column; justify-content: flex-start; overflow-y: auto; }
+.face { position: absolute; inset: 0; background: #fff; border-radius: 20px; padding: 18px 22px; backface-visibility: hidden; display: flex; flex-direction: column; justify-content: flex-start; overflow-y: auto; }
 .register { transform: rotateY(180deg); }
-h2 { margin-bottom: 8px; color: #2c5364; font-weight: 800; font-size: 1.3rem; }
-input, select { width: 100%; padding: 10px 12px; margin: 4px 0; border-radius: 10px; border: 1px solid #ddd; outline: none; background: #f9fbff; font-size: 14px; }
+h2 { margin-bottom: 6px; color: #2c5364; font-weight: 800; font-size: 1.25rem; }
+input, select, textarea { width: 100%; padding: 10px 12px; margin: 4px 0; border-radius: 10px; border: 1px solid #ddd; outline: none; background: #f9fbff; font-size: 13px; }
+textarea { resize: vertical; min-height: 48px; }
 button.action-btn { width: 100%; padding: 12px; margin-top: 8px; background: #2c5364; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 0.95rem; }
-.link { text-align: center; margin-top: 8px; font-size: 0.8rem; color: #2c5364; cursor: pointer; font-weight: 600; }
+button.action-btn:disabled { background: #94a3b8; cursor: not-allowed; }
+.link { text-align: center; margin-top: 6px; font-size: 0.8rem; color: #2c5364; cursor: pointer; font-weight: 600; }
 .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; justify-content: center; align-items: center; z-index: 4000; }
 .modal-content { background: #fff; padding: 30px; border-radius: 15px; width: 300px; text-align: center; }
 
@@ -37,8 +39,13 @@ button.action-btn { width: 100%; padding: 12px; margin-top: 8px; background: #2c
 .role-option:has(input:checked) { background: #2c5364; color: #fff; border-color: #2c5364; }
 .role-label-title { font-size: 0.75rem; font-weight: 700; color: #475569; margin-top: 2px; text-align: left; }
 
-.marketing-extra-box { background: #f8fafc; border: 1px dashed #cbd5e1; padding: 8px; border-radius: 10px; margin: 4px 0; display: none; }
+.marketing-extra-box { background: #f8fafc; border: 1px solid #cbd5e1; padding: 10px; border-radius: 10px; margin: 4px 0; display: none; }
+.marketing-extra-box small { display: block; font-size: 10px; font-weight: 800; color: #0284c7; margin-bottom: 4px; text-transform: uppercase; letter-spacing: .05em; }
 .auto-date-badge { font-size: 0.75rem; color: #0284c7; font-weight: 700; margin-bottom: 4px; display: block; text-align: right; }
+
+.gps-checkbox-container { display: flex; align-items: center; background: #f1f5f9; padding: 10px 12px; border-radius: 10px; margin: 8px 0; border: 1px solid #cbd5e1; cursor: pointer; display: none; }
+.gps-checkbox-container input { width: auto; margin: 0 10px 0 0; accent-color: #2c5364; height: 16px; width: 16px; cursor: pointer; }
+.gps-checkbox-container label { font-size: 0.8rem; font-weight: 700; color: #334155; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -62,28 +69,21 @@ button.action-btn { width: 100%; padding: 12px; margin-top: 8px; background: #2c
         <h2>Sign In</h2>
         <div class="role-label-title">Select User Type:</div>
         <div class="role-picker">
-          <label class="role-option"><input type="radio" name="l_role" value="fixed_area" checked onchange="toggleRoleFields('l')"> Fixed Area User</label>
+          <label class="role-option"><input type="radio" name="l_role" value="fixed_area" checked onchange="toggleRoleFields('l')"> Fixed Area</label>
           <label class="role-option"><input type="radio" name="l_role" value="marketing_team" onchange="toggleRoleFields('l')"> Marketing Team</label>
-        </div>
-
-        <!-- Marketing Team Extra Inputs -->
-        <div id="l_marketingBox" class="marketing-extra-box">
-          <span class="auto-date-badge" id="l_dateDisplay">Date: --</span>
-          <input id="l_carReg" type="text" placeholder="Car Registration Number">
-          <select id="l_teamRole">
-            <option value="" disabled selected>Select Team Role</option>
-            <option value="Driver">Driver</option>
-            <option value="Sales Representative">Sales Representative</option>
-            <option value="Team Leader">Team Leader</option>
-            <option value="Field Officer">Field Officer</option>
-          </select>
         </div>
 
         <input id="l_email" type="email" placeholder="Email Address">
         <input id="l_pin" type="password" placeholder="Password / PIN">
-        <button class="action-btn" id="loginBtn" onclick="doLogin()">Authenticate</button>
+
+        <div id="l_gpsContainer" class="gps-checkbox-container" onclick="document.getElementById('l_acceptGps').click()">
+          <input type="checkbox" id="l_acceptGps" onclick="event.stopPropagation()">
+          <label for="l_acceptGps"> Accept & Turn On GPS</label>
+        </div>
+
+        <button class="action-btn" id="loginBtn" onclick="doLogin()">Sign In</button>
         <div class="link" onclick="showForgotModal()">Forgot Access?</div>
-        <div class="link" style="color:#64748b" onclick="goRegister()">Create New Account</div>
+        <div class="link" style="color:#64748b; margin-top:12px;" onclick="goRegister()">Create New Account</div>
       </div>
 
       <!-- Register Face -->
@@ -91,21 +91,24 @@ button.action-btn { width: 100%; padding: 12px; margin-top: 8px; background: #2c
         <h2>New Account</h2>
         <div class="role-label-title">Select User Type:</div>
         <div class="role-picker">
-          <label class="role-option"><input type="radio" name="r_role" value="fixed_area" checked onchange="toggleRoleFields('r')"> Fixed Area User</label>
+          <label class="role-option"><input type="radio" name="r_role" value="fixed_area" checked onchange="toggleRoleFields('r')"> Fixed Area</label>
           <label class="role-option"><input type="radio" name="r_role" value="marketing_team" onchange="toggleRoleFields('r')"> Marketing Team</label>
         </div>
 
-        <!-- Marketing Team Extra Inputs -->
+        <!-- Advanced Marketing Team Setup Box -->
         <div id="r_marketingBox" class="marketing-extra-box">
           <span class="auto-date-badge" id="r_dateDisplay">Date: --</span>
-          <input id="r_carReg" type="text" placeholder="Car Registration Number">
+          <small>Advanced Dispatch Setup</small>
+          <input id="r_carReg" type="text" placeholder="Car Registration Number (Optional, e.g. KDA 123A)">
           <select id="r_teamRole">
-            <option value="" disabled selected>Select Team Role</option>
+            <option value="" disabled selected>Select Primary Team Role</option>
             <option value="Driver">Driver</option>
             <option value="Sales Representative">Sales Representative</option>
             <option value="Team Leader">Team Leader</option>
             <option value="Field Officer">Field Officer</option>
           </select>
+          <input id="r_managerPhone" type="tel" placeholder="Manager Contact" value="+254713100424">
+          <textarea id="r_notes" placeholder="Initial Dispatch Remarks"></textarea>
         </div>
 
         <input id="r_user" placeholder="Full Name">
@@ -148,20 +151,25 @@ const rtdb = firebase.database();
 
 document.addEventListener("DOMContentLoaded", () => {
   const todayStr = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-  document.getElementById("l_dateDisplay").innerText = "Date: " + todayStr;
-  document.getElementById("r_dateDisplay").innerText = "Date: " + todayStr;
+  const rDateDisplay = document.getElementById("r_dateDisplay");
+  if (rDateDisplay) rDateDisplay.innerText = "Date: " + todayStr;
 });
 
 function toggleRoleFields(prefix) {
   const selectedRole = document.querySelector(`input[name="${prefix}_role"]:checked`).value;
-  const box = document.getElementById(`${prefix}_marketingBox`);
-  box.style.display = (selectedRole === "marketing_team") ? "block" : "none";
+  if (prefix === 'r') {
+    const box = document.getElementById("r_marketingBox");
+    box.style.display = (selectedRole === "marketing_team") ? "block" : "none";
+  } else if (prefix === 'l') {
+    const gpsContainer = document.getElementById("l_gpsContainer");
+    gpsContainer.style.display = (selectedRole === "marketing_team") ? "flex" : "none";
+  }
 }
 
 function msg(text, color="#ef4444") {
   const el = document.getElementById("notification");
   el.innerText = text; el.style.backgroundColor = color; el.style.display = "block";
-  setTimeout(() => { el.style.display = "none"; }, 3500);
+  setTimeout(() => { el.style.display = "none"; }, 4000);
 }
 
 function toggleAuth() {
@@ -179,47 +187,109 @@ async function doLogin() {
   const pass = document.getElementById("l_pin").value.trim();
   const roleInput = document.querySelector('input[name="l_role"]:checked');
   const role = roleInput ? roleInput.value : "fixed_area";
-  
-  let carReg = "";
-  let teamRole = "";
-  const currentDate = new Date().toISOString().split('T')[0];
+  const acceptGps = document.getElementById("l_acceptGps").checked;
 
-  if (role === "marketing_team") {
-    carReg = document.getElementById("l_carReg").value.trim();
-    teamRole = document.getElementById("l_teamRole").value;
-    if (!carReg || !teamRole) {
-      return msg("Please enter Car Registration Number and select a Team Role.");
-    }
+  if (!email || !pass) return msg("Please enter your email and password.");
+
+  if (role === "marketing_team" && !acceptGps) {
+    return msg("Marketing team members must check the box to accept and turn on GPS.");
   }
 
   const btn = document.getElementById("loginBtn");
-  if (!email || !pass) return msg("Please enter all details");
-  btn.disabled = true; btn.innerText = "Authenticating...";
+  btn.disabled = true; 
+  btn.innerText = "Authenticating...";
 
   try {
     await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
     const userCredential = await auth.signInWithEmailAndPassword(email, pass);
     const user = userCredential.user;
     
+    // Fetch user profile from Firebase to verify account role separation
+    const userSnap = await rtdb.ref(`users/${user.uid}`).once('value');
+    const userData = userSnap.val() || {};
+
+    const registeredRole = userData.role || "fixed_area";
+
+    // Strict validation: Ensure selected login type matches account registration type
+    if (registeredRole !== role) {
+      await auth.signOut();
+      btn.disabled = false;
+      btn.innerText = "Sign In";
+      const correctName = registeredRole === "marketing_team" ? "Marketing Team" : "Fixed Area";
+      return msg(`Access Denied. This account is registered as [${correctName}]. Please select the correct user type.`);
+    }
+
     localStorage.setItem("ag_active_uid", user.uid);
     localStorage.setItem("ag_session_active", "true");
     localStorage.setItem("ag_user_role", role);
+
+    let lat = null, lng = null, accuracy = null, gpsTimestamp = null;
+    const currentDate = new Date().toISOString().split('T')[0];
+
     if (role === "marketing_team") {
-      localStorage.setItem("ag_car_reg", carReg);
-      localStorage.setItem("ag_team_role", teamRole);
+      if (!("geolocation" in navigator)) {
+        btn.disabled = false;
+        btn.innerText = "Sign In";
+        return msg("Geolocation is not supported by your browser.");
+      }
+
+      btn.innerText = "Acquiring GPS Location...";
+
+      try {
+        const position = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
+        });
+        lat = position.coords.latitude;
+        lng = position.coords.longitude;
+        accuracy = position.coords.accuracy;
+        gpsTimestamp = Date.now();
+
+        localStorage.setItem("ag_last_lat", lat);
+        localStorage.setItem("ag_last_lng", lng);
+      } catch (gpsErr) {
+        console.error("GPS Error:", gpsErr);
+        btn.disabled = false;
+        btn.innerText = "Sign In";
+        let errMsg = "Mandatory GPS location is required for Marketing Team. Please enable device location.";
+        if (gpsErr.code === gpsErr.PERMISSION_DENIED) {
+          errMsg = "Location permission denied in browser settings.";
+        } else if (gpsErr.code === gpsErr.TIMEOUT) {
+          errMsg = "GPS request timed out.";
+        }
+        return msg(errMsg);
+      }
+
+      localStorage.setItem("ag_car_reg", userData.carRegistration || "");
+      localStorage.setItem("ag_team_role", userData.teamRole || "");
+      localStorage.setItem("ag_manager_phone", userData.managerPhone || "");
+      localStorage.setItem("ag_notes", userData.notes || "");
       localStorage.setItem("ag_session_date", currentDate);
+
+      const dispatchId = "RS-" + Date.now().toString().slice(-8);
+      const dispatchPayload = {
+        id: dispatchId,
+        uid: user.uid,
+        agents: [{ name: userData.fullName || user.email.split('@')[0], role: userData.teamRole || "Marketing" }],
+        date: currentDate,
+        createdAt: Date.now(),
+        timeString: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        vehicle: userData.carRegistration || "N/A",
+        phone: userData.managerPhone || "+254713100424",
+        notes: userData.notes || "Portal Login Dispatch",
+        status: "Pending",
+        lastLocation: { lat, lng, accuracy, timestamp: gpsTimestamp }
+      };
+
+      await rtdb.ref(`dispatches/${dispatchId}`).set(dispatchPayload);
+      localStorage.setItem("ag_active_dispatch_id", dispatchId);
     }
 
     const updatePayload = {
-      email: email,
       role: role,
       lastLogin: Date.now()
     };
-
-    if (role === "marketing_team") {
-      updatePayload.carRegistration = carReg;
-      updatePayload.teamRole = teamRole;
-      updatePayload.sessionDate = currentDate;
+    if (lat !== null) {
+      updatePayload.lastLocation = { lat, lng, accuracy, timestamp: gpsTimestamp };
     }
 
     await rtdb.ref(`users/${user.uid}`).update(updatePayload);
@@ -228,8 +298,8 @@ async function doLogin() {
     await rtdb.ref(`user_activity_logs`).push({
       uid: user.uid,
       category: "SECURITY",
-      action: "User Online Login",
-      description: `User logged in as [${role}]. Car: ${carReg || 'N/A'}, Role: ${teamRole || 'N/A'}`,
+      action: role === "marketing_team" ? "User Online Login with GPS" : "User Online Login (Fixed Area)",
+      description: `User logged in as [${role}]. ${lat ? 'GPS: ' + lat.toFixed(5) + ', ' + lng.toFixed(5) : 'No GPS required'}`,
       timestamp: Date.now(),
       device: navigator.userAgent
     });
@@ -239,7 +309,8 @@ async function doLogin() {
   } catch (err) {
     console.error("Login Error:", err);
     msg("Login failed: " + err.message);
-    btn.disabled = false; btn.innerText = "Authenticate";
+    btn.disabled = false; 
+    btn.innerText = "Sign In";
   }
 }
 
@@ -254,13 +325,18 @@ async function doSignup() {
 
   let carReg = "";
   let teamRole = "";
+  let managerPhone = "";
+  let notes = "";
   const currentDate = new Date().toISOString().split('T')[0];
 
   if (role === "marketing_team") {
     carReg = document.getElementById("r_carReg").value.trim();
     teamRole = document.getElementById("r_teamRole").value;
-    if (!carReg || !teamRole) {
-      return msg("Please enter Car Registration Number and select a Team Role.");
+    managerPhone = document.getElementById("r_managerPhone").value.trim();
+    notes = document.getElementById("r_notes").value.trim();
+
+    if (!teamRole) {
+      return msg("Please select your Primary Team Role.");
     }
   }
 
@@ -283,9 +359,28 @@ async function doSignup() {
     };
 
     if (role === "marketing_team") {
-      userPayload.carRegistration = carReg;
+      userPayload.carRegistration = carReg || "Not provided";
       userPayload.teamRole = teamRole;
+      userPayload.managerPhone = managerPhone;
+      userPayload.notes = notes;
       userPayload.registrationDate = currentDate;
+
+      const dispatchId = "RS-" + Date.now().toString().slice(-8);
+      const dispatchPayload = {
+        id: dispatchId,
+        uid: user.uid,
+        agents: [{ name: name, role: teamRole }],
+        date: currentDate,
+        createdAt: Date.now(),
+        timeString: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        vehicle: carReg || "N/A",
+        phone: managerPhone || "+254713100424",
+        notes: notes || "Account Registration Dispatch",
+        status: "Pending",
+        lastLocation: null
+      };
+
+      await rtdb.ref(`dispatches/${dispatchId}`).set(dispatchPayload);
     }
 
     await rtdb.ref(`users/${user.uid}`).set(userPayload);
