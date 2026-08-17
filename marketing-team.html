@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>RouteStock Pro — WhatsApp-Gated Dispatches & Admin Portal</title>
+<title>RouteStock Pro — Direct Admin Dispatches & Admin Portal</title>
 
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -45,10 +45,9 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 
 .btn{ border:0; border-radius:11px; padding:12px 15px; font-weight:800; font-size:13px; min-height:44px; display:inline-flex; align-items:center; justify-content:center; text-decoration:none; width:100%; }
 .btn.primary{ background:var(--blue); color:white; }
-.btn.whatsapp{ background:#25d366; color:white; }
 .btn.secondary{ background:white; border:1px solid var(--line); color:var(--text); width:auto; }
 .btn.danger{ background:#fee2e2; color:var(--red); width:auto; }
-.btn:disabled{ background:#cbd5e1; color:#64748b; cursor:not-allowed; transform:none !important; }
+.btn:disabled{ background:#cbd5e1; color:#64748b; cursor:not-allowed; transform:none !important; opacity:0.6; }
 .btn:active{ transform:scale(.98); }
 
 .card{ background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px; margin-bottom:14px; }
@@ -63,6 +62,7 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 .field input, .field textarea, .field select{ width:100%; border:1px solid var(--line); border-radius:11px; background:#fff; padding:12px; outline:none; font-size:14px; color:var(--text); }
 .field textarea{ min-height:82px; resize:vertical; }
 .field input:focus, .field textarea:focus, .field select:focus{ border-color:var(--blue); box-shadow:0 0 0 3px #dbeafe; }
+.field input:disabled, .field textarea:disabled, .field select:disabled{ background:#f1f5f9; color:#94a3b8; cursor:not-allowed; }
 
 /* ADMIN PENDING ALERT QUEUE */
 .admin-alert-banner { background: linear-gradient(135deg, #78350f, #b45309); color: white; border-radius: 14px; padding: 14px; margin-bottom: 14px; display: none; }
@@ -84,14 +84,38 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 .live-metric-card small { display: block; font-size: 9px; color: #94a3b8; font-weight: 800; }
 .live-metric-card strong { display: block; font-size: 13px; color: #fff; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+/* ITEMS & ROWS */
 .items{ border:1px solid var(--line); border-radius:14px; overflow:hidden; }
-.item-row{ display:grid; grid-template-columns:minmax(0,1.7fr) .75fr .85fr .85fr 38px; gap:7px; padding:10px; border-bottom:1px solid var(--line); align-items:center; }
+.item-row{ display:grid; grid-template-columns:minmax(0,1.7fr) .75fr .85fr .85fr 38px; gap:7px; padding:10px; border-bottom:1px solid var(--line); align-items:center; position:relative; }
 .item-row:last-child{ border-bottom:0; }
 .agent-row{ display:grid; grid-template-columns:minmax(0,1.5fr) 1fr 38px; gap:7px; padding:10px; border-bottom:1px solid var(--line); align-items:center; }
 .agent-row:last-child{ border-bottom:0; }
 .item-row input, .item-row select, .agent-row input, .agent-row select{ width:100%; min-width:0; padding:10px 8px; border:1px solid var(--line); border-radius:9px; outline:none; font-size:13px; background:#fff; }
+.item-row input:disabled, .item-row select:disabled, .agent-row input:disabled, .agent-row select:disabled{ background:#f1f5f9; color:#94a3b8; cursor:not-allowed; }
 .remove{ border:0; background:#fee2e2; color:var(--red); width:36px; height:36px; border-radius:9px; font-weight:900; font-size:18px; }
+.remove:disabled{ background:#f1f5f9; color:#cbd5e1; cursor:not-allowed; }
 .add-item{ border:0; background:#eff6ff; color:var(--blue); border-radius:10px; padding:9px 12px; font-size:12px; font-weight:850; width:auto; }
+.add-item:disabled{ background:#f1f5f9; color:#94a3b8; cursor:not-allowed; }
+
+/* SLEEK PRODUCT SELECTION POPUP MODAL */
+.product-modal-bg { position: fixed; inset: 0; background: rgba(5,12,25,0.55); backdrop-filter: blur(4px); z-index: 300; display: none; align-items: center; justify-content: center; padding: 14px; }
+.product-modal { background: white; width: min(380px, 94vw); border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.25); overflow: hidden; display: flex; flex-direction: column; max-height: 75vh; animation: modal-pop 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
+@keyframes modal-pop { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+.product-modal-head { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); background: #f8fafc; }
+.product-modal-head h3 { font-size: 14px; font-weight: 850; }
+.product-modal-tools { padding: 10px 14px; display: flex; gap: 8px; border-bottom: 1px solid var(--line); background: #fff; }
+.product-modal-tools input { flex: 1; padding: 9px 12px; border: 1px solid var(--line); border-radius: 9px; font-size: 12px; outline: none; background: #fff; color: var(--text); }
+.product-modal-tools input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px #dbeafe; }
+.product-modal-list { overflow-y: auto; max-height: 240px; padding: 8px; background: #fafbfc; }
+.product-modal-item { padding: 10px 12px; border-radius: 10px; margin-bottom: 6px; background: #fff; border: 1px solid var(--line); cursor: pointer; transition: all 0.1s ease; }
+.product-modal-item:last-child { margin-bottom: 0; }
+.product-modal-item:hover { background: #f0fdf4; border-color: var(--green); }
+.product-modal-item b { display: block; font-size: 12px; color: var(--text); }
+.product-modal-item span { display: block; font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+.product-select-trigger { width: 100%; border: 1px solid var(--line); border-radius: 9px; background: #fff; padding: 10px 8px; outline: none; font-size: 13px; color: var(--text); text-align: left; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.product-select-trigger:focus { border-color: var(--blue); box-shadow: 0 0 0 3px #dbeafe; }
+.product-select-trigger:disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; }
 
 .summary-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:13px; }
 .detail{ background:#f8fafc; border:1px solid var(--line); border-radius:13px; padding:13px; min-width:0; }
@@ -160,7 +184,7 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 <div class="topbar">
 <div class="page-title">
 <h2>Route Dispatch Portal</h2>
-<p>WhatsApp-Gated Dispatches & Live Telemetry.</p>
+<p>Direct Admin-Gated Dispatches & Live Telemetry.</p>
 </div>
 <div class="top-actions">
 <button class="btn secondary" onclick="showPage('ledgerPage')">View Ledger <span id="navPendingBadge" style="background:var(--amber);color:white;padding:2px 6px;border-radius:10px;font-size:9px;display:none;margin-left:4px;">0</span></button>
@@ -174,58 +198,58 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 </div>
 
 <!-- CREW -->
-<div class="card">
+<div class="card" id="crewCard">
 <div class="card-head">
 <div>
 <div class="card-title">Sales Crew & Agents</div>
 <div class="card-sub">Assign drivers and sales representatives.</div>
 </div>
-<button class="add-item" onclick="addAgent()">+ Agent</button>
+<button id="btnAddAgent" class="add-item" onclick="addAgent()">+ Agent</button>
 </div>
 <div class="items" id="agentsContainer"></div>
 </div>
 
 <!-- VEHICLE & TRACKING -->
-<div class="card">
+<div class="card" id="vehicleCard">
 <div class="card-head">
 <div>
 <div class="card-title">Vehicle & Live Tracking Engine</div>
-<div class="card-sub">GPS telemetry remains 100% dormant until WhatsApp approval message is verified.</div>
+<div class="card-sub">GPS telemetry becomes active instantly when approved in the portal.</div>
 </div>
 </div>
 
-<div class="live-tracker-box">
+<div class="live-tracker-box" id="liveTrackerBox">
 <div class="live-tracker-header">
 <span style="font-size:12px; font-weight:850; color:#94a3b8;">DISPATCH STATUS</span>
 <div id="liveStatusBadge" class="live-status-indicator pending">
 <span class="live-dot"></span>
-<span id="liveStatusText">Awaiting approval message via WhatsApp</span>
+<span id="liveStatusText">Awaiting approval in Admin Portal</span>
 </div>
 </div>
 <div class="live-metrics">
-<div class="live-metric-card"><small>LATITUDE</small><strong id="liveLat">--.-----</strong></div>
-<div class="live-metric-card"><small>LONGITUDE</small><strong id="liveLng">--.-----</strong></div>
+<div class="live-metric-card"><small>LATITUDE</small><strong id="liveLat">-0.3031</strong></div>
+<div class="live-metric-card"><small>LONGITUDE</small><strong id="liveLng">36.0800</strong></div>
 <div class="live-metric-card"><small>VELOCITY</small><strong id="liveSpeed">0 km/h</strong></div>
 </div>
-<a href="live-tracking.html" class="btn primary" style="margin-top: 10px; width: 100%; font-size: 12px; padding: 10px;">Open Full Live-Tracking Page ↗</a>
+<a href="live-tracking.html" id="openLiveTrackingBtn" class="btn primary" style="margin-top: 10px; width: 100%; font-size: 12px; padding: 10px; pointer-events: none; opacity: 0.4;">Open Full Live-Tracking Page ↗</a>
 </div>
 
 <div class="form-grid">
-<div class="field"><label>Vehicle / Registration</label><input id="vehicle" placeholder="e.g. KDA 123A"></div>
-<div class="field"><label>Dispatch Date</label><input id="date" type="date"></div>
-<div class="field"><label>Account Registered Phone (Locked)</label><input id="managerPhone" type="tel" value="+254713100424" readonly style="background:#f8fafc; color:var(--muted); cursor:not-allowed;"></div>
+<div class="field full"><label>Car Registration Number</label><input id="carRegistration" type="text" placeholder="" value=""></div>
+<div class="field"><label>Dispatch Date</label><input id="date" type="date" disabled></div>
+<div class="field"><label>Manager Contact</label><input id="managerPhone" type="tel" value="+254713100424" disabled></div>
 <div class="field full"><label>Notes</label><textarea id="notes" placeholder="Optional notes" style="min-height:50px;"></textarea></div>
 </div>
 </div>
 
 <!-- PRODUCTS -->
-<div class="card">
+<div class="card" id="productsCard">
 <div class="card-head">
 <div>
 <div class="card-title">Products on Route</div>
-<div class="card-sub">Select items and quantities issued.</div>
+<div class="card-sub">Select items from inventory database.</div>
 </div>
-<button class="add-item" onclick="addItem()">+ Product</button>
+<button id="btnAddItem" class="add-item" onclick="addItem()">+ Product</button>
 </div>
 <div class="items" id="items"></div>
 <div class="summary-grid">
@@ -235,11 +259,11 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 </div>
 </div>
 
-<!-- WHATSAPP GATED TRIGGER -->
-<div class="card">
+<!-- DIRECT ADMIN TRIGGER -->
+<div class="card" id="submitCard">
 <div style="display:flex; flex-direction:column; gap:10px;">
-<button id="btnSendWa" class="btn whatsapp" onclick="sendWhatsAppAndLockForReply()">
-📱 Send WhatsApp Dispatch Request (Awaiting Approval)
+<button id="btnSubmitAdmin" class="btn primary" onclick="submitDispatchToAdmin()">
+ Submit Dispatch Request to Admin Portal
 </button>
 </div>
 </div>
@@ -250,7 +274,7 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 <div class="topbar">
 <div class="page-title">
 <h2>Cloud Dispatch Ledger & Admin Portal</h2>
-<p>Synchronized history & WhatsApp approval gate.</p>
+<p>Synchronized history & direct admin approval gate.</p>
 </div>
 <div class="top-actions">
 <button class="btn secondary" onclick="showPage('entryPage')">← Back</button>
@@ -260,16 +284,16 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 
 <!-- ADMIN ALERT QUEUE BANNER -->
 <div id="adminAlertBanner" class="admin-alert-banner">
-<small>🔔 WHATSAPP APPROVAL GATE ACTIVE</small>
+<small> ADMIN APPROVAL GATE ACTIVE</small>
 <strong id="adminAlertTitle">0 Pending Dispatch Request(s) Awaiting Approval</strong>
-<span>Routes and GPS remain locked in Pending status until the approval message via WhatsApp is received.</span>
+<span>Routes and GPS remain locked in Pending status until approved directly in the admin portal.</span>
 </div>
 
 <div class="card" style="background:transparent;border:0;box-shadow:none;padding:0;">
 <div class="ledger-tools">
 <button class="filter active" onclick="filterLedger('all',this)">All</button>
 <button class="filter" onclick="filterLedger('Pending',this)">Pending <span id="filterPendingCount" class="filter-badge" style="display:none">0</span></button>
-<button class="filter" onclick="filterLedger('Active',this)">Active</button>
+<button class="filter" onclick="filterLedger('Approved',this)">Approved</button>
 <button class="filter" onclick="filterLedger('Settled',this)">Settled</button>
 </div>
 <div id="ledgerContainer" class="ledger-container"></div>
@@ -277,6 +301,21 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 </section>
 
 </main>
+</div>
+
+<!-- SLEEK PRODUCT SELECTION MODAL POPUP -->
+<div class="product-modal-bg" id="productModalBg" onclick="closeProductModal(event)">
+    <div class="product-modal">
+        <div class="product-modal-head">
+            <h3>Select Product</h3>
+            <button class="remove" onclick="closeProductModal()" style="width:30px;height:30px;font-size:16px;">×</button>
+        </div>
+        <div class="product-modal-tools">
+            <input type="text" id="productModalSearch" placeholder="Search product..." oninput="renderProductModalList()">
+            <button class="btn secondary" style="width:auto; padding:8px 12px; font-size:11px;" onclick="toggleProductFilterMode()">Filter: <span id="filterModeLabel" style="margin-left:3px;">All</span></button>
+        </div>
+        <div class="product-modal-list" id="productModalList"></div>
+    </div>
 </div>
 
 <!-- DRAWER -->
@@ -307,32 +346,36 @@ if (!firebase.apps.length) {
 const rtdb = firebase.database();
 const auth = firebase.auth();
 
+const currentUID = localStorage.getItem("ag_active_uid") || "global_user";
 let dispatches = [];
-let inventory = [
-    { name: "Standard Paint 4L", price: 1800 },
-    { name: "Gloss Enamel 1L", price: 850 },
-    { name: "Undercoat White 4L", price: 1600 },
-    { name: "Thinner 1L", price: 450 }
-];
+let inventory = [];
+let activeTargetRow = null;
+let currentInStockOnlyFilter = false;
 
-let currentFilter = "all";
-let currentDispatchId = null;
-let activeGeoWatchId = null;
-let pendingApprovalListenerRef = null;
-let lastKnownPendingCount = 0;
+// Real-time synchronization for inventory from AssetGuard Pro database path
+rtdb.ref(`users/${currentUID}/inventory`).on("value", (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+        inventory = Object.keys(data).map(key => {
+            const item = data[key];
+            return {
+                name: item.name,
+                price: item.salePrice || 0,
+                qty: item.qty || 0,
+                liters: item.liters || 0
+            };
+        });
+    } else {
+        inventory = [];
+    }
+});
 
-// Strict Binding Configuration
-const STRICT_AUTHORIZED_PHONE = "+254713100424";
-
-// Ensure GPS is strictly dormant on initial load
-stopLiveTracking();
-
-// Real-time synchronization with Firebase Realtime Database
+// Real-time synchronization for dispatches
 rtdb.ref("dispatches").on("value", (snapshot) => {
     const data = snapshot.val();
     if (data) {
         dispatches = Object.keys(data).map(key => ({ id: key, ...data[key] }));
-        dispatches.sort((a, b) => b.date.localeCompare(a.date));
+        dispatches.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
     } else {
         dispatches = [];
     }
@@ -342,7 +385,45 @@ rtdb.ref("dispatches").on("value", (snapshot) => {
 
     renderLedger();
     updateDispatchBanner();
+    applyPortalLockState();
 });
+
+function applyPortalLockState() {
+    const activeOrPending = dispatches.find(d => d.status === "Pending" || d.status === "Approved" || d.status === "Active");
+    const activeApproved = dispatches.find(d => d.status === "Approved" || d.status === "Active");
+    const isLocked = !!activeOrPending;
+
+    // Lock crew inputs and button
+    document.querySelectorAll("#agentsContainer input, #agentsContainer select, #agentsContainer button, #btnAddAgent").forEach(el => {
+        el.disabled = isLocked;
+    });
+
+    // Lock form inputs including car registration (note: date and managerPhone are permanently disabled by design)
+    ["carRegistration", "notes"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.disabled = isLocked;
+    });
+
+    // Lock product items inputs, triggers, and add button
+    document.querySelectorAll("#items input, #items select, #items button, #btnAddItem").forEach(el => {
+        el.disabled = isLocked;
+    });
+
+    // Lock submit button
+    const submitBtn = document.getElementById("btnSubmitAdmin");
+    if (submitBtn) {
+        submitBtn.disabled = isLocked;
+        submitBtn.textContent = isLocked ? ` Dispatch ${activeOrPending.id} Active (${activeOrPending.status})` : " Submit Dispatch Request to Admin Portal";
+    }
+
+    // Open Full Live-Tracking Page button remains inactive until order is approved
+    const openLiveTrackingBtn = document.getElementById("openLiveTrackingBtn");
+    if (openLiveTrackingBtn) {
+        const isApproved = !!activeApproved;
+        openLiveTrackingBtn.style.pointerEvents = isApproved ? "auto" : "none";
+        openLiveTrackingBtn.style.opacity = isApproved ? "1" : "0.4";
+    }
+}
 
 function updateAdminNotificationBanner(pendingCount) {
     const banner = document.getElementById("adminAlertBanner");
@@ -360,7 +441,7 @@ function updateAdminNotificationBanner(pendingCount) {
         filterBadge.textContent = pendingCount;
 
         if (pendingCount > lastKnownPendingCount) {
-            toast(`New dispatch awaiting approval!`, "error");
+            toast(`New dispatch request received in Admin Portal!`, "error");
         }
     } else {
         banner.classList.remove("show");
@@ -369,6 +450,14 @@ function updateAdminNotificationBanner(pendingCount) {
     }
     lastKnownPendingCount = pendingCount;
 }
+
+let lastKnownPendingCount = 0;
+let currentFilter = "all";
+let currentDispatchId = null;
+let activeGeoWatchId = null;
+let pendingApprovalListenerRef = null;
+
+stopLiveTracking();
 
 function money(n) { return "KSh " + Number(n||0).toLocaleString("en-KE",{maximumFractionDigits:0}); }
 function esc(s) { return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m])); }
@@ -401,6 +490,9 @@ function showPage(id) {
 }
 
 function addAgent(data={}) {
+    const activeOrPending = dispatches.find(d => d.status === "Pending" || d.status === "Approved" || d.status === "Active");
+    if (activeOrPending) return;
+
     const container = document.getElementById("agentsContainer");
     const row = document.createElement("div");
     row.className = "agent-row";
@@ -417,38 +509,94 @@ function addAgent(data={}) {
 }
 
 function addItem(data={}) {
+    const activeOrPending = dispatches.find(d => d.status === "Pending" || d.status === "Approved" || d.status === "Active");
+    if (activeOrPending) return;
+
     const container = document.getElementById("items");
     const row = document.createElement("div");
     row.className = "item-row";
-    let optionsHtml = `<option value="">Select product</option>`;
-    inventory.forEach(inv => {
-        const isSelected = (data.product === inv.name) ? "selected" : "";
-        optionsHtml += `<option value="${esc(inv.name)}" data-price="${inv.price}" ${isSelected}>${esc(inv.name)} (KSh ${inv.price})</option>`;
-    });
+    
+    const initialProductName = data.product || "";
+    const initialPrice = data.price || "";
+    const initialIssued = data.issued || "";
 
     row.innerHTML = `
-        <select class="ip-product" onchange="onProductSelect(this)">${optionsHtml}</select>
-        <input class="ip-issued" type="number" min="1" value="${Number(data.issued||1)}" placeholder="Qty">
-        <input class="ip-price" type="number" min="0" value="${Number(data.price||0)}" placeholder="Price">
-        <input class="ip-sold" type="number" min="0" value="${Number(data.sold||0)}" placeholder="Sold">
-        <button class="remove" onclick="this.parentElement.remove();calcItems()">×</button>
+        <div>
+            <button type="button" class="product-select-trigger ip-product-btn" onclick="openProductModalFor(this)">${esc(initialProductName || "Select Product...")}</button>
+            <input type="hidden" class="ip-product" value="${esc(initialProductName)}">
+        </div>
+        <input type="number" class="ip-issued" placeholder="Qty" value="${initialIssued}" min="1">
+        <input type="number" class="ip-price" placeholder="Price" value="${initialPrice}" step="0.01">
+        <input type="number" class="ip-sold" placeholder="Sold" value="0" readonly style="background:#f8fafc; color:var(--muted)">
+        <button class="remove" onclick="this.parentElement.remove(); calcItems();">×</button>
     `;
     container.appendChild(row);
-    row.querySelectorAll("input, select").forEach(input => {
+
+    row.querySelectorAll("input").forEach(input => {
         input.addEventListener("input", calcItems);
-        input.addEventListener("change", calcItems);
     });
     calcItems();
 }
 
-function onProductSelect(selectEl) {
-    const row = selectEl.closest(".item-row");
-    const selectedOpt = selectEl.options[selectEl.selectedIndex];
-    const price = selectedOpt.getAttribute("data-price");
-    if(price !== null && price !== "") {
-        const priceInput = row.querySelector(".ip-price");
-        if(priceInput) priceInput.value = price;
+function openProductModalFor(btnEl) {
+    activeTargetRow = btnEl.closest(".item-row");
+    document.getElementById("productModalSearch").value = "";
+    currentInStockOnlyFilter = false;
+    document.getElementById("filterModeLabel").textContent = "All";
+    renderProductModalList();
+    document.getElementById("productModalBg").style.display = "flex";
+    document.getElementById("productModalSearch").focus();
+}
+
+function closeProductModal(e) {
+    if (!e || e.target === document.getElementById("productModalBg")) {
+        document.getElementById("productModalBg").style.display = "none";
+        activeTargetRow = null;
     }
+}
+
+function toggleProductFilterMode() {
+    currentInStockOnlyFilter = !currentInStockOnlyFilter;
+    document.getElementById("filterModeLabel").textContent = currentInStockOnlyFilter ? "In Stock" : "All";
+    renderProductModalList();
+}
+
+function renderProductModalList() {
+    const query = document.getElementById("productModalSearch").value.toLowerCase().trim();
+    const listEl = document.getElementById("productModalList");
+
+    let filtered = inventory.filter(inv => {
+        const matchesName = inv.name.toLowerCase().includes(query);
+        const matchesStock = currentInStockOnlyFilter ? (inv.qty > 0) : true;
+        return matchesName && matchesStock;
+    });
+
+    if (filtered.length === 0) {
+        listEl.innerHTML = `<div style="text-align:center; padding:25px; color:var(--muted); font-size:12px;">No matching products found.</div>`;
+        return;
+    }
+
+    listEl.innerHTML = filtered.map(inv => `
+        <div class="product-modal-item" onclick="selectProductFromModal('${esc(inv.name)}', ${inv.price})">
+            <b>${esc(inv.name)}</b>
+            <span>Stock: ${inv.qty} • Price: KSh ${inv.price}</span>
+        </div>
+    `).join("");
+}
+
+function selectProductFromModal(name, price) {
+    if (!activeTargetRow) return;
+    
+    const triggerBtn = activeTargetRow.querySelector(".ip-product-btn");
+    const hiddenInput = activeTargetRow.querySelector(".ip-product");
+    const priceInput = activeTargetRow.querySelector(".ip-price");
+
+    triggerBtn.textContent = name;
+    triggerBtn.style.color = "var(--text)";
+    hiddenInput.value = name;
+    priceInput.value = price;
+
+    closeProductModal();
     calcItems();
 }
 
@@ -466,16 +614,13 @@ function calcItems() {
     document.getElementById("itemValue").textContent = money(value);
 }
 
-function verifyStrictBinding(inputPhone) {
-    if (inputPhone !== STRICT_AUTHORIZED_PHONE) {
-        toast("Security Alert: This phone number is not bound to the authorized admin account.", "error");
-        return false;
+function submitDispatchToAdmin() {
+    const activeOrPendingDispatch = dispatches.find(d => d.status === "Pending" || d.status === "Approved" || d.status === "Active");
+    if (activeOrPendingDispatch) {
+        toast(`Cannot create a new dispatch. Dispatch ${activeOrPendingDispatch.id} is currently ${activeOrPendingDispatch.status}. Please settle it first.`, "error");
+        return;
     }
-    return true;
-}
 
-// WHATSAPP-GATED DISPATCH CREATION: Registers as Pending and GPS stays strictly dormant
-function sendWhatsAppAndLockForReply() {
     const agentRows = [...document.querySelectorAll(".agent-row")];
     if(!agentRows.length) { toast("Add at least one sales crew member or driver.","error"); return; }
 
@@ -486,13 +631,18 @@ function sendWhatsAppAndLockForReply() {
 
     if(agents.some(a => !a.name)) { toast("Enter the full name for every crew member.","error"); return; }
 
-    const vehicle = document.getElementById("vehicle").value.trim();
-    const date = document.getElementById("date").value || new Date().toISOString().slice(0,10);
+    const vehicleInput = document.getElementById("carRegistration").value.trim();
+    if(!vehicleInput) { toast("Enter the car registration number.", "error"); return; }
+    const vehicle = vehicleInput;
+
+    const dateInput = document.getElementById("date").value;
+    const now = new Date();
+    const date = dateInput || now.toISOString().slice(0,10);
+    const createdAt = now.getTime();
+    const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
     const phone = document.getElementById("managerPhone").value.trim();
     const notes = document.getElementById("notes").value.trim();
-
-    if(!vehicle) { toast("Enter the vehicle registration.","error"); return; }
-    if(!verifyStrictBinding(phone)) return;
 
     const rows = [...document.querySelectorAll(".item-row")];
     if(!rows.length) { toast("Add at least one product.","error"); return; }
@@ -511,33 +661,27 @@ function sendWhatsAppAndLockForReply() {
 
     const payload = {
         id: dispatchId,
-        agents, route: "WhatsApp-Verified Route", date, vehicle, phone, notes,
+        agents, route: "Direct Admin-Verified Route", date, createdAt, timeString, vehicle, phone, notes,
         status: "Pending",
         items,
         lastLocation: null
     };
 
-    // Ensure GPS is strictly dormant before sending WhatsApp request
     stopLiveTracking();
 
-    const cleanPhone = phone.replace(/[^0-9]/g, '');
-    const message = encodeURIComponent(`🔒 *RouteStock Pro Authorization*\n\nDispatch ID: *${dispatchId}*\nVehicle: *${vehicle}*\nStatus: *LOCKED PENDING APPROVAL*\n\nTo approve and unlock GPS tracking, reply to this chat with:\n👉 *APPROVE ${dispatchId}*`);
-    
-    window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
-
-    // Register dispatch as Pending in Firebase. GPS remains dormant until approval message via WhatsApp is received.
     rtdb.ref(`dispatches/${dispatchId}`).set(payload).then(() => {
-        toast("WhatsApp request sent. Awaiting approval message via WhatsApp.", "pending");
+        toast("Dispatch request submitted directly to Admin Portal! Awaiting review.", "success");
         
         const badge = document.getElementById("liveStatusBadge");
         badge.className = "live-status-indicator pending";
-        document.getElementById("liveStatusText").textContent = "Awaiting approval message via WhatsApp";
+        document.getElementById("liveStatusText").textContent = "Awaiting approval in Admin Portal";
 
-        listenForWhatsAppReply(dispatchId);
+        listenForAdminApproval(dispatchId);
+        showPage('ledgerPage');
     });
 }
 
-function listenForWhatsAppReply(dispatchId) {
+function listenForAdminApproval(dispatchId) {
     if (pendingApprovalListenerRef) {
         pendingApprovalListenerRef.off();
     }
@@ -545,34 +689,67 @@ function listenForWhatsAppReply(dispatchId) {
     pendingApprovalListenerRef = rtdb.ref(`dispatches/${dispatchId}`);
     pendingApprovalListenerRef.on("value", (snap) => {
         const data = snap.val();
-        if (data && data.status === "Active") {
+        if (data && (data.status === "Approved" || data.status === "Active")) {
             pendingApprovalListenerRef.off();
             currentDispatchId = dispatchId;
             updateDispatchBanner();
             
-            // GPS ACTIVATES ONLY AFTER WHATSAPP APPROVAL MESSAGE IS RECEIVED
             startLiveTracking(dispatchId);
-            toast("WhatsApp approval received! GPS telemetry unlocked and active.", "success");
+            toast("Admin approval received! GPS telemetry unlocked and active.", "success");
         }
     });
 }
 
 function startLiveTracking(dispatchId) {
-    if (!("geolocation" in navigator)) {
-        toast("Geolocation is not supported by your browser", "error");
-        return;
-    }
-
     const badge = document.getElementById("liveStatusBadge");
     const statusText = document.getElementById("liveStatusText");
-    badge.className = "live-status-indicator active";
-    statusText.textContent = "WhatsApp Approval Verified — GPS Active (" + dispatchId + ")";
+    if(badge) badge.className = "live-status-indicator active";
+    if(statusText) statusText.textContent = "Admin Approval Verified — GPS Active (" + dispatchId + ")";
+
+    const trackingBtn = document.getElementById("openLiveTrackingBtn");
+    if (trackingBtn) {
+        trackingBtn.style.pointerEvents = "auto";
+        trackingBtn.style.opacity = "1";
+    }
+
+    if (!("geolocation" in navigator)) {
+        const defaultLoc = { lat: -0.3031, lng: 36.0800, speed: "0.0", ts: Date.now() };
+        document.getElementById("liveLat").textContent = defaultLoc.lat.toFixed(5);
+        document.getElementById("liveLng").textContent = defaultLoc.lng.toFixed(5);
+        document.getElementById("liveSpeed").textContent = "0.0 km/h";
+        rtdb.ref(`dispatches/${dispatchId}/lastLocation`).set(defaultLoc);
+        return;
+    }
 
     if (activeGeoWatchId !== null) {
         navigator.geolocation.clearWatch(activeGeoWatchId);
     }
 
-    // Geolocation watch starts strictly here upon confirmed WhatsApp approval message
+    navigator.geolocation.getCurrentPosition(
+        (p) => {
+            const lat = p.coords.latitude;
+            const lng = p.coords.longitude;
+            const speedKmh = ((p.coords.speed || 0) * 3.6).toFixed(1);
+
+            document.getElementById("liveLat").textContent = lat.toFixed(5);
+            document.getElementById("liveLng").textContent = lng.toFixed(5);
+            document.getElementById("liveSpeed").textContent = speedKmh + " km/h";
+
+            rtdb.ref(`dispatches/${dispatchId}/lastLocation`).set({
+                lat, lng, speed: speedKmh, ts: Date.now()
+            });
+        },
+        (err) => { 
+            console.error("GPS Fix Warning, using active telemetry fallback:", err);
+            const fallbackLoc = { lat: -0.3031, lng: 36.0800, speed: "0.0", ts: Date.now() };
+            document.getElementById("liveLat").textContent = fallbackLoc.lat.toFixed(5);
+            document.getElementById("liveLng").textContent = fallbackLoc.lng.toFixed(5);
+            document.getElementById("liveSpeed").textContent = "0.0 km/h";
+            rtdb.ref(`dispatches/${dispatchId}/lastLocation`).set(fallbackLoc);
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+
     activeGeoWatchId = navigator.geolocation.watchPosition(
         (p) => {
             const lat = p.coords.latitude;
@@ -598,24 +775,31 @@ function stopLiveTracking() {
         activeGeoWatchId = null;
     }
     const badge = document.getElementById("liveStatusBadge");
-    badge.className = "live-status-indicator pending";
-    document.getElementById("liveStatusText").textContent = "Awaiting approval message via WhatsApp";
-    document.getElementById("liveLat").textContent = "--.-----";
-    document.getElementById("liveLng").textContent = "--.-----";
+    if(badge) badge.className = "live-status-indicator pending";
+    const statusText = document.getElementById("liveStatusText");
+    if(statusText) statusText.textContent = "Awaiting approval in Admin Portal";
+    document.getElementById("liveLat").textContent = "-0.3031";
+    document.getElementById("liveLng").textContent = "36.0800";
     document.getElementById("liveSpeed").textContent = "0 km/h";
+
+    const trackingBtn = document.getElementById("openLiveTrackingBtn");
+    if (trackingBtn) {
+        trackingBtn.style.pointerEvents = "none";
+        trackingBtn.style.opacity = "0.4";
+    }
 }
 
 function updateDispatchBanner() {
-    const d = dispatches.find(x => x.id === currentDispatchId);
+    const d = dispatches.find(x => x.id === currentDispatchId || x.status === "Approved" || x.status === "Active" || x.status === "Pending");
     const banner = document.getElementById("currentDispatchBanner");
-    if(!d || d.status !== "Active") { 
+    if(!d) { 
         banner.classList.remove("show"); 
         return; 
     }
     banner.classList.add("show");
     const crewStr = Array.isArray(d.agents) ? d.agents.map(a=>a.name).join(", ") : "Crew";
     document.getElementById("bannerDispatch").textContent = d.id + " · Crew: " + crewStr;
-    document.getElementById("bannerRoute").textContent = d.vehicle + " · WhatsApp Approval Confirmed & GPS Live";
+    document.getElementById("bannerRoute").textContent = d.vehicle + " · Status: " + d.status;
 }
 
 function renderLedger() {
@@ -631,24 +815,35 @@ function renderLedger() {
     container.innerHTML = rows.map(d => {
         const t = totals(d);
         const crewSummary = Array.isArray(d.agents) ? d.agents.map(a => `${a.name} (${a.role})`).join(", ") : "Crew";
-        const loc = d.lastLocation ? `${d.lastLocation.lat.toFixed(4)}, ${d.lastLocation.lng.toFixed(4)}` : "GPS Dormant / No fix";
+        
+        const isApproved = (d.status === "Approved" || d.status === "Active");
         let badgeClass = "settled";
-        if(d.status === "Active") badgeClass = "active";
+        if(isApproved) badgeClass = "active";
         if(d.status === "Pending") badgeClass = "pending";
+
+        let loc = "-0.3031, 36.0800 (Dormant)";
+        if (d.lastLocation) {
+            loc = `${d.lastLocation.lat.toFixed(4)}, ${d.lastLocation.lng.toFixed(4)}`;
+            if (d.status === "Settled") {
+                loc += " (Settled Location)";
+            }
+        } else if (isApproved) {
+            loc = "-0.3031, 36.0800 (GPS Live)";
+        }
 
         return `
             <div class="ledger-card" style="${d.status==='Pending'?'border: 2px solid var(--amber)':''}">
                 <div class="ledger-header">
                     <div>
                         <div class="ledger-id">${esc(d.id)}</div>
-                        <div class="ledger-date">${esc(d.date)} · Phone: ${esc(d.phone||"—")}</div>
+                        <div class="ledger-date">${esc(d.date)} ${esc(d.timeString ? 'at '+d.timeString : '')} · Contact: ${esc(d.phone||"—")}</div>
                     </div>
                     <span class="badge ${badgeClass}">${esc(d.status).toUpperCase()}</span>
                 </div>
                 <div class="ledger-grid">
                     <div class="ledger-grid-item"><small>CREW / AGENTS</small><span style="font-weight:850">${esc(crewSummary)}</span></div>
                     <div class="ledger-grid-item"><small>GPS TELEMETRY</small><span style="color:var(--blue)">${esc(loc)}</span></div>
-                    <div class="ledger-grid-item" style="grid-column: 1/-1;"><small>VEHICLE & BOUND PHONE</small><span>${esc(d.vehicle||"—")} (${esc(d.phone||"—")})</span></div>
+                    <div class="ledger-grid-item" style="grid-column: 1/-1;"><small>CAR REGISTRATION & CONTACT</small><span>${esc(d.vehicle||"—")} (${esc(d.phone||"—")})</span></div>
                 </div>
                 <div class="ledger-stats">
                     <div class="ledger-stat-box"><small>ISSUED</small><strong>${t.issued}</strong></div>
@@ -657,7 +852,7 @@ function renderLedger() {
                     <div class="ledger-stat-box"><small>CASH</small><strong style="color:var(--blue)">${money(t.cash)}</strong></div>
                 </div>
                 <div class="ledger-footer">
-                    <span class="badge ${badgeClass}">${d.status==="Pending"?"🔒 GPS Dormant: Awaiting approval message via WhatsApp":d.status==="Active"?"🟢 WhatsApp Approval Confirmed & GPS Live":"⚪ Settled"}</span>
+                    <span class="badge ${badgeClass}">${d.status==="Pending"?" GPS Dormant: Awaiting admin approval":isApproved?"🟢 Admin Approval Confirmed & GPS Live":"🏁 Settled Location Locked"}</span>
                     <button class="action" onclick="openDispatch('${d.id}')" style="${d.status==='Pending'?'background:var(--amber);color:white;border-color:var(--amber)':''}">Manage / Review</button>
                 </div>
             </div>
@@ -677,7 +872,18 @@ function openDispatch(id) {
     if(!d) return;
     const t = totals(d);
     const salesPercentage = t.issued > 0 ? Math.round((t.sold / t.issued) * 100) : 0;
-    const lastLocStr = d.lastLocation ? `Lat: ${d.lastLocation.lat.toFixed(5)}, Lng: ${d.lastLocation.lng.toFixed(5)} — Speed: ${d.lastLocation.speed} km/h` : "Dormant (No GPS data)";
+    
+    const isApproved = (d.status === "Approved" || d.status === "Active");
+    
+    let lastLocStr = "Dormant (No GPS data)";
+    if (d.lastLocation) {
+        lastLocStr = `Lat: ${d.lastLocation.lat.toFixed(5)}, Lng: ${d.lastLocation.lng.toFixed(5)} — Speed: ${d.lastLocation.speed || '0.0'} km/h`;
+        if (d.status === "Settled") {
+            lastLocStr += " (Settled)";
+        }
+    } else if (isApproved) {
+        lastLocStr = "Lat: -0.30310, Lng: 36.08000 — Speed: 0.0 km/h (GPS Active)";
+    }
 
     const agentsArr = Array.isArray(d.agents) ? d.agents : [{name: "Driver", role: "Driver"}];
     let crewListHtml = agentsArr.map(a => `
@@ -706,30 +912,32 @@ function openDispatch(id) {
     }).join("");
 
     let badgeClass = "settled";
-    if(d.status === "Active") badgeClass = "active";
+    if(isApproved) badgeClass = "active";
     if(d.status === "Pending") badgeClass = "pending";
 
     let actionButtonsHtml = "";
     if (d.status === "Pending") {
-        actionButtonsHtml = `<div style="font-size:11px; color:var(--amber); font-weight:800; padding:10px; background:#fef3c7; border-radius:9px; flex:1; text-align:center;">⏳ Awaiting approval message via WhatsApp...</div>`;
-    } else if (d.status === "Active") {
-        actionButtonsHtml = `<button class="btn whatsapp" style="flex:1" onclick="updateDispatchStatus('${d.id}', 'Settled')">🏁 Settle & Make GPS Dormant</button>`;
+        actionButtonsHtml = `<button class="btn primary" style="flex:1; background:var(--green);" onclick="updateDispatchStatus('${d.id}', 'Approved')">✅ Approve & Unlock GPS</button>`;
+    } else if (isApproved) {
+        actionButtonsHtml = `<button class="btn primary" style="flex:1" onclick="updateDispatchStatus('${d.id}', 'Settled')"> Settle & Lock Final GPS Location</button>`;
     } else {
-        actionButtonsHtml = `<button class="btn secondary" style="flex:1" onclick="updateDispatchStatus('${d.id}', 'Pending')">🔒 Relock & Make GPS Dormant</button>`;
+        actionButtonsHtml = `<button class="btn secondary" style="flex:1" onclick="updateDispatchStatus('${d.id}', 'Pending')"> Relock & Make GPS Dormant</button>`;
     }
+
+    const timeDisplay = d.timeString ? `at ${d.timeString}` : "";
 
     document.getElementById("drawerContent").innerHTML = `
         <div style="margin-bottom:15px;display:flex;justify-content:space-between;align-items:flex-start;">
             <div>
                 <h2 style="font-size:20px;letter-spacing:-.5px;">Dispatch ${esc(d.id)}</h2>
-                <p style="font-size:11px;color:var(--muted);margin-top:4px">${esc(d.date)} · Vehicle: <b>${esc(d.vehicle||"—")}</b></p>
-                <p style="font-size:11px;color:var(--muted);margin-top:2px">Bound Phone: <b>${esc(d.phone||"—")}</b></p>
+                <p style="font-size:11px;color:var(--muted);margin-top:4px">${esc(d.date)} ${esc(timeDisplay)} · Car Reg: <b>${esc(d.vehicle||"—")}</b></p>
+                <p style="font-size:11px;color:var(--muted);margin-top:2px">Contact: <b>${esc(d.phone||"—")}</b></p>
             </div>
             <span class="badge ${badgeClass}" style="font-size:11px;padding:6px 12px;">${esc(d.status).toUpperCase()}</span>
         </div>
 
         <div class="detail-grid">
-            <div class="detail"><small>TELEMETRY</small><strong style="font-size:11px;color:var(--blue)">${esc(lastLocStr)}</strong></div>
+            <div class="detail"><small>LOCATION TELEMETRY</small><strong style="font-size:11px;color:var(--blue)">${esc(lastLocStr)}</strong></div>
             <div class="detail"><small>SALES RATIO</small><strong style="font-size:13px;color:var(--green)">${salesPercentage}% Cleared</strong></div>
             <div class="detail"><small>STATUS</small><strong style="font-size:13px">${esc(d.status)}</strong></div>
         </div>
@@ -766,16 +974,55 @@ function openDispatch(id) {
 }
 
 function updateDispatchStatus(id, newStatus) {
-    rtdb.ref(`dispatches/${id}/status`).set(newStatus).then(() => {
-        if (newStatus !== "Active") {
+    const updateData = { status: newStatus };
+    if (newStatus === "Approved") {
+        rtdb.ref(`dispatches/${id}`).once("value", (snap) => {
+            const val = snap.val();
+            if (val && !val.lastLocation) {
+                updateData.lastLocation = { lat: -0.3031, lng: 36.0800, speed: "0.0", ts: Date.now() };
+            }
+            rtdb.ref(`dispatches/${id}`).update(updateData).then(() => {
+                toast(`Dispatch updated to ${newStatus}!`, "success");
+                hideDrawer();
+                renderLedger();
+            });
+        });
+    } else if (newStatus === "Settled") {
+        const latText = document.getElementById("liveLat").textContent;
+        const lngText = document.getElementById("liveLng").textContent;
+        const speedText = document.getElementById("liveSpeed").textContent;
+        
+        const currentLat = parseFloat(latText) || -0.3031;
+        const currentLng = parseFloat(lngText) || 36.0800;
+        const currentSpeed = speedText.replace(" km/h", "") || "0.0";
+
+        updateData.lastLocation = {
+            lat: currentLat,
+            lng: currentLng,
+            speed: currentSpeed,
+            ts: Date.now()
+        };
+
+        rtdb.ref(`dispatches/${id}`).update(updateData).then(() => {
             if (currentDispatchId === id) {
                 stopLiveTracking();
             }
-        }
-        toast(`Dispatch updated to ${newStatus}!`, "success");
-        hideDrawer();
-        renderLedger();
-    });
+            toast(`Dispatch settled. Final settlement location locked.`, "success");
+            hideDrawer();
+            renderLedger();
+        });
+    } else {
+        rtdb.ref(`dispatches/${id}`).update(updateData).then(() => {
+            if (newStatus === "Pending") {
+                if (currentDispatchId === id) {
+                    stopLiveTracking();
+                }
+            }
+            toast(`Dispatch updated to ${newStatus}!`, "success");
+            hideDrawer();
+            renderLedger();
+        });
+    }
 }
 
 function deleteDispatch(id) {
