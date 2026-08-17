@@ -132,7 +132,6 @@ button.action-btn { width: 100%; padding: 12px; margin-top: 8px; background: #2c
 
 <script>
 const DASHBOARD_URL = "dashboard.html"; 
-const TRACKING_URL = "live-tracking.html";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA",
@@ -234,11 +233,9 @@ async function doLogin() {
       device: navigator.userAgent
     });
 
-    if (role === "marketing_team") {
-      window.location.href = TRACKING_URL;
-    } else {
-      window.location.href = DASHBOARD_URL;
-    }
+    // Redirect to dashboard.html for all roles
+    window.location.href = DASHBOARD_URL;
+
   } catch (err) {
     console.error("Login Error:", err);
     msg("Login failed: " + err.message);
