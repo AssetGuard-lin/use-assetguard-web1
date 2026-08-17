@@ -16,6 +16,11 @@
         .header-right { font-size: 11px; font-weight: 800; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1px; }
         
         .app-container { max-width: 700px; margin: 0 auto; padding: 90px 15px 40px 15px; }
+        
+        /* Freeze Banner */
+        .freeze-banner { background: #fef3c7; border: 1px solid #f59e0b; color: #92400e; padding: 12px 16px; border-radius: 12px; font-size: 12px; font-weight: 700; margin-bottom: 15px; display: none; align-items: center; gap: 8px; box-shadow: 0 2px 8px rgba(245, 158, 11, 0.1); }
+        .freeze-banner.active { display: flex; }
+
         .controls-row { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; }
         .search-box { flex: 1; padding: 14px 18px; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 14px; background: var(--white); box-shadow: 0 2px 4px rgba(0,0,0,0.02); font-family: inherit; }
         
@@ -31,6 +36,7 @@
             .status-good::before { background: var(--success); }
             .status-low::before { background: var(--warning); }
             .status-out::before { background: var(--danger); }
+            .status-frozen::before { background: var(--warning) !important; }
             .item-info h3 { margin: 0; font-size: 13px; font-weight: 700; text-transform: uppercase; color: var(--primary); }
             .item-info p { margin: 2px 0 0; font-size: 11px; color: var(--text-sub); }
             .qty-val { font-size: 14px; font-weight: 700; background: #f1f5f9; padding: 6px 12px; border-radius: 8px; color: var(--primary); }
@@ -46,6 +52,7 @@
             .status-good::before { background: var(--success); }
             .status-low::before { background: var(--warning); }
             .status-out::before { background: var(--danger); }
+            .status-frozen::before { background: var(--warning) !important; }
             .item-info h3 { margin: 0 0 10px 0; font-size: 15px; font-weight: 700; text-transform: uppercase; color: var(--primary); }
             .item-info p { margin: 0 0 10px 0; font-size: 12px; color: var(--text-sub); }
             .qty-val { font-size: 14px; font-weight: 800; background: #f1f5f9; padding: 6px 12px; border-radius: 8px; align-self: flex-start; color: var(--primary); }
@@ -66,7 +73,7 @@
         .num-btn:active { background: #f1f5f9; }
         
         .manage-item { background: var(--white); padding: 14px 18px; border-radius: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e2e8f0; }
-        
+
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 2000; }
         .modal-card { background: var(--white); width: 90%; max-width: 340px; border-radius: 20px; padding: 25px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
         
@@ -93,6 +100,11 @@
 
 <div class="app-container">
     <div id="view-dashboard" class="view active">
+        <!-- Freeze Banner Alert -->
+        <div id="freezeBanner" class="freeze-banner">
+            <span>⚠️ INVENTORY FROZEN: Pending marketing dispatches awaiting admin approval. All stock locked.</span>
+        </div>
+
         <div class="controls-row">
             <input type="text" id="searchInput" class="search-box" placeholder="Search products..." oninput="renderDashboard()">
             <button class="btn-add" onclick="openAdmin()">+</button>
@@ -125,6 +137,7 @@
             <h2 style="font-size: 18px; flex: 1; margin:0; color: var(--primary);">Control Center</h2>
             <button style="background:#f1f5f9; border:none; padding: 12px 18px; border-radius:12px; font-weight:700; cursor:pointer; font-family:inherit;" onclick="switchView('view-dashboard')">Back</button>
         </div>
+
         <div class="admin-form">
             <h4 id="formTitle" style="margin:0 0 15px 0; font-size: 15px; color: var(--primary);">Product Editor</h4>
             <input type="text" id="itemName" class="modern-input" placeholder="Product Name">
@@ -147,8 +160,10 @@
     const db = getDatabase(app);
     const currentUID = localStorage.getItem("ag_active_uid") || "global_user";
     const cloudPath = `users/${currentUID}/inventory`;
+    const dispatchesPath = `users/${currentUID}/dispatches`;
 
     let inventoryCache = JSON.parse(localStorage.getItem(`ag_inv_cache_${currentUID}`)) || {};
+    let dispatchesCache = JSON.parse(localStorage.getItem(`ag_dispatches_cache_${currentUID}`)) || {};
     let syncQueue = JSON.parse(localStorage.getItem(`ag_inv_queue_${currentUID}`)) || [];
 
     async function attemptSync() {
@@ -163,6 +178,18 @@
                 i--;
             } catch(e) { break; }
         }
+    }
+
+    // Determine which items are frozen (locked because they belong to a pending dispatch)
+    function getFrozenItemKeys() {
+        const frozenKeys = new Set();
+        const hasAnyPending = Object.values(dispatchesCache).some(d => d.status === 'pending');
+        
+        if (hasAnyPending) {
+            Object.keys(inventoryCache).forEach(k => frozenKeys.add(k));
+        }
+
+        return frozenKeys;
     }
 
     window.handleSave = async () => {
@@ -206,8 +233,18 @@
     window.renderDashboard = () => {
         const container = document.getElementById('inventoryContainer');
         const search = document.getElementById('searchInput').value.toLowerCase();
+        const freezeBanner = document.getElementById('freezeBanner');
         container.innerHTML = '';
         
+        const frozenKeys = getFrozenItemKeys();
+        const hasPending = Object.values(dispatchesCache).some(d => d.status === 'pending');
+        
+        if (hasPending) {
+            freezeBanner.classList.add('active');
+        } else {
+            freezeBanner.classList.remove('active');
+        }
+
         const keys = Object.keys(inventoryCache).sort();
         if(keys.length === 0) {
             container.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding: 40px; color: var(--text-sub);">No inventory items found. Tap '+' to add products.</div>`;
@@ -217,11 +254,15 @@
         keys.forEach(k => {
             const item = inventoryCache[k];
             if(!item.name.toLowerCase().includes(search)) return;
-            const status = item.qty > 5 ? 'status-good' : (item.qty > 0 ? 'status-low' : 'status-out');
+
+            const isItemFrozen = frozenKeys.has(k);
+            let status = item.qty > 5 ? 'status-good' : (item.qty > 0 ? 'status-low' : 'status-out');
+            if (isItemFrozen) status = 'status-frozen';
+
             container.innerHTML += `
                 <div class="stock-item ${status}">
                     <div class="item-info">
-                        <h3>${item.name}</h3>
+                        <h3>${item.name} ${isItemFrozen ? '<span style="color:var(--warning); font-size:10px;">[FROZEN]</span>' : ''}</h3>
                         <p>${item.liters || 0}L • KES ${(item.salePrice || 0).toLocaleString()}</p>
                     </div>
                     <div class="qty-val">${item.qty}</div>
@@ -245,12 +286,25 @@
         });
     };
 
+    // Firebase Listeners
     onValue(ref(db, cloudPath), (snap) => {
         if(snap.exists()) {
             inventoryCache = snap.val();
             localStorage.setItem(`ag_inv_cache_${currentUID}`, JSON.stringify(inventoryCache));
             renderDashboard();
             renderAdminList();
+        }
+    });
+
+    onValue(ref(db, dispatchesPath), (snap) => {
+        if(snap.exists()) {
+            dispatchesCache = snap.val();
+            localStorage.setItem(`ag_dispatches_cache_${currentUID}`, JSON.stringify(dispatchesCache));
+            renderDashboard();
+        } else {
+            dispatchesCache = {};
+            localStorage.setItem(`ag_dispatches_cache_${currentUID}`, JSON.stringify(dispatchesCache));
+            renderDashboard();
         }
     });
 
@@ -277,7 +331,7 @@
         t.className = 'toast'; 
         t.innerText = m; 
         document.getElementById('toastContainer').appendChild(t); 
-        setTimeout(() => t.remove(), 2000); 
+        setTimeout(() => t.remove(), 2500); 
     };
     function resetForm() { ['itemName', 'itemQty', 'itemLiters', 'salePrice'].forEach(id => document.getElementById(id).value = ''); }
     window.addEventListener('online', attemptSync);
