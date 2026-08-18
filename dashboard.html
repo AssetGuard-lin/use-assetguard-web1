@@ -1,11 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>
-  // Check if user is logged in (e.g., looking for a token in localStorage)
-  if (!localStorage.getItem('authToken')) {
-      window.location.href = 'login.html'; // Redirect to login page
-  }
+<!-- 1. Hide the body immediately to prevent any flash or security bypass -->
+<style>
+  body { display: none !important; }
+</style>
+
+<!-- 2. Secure Firebase Auth Check -->
+<script type="module">
+  // Import your existing Firebase setup or auth instance 
+  // (Ensure auth is imported from your project's firebase config file)
+  import { auth } from "./firebase-config.js"; // Update path to your firebase config file if needed
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      // User is logged in: safely reveal the page content
+      document.body.style.display = 'block';
+    } else {
+      // User is NOT logged in: redirect immediately and block access
+      window.location.replace("login.html"); // Change 'login.html' to your actual login page filename
+    }
+  });
 </script>
 
 <meta charset="UTF-8">
