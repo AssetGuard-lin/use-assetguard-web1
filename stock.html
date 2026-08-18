@@ -1,2673 +1,342 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>AssetGuard Pro - Inventory List & Grid</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-<style>
-:root {
-    --primary:#0f172a;
-    --accent:#0072CE;
-    --success:#10b981;
-    --danger:#ef4444;
-    --warning:#f59e0b;
-    --bg:#f4f7fa;
-    --white:#fff;
-    --text-main:#1e293b;
-    --text-sub:#64748b;
-}
-
-* {
-    box-sizing:border-box;
-    -webkit-tap-highlight-color:transparent;
-    outline:none;
-}
-
-body {
-    font-family:Poppins,sans-serif;
-    background:var(--bg);
-    margin:0;
-    color:var(--text-main);
-    line-height:1.5;
-    overflow-x:hidden;
-}
-
-.sticky-header {
-    position:fixed;
-    top:0;
-    left:0;
-    right:0;
-    background:#fff;
-    z-index:1000;
-    padding:18px 20px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    border-bottom:1px solid #e2e8f0;
-    box-shadow:0 2px 10px rgba(0,0,0,.05);
-}
-
-.header-left {
-    font-weight:800;
-    font-size:16px;
-    color:var(--primary);
-    letter-spacing:-.5px;
-}
-
-.header-left span {
-    color:var(--accent);
-}
-
-.header-right {
-    font-size:11px;
-    font-weight:800;
-    color:var(--text-sub);
-    text-transform:uppercase;
-    letter-spacing:1px;
-}
-
-.app-container {
-    max-width:700px;
-    margin:0 auto;
-    padding:90px 15px 40px;
-}
-
-/* ================================
-   FREEZE BANNER
-================================ */
-
-.freeze-banner {
-    background:#fef3c7;
-    border:1px solid #f59e0b;
-    color:#92400e;
-    padding:13px 16px;
-    border-radius:12px;
-    font-size:12px;
-    font-weight:700;
-    margin-bottom:15px;
-    display:none;
-    align-items:flex-start;
-    gap:8px;
-    box-shadow:0 2px 8px rgba(245,158,11,.1);
-}
-
-.freeze-banner.active {
-    display:flex;
-}
-
-.freeze-title {
-    font-weight:800;
-}
-
-.freeze-status {
-    font-size:10px;
-    margin-top:3px;
-    font-weight:600;
-}
-
-/* ================================
-   CONTROLS
-================================ */
-
-.controls-row {
-    display:flex;
-    gap:10px;
-    margin-bottom:20px;
-    align-items:center;
-}
-
-.search-box {
-    flex:1;
-    padding:14px 18px;
-    border:1px solid #e2e8f0;
-    border-radius:14px;
-    font-size:14px;
-    background:#fff;
-    box-shadow:0 2px 4px rgba(0,0,0,.02);
-    font-family:inherit;
-}
-
-.btn-add {
-    background:var(--accent);
-    color:#fff;
-    border:0;
-    width:48px;
-    height:48px;
-    border-radius:14px;
-    font-size:24px;
-    cursor:pointer;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    box-shadow:0 4px 12px rgba(0,114,206,.2);
-}
-
-.btn-add:disabled,
-.btn-main:disabled {
-    opacity:.45;
-    cursor:not-allowed;
-    transform:none;
-}
-
-/* ================================
-   MOBILE
-================================ */
-
-@media(max-width:767px) {
-
-    .app-container {
-        max-width:500px;
-        padding:85px 15px 30px;
-    }
-
-    .stock-container {
-        display:flex;
-        flex-direction:column;
-        gap:10px;
-    }
-
-    .stock-item {
-        background:#fff;
-        padding:14px 16px;
-        border-radius:16px;
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        border:1px solid rgba(226,232,240,.8);
-        position:relative;
-        overflow:hidden;
-    }
-
-    .stock-item::before {
-        content:"";
-        position:absolute;
-        left:0;
-        top:0;
-        bottom:0;
-        width:4px;
-    }
-
-    .status-good::before {
-        background:var(--success);
-    }
-
-    .status-low::before {
-        background:var(--warning);
-    }
-
-    .status-out::before {
-        background:var(--danger);
-    }
-
-    .status-frozen::before {
-        background:var(--warning)!important;
-    }
-
-    .item-info h3 {
-        margin:0;
-        font-size:13px;
-        font-weight:700;
-        text-transform:uppercase;
-        color:var(--primary);
-    }
-
-    .item-info p {
-        margin:2px 0 0;
-        font-size:11px;
-        color:var(--text-sub);
-    }
-
-    .qty-val {
-        font-size:14px;
-        font-weight:700;
-        background:#f1f5f9;
-        padding:6px 12px;
-        border-radius:8px;
-        color:var(--primary);
-    }
-}
-
-/* ================================
-   DESKTOP
-================================ */
-
-@media(min-width:768px) {
-
-    body {
-        font-size:1.2rem;
-    }
-
-    .app-container {
-        max-width:1200px!important;
-    }
-
-    .stock-container {
-        display:grid;
-        grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
-        gap:18px;
-    }
-
-    .stock-item {
-        background:#fff;
-        padding:20px;
-        border-radius:18px;
-        border:1px solid rgba(226,232,240,.8);
-        position:relative;
-        overflow:hidden;
-        display:flex;
-        flex-direction:column;
-        justify-content:space-between;
-        box-shadow:0 4px 15px rgba(0,0,0,.02);
-        transition:.2s;
-    }
-
-    .stock-item:hover {
-        transform:translateY(-3px);
-        box-shadow:0 8px 25px rgba(0,0,0,.05);
-    }
-
-    .stock-item::before {
-        content:"";
-        position:absolute;
-        left:0;
-        top:0;
-        bottom:0;
-        width:5px;
-    }
-
-    .status-good::before {
-        background:var(--success);
-    }
-
-    .status-low::before {
-        background:var(--warning);
-    }
-
-    .status-out::before {
-        background:var(--danger);
-    }
-
-    .status-frozen::before {
-        background:var(--warning)!important;
-    }
-
-    .item-info h3 {
-        margin:0 0 10px;
-        font-size:15px;
-        font-weight:700;
-        text-transform:uppercase;
-        color:var(--primary);
-    }
-
-    .item-info p {
-        margin:0 0 10px;
-        font-size:12px;
-        color:var(--text-sub);
-    }
-
-    .qty-val {
-        font-size:14px;
-        font-weight:800;
-        background:#f1f5f9;
-        padding:6px 12px;
-        border-radius:8px;
-        align-self:flex-start;
-        color:var(--primary);
-    }
-}
-
-.view {
-    display:none;
-}
-
-.view.active {
-    display:block;
-}
-
-/* ================================
-   ADMIN
-================================ */
-
-.admin-form {
-    background:#fff;
-    padding:25px;
-    border-radius:20px;
-    box-shadow:0 4px 20px rgba(0,0,0,.05);
-    margin-bottom:25px;
-    border:1px solid #e2e8f0;
-}
-
-.modern-input {
-    width:100%;
-    padding:14px;
-    border:1px solid #e2e8f0;
-    border-radius:12px;
-    margin-bottom:14px;
-    font-size:14px;
-    background:#fafafa;
-    font-family:inherit;
-}
-
-.modern-input:focus {
-    border-color:var(--accent);
-    background:#fff;
-}
-
-.btn-main {
-    width:100%;
-    padding:14px;
-    border:0;
-    border-radius:12px;
-    font-weight:700;
-    cursor:pointer;
-    background:var(--accent);
-    color:#fff;
-    font-family:inherit;
-}
-
-.numpad {
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:12px;
-    max-width:280px;
-    margin:0 auto;
-}
-
-.num-btn {
-    background:#fff;
-    border:1px solid #e2e8f0;
-    padding:18px;
-    border-radius:14px;
-    font-size:18px;
-    font-weight:700;
-    cursor:pointer;
-    box-shadow:0 2px 5px rgba(0,0,0,.02);
-}
-
-.manage-item {
-    background:#fff;
-    padding:14px 18px;
-    border-radius:14px;
-    margin-bottom:10px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    border:1px solid #e2e8f0;
-}
-
-/* ================================
-   MODAL
-================================ */
-
-.modal-overlay {
-    position:fixed;
-    inset:0;
-    background:rgba(15,23,42,.6);
-    backdrop-filter:blur(4px);
-    display:none;
-    align-items:center;
-    justify-content:center;
-    z-index:2000;
-}
-
-.modal-card {
-    background:#fff;
-    width:90%;
-    max-width:340px;
-    border-radius:20px;
-    padding:25px;
-    text-align:center;
-    box-shadow:0 20px 40px rgba(0,0,0,.1);
-}
-
-/* ================================
-   TOAST
-================================ */
-
-#toastContainer {
-    position:fixed;
-    bottom:20px;
-    left:50%;
-    transform:translateX(-50%);
-    z-index:3000;
-    width:max-content;
-    max-width:90%;
-}
-
-.toast {
-    background:var(--primary);
-    color:#fff;
-    padding:12px 24px;
-    border-radius:12px;
-    font-size:12px;
-    font-weight:600;
-    margin-top:8px;
-    box-shadow:0 4px 15px rgba(0,0,0,.15);
-}
-
-.toast.error {
-    background:var(--danger);
-}
-
-.toast.success {
-    background:var(--success);
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AssetGuard Pro - Inventory List & Grid</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #0f172a; --accent: #0072CE; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --bg: #f4f7fa; --white: #ffffff; --text-main: #1e293b; --text-sub: #64748b; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg); margin: 0; padding: 0; color: var(--text-main); line-height: 1.5; overflow-x: hidden; }
+
+        .sticky-header { position: fixed; top: 0; left: 0; right: 0; background: var(--white); z-index: 1000; padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .header-left { font-weight: 800; font-size: 16px; color: var(--primary); letter-spacing: -0.5px; }
+        .header-left span { color: var(--accent); }
+        .header-right { font-size: 11px; font-weight: 800; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1px; }
+        
+        .app-container { max-width: 700px; margin: 0 auto; padding: 90px 15px 40px 15px; }
+        
+        /* Freeze Banner */
+        .freeze-banner { background: #fef3c7; border: 1px solid #f59e0b; color: #92400e; padding: 12px 16px; border-radius: 12px; font-size: 12px; font-weight: 700; margin-bottom: 15px; display: none; align-items: center; gap: 8px; box-shadow: 0 2px 8px rgba(245, 158, 11, 0.1); }
+        .freeze-banner.active { display: flex; }
+
+        .controls-row { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; }
+        .search-box { flex: 1; padding: 14px 18px; border: 1px solid #e2e8f0; border-radius: 14px; font-size: 14px; background: var(--white); box-shadow: 0 2px 4px rgba(0,0,0,0.02); font-family: inherit; }
+        
+        .btn-add { background: var(--accent); color: white; border: none; width: 48px; height: 48px; border-radius: 14px; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0, 114, 206, 0.2); transition: 0.2s; }
+        .btn-add:hover { transform: translateY(-2px); }
+
+        /* Responsive Layout: List on Phone, Grid on Desktop */
+        @media (max-width: 767px) {
+            .app-container { max-width: 500px; padding: 85px 15px 30px 15px; }
+            .stock-container { display: flex; flex-direction: column; gap: 10px; }
+            .stock-item { background: var(--white); padding: 14px 16px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(226, 232, 240, 0.8); position: relative; overflow: hidden; }
+            .stock-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; border-radius: 4px 0 0 4px; }
+            .status-good::before { background: var(--success); }
+            .status-low::before { background: var(--warning); }
+            .status-out::before { background: var(--danger); }
+            .status-frozen::before { background: var(--warning) !important; }
+            .item-info h3 { margin: 0; font-size: 13px; font-weight: 700; text-transform: uppercase; color: var(--primary); }
+            .item-info p { margin: 2px 0 0; font-size: 11px; color: var(--text-sub); }
+            .qty-val { font-size: 14px; font-weight: 700; background: #f1f5f9; padding: 6px 12px; border-radius: 8px; color: var(--primary); }
+        }
+
+        @media (min-width: 768px) {
+            body { font-size: 1.2rem; }
+            .app-container { max-width: 1200px !important; }
+            .stock-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; }
+            .stock-item { background: var(--white); padding: 20px; border-radius: 18px; border: 1px solid rgba(226, 232, 240, 0.8); position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.02); transition: 0.2s; }
+            .stock-item:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.05); }
+            .stock-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; }
+            .status-good::before { background: var(--success); }
+            .status-low::before { background: var(--warning); }
+            .status-out::before { background: var(--danger); }
+            .status-frozen::before { background: var(--warning) !important; }
+            .item-info h3 { margin: 0 0 10px 0; font-size: 15px; font-weight: 700; text-transform: uppercase; color: var(--primary); }
+            .item-info p { margin: 0 0 10px 0; font-size: 12px; color: var(--text-sub); }
+            .qty-val { font-size: 14px; font-weight: 800; background: #f1f5f9; padding: 6px 12px; border-radius: 8px; align-self: flex-start; color: var(--primary); }
+        }
+
+        .view { display: none; }
+        .view.active { display: block; }
+        
+        .admin-form { background: var(--white); padding: 25px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 25px; border: 1px solid #e2e8f0; }
+        .modern-input { width: 100%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 14px; font-size: 14px; background: #fafafa; font-family: inherit; }
+        .modern-input:focus { border-color: var(--accent); background: var(--white); }
+        
+        .btn-main { width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; background: var(--accent); color: white; font-family: inherit; transition: 0.2s; }
+        .btn-main:hover { opacity: 0.9; }
+
+        .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 280px; margin: 0 auto; }
+        .num-btn { background: var(--white); border: 1px solid #e2e8f0; padding: 18px; border-radius: 14px; font-size: 18px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .num-btn:active { background: #f1f5f9; }
+        
+        .manage-item { background: var(--white); padding: 14px 18px; border-radius: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e2e8f0; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 2000; }
+        .modal-card { background: var(--white); width: 90%; max-width: 340px; border-radius: 20px; padding: 25px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        
+        #toastContainer { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 3000; }
+        .toast { background: var(--primary); color: white; padding: 12px 24px; border-radius: 12px; font-size: 12px; font-weight: 600; margin-top: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
+    </style>
 </head>
-
 <body>
 
 <div id="toastContainer"></div>
 
 <div class="sticky-header">
-    <div class="header-left">
-        ASSETGUARD <span>Pro</span>
-    </div>
-
-    <div class="header-right">
-        Inventory View
-    </div>
+    <div class="header-left">ASSETGUARD <span>Pro</span></div>
+    <div class="header-right">Inventory View</div>
 </div>
 
 <div id="modalOverlay" class="modal-overlay">
-
     <div class="modal-card">
-
-        <h3 style="font-size:16px;margin-top:0;margin-bottom:15px">
-            Delete Item?
-        </h3>
-
-        <button
-            class="btn-main"
-            id="modalConfirmBtn"
-            style="background:var(--danger);margin-bottom:10px">
-            Yes, Delete
-        </button>
-
-        <button
-            class="btn-main"
-            style="background:#f1f5f9;color:#64748b"
-            onclick="closeModal()">
-            Cancel
-        </button>
-
+        <h3 id="modalTitle" style="font-size: 16px; margin-top:0; margin-bottom: 15px;">Delete Item?</h3>
+        <button class="btn-main" id="modalConfirmBtn" style="background:var(--danger); margin-bottom:10px">Yes, Delete</button>
+        <button class="btn-main" style="background:#f1f5f9; color:#64748b" onclick="closeModal()">Cancel</button>
     </div>
-
 </div>
 
 <div class="app-container">
-
-<!-- ================================
-     DASHBOARD
-================================ -->
-
-<div id="view-dashboard" class="view active">
-
-    <div id="freezeBanner" class="freeze-banner">
-
-        <span style="font-size:17px">
-            🔒
-        </span>
-
-        <div>
-
-            <div class="freeze-title">
-                INVENTORY FROZEN
-            </div>
-
-            <div id="freezeStatus" class="freeze-status">
-                Waiting for admin approval.
-            </div>
-
+    <div id="view-dashboard" class="view active">
+        <!-- Freeze Banner Alert -->
+        <div id="freezeBanner" class="freeze-banner">
+            <span>⚠️ INVENTORY FROZEN: Pending marketing dispatches awaiting admin approval. All stock locked.</span>
         </div>
 
+        <div class="controls-row">
+            <input type="text" id="searchInput" class="search-box" placeholder="Search products..." oninput="renderDashboard()">
+            <button class="btn-add" onclick="openAdmin()">+</button>
+        </div>
+        <div id="inventoryContainer" class="stock-container"></div>
     </div>
 
-    <div class="controls-row">
-
-        <input
-            type="text"
-            id="searchInput"
-            class="search-box"
-            placeholder="Search products..."
-            oninput="renderDashboard()">
-
-        <button
-            class="btn-add"
-            id="addButton"
-            onclick="openAdmin()">
-            +
-        </button>
-
+    <div id="view-pin" class="view">
+        <div style="text-align: center; padding-top: 20px;">
+            <h3 style="font-size: 18px; color: var(--primary);">Manager PIN Access</h3>
+            <p style="font-size: 12px; color: var(--text-sub); margin-bottom: 20px;">Enter 4-digit manager PIN code</p>
+            <div class="pin-dots" style="display: flex; justify-content: center; gap: 12px; margin: 20px 0 30px 0;">
+                <div class="pin-dot" style="width:14px; height:14px; border-radius:50%; border:2px solid #cbd5e1;"></div>
+                <div class="pin-dot" style="width:14px; height:14px; border-radius:50%; border:2px solid #cbd5e1;"></div>
+                <div class="pin-dot" style="width:14px; height:14px; border-radius:50%; border:2px solid #cbd5e1;"></div>
+                <div class="pin-dot" style="width:14px; height:14px; border-radius:50%; border:2px solid #cbd5e1;"></div>
+            </div>
+            <div class="numpad">
+                <button class="num-btn" onclick="pressNum('1')">1</button><button class="num-btn" onclick="pressNum('2')">2</button><button class="num-btn" onclick="pressNum('3')">3</button>
+                <button class="num-btn" onclick="pressNum('4')">4</button><button class="num-btn" onclick="pressNum('5')">5</button><button class="num-btn" onclick="pressNum('6')">6</button>
+                <button class="num-btn" onclick="pressNum('7')">7</button><button class="num-btn" onclick="pressNum('8')">8</button><button class="num-btn" onclick="pressNum('9')">9</button>
+                <button class="num-btn" onclick="pressNum('C')" style="color:var(--danger)">C</button><button class="num-btn" onclick="pressNum('0')">0</button><button class="num-btn" onclick="pressNum('⌫')">⌫</button>
+            </div>
+            <button class="btn-main" style="background:transparent; color:#64748b; margin-top:25px; box-shadow:none;" onclick="switchView('view-dashboard')">Cancel</button>
+        </div>
     </div>
 
-    <div
-        id="inventoryContainer"
-        class="stock-container">
-    </div>
-
-</div>
-
-
-<!-- ================================
-     PIN VIEW
-================================ -->
-
-<div id="view-pin" class="view">
-
-    <div style="text-align:center;padding-top:20px">
-
-        <h3 style="font-size:18px;color:var(--primary)">
-            Manager PIN Access
-        </h3>
-
-        <p style="font-size:12px;color:var(--text-sub);margin-bottom:20px">
-            Enter 4-digit manager PIN code
-        </p>
-
-        <div
-            class="pin-dots"
-            style="display:flex;justify-content:center;gap:12px;margin:20px 0 30px">
-
-            <div class="pin-dot"
-                 style="width:14px;height:14px;border-radius:50%;border:2px solid #cbd5e1">
-            </div>
-
-            <div class="pin-dot"
-                 style="width:14px;height:14px;border-radius:50%;border:2px solid #cbd5e1">
-            </div>
-
-            <div class="pin-dot"
-                 style="width:14px;height:14px;border-radius:50%;border:2px solid #cbd5e1">
-            </div>
-
-            <div class="pin-dot"
-                 style="width:14px;height:14px;border-radius:50%;border:2px solid #cbd5e1">
-            </div>
-
+    <div id="view-admin" class="view">
+        <div class="controls-row">
+            <h2 style="font-size: 18px; flex: 1; margin:0; color: var(--primary);">Control Center</h2>
+            <button style="background:#f1f5f9; border:none; padding: 12px 18px; border-radius:12px; font-weight:700; cursor:pointer; font-family:inherit;" onclick="switchView('view-dashboard')">Back</button>
         </div>
 
-        <div class="numpad">
-
-            <button class="num-btn" onclick="pressNum('1')">1</button>
-            <button class="num-btn" onclick="pressNum('2')">2</button>
-            <button class="num-btn" onclick="pressNum('3')">3</button>
-
-            <button class="num-btn" onclick="pressNum('4')">4</button>
-            <button class="num-btn" onclick="pressNum('5')">5</button>
-            <button class="num-btn" onclick="pressNum('6')">6</button>
-
-            <button class="num-btn" onclick="pressNum('7')">7</button>
-            <button class="num-btn" onclick="pressNum('8')">8</button>
-            <button class="num-btn" onclick="pressNum('9')">9</button>
-
-            <button
-                class="num-btn"
-                onclick="pressNum('C')"
-                style="color:var(--danger)">
-                C
-            </button>
-
-            <button class="num-btn" onclick="pressNum('0')">
-                0
-            </button>
-
-            <button class="num-btn" onclick="pressNum('⌫')">
-                ⌫
-            </button>
-
+        <div class="admin-form">
+            <h4 id="formTitle" style="margin:0 0 15px 0; font-size: 15px; color: var(--primary);">Product Editor</h4>
+            <input type="text" id="itemName" class="modern-input" placeholder="Product Name">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
+                <input type="number" id="itemQty" class="modern-input" placeholder="Quantity">
+                <input type="number" id="itemLiters" class="modern-input" placeholder="Volume (Liters)">
+            </div>
+            <input type="number" id="salePrice" class="modern-input" placeholder="Price (KES)" step="0.01">
+            <button class="btn-main" onclick="handleSave()">Save Product</button>
         </div>
-
-        <button
-            class="btn-main"
-            style="background:transparent;color:#64748b;margin-top:25px;box-shadow:none"
-            onclick="switchView('view-dashboard')">
-            Cancel
-        </button>
-
+        <div id="adminManageList"></div>
     </div>
-
 </div>
-
-
-<!-- ================================
-     ADMIN VIEW
-================================ -->
-
-<div id="view-admin" class="view">
-
-    <div class="controls-row">
-
-        <h2
-            style="font-size:18px;flex:1;margin:0;color:var(--primary)">
-            Control Center
-        </h2>
-
-        <button
-            style="background:#f1f5f9;border:none;padding:12px 18px;border-radius:12px;font-weight:700;cursor:pointer;font-family:inherit"
-            onclick="switchView('view-dashboard')">
-            Back
-        </button>
-
-    </div>
-
-    <div class="admin-form">
-
-        <h4
-            style="margin:0 0 15px;font-size:15px;color:var(--primary)">
-            Product Editor
-        </h4>
-
-        <input
-            type="text"
-            id="itemName"
-            class="modern-input"
-            placeholder="Product Name">
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-
-            <input
-                type="number"
-                id="itemQty"
-                class="modern-input"
-                placeholder="Quantity">
-
-            <input
-                type="number"
-                id="itemLiters"
-                class="modern-input"
-                placeholder="Volume (Liters)">
-
-        </div>
-
-        <input
-            type="number"
-            id="salePrice"
-            class="modern-input"
-            placeholder="Price (KES)"
-            step="0.01">
-
-        <button
-            class="btn-main"
-            id="saveProductButton"
-            onclick="handleSave()">
-            Save Product
-        </button>
-
-    </div>
-
-    <div id="adminManageList"></div>
-
-</div>
-
-</div>
-
 
 <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getDatabase, ref, onValue, set, remove, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
-import {
-    initializeApp
-} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    const app = initializeApp({ databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com" });
+    const db = getDatabase(app);
+    const currentUID = localStorage.getItem("ag_active_uid") || "global_user";
+    const cloudPath = `users/${currentUID}/inventory`;
+    const dispatchesPath = `users/${currentUID}/dispatches`;
 
-import {
-    getDatabase,
-    ref,
-    onValue,
-    update,
-    remove
-} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    let inventoryCache = JSON.parse(localStorage.getItem(`ag_inv_cache_${currentUID}`)) || {};
+    let dispatchesCache = JSON.parse(localStorage.getItem(`ag_dispatches_cache_${currentUID}`)) || {};
+    let syncQueue = JSON.parse(localStorage.getItem(`ag_inv_queue_${currentUID}`)) || [];
 
-
-/* =========================================================
-   FIREBASE
-========================================================= */
-
-const app = initializeApp({
-    databaseURL:
-        "https://assetguard-c8c8c-default-rtdb.firebaseio.com"
-});
-
-const db = getDatabase(app);
-
-
-/* =========================================================
-   USER / DATABASE PATHS
-========================================================= */
-
-const currentUID =
-    localStorage.getItem("ag_active_uid") ||
-    "global_user";
-
-
-/*
-    INVENTORY:
-    users/{UID}/inventory
-
-    DISPATCHES:
-    ROOT /dispatches
-
-    This matches the Firebase database structure shown
-    in your screenshot.
-*/
-
-const inventoryPath =
-    `users/${currentUID}/inventory`;
-
-const dispatchesPath =
-    "dispatches";
-
-
-/* =========================================================
-   LOCAL CACHE
-========================================================= */
-
-let inventoryCache =
-    JSON.parse(
-        localStorage.getItem(
-            `ag_inv_cache_${currentUID}`
-        ) || "{}"
-    );
-
-let dispatchesCache =
-    JSON.parse(
-        localStorage.getItem(
-            `ag_dispatches_cache_${currentUID}`
-        ) || "{}"
-    );
-
-let approvalCaches = {};
-
-let syncQueue =
-    JSON.parse(
-        localStorage.getItem(
-            `ag_inv_queue_${currentUID}`
-        ) || "[]"
-    );
-
-
-/* =========================================================
-   OPTIONAL ADMIN APPROVAL LOCATIONS
-========================================================= */
-
-const approvalPaths = [
-
-    "adminApproval",
-
-    "adminApprovals",
-
-    "dispatchApprovals",
-
-    "admin/dispatchApprovals"
-
-];
-
-
-/* =========================================================
-   SAVE LOCAL DATA
-========================================================= */
-
-function saveLocal() {
-
-    localStorage.setItem(
-        `ag_inv_cache_${currentUID}`,
-        JSON.stringify(inventoryCache)
-    );
-
-    localStorage.setItem(
-        `ag_dispatches_cache_${currentUID}`,
-        JSON.stringify(dispatchesCache)
-    );
-
-    localStorage.setItem(
-        `ag_inv_queue_${currentUID}`,
-        JSON.stringify(syncQueue)
-    );
-
-    localStorage.setItem(
-        `ag_approval_cache_${currentUID}`,
-        JSON.stringify(approvalCaches)
-    );
-}
-
-
-/* =========================================================
-   NORMALIZE VALUES
-========================================================= */
-
-function normalize(value) {
-
-    return String(value ?? "")
-        .trim()
-        .toLowerCase()
-        .replace(/[\s-]+/g, "_");
-
-}
-
-
-/* =========================================================
-   APPROVAL DETECTION
-========================================================= */
-
-function explicitApproved(value) {
-
-    if (
-        value === true ||
-        value === 1
-    ) {
-        return true;
+    async function attemptSync() {
+        if (!navigator.onLine || syncQueue.length === 0) return;
+        for (let i = 0; i < syncQueue.length; i++) {
+            const item = syncQueue[i];
+            try {
+                if (item.isDelete) { await remove(ref(db, `${cloudPath}/${item.id}`)); }
+                else { await update(ref(db, `${cloudPath}/${item.id}`), item); }
+                syncQueue.splice(i, 1);
+                localStorage.setItem(`ag_inv_queue_${currentUID}`, JSON.stringify(syncQueue));
+                i--;
+            } catch(e) { break; }
+        }
     }
 
-    if (typeof value === "string") {
-
-        return [
-
-            "approved",
-            "approve",
-            "admin_approved",
-            "adminapproved",
-            "authorized",
-            "authorised",
-            "accepted",
-            "complete",
-            "completed",
-            "true",
-            "yes"
-
-        ].includes(
-            normalize(value)
-        );
-
-    }
-
-    return false;
-}
-
-
-/* =========================================================
-   REJECTED / CANCELLED
-========================================================= */
-
-function explicitRejectedOrCancelled(value) {
-
-    if (
-        typeof value !== "string"
-    ) {
-        return false;
-    }
-
-    return [
-
-        "rejected",
-        "cancelled",
-        "canceled",
-        "declined",
-        "void",
-        "voided"
-
-    ].includes(
-        normalize(value)
-    );
-}
-
-
-/* =========================================================
-   CHECK ADMIN APPROVAL
-========================================================= */
-
-function isExplicitlyApproved(
-    dispatchId,
-    dispatch
-) {
-
-    if (
-        !dispatch ||
-        typeof dispatch !== "object"
-    ) {
-        return false;
-    }
-
-
-    const directFields = [
-
-        "adminApproved",
-        "approvedByAdmin",
-        "adminApproval",
-        "approval",
-        "approvalStatus",
-        "adminStatus",
-        "approved"
-
-    ];
-
-
-    for (
-        const field of directFields
-    ) {
-
-        const value =
-            dispatch[field];
-
-
-        if (
-            explicitApproved(value)
-        ) {
-            return true;
+    // Determine which items are frozen (locked because they belong to a pending dispatch)
+    function getFrozenItemKeys() {
+        const frozenKeys = new Set();
+        const hasAnyPending = Object.values(dispatchesCache).some(d => d.status === 'pending');
+        
+        if (hasAnyPending) {
+            Object.keys(inventoryCache).forEach(k => frozenKeys.add(k));
         }
 
-
-        if (
-            value &&
-            typeof value === "object"
-        ) {
-
-            if (
-
-                explicitApproved(
-                    value.status
-                ) ||
-
-                explicitApproved(
-                    value.approved
-                ) ||
-
-                explicitApproved(
-                    value.value
-                ) ||
-
-                explicitApproved(
-                    value.state
-                )
-
-            ) {
-
-                return true;
-
-            }
-
-        }
-
+        return frozenKeys;
     }
 
-
-    /*
-       Check optional approval nodes.
-    */
-
-    for (
-        const cache
-        of Object.values(approvalCaches)
-    ) {
-
-        if (
-            !cache ||
-            typeof cache !== "object"
-        ) {
-            continue;
-        }
-
-
-        const record =
-            cache[dispatchId];
-
-
-        if (
-            explicitApproved(record)
-        ) {
-            return true;
-        }
-
-
-        if (
-            record &&
-            typeof record === "object"
-        ) {
-
-            if (
-
-                explicitApproved(
-                    record.status
-                ) ||
-
-                explicitApproved(
-                    record.approvalStatus
-                ) ||
-
-                explicitApproved(
-                    record.approved
-                ) ||
-
-                explicitApproved(
-                    record.adminApproved
-                ) ||
-
-                explicitApproved(
-                    record.value
-                )
-
-            ) {
-
-                return true;
-
-            }
-
-        }
-
-    }
-
-
-    return false;
-
-}
-
-
-/* =========================================================
-   DISPATCH REQUIRES APPROVAL
-========================================================= */
-
-function dispatchRequiresApproval(
-    dispatch
-) {
-
-    if (
-        !dispatch ||
-        typeof dispatch !== "object"
-    ) {
-        return false;
-    }
-
-
-    const status =
-        normalize(
-
-            dispatch.status ||
-
-            dispatch.dispatchStatus ||
-
-            dispatch.state ||
-
-            dispatch.approvalStatus ||
-
-            ""
-
-        );
-
-
-    /*
-       Explicitly approved = unlock.
-    */
-
-    if (
-        explicitApproved(status)
-    ) {
-        return false;
-    }
-
-
-    /*
-       Explicitly rejected/cancelled = unlock.
-    */
-
-    if (
-        explicitRejectedOrCancelled(status)
-    ) {
-        return false;
-    }
-
-
-    /*
-       Normal pending statuses.
-    */
-
-    const knownPending = [
-
-        "pending",
-        "locked",
-        "submitted",
-        "requested",
-        "awaiting_approval",
-        "pending_approval",
-        "awaiting_admin",
-        "awaiting_admin_approval",
-        "processing"
-
-    ];
-
-
-    if (
-        knownPending.includes(status)
-    ) {
-        return true;
-    }
-
-
-    /*
-       SAFETY RULE:
-       A dispatch with no status remains frozen
-       until explicit admin approval.
-    */
-
-    if (!status) {
-        return true;
-    }
-
-
-    /*
-       Unknown dispatch status is also frozen
-       unless explicitly approved.
-    */
-
-    return true;
-
-}
-
-
-/* =========================================================
-   FIND ALL FROZEN ITEMS
-========================================================= */
-
-function getFrozenItemKeys() {
-
-    const frozenKeys =
-        new Set();
-
-
-    let pendingUnapproved =
-        false;
-
-
-    Object.entries(
-        dispatchesCache || {}
-    ).forEach(
-        ([dispatchId, dispatch]) => {
-
-            if (
-                !dispatch ||
-                typeof dispatch !== "object"
-            ) {
-                return;
-            }
-
-
-            /*
-               Admin approved?
-            */
-
-            if (
-                isExplicitlyApproved(
-                    dispatchId,
-                    dispatch
-                )
-            ) {
-
-                return;
-
-            }
-
-
-            /*
-               Still waiting?
-            */
-
-            if (
-                dispatchRequiresApproval(
-                    dispatch
-                )
-            ) {
-
-                pendingUnapproved =
-                    true;
-
-            }
-
-        }
-    );
-
-
-    /*
-       IMPORTANT:
-       Any pending/unapproved dispatch freezes
-       the ENTIRE inventory.
-    */
-
-    if (
-        pendingUnapproved
-    ) {
-
-        Object.keys(
-            inventoryCache || {}
-        ).forEach(
-            key => frozenKeys.add(key)
-        );
-
-    }
-
-
-    return frozenKeys;
-
-}
-
-
-/* =========================================================
-   INVENTORY FROZEN?
-========================================================= */
-
-function isInventoryFrozen() {
-
-    return (
-        getFrozenItemKeys().size > 0
-    );
-
-}
-
-
-/* =========================================================
-   PENDING DISPATCHES
-========================================================= */
-
-function getPendingDispatches() {
-
-    return Object.entries(
-        dispatchesCache || {}
-    ).filter(
-        ([id, dispatch]) => {
-
-            if (
-                !dispatch ||
-                typeof dispatch !== "object"
-            ) {
-                return false;
-            }
-
-
-            if (
-                isExplicitlyApproved(
-                    id,
-                    dispatch
-                )
-            ) {
-                return false;
-            }
-
-
-            return dispatchRequiresApproval(
-                dispatch
-            );
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   FREEZE MESSAGE
-========================================================= */
-
-function getFreezeMessage() {
-
-    const pending =
-        getPendingDispatches();
-
-
-    if (
-        !pending.length
-    ) {
-
-        return "Inventory is available.";
-
-    }
-
-
-    const ids =
-        pending
-        .map(
-            ([id]) => id
-        )
-        .join(", ");
-
-
-    return (
-        "Waiting for admin approval: " +
-        ids
-    );
-
-}
-
-
-/* =========================================================
-   HTML SECURITY
-========================================================= */
-
-function escapeHtml(value) {
-
-    return String(value ?? "")
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-        .replace(
-            /</g,
-            "&lt;"
-        )
-        .replace(
-            />/g,
-            "&gt;"
-        )
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-        .replace(
-            /'/g,
-            "&#039;"
-        );
-
-}
-
-
-function escapeAttr(value) {
-
-    return String(value ?? "")
-        .replace(
-            /\\/g,
-            "\\\\"
-        )
-        .replace(
-            /'/g,
-            "\\'"
-        );
-
-}
-
-
-/* =========================================================
-   SYNC QUEUE
-========================================================= */
-
-async function attemptSync() {
-
-    if (
-        !navigator.onLine ||
-        !syncQueue.length
-    ) {
-        return;
-    }
-
-
-    /*
-       NEVER sync inventory modifications
-       while frozen.
-    */
-
-    if (
-        isInventoryFrozen()
-    ) {
-        return;
-    }
-
-
-    for (
-        let i = 0;
-        i < syncQueue.length;
-        i++
-    ) {
-
-        const item =
-            syncQueue[i];
-
-
-        try {
-
-            if (
-                item.isDelete
-            ) {
-
-                await remove(
-                    ref(
-                        db,
-                        `${inventoryPath}/${item.id}`
-                    )
-                );
-
-            } else {
-
-                await update(
-
-                    ref(
-                        db,
-                        `${inventoryPath}/${item.id}`
-                    ),
-
-                    {
-
-                        id:item.id,
-
-                        name:item.name,
-
-                        qty:Number(
-                            item.qty
-                        ) || 0,
-
-                        liters:Number(
-                            item.liters
-                        ) || 0,
-
-                        salePrice:Number(
-                            item.salePrice
-                        ) || 0,
-
-                        updatedAt:
-                            item.updatedAt ||
-                            Date.now()
-
-                    }
-
-                );
-
-            }
-
-
-            syncQueue.splice(
-                i,
-                1
-            );
-
-            i--;
-
-
-            localStorage.setItem(
-
-                `ag_inv_queue_${currentUID}`,
-
-                JSON.stringify(
-                    syncQueue
-                )
-
-            );
-
-
-        } catch(error) {
-
-            console.error(
-                "Inventory sync error:",
-                error
-            );
-
-            break;
-
-        }
-
-    }
-
-}
-
-
-/* =========================================================
-   SAVE PRODUCT
-========================================================= */
-
-window.handleSave =
-async function() {
-
-    /*
-       HARD FREEZE CHECK.
-    */
-
-    if (
-        isInventoryFrozen()
-    ) {
-
-        return notify(
-
-            "ACTION BLOCKED: Inventory is frozen until admin approval.",
-
-            "error"
-
-        );
-
-    }
-
-
-    const name =
-        document
-        .getElementById(
-            "itemName"
-        )
-        .value
-        .trim();
-
-
-    const qty =
-        parseInt(
-            document
-            .getElementById(
-                "itemQty"
-            )
-            .value
-        ) || 0;
-
-
-    const liters =
-        parseFloat(
-            document
-            .getElementById(
-                "itemLiters"
-            )
-            .value
-        ) || 0;
-
-
-    const price =
-        parseFloat(
-            document
-            .getElementById(
-                "salePrice"
-            )
-            .value
-        ) || 0;
-
-
-    if (!name) {
-
-        return notify(
-            "Product name required",
-            "error"
-        );
-
-    }
-
-
-    const key =
-        name
-        .replace(
-            /\s+/g,
-            "_"
-        )
-        .toLowerCase();
-
-
-    const item = {
-
-        id:key,
-
-        name:name,
-
-        qty:qty,
-
-        liters:liters,
-
-        salePrice:price,
-
-        updatedAt:Date.now()
-
+    window.handleSave = async () => {
+        const name = document.getElementById('itemName').value.trim();
+        const qty = parseInt(document.getElementById('itemQty').value) || 0;
+        const price = parseFloat(document.getElementById('salePrice').value) || 0;
+        const liters = parseFloat(document.getElementById('itemLiters').value) || 0;
+
+        if(!name) return notify("Product name required", "error");
+        const key = name.replace(/\s+/g, '_').toLowerCase();
+
+        const updatedItem = { id: key, name, qty, liters, salePrice: price };
+        inventoryCache[key] = updatedItem;
+        syncQueue.push(updatedItem);
+
+        localStorage.setItem(`ag_inv_cache_${currentUID}`, JSON.stringify(inventoryCache));
+        localStorage.setItem(`ag_inv_queue_${currentUID}`, JSON.stringify(syncQueue));
+        
+        resetForm();
+        renderDashboard();
+        renderAdminList();
+        notify("Saved successfully");
+        attemptSync();
     };
 
-
-    inventoryCache[key] =
-        item;
-
-
-    syncQueue.push(
-        item
-    );
-
-
-    saveLocal();
-
-
-    resetForm();
-
-    renderDashboard();
-
-    renderAdminList();
-
-
-    notify(
-        "Product saved successfully",
-        "success"
-    );
-
-
-    await attemptSync();
-
-};
-
-
-/* =========================================================
-   DELETE PRODUCT
-========================================================= */
-
-window.popDelete =
-function(key) {
-
-    if (
-        isInventoryFrozen()
-    ) {
-
-        return notify(
-
-            "ACTION BLOCKED: Inventory is frozen until admin approval.",
-
-            "error"
-
-        );
-
-    }
-
-
-    document
-    .getElementById(
-        "modalOverlay"
-    )
-    .style.display = "flex";
-
-
-    document
-    .getElementById(
-        "modalConfirmBtn"
-    )
-    .onclick =
-    async function() {
-
-
-        /*
-           Re-check before delete.
-        */
-
-        if (
-            isInventoryFrozen()
-        ) {
-
+    window.popDelete = (k) => {
+        document.getElementById('modalOverlay').style.display = 'flex';
+        document.getElementById('modalConfirmBtn').onclick = () => {
+            delete inventoryCache[k];
+            syncQueue.push({ id: k, isDelete: true });
+            localStorage.setItem(`ag_inv_cache_${currentUID}`, JSON.stringify(inventoryCache));
+            localStorage.setItem(`ag_inv_queue_${currentUID}`, JSON.stringify(syncQueue));
             closeModal();
-
-            return notify(
-
-                "ACTION BLOCKED: Admin approval is still pending.",
-
-                "error"
-
-            );
-
-        }
-
-
-        delete inventoryCache[key];
-
-
-        syncQueue.push({
-
-            id:key,
-
-            isDelete:true
-
-        });
-
-
-        saveLocal();
-
-
-        closeModal();
-
-
-        renderDashboard();
-
-        renderAdminList();
-
-
-        notify(
-            "Item deleted",
-            "success"
-        );
-
-
-        await attemptSync();
-
+            renderDashboard();
+            renderAdminList();
+            notify("Item deleted");
+            attemptSync();
+        };
     };
 
-};
-
-
-/* =========================================================
-   RENDER DASHBOARD
-========================================================= */
-
-window.renderDashboard =
-function() {
-
-    const container =
-        document
-        .getElementById(
-            "inventoryContainer"
-        );
-
-
-    const search =
-        document
-        .getElementById(
-            "searchInput"
-        )
-        .value
-        .trim()
-        .toLowerCase();
-
-
-    const freezeBanner =
-        document
-        .getElementById(
-            "freezeBanner"
-        );
-
-
-    const freezeStatus =
-        document
-        .getElementById(
-            "freezeStatus"
-        );
-
-
-    const addButton =
-        document
-        .getElementById(
-            "addButton"
-        );
-
-
-    container.innerHTML = "";
-
-
-    const frozen =
-        isInventoryFrozen();
-
-
-    if (frozen) {
-
-        freezeBanner
-        .classList
-        .add("active");
-
-
-        freezeStatus.textContent =
-            getFreezeMessage();
-
-
-        addButton.disabled =
-            true;
-
-    } else {
-
-        freezeBanner
-        .classList
-        .remove("active");
-
-
-        addButton.disabled =
-            false;
-
-    }
-
-
-    const keys =
-        Object.keys(
-            inventoryCache || {}
-        )
-        .sort();
-
-
-    if (!keys.length) {
-
-        container.innerHTML = `
-
-            <div
-                style="
-                    grid-column:1/-1;
-                    text-align:center;
-                    padding:40px;
-                    color:var(--text-sub)
-                ">
-
-                No inventory items found.
-                Tap '+' to add products.
-
-            </div>
-
-        `;
-
-        return;
-
-    }
-
-
-    keys.forEach(
-        key => {
-
-            const item =
-                inventoryCache[key] || {};
-
-
-            if (
-                !String(
-                    item.name || ""
-                )
-                .toLowerCase()
-                .includes(search)
-            ) {
-
-                return;
-
-            }
-
-
-            const isFrozen =
-                frozen;
-
-
-            let status =
-
-                Number(
-                    item.qty || 0
-                ) > 5
-
-                ? "status-good"
-
-                : Number(
-                    item.qty || 0
-                ) > 0
-
-                ? "status-low"
-
-                : "status-out";
-
-
-            if (
-                isFrozen
-            ) {
-
-                status =
-                    "status-frozen";
-
-            }
-
-
-            container.innerHTML += `
-
-                <div
-                    class="stock-item ${status}"
-                    style="${
-                        isFrozen
-                        ? "opacity:.86"
-                        : ""
-                    }">
-
-                    <div class="item-info">
-
-                        <h3>
-
-                            ${escapeHtml(
-                                item.name
-                            )}
-
-                            ${
-                                isFrozen
-                                ? `
-
-                                    <span
-                                        style="
-                                            display:block;
-                                            color:var(--warning);
-                                            font-size:9px;
-                                            margin-top:3px;
-                                            font-weight:800
-                                        ">
-
-                                        🔒 FROZEN —
-                                        ADMIN APPROVAL REQUIRED
-
-                                    </span>
-
-                                  `
-                                : ""
-                            }
-
-                        </h3>
-
-                        <p>
-
-                            ${Number(
-                                item.liters || 0
-                            )}L
-
-                            •
-
-                            KES ${Number(
-                                item.salePrice || 0
-                            ).toLocaleString()}
-
-                        </p>
-
-                    </div>
-
-
-                    <div class="qty-val">
-
-                        ${Number(
-                            item.qty || 0
-                        )}
-
-                    </div>
-
-                </div>
-
-            `;
-
-        }
-    );
-
-};
-
-
-/* =========================================================
-   ADMIN LIST
-========================================================= */
-
-window.renderAdminList =
-function() {
-
-    const container =
-        document
-        .getElementById(
-            "adminManageList"
-        );
-
-
-    const frozen =
-        isInventoryFrozen();
-
-
-    container.innerHTML = "";
-
-
-    if (
-        frozen
-    ) {
-
-        container.innerHTML += `
-
-            <div
-                style="
-                    background:#fef3c7;
-                    color:#92400e;
-                    border:1px solid #f59e0b;
-                    padding:13px;
-                    border-radius:12px;
-                    font-size:11px;
-                    font-weight:700;
-                    margin-bottom:12px
-                ">
-
-                🔒 INVENTORY LOCKED
-
-                <br>
-
-                ${escapeHtml(
-                    getFreezeMessage()
-                )}
-
-            </div>
-
-        `;
-
-    }
-
-
-    Object.keys(
-        inventoryCache || {}
-    )
-    .sort()
-    .forEach(
-        key => {
-
-            const item =
-                inventoryCache[key] || {};
-
-
-            container.innerHTML += `
-
-                <div class="manage-item">
-
-                    <div
-                        style="
-                            font-size:13px;
-                            font-weight:700;
-                            color:var(--primary)
-                        ">
-
-                        ${escapeHtml(
-                            item.name
-                        )}
-
-                        <span
-                            style="
-                                font-weight:400;
-                                color:var(--text-sub)
-                            ">
-
-                            (${Number(
-                                item.qty || 0
-                            )} units)
-
-                        </span>
-
-                    </div>
-
-
-                    <div
-                        style="
-                            display:flex;
-                            gap:6px
-                        ">
-
-                        <button
-                            class="btn-main"
-                            style="
-                                width:auto;
-                                padding:8px 14px;
-                                font-size:11px
-                            "
-                            onclick="fillForm('${escapeAttr(key)}')"
-                            ${frozen ? "disabled" : ""}>
-
-                            Edit
-
-                        </button>
-
-
-                        <button
-                            class="btn-main"
-                            style="
-                                width:auto;
-                                padding:8px 14px;
-                                font-size:11px;
-                                background:var(--danger)
-                            "
-                            onclick="popDelete('${escapeAttr(key)}')"
-                            ${frozen ? "disabled" : ""}>
-
-                            Del
-
-                        </button>
-
-                    </div>
-
-                </div>
-
-            `;
-
-        }
-    );
-
-};
-
-
-/* =========================================================
-   FIREBASE INVENTORY LISTENER
-========================================================= */
-
-onValue(
-    ref(
-        db,
-        inventoryPath
-    ),
-
-    snap => {
-
-        inventoryCache =
-            snap.exists()
-            ? (
-                snap.val() || {}
-              )
-            : {};
-
-
-        saveLocal();
-
-        renderDashboard();
-
-        renderAdminList();
-
-    }
-
-);
-
-
-/* =========================================================
-   FIREBASE DISPATCH LISTENER
-========================================================= */
-
-/*
-    THIS IS THE IMPORTANT FIX.
-
-    Your Firebase screenshot shows:
-
-        /dispatches
-            /RS-06867338
-
-    NOT:
-
-        /users/{UID}/dispatches
-
-    Therefore this listener reads ROOT /dispatches.
-*/
-
-onValue(
-    ref(
-        db,
-        dispatchesPath
-    ),
-
-    snap => {
-
-        dispatchesCache =
-            snap.exists()
-            ? (
-                snap.val() || {}
-              )
-            : {};
-
-
-        saveLocal();
-
-
-        console.log(
-            "AssetGuard ROOT dispatches:",
-            dispatchesCache
-        );
-
-
-        console.log(
-            "Pending unapproved dispatches:",
-            getPendingDispatches()
-        );
-
-
-        renderDashboard();
-
-        renderAdminList();
-
-    }
-
-);
-
-
-/* =========================================================
-   ADMIN APPROVAL LISTENERS
-========================================================= */
-
-approvalPaths.forEach(
-    path => {
-
-        onValue(
-            ref(
-                db,
-                path
-            ),
-
-            snap => {
-
-                approvalCaches[path] =
-                    snap.exists()
-                    ? (
-                        snap.val() || {}
-                      )
-                    : {};
-
-
-                saveLocal();
-
-                renderDashboard();
-
-                renderAdminList();
-
-
-                /*
-                   Once admin approval is detected,
-                   queued inventory operations can sync.
-                */
-
-                if (
-                    !isInventoryFrozen()
-                ) {
-
-                    attemptSync();
-
-                }
-
-            }
-        );
-
-    }
-);
-
-
-/* =========================================================
-   PIN
-========================================================= */
-
-let pinBuffer = "";
-
-
-window.pressNum =
-function(n) {
-
-    if (
-        n === "C"
-    ) {
-
-        pinBuffer = "";
-
-    } else if (
-        n === "⌫"
-    ) {
-
-        pinBuffer =
-            pinBuffer.slice(
-                0,
-                -1
-            );
-
-    } else if (
-        pinBuffer.length < 4
-    ) {
-
-        pinBuffer += n;
-
-    }
-
-
-    document
-    .querySelectorAll(
-        ".pin-dot"
-    )
-    .forEach(
-        (dot,index) => {
-
-            dot.style.background =
-                index < pinBuffer.length
-                ? "var(--accent)"
-                : "transparent";
-
-        }
-    );
-
-
-    if (
-        pinBuffer.length === 4
-    ) {
-
-
-        if (
-            pinBuffer === "1234"
-        ) {
-
-
-            /*
-               PIN CANNOT BYPASS FREEZE.
-            */
-
-            if (
-                isInventoryFrozen()
-            ) {
-
-                notify(
-
-                    "Access blocked: inventory is frozen until admin approval.",
-
-                    "error"
-
-                );
-
-
-                pinBuffer = "";
-
-
-                document
-                .querySelectorAll(
-                    ".pin-dot"
-                )
-                .forEach(
-                    dot =>
-                        dot.style.background =
-                            "transparent"
-                );
-
-
-                return;
-
-            }
-
-
-            switchView(
-                "view-admin"
-            );
-
-
+    window.renderDashboard = () => {
+        const container = document.getElementById('inventoryContainer');
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        const freezeBanner = document.getElementById('freezeBanner');
+        container.innerHTML = '';
+        
+        const frozenKeys = getFrozenItemKeys();
+        const hasPending = Object.values(dispatchesCache).some(d => d.status === 'pending');
+        
+        if (hasPending) {
+            freezeBanner.classList.add('active');
         } else {
-
-
-            notify(
-                "Invalid PIN",
-                "error"
-            );
-
-
-            pinBuffer = "";
-
-
-            document
-            .querySelectorAll(
-                ".pin-dot"
-            )
-            .forEach(
-                dot =>
-                    dot.style.background =
-                        "transparent"
-            );
-
+            freezeBanner.classList.remove('active');
         }
 
-    }
-
-};
-
-
-/* =========================================================
-   SWITCH VIEW
-========================================================= */
-
-window.switchView =
-function(id) {
-
-    document
-    .querySelectorAll(
-        ".view"
-    )
-    .forEach(
-        v =>
-            v.classList.remove(
-                "active"
-            )
-    );
-
-
-    document
-    .getElementById(id)
-    .classList.add(
-        "active"
-    );
-
-};
-
-
-/* =========================================================
-   OPEN ADMIN
-========================================================= */
-
-window.openAdmin =
-function() {
-
-    if (
-        isInventoryFrozen()
-    ) {
-
-        return notify(
-
-            "Inventory is frozen until admin approval.",
-
-            "error"
-
-        );
-
-    }
-
-
-    pinBuffer = "";
-
-
-    document
-    .querySelectorAll(
-        ".pin-dot"
-    )
-    .forEach(
-        dot =>
-            dot.style.background =
-                "transparent"
-    );
-
-
-    switchView(
-        "view-pin"
-    );
-
-};
-
-
-/* =========================================================
-   EDIT
-========================================================= */
-
-window.fillForm =
-function(key) {
-
-    if (
-        isInventoryFrozen()
-    ) {
-
-        return notify(
-
-            "Action blocked: inventory is frozen until admin approval.",
-
-            "error"
-
-        );
-
-    }
-
-
-    const item =
-        inventoryCache[key];
-
-
-    if (!item) {
-        return;
-    }
-
-
-    document
-    .getElementById(
-        "itemName"
-    )
-    .value =
-        item.name || "";
-
-
-    document
-    .getElementById(
-        "itemQty"
-    )
-    .value =
-        item.qty ?? "";
-
-
-    document
-    .getElementById(
-        "itemLiters"
-    )
-    .value =
-        item.liters ?? "";
-
-
-    document
-    .getElementById(
-        "salePrice"
-    )
-    .value =
-        item.salePrice ?? "";
-
-
-    switchView(
-        "view-admin"
-    );
-
-};
-
-
-/* =========================================================
-   MODAL
-========================================================= */
-
-window.closeModal =
-function() {
-
-    document
-    .getElementById(
-        "modalOverlay"
-    )
-    .style.display =
-        "none";
-
-};
-
-
-/* =========================================================
-   NOTIFICATION
-========================================================= */
-
-window.notify =
-function(
-    message,
-    type = ""
-) {
-
-    const toast =
-        document.createElement(
-            "div"
-        );
-
-
-    toast.className =
-        `toast ${type}`;
-
-
-    toast.innerText =
-        message;
-
-
-    document
-    .getElementById(
-        "toastContainer"
-    )
-    .appendChild(
-        toast
-    );
-
-
-    setTimeout(
-        () => toast.remove(),
-        3200
-    );
-
-};
-
-
-/* =========================================================
-   RESET FORM
-========================================================= */
-
-function resetForm() {
-
-    [
-        "itemName",
-        "itemQty",
-        "itemLiters",
-        "salePrice"
-
-    ].forEach(
-        id => {
-
-            document
-            .getElementById(
-                id
-            )
-            .value = "";
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   ONLINE SYNC
-========================================================= */
-
-window.addEventListener(
-    "online",
-    () => {
-
-        if (
-            !isInventoryFrozen()
-        ) {
-
-            attemptSync();
-
+        const keys = Object.keys(inventoryCache).sort();
+        if(keys.length === 0) {
+            container.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding: 40px; color: var(--text-sub);">No inventory items found. Tap '+' to add products.</div>`;
+            return;
         }
 
-    }
-);
+        keys.forEach(k => {
+            const item = inventoryCache[k];
+            if(!item.name.toLowerCase().includes(search)) return;
 
+            const isItemFrozen = frozenKeys.has(k);
+            let status = item.qty > 5 ? 'status-good' : (item.qty > 0 ? 'status-low' : 'status-out');
+            if (isItemFrozen) status = 'status-frozen';
 
-/* =========================================================
-   PAGE VISIBILITY
-========================================================= */
+            container.innerHTML += `
+                <div class="stock-item ${status}">
+                    <div class="item-info">
+                        <h3>${item.name} ${isItemFrozen ? '<span style="color:var(--warning); font-size:10px;">[FROZEN]</span>' : ''}</h3>
+                        <p>${item.liters || 0}L • KES ${(item.salePrice || 0).toLocaleString()}</p>
+                    </div>
+                    <div class="qty-val">${item.qty}</div>
+                </div>`;
+        });
+    };
 
-document.addEventListener(
-    "visibilitychange",
-    () => {
+    window.renderAdminList = () => {
+        const container = document.getElementById('adminManageList');
+        container.innerHTML = '';
+        Object.keys(inventoryCache).sort().forEach(k => {
+            const item = inventoryCache[k];
+            container.innerHTML += `
+                <div class="manage-item">
+                    <div style="font-size:13px; font-weight:700; color:var(--primary);">${item.name} <span style="font-weight:400; color:var(--text-sub);">(${item.qty} units)</span></div>
+                    <div style="display:flex; gap:6px;">
+                        <button class="btn-main" style="width:auto; padding:8px 14px; font-size:11px" onclick="fillForm('${k}')">Edit</button>
+                        <button class="btn-main" style="width:auto; padding:8px 14px; font-size:11px; background:var(--danger)" onclick="popDelete('${k}')">Del</button>
+                    </div>
+                </div>`;
+        });
+    };
 
-        if (
-            !document.hidden
-        ) {
-
+    // Firebase Listeners
+    onValue(ref(db, cloudPath), (snap) => {
+        if(snap.exists()) {
+            inventoryCache = snap.val();
+            localStorage.setItem(`ag_inv_cache_${currentUID}`, JSON.stringify(inventoryCache));
             renderDashboard();
-
             renderAdminList();
-
-
-            if (
-                !isInventoryFrozen()
-            ) {
-
-                attemptSync();
-
-            }
-
         }
+    });
 
-    }
-);
+    onValue(ref(db, dispatchesPath), (snap) => {
+        if(snap.exists()) {
+            dispatchesCache = snap.val();
+            localStorage.setItem(`ag_dispatches_cache_${currentUID}`, JSON.stringify(dispatchesCache));
+            renderDashboard();
+        } else {
+            dispatchesCache = {};
+            localStorage.setItem(`ag_dispatches_cache_${currentUID}`, JSON.stringify(dispatchesCache));
+            renderDashboard();
+        }
+    });
 
-
-/* =========================================================
-   INITIAL RENDER
-========================================================= */
-
-renderDashboard();
-
-renderAdminList();
-
+    let pinBuffer = "";
+    window.pressNum = (n) => {
+        if(n === 'C') pinBuffer = ""; else if(n === '⌫') pinBuffer = pinBuffer.slice(0, -1); else if(pinBuffer.length < 4) pinBuffer += n;
+        document.querySelectorAll('.pin-dot').forEach((d, i) => { d.style.background = i < pinBuffer.length ? "var(--accent)" : "transparent"; });
+        if(pinBuffer.length === 4) { if(pinBuffer === "1234") switchView('view-admin'); else { notify("Invalid PIN", "error"); pinBuffer = ""; document.querySelectorAll('.pin-dot').forEach(d => d.style.background = "transparent"); } }
+    };
+    
+    window.switchView = (id) => { document.querySelectorAll('.view').forEach(v => v.classList.remove('active')); document.getElementById(id).classList.add('active'); };
+    window.openAdmin = () => { pinBuffer = ""; document.querySelectorAll('.pin-dot').forEach(d => d.style.background = "transparent"); switchView('view-pin'); };
+    window.fillForm = (k) => { 
+        const i = inventoryCache[k]; 
+        document.getElementById('itemName').value = i.name; 
+        document.getElementById('itemLiters').value = i.liters; 
+        document.getElementById('salePrice').value = i.salePrice; 
+        document.getElementById('itemQty').value = i.qty; 
+        switchView('view-admin'); 
+    };
+    window.closeModal = () => document.getElementById('modalOverlay').style.display = 'none';
+    window.notify = (m) => { 
+        const t = document.createElement('div'); 
+        t.className = 'toast'; 
+        t.innerText = m; 
+        document.getElementById('toastContainer').appendChild(t); 
+        setTimeout(() => t.remove(), 2500); 
+    };
+    function resetForm() { ['itemName', 'itemQty', 'itemLiters', 'salePrice'].forEach(id => document.getElementById(id).value = ''); }
+    window.addEventListener('online', attemptSync);
+    renderDashboard();
+    renderAdminList();
 </script>
-
 </body>
 </html>
