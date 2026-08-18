@@ -1,53 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Instant Security Lock Overlay -->
-<div id="securityLock" style="position:fixed;inset:0;background:#f4f7fa;z-index:99999;display:flex;align-items:center;justify-content:center;text-align:center;font-family:'Poppins',sans-serif;">
-    <div style="width:90%;max-width:340px;background:#fff;border-radius:20px;padding:25px;box-shadow:0 10px 35px rgba(0,0,0,.08)">
-        <h3 style="margin:0 0 8px;color:#0f172a;font-size:18px;">Checking Access...</h3>
-        <p style="margin:0;color:#64748b;font-size:12px;">Please wait.</p>
-    </div>
-</div>
-
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-
-    const LOGIN_PAGE = "index.html";
-
-    // 1. INSTANT CHECK: Firebase stores auth state locally. 
-    // If no session exists in localStorage, kick them out instantly (0ms delay, no hanging).
-    const hasLocalSession = Object.keys(localStorage).some(key => key.startsWith('firebase:authUser:'));
-    if (!hasLocalSession) {
-        window.location.replace(LOGIN_PAGE);
-    } else {
-        // Unlock instantly if local session exists so it feels like there is no protection
-        const lock = document.getElementById("securityLock");
-        if (lock) lock.style.display = "none";
-    }
-
-    // 2. BACKGROUND VERIFICATION: Real Firebase check runs quietly behind the scenes
-    const auth = getAuth(initializeApp({
-        apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA",
-        authDomain: "assetguard-c8c8c.firebaseapp.com",
-        projectId: "assetguard-c8c8c",
-        databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com"
-    }));
-
-    onAuthStateChanged(auth, (user) => {
-        if (!user) {
-            window.location.replace(LOGIN_PAGE);
-        } else {
-            const lock = document.getElementById("securityLock");
-            if (lock) lock.style.display = "none";
-        }
-    });
-
-    window.addEventListener("pageshow", () => {
-        if (!auth.currentUser && !hasLocalSession) window.location.replace(LOGIN_PAGE);
-    });
-</script>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AssetGuard Pro - The Hub</title>
