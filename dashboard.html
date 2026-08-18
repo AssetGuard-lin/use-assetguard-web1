@@ -434,7 +434,7 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
         <div class="label">Operations</div>
         <div class="nav-link" onclick="loadPage('sales')">Sales Terminal</div>
         <div class="nav-link" onclick="loadPage('purchases')">Purchases</div>
-        <div class="nav-link" onclick="loadPage('marketing-team')">Marketing team</div>
+<div class="nav-link" onclick="loadPage('marketing-team')">Marketing team</div>
         
         <div class="label">Relationships</div>
         <div class="nav-link" onclick="loadPage('crm')" style="color:#4ade80;">Customer Registry</div>
@@ -444,7 +444,7 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
         
         <div class="label">Finance</div>
         <div class="nav-link" onclick="loadPage('expenses')">Record Expense</div>
-        <div class="nav-link" onclick="loadPage('bi_dashboard')">BI Dashboard</div>
+   <div class="nav-link" onclick="loadPage('bi_dashboard')">BI Dashboard</div>
         <div class="nav-link" onclick="loadPage('master-ledger')">Master Ledger</div>
         
         <div class="label">Reports</div>
@@ -489,13 +489,13 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
             </div>
 
             <div class="asset-card col-4">
-                <div class="asset-icon">📦</div>
+                <div class="asset-icon"></div>
                 <div class="asset-title">Real-Time Inventory Engine</div>
                 <div class="asset-desc">Track precise stock levels, Weighted Average Costs (WAC), and automated low-stock reorder thresholds.</div>
             </div>
 
             <div class="asset-card col-4">
-                <div class="asset-icon">📊</div>
+                <div class="asset-icon"></div>
                 <div class="asset-title">Automated Master Ledger</div>
                 <div class="asset-desc">Every checkout or petty cash adjustment writes double-entry records, producing instantaneous P&L reports.</div>
             </div>
@@ -666,6 +666,7 @@ let allUserNotificationsCache = {};
 let isAiSelectiveMode = false;
 let isAgentSelectiveMode = false;
 
+// Global Window Click Listener to Shrink/Close Clear Menus When Clicking Outside
 window.addEventListener('click', (e) => {
     const aiMenu = document.getElementById('aiClearMenu');
     const agentMenu = document.getElementById('agentClearMenu');
@@ -678,6 +679,7 @@ window.addEventListener('click', (e) => {
     }
 });
 
+// HTML Escape helper to prevent injection
 function escapeHtml(str) {
     if (!str) return '';
     return String(str)
@@ -688,6 +690,7 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;');
 }
 
+// Automated log pruner to keep database clean and prevent bloat lag
 function pruneOldActivityLogs() {
     const logsRef = rtdb.ref('user_activity_logs');
     logsRef.orderByChild('timestamp').once('value', (snapshot) => {
@@ -707,6 +710,7 @@ function pruneOldActivityLogs() {
     });
 }
 
+// Audit Activity Logger
 function logUserActivity(category, description) {
     try {
         rtdb.ref('user_activity_logs').push({
@@ -722,22 +726,26 @@ function logUserActivity(category, description) {
     }
 }
 
+// Unified Notification Listener (Broadcasts + Individual Direct Notices)
 function initBroadcastListener() {
+    // 1. Global Broadcasts
     rtdb.ref('system_broadcasts').on('value', (snapshot) => {
         allBroadcastsCache = snapshot.val() || {};
         renderCombinedNotifications();
     });
 
+    // 2. Individual Direct Admin Notifications
     if (activeUID) {
         rtdb.ref(`user_notifications/${activeUID}`).on('value', (snapshot) => {
             allUserNotificationsCache = snapshot.val() || {};
             renderCombinedNotifications();
         });
 
+        // Popup toast for new individual notices arriving in real-time
         rtdb.ref(`user_notifications/${activeUID}`).on('child_added', (snapshot) => {
             const notif = snapshot.val();
             if (!notif) return;
-            if (Date.now() - (notif.timestamp || 0) < 60000) {
+            if (Date.now() - (notif.timestamp || 0) < 60000) { // within last minute
                 showAdminNotificationPopup(notif.title || "Admin Notice", notif.message || "");
             }
         });
@@ -747,10 +755,12 @@ function initBroadcastListener() {
 function renderCombinedNotifications() {
     let combinedList = [];
 
+    // Add global broadcasts
     for (let id in allBroadcastsCache) {
         combinedList.push({ id, ...allBroadcastsCache[id], origin: 'Broadcast' });
     }
 
+    // Add individual user direct notifications
     for (let id in allUserNotificationsCache) {
         combinedList.push({ 
             id, 
@@ -781,6 +791,7 @@ function renderCombinedNotifications() {
     renderBroadcastModalList(combinedList);
 }
 
+// Clear All Notifications Handler
 async function clearAllNotifications() {
     try {
         if (activeUID) {
@@ -881,6 +892,7 @@ function renderBroadcastModalList(itemsList) {
     container.innerHTML = html;
 }
 
+// Notification Bell Drag & 12-Second Snap-Back Logic
 const notificationBellBtn = document.getElementById('notificationBellBtn');
 let isBellDragging = false;
 let bellDragStartX = 0, bellDragStartY = 0;
@@ -942,6 +954,7 @@ notificationBellBtn.addEventListener('pointerup', (e) => {
     }
 });
 
+// Draggable WhatsApp Button Logic with Screen Boundary Clamping & Adaptive Popup Positioning
 const chatWidgetBtn = document.getElementById('chatWidgetBtn');
 const agentSubBtn = document.getElementById('agentSubBtn');
 const aiSubBtn = document.getElementById('aiSubBtn');
@@ -1079,6 +1092,7 @@ function openAiChat() {
     logUserActivity('SUPPORT', 'Opened Ask AI Guide');
 }
 
+// Clear Menu Toggles & Execution
 function toggleClearMenu(type) {
     const aiMenu = document.getElementById('aiClearMenu');
     const agentMenu = document.getElementById('agentClearMenu');
@@ -1449,6 +1463,7 @@ function cancelAgentReplyHighlight() {
     document.getElementById('agentReplyingBar').style.display = 'none';
 }
 
+// Unified, Race-Free Subscription and Access Guard
 function enforceSubscriptionLock(isExpired, reason = "Subscription Expired") {
     const blocker = document.getElementById('hubSubscriptionBlocker');
     const titleEl = document.getElementById('hubBlockTitle');
@@ -2001,22 +2016,23 @@ window.sendAgentMessage = async () => {
                     }
                 });
                 activeSelectedTicketId = newTicketRef.key;
-                appendAgentMessage('agent-reply', `✅ Ticket ${ticketNumber} created successfully! Our support team will respond shortly.`);
-                logUserActivity('SUPPORT', 'Created new support ticket');
+                initRealtimeChatListener();
+                appendAgentMessage('agent-reply', `✅ New Issue ticket ${ticketNumber} transmitted successfully.`);
+                logUserActivity('SUPPORT', `Created new support issue ticket: ${ticketNumber}`);
             }
         } catch (error) {
-            console.error("Failed to send agent message:", error);
-            appendAgentMessage('agent-reply', '❌ Failed to send message. Please try again.');
+            appendAgentMessage('agent-reply', `⚠️ Error: ${error.message}`);
         }
         cancelAgentReplyHighlight();
         return;
     }
 
-    try {
+    // Default message sending if no explicit flow state is active
+    if (!activeSelectedTicketId) {
         const ticketNumber = "AG-" + Math.floor(1000 + Math.random() * 9000);
         const newTicketRef = rtdb.ref('support_tickets').push();
         const initialMsgKey = newTicketRef.child('conversation').push().key;
-        await newTicketRef.set({
+        newTicketRef.set({
             uid: activeUID || "Anonymous",
             ticketNumber: ticketNumber,
             status: "Pending",
@@ -2028,16 +2044,25 @@ window.sendAgentMessage = async () => {
                     timestamp: Date.now()
                 }
             }
+        }).then(() => {
+            activeSelectedTicketId = newTicketRef.key;
+            initRealtimeChatListener();
+            logUserActivity('SUPPORT', `Created support ticket ${ticketNumber} via direct input`);
         });
-        activeSelectedTicketId = newTicketRef.key;
-        appendAgentMessage('agent-reply', `✅ Ticket ${ticketNumber} created successfully! Our support team will respond shortly.`);
-        logUserActivity('SUPPORT', 'Created new support ticket');
-    } catch (error) {
-        console.error("Failed to send agent message:", error);
-        appendAgentMessage('agent-reply', '❌ Failed to send message. Please try again.');
+    } else {
+        const ticketRef = rtdb.ref('support_tickets/' + activeSelectedTicketId);
+        ticketRef.child('conversation').push({
+            sender: 'user',
+            text: text,
+            replyToText: agentHighlightedMessageSnippet || null,
+            timestamp: Date.now()
+        }).then(() => {
+            ticketRef.update({ last_updated: Date.now() });
+            logUserActivity('SUPPORT', 'Sent message to existing support ticket');
+        });
     }
     cancelAgentReplyHighlight();
-}
+};
 </script>
 </body>
 </html>
