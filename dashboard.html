@@ -2025,7 +2025,6 @@ window.sendAgentMessage = async () => {
                 [initialMsgKey]: {
                     sender: 'user',
                     text: text,
-                    replyToText: agentHighlightedMessageSnippet || null,
                     timestamp: Date.now()
                 }
             }
@@ -2038,7 +2037,7 @@ window.sendAgentMessage = async () => {
         appendAgentMessage('agent-reply', '❌ Failed to send message. Please try again.');
     }
     cancelAgentReplyHighlight();
-};
+}
 </script>
 </body>
 </html>
