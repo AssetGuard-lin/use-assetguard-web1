@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+  // Check if user is logged in (e.g., looking for a token in localStorage)
+  if (!localStorage.getItem('authToken')) {
+      window.location.href = 'login.html'; // Redirect to login page
+  }
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AssetGuard Pro - The Hub</title>
@@ -2036,7 +2043,6 @@ window.sendAgentMessage = async () => {
         console.error("Failed to send agent message:", error);
         appendAgentMessage('agent-reply', '❌ Failed to send message. Please try again.');
     }
-    cancelAgentReplyHighlight();
 }
 </script>
 </body>
