@@ -2036,6 +2036,7 @@ window.sendAgentMessage = async () => {
         console.error("Failed to send agent message:", error);
         appendAgentMessage('agent-reply', '❌ Failed to send message. Please try again.');
     }
+    cancelAgentReplyHighlight();
 }
 </script>
 </body>
