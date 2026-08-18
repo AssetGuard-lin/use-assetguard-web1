@@ -1,11 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<style>
+  /* Hide the page content completely until auth is verified */
+  body { visibility: hidden; }
+</style>
+
 <script>
-  // Place this ONLY inside dashboard.html, NOT index.html
-  if (!localStorage.getItem('ag_active_uid') || localStorage.getItem('ag_session_active') !== 'true') {
-      window.location.replace('index.html');
+  const firebaseConfig = {
+    apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA",
+    authDomain: "assetguard-c8c8c.firebaseapp.com",
+    projectId: "assetguard-c8c8c",
+    databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com"
+  };
+
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
   }
+
+  const auth = firebase.auth();
+
+  // Instant Auth State Guard
+  auth.onAuthStateChanged((user) => {
+    if (!user) {
+      // User is NOT logged in -> Immediately redirect to login
+      window.location.replace("index.html");
+    } else {
+      // User IS logged in -> Reveal the page content
+      document.body.style.visibility = "visible";
+    }
+  });
 </script>
 
 <meta charset="UTF-8">
