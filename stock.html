@@ -11,7 +11,6 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         body { font-family: 'Poppins', sans-serif; background: var(--bg); margin: 0; padding: 0; color: var(--text-main); line-height: 1.5; overflow-x: hidden; }
 
-        /* SECURITY: page stays hidden until Firebase confirms authentication */
         body.auth-checking {
             visibility: hidden;
             pointer-events: none;
@@ -107,6 +106,7 @@
 <div class="app-container">
 
     <div id="view-dashboard" class="view active">
+
         <div id="freezeBanner" class="freeze-banner">
             <span>⚠️ INVENTORY FROZEN: Pending marketing dispatches awaiting admin approval. All stock locked.</span>
         </div>
@@ -117,21 +117,32 @@
         </div>
 
         <div id="inventoryContainer" class="stock-container"></div>
+
     </div>
 
     <div id="view-pin" class="view">
+
         <div style="text-align: center; padding-top: 20px;">
-            <h3 style="font-size: 18px; color: var(--primary);">Manager PIN Access</h3>
-            <p style="font-size: 12px; color: var(--text-sub); margin-bottom: 20px;">Enter 4-digit manager PIN code</p>
+
+            <h3 style="font-size: 18px; color: var(--primary);">
+                Manager PIN Access
+            </h3>
+
+            <p style="font-size: 12px; color: var(--text-sub); margin-bottom: 20px;">
+                Enter 4-digit manager PIN code
+            </p>
 
             <div class="pin-dots" style="display: flex; justify-content: center; gap: 12px; margin: 20px 0 30px 0;">
-                <div class="pin-dot" style="width:14px; height:14px; border-radius:50%; border:2px solid #cbd5e1;"></div>
-                <div class="pin-dot" style="width:14px; height:14px; border-radius:50%; border:2px solid #cbd5e1;"></div>
-                <div class="pin-dot" style="width:14px; height:14px; border-radius:50%; border:2px solid #cbd5e1;"></div>
-                <div class="pin-dot" style="width:14px; height:14px; border-radius:50%; border:2px solid #cbd5e1;"></div>
+
+                <div class="pin-dot" style="width:14px;height:14px;border-radius:50%;border:2px solid #cbd5e1;"></div>
+                <div class="pin-dot" style="width:14px;height:14px;border-radius:50%;border:2px solid #cbd5e1;"></div>
+                <div class="pin-dot" style="width:14px;height:14px;border-radius:50%;border:2px solid #cbd5e1;"></div>
+                <div class="pin-dot" style="width:14px;height:14px;border-radius:50%;border:2px solid #cbd5e1;"></div>
+
             </div>
 
             <div class="numpad">
+
                 <button class="num-btn" onclick="pressNum('1')">1</button>
                 <button class="num-btn" onclick="pressNum('2')">2</button>
                 <button class="num-btn" onclick="pressNum('3')">3</button>
@@ -147,42 +158,87 @@
                 <button class="num-btn" onclick="pressNum('C')" style="color:var(--danger)">C</button>
                 <button class="num-btn" onclick="pressNum('0')">0</button>
                 <button class="num-btn" onclick="pressNum('⌫')">⌫</button>
+
             </div>
 
-            <button class="btn-main" style="background:transparent; color:#64748b; margin-top:25px; box-shadow:none;" onclick="switchView('view-dashboard')">Cancel</button>
+            <button class="btn-main"
+                style="background:transparent;color:#64748b;margin-top:25px;box-shadow:none;"
+                onclick="switchView('view-dashboard')">
+                Cancel
+            </button>
+
         </div>
+
     </div>
 
     <div id="view-admin" class="view">
 
         <div class="controls-row">
-            <h2 style="font-size: 18px; flex: 1; margin:0; color: var(--primary);">Control Center</h2>
-            <button style="background:#f1f5f9; border:none; padding: 12px 18px; border-radius:12px; font-weight:700; cursor:pointer; font-family:inherit;" onclick="switchView('view-dashboard')">Back</button>
+
+            <h2 style="font-size:18px;flex:1;margin:0;color:var(--primary);">
+                Control Center
+            </h2>
+
+            <button
+                style="background:#f1f5f9;border:none;padding:12px 18px;border-radius:12px;font-weight:700;cursor:pointer;font-family:inherit;"
+                onclick="switchView('view-dashboard')">
+                Back
+            </button>
+
         </div>
 
         <div class="admin-form">
-            <h4 id="formTitle" style="margin:0 0 15px 0; font-size: 15px; color: var(--primary);">Product Editor</h4>
 
-            <input type="text" id="itemName" class="modern-input" placeholder="Product Name">
+            <h4 id="formTitle"
+                style="margin:0 0 15px 0;font-size:15px;color:var(--primary);">
+                Product Editor
+            </h4>
 
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
-                <input type="number" id="itemQty" class="modern-input" placeholder="Quantity">
-                <input type="number" id="itemLiters" class="modern-input" placeholder="Volume (Liters)">
+            <input
+                type="text"
+                id="itemName"
+                class="modern-input"
+                placeholder="Product Name">
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+
+                <input
+                    type="number"
+                    id="itemQty"
+                    class="modern-input"
+                    placeholder="Quantity">
+
+                <input
+                    type="number"
+                    id="itemLiters"
+                    class="modern-input"
+                    placeholder="Volume (Liters)">
+
             </div>
 
-            <input type="number" id="salePrice" class="modern-input" placeholder="Price (KES)" step="0.01">
+            <input
+                type="number"
+                id="salePrice"
+                class="modern-input"
+                placeholder="Price (KES)"
+                step="0.01">
 
-            <button class="btn-main" onclick="handleSave()">Save Product</button>
+            <button class="btn-main" onclick="handleSave()">
+                Save Product
+            </button>
+
         </div>
 
         <div id="adminManageList"></div>
+
     </div>
 
 </div>
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 
 import {
     getAuth,
@@ -194,470 +250,1390 @@ import {
     getDatabase,
     ref,
     onValue,
-    set,
     remove,
     update
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
+
+/* =========================================================
+   FIREBASE
+========================================================= */
+
 const firebaseConfig = {
+
     apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA",
+
     authDomain: "assetguard-c8c8c.firebaseapp.com",
+
     projectId: "assetguard-c8c8c",
-    databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com"
+
+    databaseURL:
+        "https://assetguard-c8c8c-default-rtdb.firebaseio.com"
+
 };
 
 const app = initializeApp(firebaseConfig);
+
 const auth = getAuth(app);
+
 const db = getDatabase(app);
+
+
+/* =========================================================
+   LOGIN PAGE
+========================================================= */
 
 const LOGIN_URL = "index.html";
 
+
+/* =========================================================
+   AUTH STATE
+   IMPORTANT:
+   DO NOT CHECK auth.currentUser BEFORE Firebase FINISHES
+   RESTORING THE SESSION.
+========================================================= */
+
+let authResolved = false;
 let authenticatedUser = null;
-let securityReady = false;
+let inventoryInitialized = false;
+
+
+/* =========================================================
+   AUTH LISTENER
+========================================================= */
 
 onAuthStateChanged(auth, async (user) => {
 
+    /*
+     * Firebase has now finished checking the existing session.
+     */
+
+    authResolved = true;
+
     if (!user) {
+
         authenticatedUser = null;
-        securityReady = false;
+
+        inventoryInitialized = false;
 
         localStorage.removeItem("ag_active_uid");
         localStorage.removeItem("ag_session_active");
         localStorage.removeItem("ag_user_role");
 
         document.body.classList.add("auth-checking");
+
+        /*
+         * ONLY NOW redirect.
+         */
+
         window.location.replace(LOGIN_URL);
+
         return;
     }
+
+
+    /*
+     * USER IS AUTHENTICATED
+     */
 
     authenticatedUser = user;
-    const currentUID = user.uid;
 
-    localStorage.setItem("ag_active_uid", currentUID);
-    localStorage.setItem("ag_session_active", "true");
+    localStorage.setItem(
+        "ag_active_uid",
+        user.uid
+    );
 
-    try {
-        await user.getIdToken(true);
-    } catch (error) {
-        console.error("Authentication validation failed:", error);
-        try { await signOut(auth); } catch (_) {}
-        window.location.replace(LOGIN_URL);
-        return;
-    }
+    localStorage.setItem(
+        "ag_session_active",
+        "true"
+    );
 
-    securityReady = true;
+
+    /*
+     * SHOW THE PAGE IMMEDIATELY.
+     *
+     * Do NOT force getIdToken(true) here.
+     * That was causing unnecessary delays/session problems.
+     */
+
     document.body.classList.remove("auth-checking");
 
-    initializeInventoryForAuthenticatedUser(currentUID);
+
+    /*
+     * Initialize only once.
+     */
+
+    if (!inventoryInitialized) {
+
+        inventoryInitialized = true;
+
+        initializeInventoryForAuthenticatedUser(
+            user.uid
+        );
+
+    }
+
 });
 
+
+/* =========================================================
+   AUTHENTICATION GUARD
+========================================================= */
+
 function requireAuthentication() {
-    if (!securityReady || !authenticatedUser || !auth.currentUser) {
-        document.body.classList.add("auth-checking");
-        window.location.replace(LOGIN_URL);
+
+    /*
+     * Firebase is still restoring the session.
+     * Do NOT redirect.
+     */
+
+    if (!authResolved) {
+
         return false;
+
     }
 
-    if (authenticatedUser.uid !== auth.currentUser.uid) {
+
+    /*
+     * Firebase finished and there is no user.
+     */
+
+    if (!authenticatedUser || !auth.currentUser) {
+
         document.body.classList.add("auth-checking");
+
         window.location.replace(LOGIN_URL);
+
         return false;
+
     }
+
+
+    /*
+     * Make sure UID hasn't changed.
+     */
+
+    if (
+        authenticatedUser.uid !==
+        auth.currentUser.uid
+    ) {
+
+        document.body.classList.add("auth-checking");
+
+        window.location.replace(LOGIN_URL);
+
+        return false;
+
+    }
+
 
     return true;
+
 }
+
+
+/* =========================================================
+   INVENTORY
+========================================================= */
 
 function initializeInventoryForAuthenticatedUser(currentUID) {
 
-    if (!requireAuthentication()) return;
+    const cloudPath =
+        `users/${currentUID}/inventory`;
 
-    const cloudPath = `users/${currentUID}/inventory`;
-    const dispatchesPath = `users/${currentUID}/dispatches`;
+    const dispatchesPath =
+        `users/${currentUID}/dispatches`;
+
 
     let inventoryCache = {};
-    try {
-        inventoryCache = JSON.parse(localStorage.getItem(`ag_inv_cache_${currentUID}`)) || {};
-    } catch (e) {
-        inventoryCache = {};
-    }
 
     let dispatchesCache = {};
-    try {
-        dispatchesCache = JSON.parse(localStorage.getItem(`ag_dispatches_cache_${currentUID}`)) || {};
-    } catch (e) {
-        dispatchesCache = {};
-    }
 
     let syncQueue = [];
+
+
+    /*
+     * LOAD LOCAL INVENTORY IMMEDIATELY
+     *
+     * This makes the page feel instant.
+     */
+
     try {
-        syncQueue = JSON.parse(localStorage.getItem(`ag_inv_queue_${currentUID}`)) || [];
+
+        inventoryCache =
+            JSON.parse(
+                localStorage.getItem(
+                    `ag_inv_cache_${currentUID}`
+                )
+            ) || {};
+
     } catch (e) {
-        syncQueue = [];
+
+        inventoryCache = {};
+
     }
 
+
+    try {
+
+        dispatchesCache =
+            JSON.parse(
+                localStorage.getItem(
+                    `ag_dispatches_cache_${currentUID}`
+                )
+            ) || {};
+
+    } catch (e) {
+
+        dispatchesCache = {};
+
+    }
+
+
+    try {
+
+        syncQueue =
+            JSON.parse(
+                localStorage.getItem(
+                    `ag_inv_queue_${currentUID}`
+                )
+            ) || [];
+
+    } catch (e) {
+
+        syncQueue = [];
+
+    }
+
+
+    /*
+     * RENDER LOCAL DATA FIRST
+     */
+
+    renderDashboard();
+
+    renderAdminList();
+
+
+    /* =====================================================
+       SYNC OFFLINE CHANGES
+    ===================================================== */
+
     async function attemptSync() {
-        if (!requireAuthentication()) return;
-        if (!navigator.onLine || syncQueue.length === 0) return;
 
-        const verifiedUser = auth.currentUser;
-        if (!verifiedUser || verifiedUser.uid !== currentUID) {
-            window.location.replace(LOGIN_URL);
-            return;
-        }
+        if (!authResolved) return;
 
-        for (let i = 0; i < syncQueue.length; i++) {
-            if (!requireAuthentication()) return;
+        if (!authenticatedUser) return;
+
+        if (!auth.currentUser) return;
+
+        if (
+            authenticatedUser.uid !==
+            auth.currentUser.uid
+        ) return;
+
+        if (!navigator.onLine) return;
+
+        if (syncQueue.length === 0) return;
+
+
+        for (
+            let i = 0;
+            i < syncQueue.length;
+            i++
+        ) {
+
+            if (!auth.currentUser) return;
+
             const item = syncQueue[i];
 
             try {
+
                 if (item.isDelete) {
-                    await remove(ref(db, `${cloudPath}/${item.id}`));
+
+                    await remove(
+                        ref(
+                            db,
+                            `${cloudPath}/${item.id}`
+                        )
+                    );
+
                 } else {
-                    await update(ref(db, `${cloudPath}/${item.id}`), item);
+
+                    await update(
+                        ref(
+                            db,
+                            `${cloudPath}/${item.id}`
+                        ),
+                        item
+                    );
+
                 }
 
+
                 syncQueue.splice(i, 1);
-                localStorage.setItem(`ag_inv_queue_${currentUID}`, JSON.stringify(syncQueue));
+
+                localStorage.setItem(
+                    `ag_inv_queue_${currentUID}`,
+                    JSON.stringify(syncQueue)
+                );
+
                 i--;
-            } catch (e) {
-                console.error("Inventory sync failed:", e);
+
+            } catch (error) {
+
+                console.error(
+                    "Inventory sync failed:",
+                    error
+                );
+
                 break;
+
             }
+
         }
+
     }
+
+
+    /* =====================================================
+       FROZEN STOCK
+    ===================================================== */
 
     function getFrozenItemKeys() {
+
         const frozenKeys = new Set();
-        const hasAnyPending = Object.values(dispatchesCache).some(d => d && String(d.status || "").toLowerCase() === "pending");
+
+        const hasAnyPending =
+            Object.values(dispatchesCache)
+            .some(
+                d =>
+                    d &&
+                    String(
+                        d.status || ""
+                    ).toLowerCase() ===
+                    "pending"
+            );
+
 
         if (hasAnyPending) {
-            Object.keys(inventoryCache).forEach(k => frozenKeys.add(k));
+
+            Object.keys(inventoryCache)
+                .forEach(
+                    k =>
+                        frozenKeys.add(k)
+                );
+
         }
+
+
         return frozenKeys;
+
     }
 
+
+    /* =====================================================
+       SAVE PRODUCT
+    ===================================================== */
+
     window.handleSave = async () => {
-        if (!requireAuthentication()) return;
-
-        const name = document.getElementById('itemName').value.trim();
-        const qty = parseInt(document.getElementById('itemQty').value) || 0;
-        const price = parseFloat(document.getElementById('salePrice').value) || 0;
-        const liters = parseFloat(document.getElementById('itemLiters').value) || 0;
-
-        if (!name) return notify("Product name required", "error");
-
-        const key = name.replace(/\s+/g, '_').toLowerCase();
-
-        const updatedItem = {
-            id: key,
-            name,
-            qty,
-            liters,
-            salePrice: price
-        };
 
         if (!requireAuthentication()) return;
 
-        inventoryCache[key] = updatedItem;
-        syncQueue.push(updatedItem);
 
-        localStorage.setItem(`ag_inv_cache_${currentUID}`, JSON.stringify(inventoryCache));
-        localStorage.setItem(`ag_inv_queue_${currentUID}`, JSON.stringify(syncQueue));
+        const name =
+            document
+                .getElementById("itemName")
+                .value
+                .trim();
 
-        resetForm();
-        renderDashboard();
-        renderAdminList();
-        notify("Saved successfully");
+        const qty =
+            parseInt(
+                document
+                    .getElementById("itemQty")
+                    .value
+            ) || 0;
 
-        attemptSync();
-    };
+        const price =
+            parseFloat(
+                document
+                    .getElementById("salePrice")
+                    .value
+            ) || 0;
 
-    window.popDelete = (k) => {
-        if (!requireAuthentication()) return;
+        const liters =
+            parseFloat(
+                document
+                    .getElementById("itemLiters")
+                    .value
+            ) || 0;
 
-        document.getElementById('modalOverlay').style.display = 'flex';
-        document.getElementById('modalConfirmBtn').onclick = async () => {
-            if (!requireAuthentication()) return;
 
-            delete inventoryCache[k];
-            syncQueue.push({ id: k, isDelete: true });
+        if (!name) {
 
-            localStorage.setItem(`ag_inv_cache_${currentUID}`, JSON.stringify(inventoryCache));
-            localStorage.setItem(`ag_inv_queue_${currentUID}`, JSON.stringify(syncQueue));
+            return notify(
+                "Product name required"
+            );
 
-            closeModal();
-            renderDashboard();
-            renderAdminList();
-            notify("Item deleted");
-
-            attemptSync();
-        };
-    };
-
-    window.renderDashboard = () => {
-        if (!requireAuthentication()) return;
-
-        const container = document.getElementById('inventoryContainer');
-        const search = document.getElementById('searchInput').value.toLowerCase();
-        const freezeBanner = document.getElementById('freezeBanner');
-
-        container.innerHTML = '';
-
-        const frozenKeys = getFrozenItemKeys();
-        const hasPending = Object.values(dispatchesCache).some(d => d && String(d.status || "").toLowerCase() === "pending");
-
-        if (hasPending) {
-            freezeBanner.classList.add('active');
-        } else {
-            freezeBanner.classList.remove('active');
         }
 
-        const keys = Object.keys(inventoryCache).sort();
 
-        if (keys.length === 0) {
+        const key =
+            name
+                .replace(
+                    /\s+/g,
+                    "_"
+                )
+                .toLowerCase();
+
+
+        const updatedItem = {
+
+            id: key,
+
+            name,
+
+            qty,
+
+            liters,
+
+            salePrice: price
+
+        };
+
+
+        inventoryCache[key] =
+            updatedItem;
+
+
+        syncQueue.push(
+            updatedItem
+        );
+
+
+        localStorage.setItem(
+            `ag_inv_cache_${currentUID}`,
+            JSON.stringify(
+                inventoryCache
+            )
+        );
+
+
+        localStorage.setItem(
+            `ag_inv_queue_${currentUID}`,
+            JSON.stringify(
+                syncQueue
+            )
+        );
+
+
+        resetForm();
+
+        renderDashboard();
+
+        renderAdminList();
+
+        notify(
+            "Saved successfully"
+        );
+
+
+        /*
+         * Firebase sync happens in background.
+         * UI does NOT wait.
+         */
+
+        attemptSync();
+
+    };
+
+
+    /* =====================================================
+       DELETE
+    ===================================================== */
+
+    window.popDelete = (k) => {
+
+        if (!requireAuthentication()) return;
+
+
+        document
+            .getElementById(
+                "modalOverlay"
+            )
+            .style.display = "flex";
+
+
+        document
+            .getElementById(
+                "modalConfirmBtn"
+            )
+            .onclick = async () => {
+
+                if (
+                    !requireAuthentication()
+                ) return;
+
+
+                delete inventoryCache[k];
+
+
+                syncQueue.push({
+
+                    id: k,
+
+                    isDelete: true
+
+                });
+
+
+                localStorage.setItem(
+                    `ag_inv_cache_${currentUID}`,
+                    JSON.stringify(
+                        inventoryCache
+                    )
+                );
+
+
+                localStorage.setItem(
+                    `ag_inv_queue_${currentUID}`,
+                    JSON.stringify(
+                        syncQueue
+                    )
+                );
+
+
+                closeModal();
+
+                renderDashboard();
+
+                renderAdminList();
+
+                notify(
+                    "Item deleted"
+                );
+
+
+                attemptSync();
+
+            };
+
+    };
+
+
+    /* =====================================================
+       DASHBOARD
+    ===================================================== */
+
+    window.renderDashboard = () => {
+
+        if (!authResolved) return;
+
+        if (
+            !authenticatedUser ||
+            !auth.currentUser
+        ) return;
+
+
+        const container =
+            document.getElementById(
+                "inventoryContainer"
+            );
+
+        const search =
+            document
+                .getElementById(
+                    "searchInput"
+                )
+                .value
+                .toLowerCase();
+
+
+        const freezeBanner =
+            document.getElementById(
+                "freezeBanner"
+            );
+
+
+        container.innerHTML = "";
+
+
+        const frozenKeys =
+            getFrozenItemKeys();
+
+
+        const hasPending =
+            Object.values(
+                dispatchesCache
+            )
+            .some(
+                d =>
+                    d &&
+                    String(
+                        d.status || ""
+                    ).toLowerCase() ===
+                    "pending"
+            );
+
+
+        if (hasPending) {
+
+            freezeBanner
+                .classList
+                .add("active");
+
+        } else {
+
+            freezeBanner
+                .classList
+                .remove("active");
+
+        }
+
+
+        const keys =
+            Object
+                .keys(
+                    inventoryCache
+                )
+                .sort();
+
+
+        if (
+            keys.length === 0
+        ) {
+
             container.innerHTML = `
                 <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-sub);">
                     No inventory items found. Tap '+' to add products.
                 </div>
             `;
+
             return;
+
         }
+
+
+        let visibleItems = 0;
+
 
         keys.forEach(k => {
-            const item = inventoryCache[k];
-            if (!item || !item.name) return;
-            if (!item.name.toLowerCase().includes(search)) return;
 
-            const isItemFrozen = frozenKeys.has(k);
-            let status = item.qty > 5 ? 'status-good' : (item.qty > 0 ? 'status-low' : 'status-out');
+            const item =
+                inventoryCache[k];
 
-            if (isItemFrozen) status = 'status-frozen';
+
+            if (
+                !item ||
+                !item.name
+            ) return;
+
+
+            if (
+                !item.name
+                    .toLowerCase()
+                    .includes(search)
+            ) return;
+
+
+            visibleItems++;
+
+
+            const isItemFrozen =
+                frozenKeys.has(k);
+
+
+            let status =
+                item.qty > 5
+                    ? "status-good"
+                    : (
+                        item.qty > 0
+                            ? "status-low"
+                            : "status-out"
+                    );
+
+
+            if (
+                isItemFrozen
+            ) {
+
+                status =
+                    "status-frozen";
+
+            }
+
 
             container.innerHTML += `
+
                 <div class="stock-item ${status}">
+
                     <div class="item-info">
+
                         <h3>
                             ${escapeHTML(item.name)}
-                            ${isItemFrozen ? '<span style="color:var(--warning);font-size:10px;">[FROZEN]</span>' : ''}
+
+                            ${
+                                isItemFrozen
+                                ?
+                                '<span style="color:var(--warning);font-size:10px;">[FROZEN]</span>'
+                                :
+                                ''
+                            }
+
                         </h3>
-                        <p>${item.liters || 0}L • KES ${(item.salePrice || 0).toLocaleString()}</p>
+
+                        <p>
+                            ${item.liters || 0}L
+                            •
+                            KES
+                            ${(item.salePrice || 0).toLocaleString()}
+                        </p>
+
                     </div>
-                    <div class="qty-val">${item.qty || 0}</div>
+
+                    <div class="qty-val">
+                        ${item.qty || 0}
+                    </div>
+
                 </div>
+
             `;
+
         });
+
+
+        if (
+            visibleItems === 0
+        ) {
+
+            container.innerHTML = `
+
+                <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-sub);">
+
+                    No matching products found.
+
+                </div>
+
+            `;
+
+        }
+
     };
+
+
+    /* =====================================================
+       ADMIN LIST
+    ===================================================== */
 
     window.renderAdminList = () => {
-        if (!requireAuthentication()) return;
 
-        const container = document.getElementById('adminManageList');
-        container.innerHTML = '';
+        if (!authResolved) return;
 
-        Object.keys(inventoryCache).sort().forEach(k => {
-            const item = inventoryCache[k];
-            if (!item) return;
+        if (
+            !authenticatedUser ||
+            !auth.currentUser
+        ) return;
 
-            container.innerHTML += `
-                <div class="manage-item">
-                    <div style="font-size:13px;font-weight:700;color:var(--primary);">
-                        ${escapeHTML(item.name)}
-                        <span style="font-weight:400;color:var(--text-sub);">(${item.qty || 0} units)</span>
+
+        const container =
+            document.getElementById(
+                "adminManageList"
+            );
+
+
+        container.innerHTML = "";
+
+
+        Object
+            .keys(
+                inventoryCache
+            )
+            .sort()
+            .forEach(k => {
+
+                const item =
+                    inventoryCache[k];
+
+
+                if (!item) return;
+
+
+                container.innerHTML += `
+
+                    <div class="manage-item">
+
+                        <div style="font-size:13px;font-weight:700;color:var(--primary);">
+
+                            ${escapeHTML(item.name)}
+
+                            <span style="font-weight:400;color:var(--text-sub);">
+
+                                (${item.qty || 0} units)
+
+                            </span>
+
+                        </div>
+
+                        <div style="display:flex;gap:6px;">
+
+                            <button
+                                class="btn-main"
+                                style="width:auto;padding:8px 14px;font-size:11px"
+                                onclick="fillForm('${escapeAttribute(k)}')">
+
+                                Edit
+
+                            </button>
+
+                            <button
+                                class="btn-main"
+                                style="width:auto;padding:8px 14px;font-size:11px;background:var(--danger)"
+                                onclick="popDelete('${escapeAttribute(k)}')">
+
+                                Del
+
+                            </button>
+
+                        </div>
+
                     </div>
-                    <div style="display:flex;gap:6px;">
-                        <button class="btn-main" style="width:auto;padding:8px 14px;font-size:11px" onclick="fillForm('${escapeAttribute(k)}')">Edit</button>
-                        <button class="btn-main" style="width:auto;padding:8px 14px;font-size:11px;background:var(--danger)" onclick="popDelete('${escapeAttribute(k)}')">Del</button>
-                    </div>
-                </div>
-            `;
-        });
+
+                `;
+
+            });
+
     };
 
-    onValue(ref(db, cloudPath), (snap) => {
-        if (!requireAuthentication()) return;
 
-        if (snap.exists()) {
-            inventoryCache = snap.val();
-            localStorage.setItem(`ag_inv_cache_${currentUID}`, JSON.stringify(inventoryCache));
-        } else {
-            inventoryCache = {};
-            localStorage.setItem(`ag_inv_cache_${currentUID}`, JSON.stringify(inventoryCache));
+    /* =====================================================
+       FIREBASE INVENTORY LISTENER
+    ===================================================== */
+
+    onValue(
+        ref(db, cloudPath),
+
+        (snap) => {
+
+            /*
+             * If user signs out while listener is active,
+             * ignore the result.
+             */
+
+            if (
+                !authenticatedUser ||
+                !auth.currentUser
+            ) return;
+
+
+            if (snap.exists()) {
+
+                inventoryCache =
+                    snap.val();
+
+            } else {
+
+                inventoryCache = {};
+
+            }
+
+
+            localStorage.setItem(
+                `ag_inv_cache_${currentUID}`,
+                JSON.stringify(
+                    inventoryCache
+                )
+            );
+
+
+            renderDashboard();
+
+            renderAdminList();
+
+        },
+
+        (error) => {
+
+            console.error(
+                "Inventory Firebase error:",
+                error
+            );
+
+
+            if (
+                error &&
+                (
+                    error.code ===
+                    "PERMISSION_DENIED" ||
+
+                    String(
+                        error.message || ""
+                    )
+                    .toLowerCase()
+                    .includes(
+                        "permission"
+                    )
+                )
+            ) {
+
+                notify(
+                    "Access denied.",
+                    "error"
+                );
+
+            }
+
         }
 
-        renderDashboard();
-        renderAdminList();
-    }, (error) => {
-        console.error("Inventory Firebase error:", error);
-        if (error && (error.code === "PERMISSION_DENIED" || String(error.message || "").toLowerCase().includes("permission"))) {
-            notify("Access denied. Please sign in again.", "error");
-            signOut(auth).finally(() => { window.location.replace(LOGIN_URL); });
+    );
+
+
+    /* =====================================================
+       DISPATCH LISTENER
+    ===================================================== */
+
+    onValue(
+        ref(db, dispatchesPath),
+
+        (snap) => {
+
+            if (
+                !authenticatedUser ||
+                !auth.currentUser
+            ) return;
+
+
+            if (snap.exists()) {
+
+                dispatchesCache =
+                    snap.val();
+
+            } else {
+
+                dispatchesCache = {};
+
+            }
+
+
+            localStorage.setItem(
+                `ag_dispatches_cache_${currentUID}`,
+                JSON.stringify(
+                    dispatchesCache
+                )
+            );
+
+
+            renderDashboard();
+
+        },
+
+        (error) => {
+
+            console.error(
+                "Dispatch Firebase error:",
+                error
+            );
+
         }
-    });
 
-    onValue(ref(db, dispatchesPath), (snap) => {
-        if (!requireAuthentication()) return;
+    );
 
-        if (snap.exists()) {
-            dispatchesCache = snap.val();
-            localStorage.setItem(`ag_dispatches_cache_${currentUID}`, JSON.stringify(dispatchesCache));
-        } else {
-            dispatchesCache = {};
-            localStorage.setItem(`ag_dispatches_cache_${currentUID}`, JSON.stringify(dispatchesCache));
-        }
 
-        renderDashboard();
-    }, (error) => {
-        console.error("Dispatch Firebase error:", error);
-    });
+    /* =====================================================
+       PIN
+    ===================================================== */
 
     let pinBuffer = "";
 
+
     window.pressNum = (n) => {
-        if (!requireAuthentication()) return;
 
-        if (n === 'C') {
+        if (!requireAuthentication())
+            return;
+
+
+        if (n === "C") {
+
             pinBuffer = "";
-        } else if (n === '⌫') {
-            pinBuffer = pinBuffer.slice(0, -1);
-        } else if (pinBuffer.length < 4) {
+
+        }
+
+        else if (
+            n === "⌫"
+        ) {
+
+            pinBuffer =
+                pinBuffer.slice(
+                    0,
+                    -1
+                );
+
+        }
+
+        else if (
+            pinBuffer.length < 4
+        ) {
+
             pinBuffer += n;
+
         }
 
-        document.querySelectorAll('.pin-dot').forEach((d, i) => {
-            d.style.background = i < pinBuffer.length ? "var(--accent)" : "transparent";
-        });
 
-        if (pinBuffer.length === 4) {
-            if (pinBuffer === "1234") {
-                switchView('view-admin');
-            } else {
-                notify("Invalid PIN", "error");
-                pinBuffer = "";
-                document.querySelectorAll('.pin-dot').forEach(d => d.style.background = "transparent");
+        document
+            .querySelectorAll(
+                ".pin-dot"
+            )
+            .forEach(
+                (d, i) => {
+
+                    d.style.background =
+                        i < pinBuffer.length
+                            ? "var(--accent)"
+                            : "transparent";
+
+                }
+            );
+
+
+        if (
+            pinBuffer.length === 4
+        ) {
+
+            if (
+                pinBuffer === "1234"
+            ) {
+
+                switchView(
+                    "view-admin"
+                );
+
             }
+
+            else {
+
+                notify(
+                    "Invalid PIN",
+                    "error"
+                );
+
+
+                pinBuffer = "";
+
+
+                document
+                    .querySelectorAll(
+                        ".pin-dot"
+                    )
+                    .forEach(
+                        d =>
+                            d.style.background =
+                                "transparent"
+                    );
+
+            }
+
         }
+
     };
+
+
+    /* =====================================================
+       VIEW
+    ===================================================== */
 
     window.switchView = (id) => {
-        if (!requireAuthentication()) return;
 
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        const target = document.getElementById(id);
-        if (target) target.classList.add('active');
+        if (!requireAuthentication())
+            return;
+
+
+        document
+            .querySelectorAll(
+                ".view"
+            )
+            .forEach(
+                v =>
+                    v.classList.remove(
+                        "active"
+                    )
+            );
+
+
+        const target =
+            document.getElementById(
+                id
+            );
+
+
+        if (target) {
+
+            target.classList.add(
+                "active"
+            );
+
+        }
+
     };
+
+
+    /* =====================================================
+       OPEN ADMIN
+    ===================================================== */
 
     window.openAdmin = () => {
-        if (!requireAuthentication()) return;
+
+        if (!requireAuthentication())
+            return;
+
 
         pinBuffer = "";
-        document.querySelectorAll('.pin-dot').forEach(d => d.style.background = "transparent");
-        switchView('view-pin');
+
+
+        document
+            .querySelectorAll(
+                ".pin-dot"
+            )
+            .forEach(
+                d =>
+                    d.style.background =
+                        "transparent"
+            );
+
+
+        switchView(
+            "view-pin"
+        );
+
     };
+
+
+    /* =====================================================
+       EDIT
+    ===================================================== */
 
     window.fillForm = (k) => {
-        if (!requireAuthentication()) return;
 
-        const i = inventoryCache[k];
+        if (!requireAuthentication())
+            return;
+
+
+        const i =
+            inventoryCache[k];
+
+
         if (!i) return;
 
-        document.getElementById('itemName').value = i.name || "";
-        document.getElementById('itemLiters').value = i.liters || "";
-        document.getElementById('salePrice').value = i.salePrice || "";
-        document.getElementById('itemQty').value = i.qty || "";
 
-        switchView('view-admin');
+        document
+            .getElementById(
+                "itemName"
+            )
+            .value =
+                i.name || "";
+
+
+        document
+            .getElementById(
+                "itemLiters"
+            )
+            .value =
+                i.liters || "";
+
+
+        document
+            .getElementById(
+                "salePrice"
+            )
+            .value =
+                i.salePrice || "";
+
+
+        document
+            .getElementById(
+                "itemQty"
+            )
+            .value =
+                i.qty || "";
+
+
+        switchView(
+            "view-admin"
+        );
+
     };
+
+
+    /* =====================================================
+       MODAL
+    ===================================================== */
 
     window.closeModal = () => {
-        if (!requireAuthentication()) return;
-        document.getElementById('modalOverlay').style.display = 'none';
+
+        if (!requireAuthentication())
+            return;
+
+
+        document
+            .getElementById(
+                "modalOverlay"
+            )
+            .style.display =
+                "none";
+
     };
+
+
+    /* =====================================================
+       TOAST
+    ===================================================== */
 
     window.notify = (m) => {
-        const t = document.createElement('div');
-        t.className = 'toast';
-        t.innerText = m;
-        document.getElementById('toastContainer').appendChild(t);
-        setTimeout(() => t.remove(), 2500);
+
+        const t =
+            document.createElement(
+                "div"
+            );
+
+
+        t.className =
+            "toast";
+
+
+        t.innerText =
+            m;
+
+
+        document
+            .getElementById(
+                "toastContainer"
+            )
+            .appendChild(t);
+
+
+        setTimeout(
+            () => t.remove(),
+            2500
+        );
+
     };
 
+
+    /* =====================================================
+       RESET FORM
+    ===================================================== */
+
     function resetForm() {
-        ['itemName', 'itemQty', 'itemLiters', 'salePrice'].forEach(id => document.getElementById(id).value = '');
+
+        [
+            "itemName",
+            "itemQty",
+            "itemLiters",
+            "salePrice"
+        ]
+        .forEach(
+            id =>
+                document
+                    .getElementById(id)
+                    .value = ""
+        );
+
     }
+
+
+    /* =====================================================
+       HTML SECURITY
+    ===================================================== */
 
     function escapeHTML(value) {
+
         return String(value)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
+
+            .replace(
+                /&/g,
+                "&amp;"
+            )
+
+            .replace(
+                /</g,
+                "&lt;"
+            )
+
+            .replace(
+                />/g,
+                "&gt;"
+            )
+
+            .replace(
+                /"/g,
+                "&quot;"
+            )
+
+            .replace(
+                /'/g,
+                "&#039;"
+            );
+
     }
+
 
     function escapeAttribute(value) {
+
         return String(value)
-            .replace(/\\/g, "\\\\")
-            .replace(/'/g, "\\'");
+
+            .replace(
+                /\\/g,
+                "\\\\"
+            )
+
+            .replace(
+                /'/g,
+                "\\'"
+            );
+
     }
 
-    window.addEventListener('online', () => {
-        if (requireAuthentication()) attemptSync();
-    });
 
-    renderDashboard();
-    renderAdminList();
+    /* =====================================================
+       ONLINE SYNC
+    ===================================================== */
 
-    setInterval(async () => {
-        if (!auth.currentUser) {
-            document.body.classList.add("auth-checking");
-            window.location.replace(LOGIN_URL);
-            return;
+    window.addEventListener(
+        "online",
+        () => {
+
+            if (
+                authResolved &&
+                authenticatedUser &&
+                auth.currentUser
+            ) {
+
+                attemptSync();
+
+            }
+
         }
+    );
 
-        try {
-            await auth.currentUser.getIdToken(true);
-        } catch (error) {
-            console.error("Session validation failed:", error);
-            try { await signOut(auth); } catch (_) {}
-            document.body.classList.add("auth-checking");
-            window.location.replace(LOGIN_URL);
-        }
-    }, 60000);
+
+    /*
+     * Try pending offline changes once.
+     */
+
+    setTimeout(
+        () => attemptSync(),
+        100
+    );
+
 }
 
-document.addEventListener("visibilitychange", async () => {
-    if (document.visibilityState !== "visible") return;
 
-    if (!auth.currentUser) {
-        document.body.classList.add("auth-checking");
-        window.location.replace(LOGIN_URL);
-        return;
-    }
-
-    try {
-        await auth.currentUser.getIdToken(true);
-    } catch (error) {
-        try { await signOut(auth); } catch (_) {}
-        document.body.classList.add("auth-checking");
-        window.location.replace(LOGIN_URL);
-    }
-});
-
-window.addEventListener("pageshow", async () => {
-    if (!auth.currentUser) {
-        document.body.classList.add("auth-checking");
-        window.location.replace(LOGIN_URL);
-        return;
-    }
-
-    try {
-        await auth.currentUser.getIdToken(true);
-    } catch (error) {
-        try { await signOut(auth); } catch (_) {}
-        document.body.classList.add("auth-checking");
-        window.location.replace(LOGIN_URL);
-    }
-});
+/* =========================================================
+   IMPORTANT:
+   NO pageshow auth redirect.
+   NO visibilitychange auth redirect.
+   NO forced getIdToken(true) every minute.
+   
+   Firebase onAuthStateChanged is the authority.
+========================================================= */
 
 </script>
 
