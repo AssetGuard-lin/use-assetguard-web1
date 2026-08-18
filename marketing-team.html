@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>RouteStock Pro — Direct Admin Dispatches & Admin Portal</title>
+<title>RouteStock Pro — Direct Dispatches & Live Tracking</title>
 
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -41,12 +41,13 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 .topbar{ display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:14px; }
 .page-title h2{ font-size:22px; letter-spacing:-.5px; }
 .page-title p{ font-size:12px; color:var(--muted); margin-top:4px; }
-.top-actions{ display:flex; gap:8px; }
+.top-actions{ display:flex; gap:8px; align-items:center; }
 
 .btn{ border:0; border-radius:11px; padding:12px 15px; font-weight:800; font-size:13px; min-height:44px; display:inline-flex; align-items:center; justify-content:center; text-decoration:none; width:100%; }
 .btn.primary{ background:var(--blue); color:white; }
 .btn.secondary{ background:white; border:1px solid var(--line); color:var(--text); width:auto; }
 .btn.danger{ background:#fee2e2; color:var(--red); width:auto; }
+.btn.warning{ background:#fef3c7; color:var(--amber); width:auto; font-size:11px; padding:8px 10px; min-height:36px; }
 .btn:disabled{ background:#cbd5e1; color:#64748b; cursor:not-allowed; transform:none !important; opacity:0.6; }
 .btn:active{ transform:scale(.98); }
 
@@ -64,19 +65,18 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 .field input:focus, .field textarea:focus, .field select:focus{ border-color:var(--blue); box-shadow:0 0 0 3px #dbeafe; }
 .field input:disabled, .field textarea:disabled, .field select:disabled{ background:#f1f5f9; color:#94a3b8; cursor:not-allowed; }
 
-/* ADMIN PENDING ALERT QUEUE */
-.admin-alert-banner { background: linear-gradient(135deg, #78350f, #b45309); color: white; border-radius: 14px; padding: 14px; margin-bottom: 14px; display: none; }
-.admin-alert-banner.show { display: block; }
-.admin-alert-banner small { display: block; color: #fde68a; font-size: 10px; font-weight: 850; letter-spacing: .05em; }
-.admin-alert-banner strong { display: block; font-size: 15px; margin-top: 3px; }
-.admin-alert-banner span { display: block; font-size: 11px; color: #fef3c7; margin-top: 2px; }
+/* TOGGLE SWITCH STYLES */
+.switch { position: relative; display: inline-block; width: 36px; height: 20px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; inset: 0; background-color: #cbd5e1; transition: .3s; border-radius: 20px; }
+.slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+input:checked + .slider { background-color: var(--blue); }
+input:checked + .slider:before { transform: translateX(16px); }
 
 /* LIVE TRACKING MODULE */
-.live-tracker-box { background: #0f172a; color: #fff; border-radius: 14px; padding: 16px; margin-bottom: 12px; border: 1px solid #1e293b; }
+.live-tracker-box { background: #0f172a; color: #fff; border-radius: 14px; padding: 16px; border: 1px solid #1e293b; }
 .live-tracker-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-.live-status-indicator { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 850; padding: 5px 10px; border-radius: 20px; background: rgba(220, 38, 38, 0.2); color: #f87171; }
-.live-status-indicator.active { background: rgba(22, 163, 74, 0.2); color: #4ade80; }
-.live-status-indicator.pending { background: rgba(217, 119, 6, 0.2); color: #fbbf24; }
+.live-status-indicator { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 850; padding: 5px 10px; border-radius: 20px; background: rgba(22, 163, 74, 0.2); color: #4ade80; }
 .live-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse-dot 1.5s infinite; }
 @keyframes pulse-dot { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.2); } 100% { opacity: 1; transform: scale(1); } }
 .live-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
@@ -84,49 +84,17 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 .live-metric-card small { display: block; font-size: 9px; color: #94a3b8; font-weight: 800; }
 .live-metric-card strong { display: block; font-size: 13px; color: #fff; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* ITEMS & ROWS */
+/* CREW ROWS */
 .items{ border:1px solid var(--line); border-radius:14px; overflow:hidden; }
-.item-row{ display:grid; grid-template-columns:minmax(0,1.7fr) .75fr .85fr .85fr 38px; gap:7px; padding:10px; border-bottom:1px solid var(--line); align-items:center; position:relative; }
-.item-row:last-child{ border-bottom:0; }
 .agent-row{ display:grid; grid-template-columns:minmax(0,1.5fr) 1fr 38px; gap:7px; padding:10px; border-bottom:1px solid var(--line); align-items:center; }
 .agent-row:last-child{ border-bottom:0; }
-.item-row input, .item-row select, .agent-row input, .agent-row select{ width:100%; min-width:0; padding:10px 8px; border:1px solid var(--line); border-radius:9px; outline:none; font-size:13px; background:#fff; }
-.item-row input:disabled, .item-row select:disabled, .agent-row input:disabled, .agent-row select:disabled{ background:#f1f5f9; color:#94a3b8; cursor:not-allowed; }
+.agent-row input, .agent-row select{ width:100%; min-width:0; padding:10px 8px; border:1px solid var(--line); border-radius:9px; outline:none; font-size:13px; background:#fff; }
 .remove{ border:0; background:#fee2e2; color:var(--red); width:36px; height:36px; border-radius:9px; font-weight:900; font-size:18px; }
-.remove:disabled{ background:#f1f5f9; color:#cbd5e1; cursor:not-allowed; }
 .add-item{ border:0; background:#eff6ff; color:var(--blue); border-radius:10px; padding:9px 12px; font-size:12px; font-weight:850; width:auto; }
-.add-item:disabled{ background:#f1f5f9; color:#94a3b8; cursor:not-allowed; }
-
-/* SLEEK PRODUCT SELECTION POPUP MODAL */
-.product-modal-bg { position: fixed; inset: 0; background: rgba(5,12,25,0.55); backdrop-filter: blur(4px); z-index: 300; display: none; align-items: center; justify-content: center; padding: 14px; }
-.product-modal { background: white; width: min(380px, 94vw); border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.25); overflow: hidden; display: flex; flex-direction: column; max-height: 75vh; animation: modal-pop 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
-@keyframes modal-pop { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-.product-modal-head { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); background: #f8fafc; }
-.product-modal-head h3 { font-size: 14px; font-weight: 850; }
-.product-modal-tools { padding: 10px 14px; display: flex; gap: 8px; border-bottom: 1px solid var(--line); background: #fff; }
-.product-modal-tools input { flex: 1; padding: 9px 12px; border: 1px solid var(--line); border-radius: 9px; font-size: 12px; outline: none; background: #fff; color: var(--text); }
-.product-modal-tools input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px #dbeafe; }
-.product-modal-list { overflow-y: auto; max-height: 240px; padding: 8px; background: #fafbfc; }
-.product-modal-item { padding: 10px 12px; border-radius: 10px; margin-bottom: 6px; background: #fff; border: 1px solid var(--line); cursor: pointer; transition: all 0.1s ease; }
-.product-modal-item:last-child { margin-bottom: 0; }
-.product-modal-item:hover { background: #f0fdf4; border-color: var(--green); }
-.product-modal-item b { display: block; font-size: 12px; color: var(--text); }
-.product-modal-item span { display: block; font-size: 10px; color: var(--muted); margin-top: 2px; }
-
-.product-select-trigger { width: 100%; border: 1px solid var(--line); border-radius: 9px; background: #fff; padding: 10px 8px; outline: none; font-size: 13px; color: var(--text); text-align: left; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.product-select-trigger:focus { border-color: var(--blue); box-shadow: 0 0 0 3px #dbeafe; }
-.product-select-trigger:disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; }
-
-.summary-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:13px; }
-.detail{ background:#f8fafc; border:1px solid var(--line); border-radius:13px; padding:13px; min-width:0; }
-.detail small{ display:block; font-size:10px; font-weight:800; color:#758198; }
-.detail strong{ display:block; font-size:20px; margin-top:5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
 .ledger-tools{ display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; align-items:center; }
 .filter{ border:1px solid var(--line); background:#fff; border-radius:9px; padding:9px 13px; font-size:11px; font-weight:800; display:inline-flex; align-items:center; gap:6px; }
 .filter.active{ background:var(--blue); color:white; border-color:var(--blue); }
-.filter-badge { background:var(--amber); color:white; padding:2px 6px; border-radius:10px; font-size:9px; font-weight:900; }
-.filter.active .filter-badge { background:white; color:var(--amber); }
 
 .ledger-container{ display:flex; flex-direction:column; gap:12px; }
 .ledger-card{ background:white; border:1px solid var(--line); border-radius:14px; padding:14px; box-shadow:0 2px 8px rgba(0,0,0,.03); }
@@ -136,14 +104,12 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 .ledger-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:12px; margin-bottom:10px; }
 .ledger-grid-item small{ display:block; font-size:9px; color:var(--muted); font-weight:800; }
 .ledger-grid-item span{ font-weight:750; }
-.ledger-stats{ display:grid; grid-template-columns:repeat(4,1fr); gap:6px; background:#f8fafc; padding:8px; border-radius:10px; margin-bottom:10px; text-align:center; }
-.ledger-stat-box small{ display:block; font-size:9px; color:var(--muted); font-weight:800; }
-.ledger-stat-box strong{ display:block; font-size:12px; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .ledger-footer{ display:flex; justify-content:space-between; align-items:center; gap:10px; padding-top:8px; border-top:1px solid var(--line); }
 .badge{ display:inline-flex; padding:4px 8px; border-radius:20px; font-size:9px; font-weight:900; }
-.badge.pending{ background:#fef3c7; color:var(--amber); }
 .badge.active{ background:#ecfdf5; color:var(--green); }
 .badge.settled{ background:#f1f5f9; color:var(--muted); }
+.badge.addition{ background:#eff6ff; color:var(--blue); }
+.badge.pending{ background:#fef3c7; color:var(--amber); }
 .action{ border:1px solid var(--line); background:white; padding:7px 12px; border-radius:8px; font-size:11px; font-weight:800; }
 .empty{ text-align:center; padding:35px; color:var(--muted); font-size:13px; background:white; border:1px solid var(--line); border-radius:14px; }
 
@@ -158,20 +124,28 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 .drawer-head{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:18px; border-bottom:1px solid var(--line); padding-bottom:12px; }
 .drawer-section{ background:#f8fafc; border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:14px; }
 .drawer-section-title{ font-size:11px; font-weight:850; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; }
-.agent-list-item{ display:flex; justify-content:space-between; align-items:center; background:white; border:1px solid var(--line); padding:10px 12px; border-radius:10px; margin-bottom:6px; font-size:13px; }
-.chart-bar-wrap{ background:white; border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin-bottom:8px; }
-.chart-bar-header{ display:flex; justify-content:space-between; font-size:12px; font-weight:800; margin-bottom:6px; }
-.chart-track{ background:#e2e8f0; height:10px; border-radius:6px; overflow:hidden; display:flex; width:100%; }
-.chart-fill-sold{ background:var(--green); height:100%; }
-.detail-grid, .performance{ display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-bottom:14px; }
-.perf{ background:#f8fafc; border:1px solid var(--line); border-radius:11px; padding:12px; }
-.perf b{ font-size:18px; }
-.perf span{ display:block; font-size:10px; color:var(--muted); margin-top:3px; }
+.agent-list-item{ display:flex; justify-content:space-between; align-items:center; background:white; border:1px solid var(--line); padding:10px 12px; border-radius:10px; margin-bottom:6px; font-size:13px; gap:8px; }
+.detail-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-bottom:14px; }
+.detail{ background:#f8fafc; border:1px solid var(--line); border-radius:13px; padding:13px; min-width:0; }
+.detail small{ display:block; font-size:10px; font-weight:800; color:#758198; }
+.detail strong{ display:block; font-size:15px; margin-top:5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
 .toast{ position:fixed; left:14px; right:14px; bottom:16px; background:#0b1220; color:white; padding:14px 16px; border-radius:12px; box-shadow:0 15px 40px rgba(0,0,0,.25); z-index:300; display:none; font-size:12px; font-weight:750; text-align:center; }
 .toast.error{ background:#991b1b; }
 .toast.success{ background:#166534; }
+.toast.warning{ background:#d97706; }
 </style>
+
+<script>
+if (!localStorage.getItem("routeStockUser")) {
+    localStorage.setItem("routeStockUser", JSON.stringify({
+        name: "John Karanja",
+        role: "Driver",
+        phone: "+254713100424",
+        vehicle: ""
+    }));
+}
+</script>
 </head>
 
 <body>
@@ -184,10 +158,10 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 <div class="topbar">
 <div class="page-title">
 <h2>Route Dispatch Portal</h2>
-<p>Direct Admin-Gated Dispatches & Live Telemetry.</p>
+<p>Direct Dispatches & Live Telemetry.</p>
 </div>
 <div class="top-actions">
-<button class="btn secondary" onclick="showPage('ledgerPage')">View Ledger <span id="navPendingBadge" style="background:var(--amber);color:white;padding:2px 6px;border-radius:10px;font-size:9px;display:none;margin-left:4px;">0</span></button>
+<button class="btn secondary" onclick="showPage('ledgerPage')">View Ledger</button>
 </div>
 </div>
 
@@ -197,33 +171,20 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 <span id="bannerRoute">—</span>
 </div>
 
-<!-- CREW -->
-<div class="card" id="crewCard">
+<!-- LIVE TRACKING MODULE -->
+<div class="card" id="liveTrackingCard">
 <div class="card-head">
 <div>
-<div class="card-title">Sales Crew & Agents</div>
-<div class="card-sub">Assign drivers and sales representatives.</div>
-</div>
-<button id="btnAddAgent" class="add-item" onclick="addAgent()">+ Agent</button>
-</div>
-<div class="items" id="agentsContainer"></div>
-</div>
-
-<!-- VEHICLE & TRACKING -->
-<div class="card" id="vehicleCard">
-<div class="card-head">
-<div>
-<div class="card-title">Vehicle & Live Tracking Engine</div>
-<div class="card-sub">GPS telemetry becomes active instantly when approved in the portal.</div>
+<div class="card-title">Live Tracking Engine</div>
+<div class="card-sub">GPS telemetry is live and monitored continuously.</div>
 </div>
 </div>
-
 <div class="live-tracker-box" id="liveTrackerBox">
 <div class="live-tracker-header">
 <span style="font-size:12px; font-weight:850; color:#94a3b8;">DISPATCH STATUS</span>
-<div id="liveStatusBadge" class="live-status-indicator pending">
+<div id="liveStatusBadge" class="live-status-indicator">
 <span class="live-dot"></span>
-<span id="liveStatusText">Awaiting approval in Admin Portal</span>
+<span id="liveStatusText">GPS Telemetry Active</span>
 </div>
 </div>
 <div class="live-metrics">
@@ -231,69 +192,77 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 <div class="live-metric-card"><small>LONGITUDE</small><strong id="liveLng">36.0800</strong></div>
 <div class="live-metric-card"><small>VELOCITY</small><strong id="liveSpeed">0 km/h</strong></div>
 </div>
-<a href="live-tracking.html" id="openLiveTrackingBtn" class="btn primary" style="margin-top: 10px; width: 100%; font-size: 12px; padding: 10px; pointer-events: none; opacity: 0.4;">Open Full Live-Tracking Page ↗</a>
+<a href="live-tracking.html" id="openLiveTrackingBtn" class="btn primary" style="margin-top: 10px; width: 100%; font-size: 12px; padding: 10px;">Open Full Live-Tracking Page ↗</a>
+</div>
+</div>
+
+<!-- CREW -->
+<div class="card" id="crewCard">
+<div class="card-head">
+<div>
+<div class="card-title">Sales Crew & Agents</div>
+<div class="card-sub">Your primary profile autofills. Click "+ Add Member" to add crew members. All added members must be filled.</div>
+</div>
+<button id="btnAddAgent" class="add-item" onclick="addAgent()">+ Add Member</button>
+</div>
+<div class="items" id="agentsContainer"></div>
+</div>
+
+<!-- VEHICLE & DETAILS -->
+<div class="card" id="vehicleCard">
+<div class="card-head">
+<div>
+<div class="card-title">Vehicle & Dispatch Details</div>
+<div class="card-sub"></div>
+</div>
 </div>
 
 <div class="form-grid">
-<div class="field full"><label>Car Registration Number</label><input id="carRegistration" type="text" placeholder="" value=""></div>
+<div class="field full">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <label style="margin-bottom:0;">Car Registration Number</label>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:11px; color:var(--muted); font-weight:800;">Skip Car Reg</span>
+            <label class="switch">
+                <input type="checkbox" id="skipCarToggle" onchange="toggleSkipCar(this)">
+                <span class="slider"></span>
+            </label>
+        </div>
+    </div>
+    <input id="carRegistration" type="text" placeholder="car number plate or leave blank">
+</div>
 <div class="field"><label>Dispatch Date</label><input id="date" type="date" disabled></div>
-<div class="field"><label>Manager Contact</label><input id="managerPhone" type="tel" value="+254713100424" disabled></div>
+<div class="field"><label>Manager Contact / Phone</label><input id="managerPhone" type="tel" value="+254713100424"></div>
 <div class="field full"><label>Notes</label><textarea id="notes" placeholder="Optional notes" style="min-height:50px;"></textarea></div>
 </div>
 </div>
 
-<!-- PRODUCTS -->
-<div class="card" id="productsCard">
-<div class="card-head">
-<div>
-<div class="card-title">Products on Route</div>
-<div class="card-sub">Select items from inventory database.</div>
-</div>
-<button id="btnAddItem" class="add-item" onclick="addItem()">+ Product</button>
-</div>
-<div class="items" id="items"></div>
-<div class="summary-grid">
-<div class="detail"><small>VARIETIES</small><strong id="itemCount">0</strong></div>
-<div class="detail"><small>TOTAL UNITS</small><strong id="itemUnits">0</strong></div>
-<div class="detail"><small>VALUE</small><strong id="itemValue">KSh 0</strong></div>
-</div>
-</div>
-
-<!-- DIRECT ADMIN TRIGGER -->
+<!-- SUBMIT DISPATCH -->
 <div class="card" id="submitCard">
 <div style="display:flex; flex-direction:column; gap:10px;">
-<button id="btnSubmitAdmin" class="btn primary" onclick="submitDispatchToAdmin()">
- Submit Dispatch Request to Admin Portal
+<button id="btnSubmitDispatch" class="btn primary" onclick="submitDispatch()">
+ Submit Dispatch Request
 </button>
 </div>
 </div>
 </section>
 
-<!-- LEDGER & ADMIN APPROVAL PORTAL -->
+<!-- LEDGER PAGE -->
 <section id="ledgerPage" class="page">
 <div class="topbar">
 <div class="page-title">
-<h2>Cloud Dispatch Ledger & Admin Portal</h2>
-<p>Synchronized history & direct admin approval gate.</p>
+<h2>Cloud Dispatch Ledger</h2>
+<p>Synchronized history of active and settled dispatches.</p>
 </div>
 <div class="top-actions">
 <button class="btn secondary" onclick="showPage('entryPage')">← Back</button>
-<button class="btn primary" onclick="showPage('entryPage')">+ New Dispatch</button>
 </div>
-</div>
-
-<!-- ADMIN ALERT QUEUE BANNER -->
-<div id="adminAlertBanner" class="admin-alert-banner">
-<small> ADMIN APPROVAL GATE ACTIVE</small>
-<strong id="adminAlertTitle">0 Pending Dispatch Request(s) Awaiting Approval</strong>
-<span>Routes and GPS remain locked in Pending status until approved directly in the admin portal.</span>
 </div>
 
 <div class="card" style="background:transparent;border:0;box-shadow:none;padding:0;">
 <div class="ledger-tools">
 <button class="filter active" onclick="filterLedger('all',this)">All</button>
-<button class="filter" onclick="filterLedger('Pending',this)">Pending <span id="filterPendingCount" class="filter-badge" style="display:none">0</span></button>
-<button class="filter" onclick="filterLedger('Approved',this)">Approved</button>
+<button class="filter" onclick="filterLedger('Active',this)">Active</button>
 <button class="filter" onclick="filterLedger('Settled',this)">Settled</button>
 </div>
 <div id="ledgerContainer" class="ledger-container"></div>
@@ -301,21 +270,6 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 </section>
 
 </main>
-</div>
-
-<!-- SLEEK PRODUCT SELECTION MODAL POPUP -->
-<div class="product-modal-bg" id="productModalBg" onclick="closeProductModal(event)">
-    <div class="product-modal">
-        <div class="product-modal-head">
-            <h3>Select Product</h3>
-            <button class="remove" onclick="closeProductModal()" style="width:30px;height:30px;font-size:16px;">×</button>
-        </div>
-        <div class="product-modal-tools">
-            <input type="text" id="productModalSearch" placeholder="Search product..." oninput="renderProductModalList()">
-            <button class="btn secondary" style="width:auto; padding:8px 12px; font-size:11px;" onclick="toggleProductFilterMode()">Filter: <span id="filterModeLabel" style="margin-left:3px;">All</span></button>
-        </div>
-        <div class="product-modal-list" id="productModalList"></div>
-    </div>
 </div>
 
 <!-- DRAWER -->
@@ -332,7 +286,6 @@ button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 <div class="toast" id="toast"></div>
 
 <script>
-// FIREBASE CONFIGURATION
 const firebaseConfig = {
   apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA",
   authDomain: "assetguard-c8c8c.firebaseapp.com",
@@ -346,31 +299,33 @@ if (!firebase.apps.length) {
 const rtdb = firebase.database();
 const auth = firebase.auth();
 
-const currentUID = localStorage.getItem("ag_active_uid") || "global_user";
 let dispatches = [];
-let inventory = [];
-let activeTargetRow = null;
-let currentInStockOnlyFilter = false;
+let adminRequests = {};
+let activeGeoWatchId = null;
+let currentDispatchId = null;
 
-// Real-time synchronization for inventory from AssetGuard Pro database path
-rtdb.ref(`users/${currentUID}/inventory`).on("value", (snapshot) => {
-    const data = snapshot.val();
-    if (data) {
-        inventory = Object.keys(data).map(key => {
-            const item = data[key];
-            return {
-                name: item.name,
-                price: item.salePrice || 0,
-                qty: item.qty || 0,
-                liters: item.liters || 0
-            };
-        });
-    } else {
-        inventory = [];
-    }
+window.addEventListener("DOMContentLoaded", () => {
+    loadUserProfile();
+    startGlobalGPSMonitoring();
 });
 
-// Real-time synchronization for dispatches
+function loadUserProfile() {
+    const saved = JSON.parse(localStorage.getItem("routeStockUser") || "{}");
+    if (saved.phone) {
+        const phoneField = document.getElementById("managerPhone");
+        if (phoneField) phoneField.value = saved.phone;
+    }
+    
+    const vehicleField = document.getElementById("carRegistration");
+    if (vehicleField) {
+        vehicleField.value = (saved.vehicle && saved.vehicle.trim() !== "") ? saved.vehicle : "";
+    }
+
+    const container = document.getElementById("agentsContainer");
+    container.innerHTML = "";
+    addAgent(saved, false);
+}
+
 rtdb.ref("dispatches").on("value", (snapshot) => {
     const data = snapshot.val();
     if (data) {
@@ -379,99 +334,16 @@ rtdb.ref("dispatches").on("value", (snapshot) => {
     } else {
         dispatches = [];
     }
-    
-    const pendingCount = dispatches.filter(d => d.status === "Pending").length;
-    updateAdminNotificationBanner(pendingCount);
-
     renderLedger();
     updateDispatchBanner();
-    applyPortalLockState();
 });
 
-function applyPortalLockState() {
-    const activeOrPending = dispatches.find(d => d.status === "Pending" || d.status === "Approved" || d.status === "Active");
-    const activeApproved = dispatches.find(d => d.status === "Approved" || d.status === "Active");
-    const isLocked = !!activeOrPending;
+rtdb.ref("adminRequests").on("value", (snapshot) => {
+    adminRequests = snapshot.val() || {};
+    renderLedger();
+});
 
-    // Lock crew inputs and button
-    document.querySelectorAll("#agentsContainer input, #agentsContainer select, #agentsContainer button, #btnAddAgent").forEach(el => {
-        el.disabled = isLocked;
-    });
-
-    // Lock form inputs including car registration (note: date and managerPhone are permanently disabled by design)
-    ["carRegistration", "notes"].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.disabled = isLocked;
-    });
-
-    // Lock product items inputs, triggers, and add button
-    document.querySelectorAll("#items input, #items select, #items button, #btnAddItem").forEach(el => {
-        el.disabled = isLocked;
-    });
-
-    // Lock submit button
-    const submitBtn = document.getElementById("btnSubmitAdmin");
-    if (submitBtn) {
-        submitBtn.disabled = isLocked;
-        submitBtn.textContent = isLocked ? ` Dispatch ${activeOrPending.id} Active (${activeOrPending.status})` : " Submit Dispatch Request to Admin Portal";
-    }
-
-    // Open Full Live-Tracking Page button remains inactive until order is approved
-    const openLiveTrackingBtn = document.getElementById("openLiveTrackingBtn");
-    if (openLiveTrackingBtn) {
-        const isApproved = !!activeApproved;
-        openLiveTrackingBtn.style.pointerEvents = isApproved ? "auto" : "none";
-        openLiveTrackingBtn.style.opacity = isApproved ? "1" : "0.4";
-    }
-}
-
-function updateAdminNotificationBanner(pendingCount) {
-    const banner = document.getElementById("adminAlertBanner");
-    const navBadge = document.getElementById("navPendingBadge");
-    const filterBadge = document.getElementById("filterPendingCount");
-
-    if (pendingCount > 0) {
-        banner.classList.add("show");
-        document.getElementById("adminAlertTitle").textContent = `${pendingCount} Pending Dispatch Request(s) Awaiting Approval`;
-        
-        navBadge.style.display = "inline-block";
-        navBadge.textContent = pendingCount;
-
-        filterBadge.style.display = "inline-block";
-        filterBadge.textContent = pendingCount;
-
-        if (pendingCount > lastKnownPendingCount) {
-            toast(`New dispatch request received in Admin Portal!`, "error");
-        }
-    } else {
-        banner.classList.remove("show");
-        navBadge.style.display = "none";
-        filterBadge.style.display = "none";
-    }
-    lastKnownPendingCount = pendingCount;
-}
-
-let lastKnownPendingCount = 0;
-let currentFilter = "all";
-let currentDispatchId = null;
-let activeGeoWatchId = null;
-let pendingApprovalListenerRef = null;
-
-stopLiveTracking();
-
-function money(n) { return "KSh " + Number(n||0).toLocaleString("en-KE",{maximumFractionDigits:0}); }
 function esc(s) { return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m])); }
-
-function totals(d) {
-    let issued = 0, sold = 0, returned = 0, cash = 0;
-    (d.items||[]).forEach(x => {
-        issued += Number(x.issued)||0;
-        sold += Number(x.sold)||0;
-        returned += Number(x.returned)||0;
-        cash += (Number(x.sold)||0) * (Number(x.price)||0);
-    });
-    return {issued, sold, returned, cash, remaining: Math.max(0, issued - sold - returned)};
-}
 
 function toast(message, type="") {
     const el = document.getElementById("toast");
@@ -489,151 +361,84 @@ function showPage(id) {
     if(id === "ledgerPage") { renderLedger(); }
 }
 
-function addAgent(data={}) {
-    const activeOrPending = dispatches.find(d => d.status === "Pending" || d.status === "Approved" || d.status === "Active");
-    if (activeOrPending) return;
-
+function addAgent(data={}, isAddition = true) {
     const container = document.getElementById("agentsContainer");
+
     const row = document.createElement("div");
     row.className = "agent-row";
+    row.dataset.addition = isAddition ? "true" : "false";
+
+    let removeBtnHtml = isAddition ? `<button class="remove" onclick="this.parentElement.remove()">×</button>` : `<span style="font-size:10px;font-weight:800;color:var(--muted);text-align:center;">Primary</span>`;
+
     row.innerHTML = `
-        <input class="ip-agent-name" placeholder="Agent Full Name" value="${esc(data.name||"")}">
-        <select class="ip-agent-role">
+        <input class="ip-agent-name" placeholder="Agent Full Name" value="${esc(data.name||"")}" ${!isAddition ? 'readonly style="background:#f8fafc;"' : ''}>
+        <select class="ip-agent-role" ${!isAddition ? 'disabled style="background:#f8fafc;"' : ''}>
             <option value="Driver" ${data.role==="Driver"?"selected":""}>Driver</option>
             <option value="Lead Sales" ${data.role==="Lead Sales"?"selected":""}>Lead Sales</option>
             <option value="Assistant" ${data.role==="Assistant"?"selected":""}>Assistant</option>
         </select>
-        <button class="remove" onclick="this.parentElement.remove()">×</button>
+        ${removeBtnHtml}
     `;
     container.appendChild(row);
 }
 
-function addItem(data={}) {
-    const activeOrPending = dispatches.find(d => d.status === "Pending" || d.status === "Approved" || d.status === "Active");
-    if (activeOrPending) return;
-
-    const container = document.getElementById("items");
-    const row = document.createElement("div");
-    row.className = "item-row";
-    
-    const initialProductName = data.product || "";
-    const initialPrice = data.price || "";
-    const initialIssued = data.issued || "";
-
-    row.innerHTML = `
-        <div>
-            <button type="button" class="product-select-trigger ip-product-btn" onclick="openProductModalFor(this)">${esc(initialProductName || "Select Product...")}</button>
-            <input type="hidden" class="ip-product" value="${esc(initialProductName)}">
-        </div>
-        <input type="number" class="ip-issued" placeholder="Qty" value="${initialIssued}" min="1">
-        <input type="number" class="ip-price" placeholder="Price" value="${initialPrice}" step="0.01">
-        <input type="number" class="ip-sold" placeholder="Sold" value="0" readonly style="background:#f8fafc; color:var(--muted)">
-        <button class="remove" onclick="this.parentElement.remove(); calcItems();">×</button>
-    `;
-    container.appendChild(row);
-
-    row.querySelectorAll("input").forEach(input => {
-        input.addEventListener("input", calcItems);
-    });
-    calcItems();
-}
-
-function openProductModalFor(btnEl) {
-    activeTargetRow = btnEl.closest(".item-row");
-    document.getElementById("productModalSearch").value = "";
-    currentInStockOnlyFilter = false;
-    document.getElementById("filterModeLabel").textContent = "All";
-    renderProductModalList();
-    document.getElementById("productModalBg").style.display = "flex";
-    document.getElementById("productModalSearch").focus();
-}
-
-function closeProductModal(e) {
-    if (!e || e.target === document.getElementById("productModalBg")) {
-        document.getElementById("productModalBg").style.display = "none";
-        activeTargetRow = null;
+function toggleSkipCar(checkbox) {
+    const vehicleInput = document.getElementById("carRegistration");
+    if (checkbox.checked) {
+        vehicleInput.value = "N/A (Skipped)";
+        vehicleInput.disabled = true;
+        vehicleInput.style.borderColor = "";
+        toast("Car registration skipped via toggle.", "success");
+    } else {
+        vehicleInput.value = "";
+        vehicleInput.disabled = false;
+        toast("Car registration enabled.", "success");
     }
 }
 
-function toggleProductFilterMode() {
-    currentInStockOnlyFilter = !currentInStockOnlyFilter;
-    document.getElementById("filterModeLabel").textContent = currentInStockOnlyFilter ? "In Stock" : "All";
-    renderProductModalList();
-}
-
-function renderProductModalList() {
-    const query = document.getElementById("productModalSearch").value.toLowerCase().trim();
-    const listEl = document.getElementById("productModalList");
-
-    let filtered = inventory.filter(inv => {
-        const matchesName = inv.name.toLowerCase().includes(query);
-        const matchesStock = currentInStockOnlyFilter ? (inv.qty > 0) : true;
-        return matchesName && matchesStock;
-    });
-
-    if (filtered.length === 0) {
-        listEl.innerHTML = `<div style="text-align:center; padding:25px; color:var(--muted); font-size:12px;">No matching products found.</div>`;
+function submitDispatch() {
+    const skipToggle = document.getElementById("skipCarToggle");
+    const vehicleInput = document.getElementById("carRegistration");
+    
+    // Validate Car Registration if not skipped
+    if (!skipToggle.checked && vehicleInput.value.trim() === "") {
+        vehicleInput.focus();
+        vehicleInput.style.borderColor = "var(--amber)";
+        vehicleInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        toast("Car registration cannot be empty unless skipped using the toggle switch.", "warning");
         return;
     }
 
-    listEl.innerHTML = filtered.map(inv => `
-        <div class="product-modal-item" onclick="selectProductFromModal('${esc(inv.name)}', ${inv.price})">
-            <b>${esc(inv.name)}</b>
-            <span>Stock: ${inv.qty} • Price: KSh ${inv.price}</span>
-        </div>
-    `).join("");
-}
+    const vehicle = skipToggle.checked ? "N/A (Skipped)" : (vehicleInput.value.trim() !== "" ? vehicleInput.value.trim() : "N/A");
 
-function selectProductFromModal(name, price) {
-    if (!activeTargetRow) return;
-    
-    const triggerBtn = activeTargetRow.querySelector(".ip-product-btn");
-    const hiddenInput = activeTargetRow.querySelector(".ip-product");
-    const priceInput = activeTargetRow.querySelector(".ip-price");
-
-    triggerBtn.textContent = name;
-    triggerBtn.style.color = "var(--text)";
-    hiddenInput.value = name;
-    priceInput.value = price;
-
-    closeProductModal();
-    calcItems();
-}
-
-function calcItems() {
-    const rows = [...document.querySelectorAll(".item-row")];
-    let units = 0, value = 0;
-    rows.forEach(row => {
-        const issued = Number(row.querySelector(".ip-issued").value) || 0;
-        const price = Number(row.querySelector(".ip-price").value) || 0;
-        units += issued;
-        value += issued * price;
-    });
-    document.getElementById("itemCount").textContent = rows.length;
-    document.getElementById("itemUnits").textContent = units;
-    document.getElementById("itemValue").textContent = money(value);
-}
-
-function submitDispatchToAdmin() {
-    const activeOrPendingDispatch = dispatches.find(d => d.status === "Pending" || d.status === "Approved" || d.status === "Active");
-    if (activeOrPendingDispatch) {
-        toast(`Cannot create a new dispatch. Dispatch ${activeOrPendingDispatch.id} is currently ${activeOrPendingDispatch.status}. Please settle it first.`, "error");
-        return;
-    }
-
+    // Validate Crew Members: ensure no crew member is empty or unfilled
     const agentRows = [...document.querySelectorAll(".agent-row")];
-    if(!agentRows.length) { toast("Add at least one sales crew member or driver.","error"); return; }
+    if (!agentRows.length) {
+        toast("Please add at least one sales crew member or driver.", "error");
+        return;
+    }
 
-    const agents = agentRows.map(row => ({
-        name: row.querySelector(".ip-agent-name").value.trim(),
-        role: row.querySelector(".ip-agent-role").value
-    }));
+    const agents = [];
+    for (let i = 0; i < agentRows.length; i++) {
+        const row = agentRows[i];
+        const nameInput = row.querySelector(".ip-agent-name");
+        const nameVal = nameInput.value.trim();
+        
+        if (!nameVal) {
+            nameInput.focus();
+            nameInput.style.borderColor = "var(--red)";
+            nameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            toast(`Crew member #${i + 1} name cannot be left empty. Please fill it out.`, "error");
+            return;
+        }
+        nameInput.style.borderColor = "";
 
-    if(agents.some(a => !a.name)) { toast("Enter the full name for every crew member.","error"); return; }
-
-    const vehicleInput = document.getElementById("carRegistration").value.trim();
-    if(!vehicleInput) { toast("Enter the car registration number.", "error"); return; }
-    const vehicle = vehicleInput;
+        agents.push({
+            name: nameVal,
+            role: row.querySelector(".ip-agent-role").value,
+            isCustomAddition: row.dataset.addition === "true"
+        });
+    }
 
     const dateInput = document.getElementById("date").value;
     const now = new Date();
@@ -644,80 +449,27 @@ function submitDispatchToAdmin() {
     const phone = document.getElementById("managerPhone").value.trim();
     const notes = document.getElementById("notes").value.trim();
 
-    const rows = [...document.querySelectorAll(".item-row")];
-    if(!rows.length) { toast("Add at least one product.","error"); return; }
-
-    const items = rows.map(row => ({
-        product: row.querySelector(".ip-product").value.trim(),
-        issued: Number(row.querySelector(".ip-issued").value) || 0,
-        price: Number(row.querySelector(".ip-price").value) || 0,
-        sold: Number(row.querySelector(".ip-sold").value) || 0,
-        returned: 0
-    }));
-
-    if(items.some(x => !x.product)) { toast("Select a product for every row.","error"); return; }
-
     const dispatchId = "RS-" + Date.now().toString().slice(-8);
 
     const payload = {
         id: dispatchId,
-        agents, route: "Direct Admin-Verified Route", date, createdAt, timeString, vehicle, phone, notes,
-        status: "Pending",
-        items,
+        agents, route: "Direct Route", date, createdAt, timeString, vehicle, phone, notes,
+        status: "Active",
         lastLocation: null
     };
 
-    stopLiveTracking();
+    currentDispatchId = dispatchId;
 
     rtdb.ref(`dispatches/${dispatchId}`).set(payload).then(() => {
-        toast("Dispatch request submitted directly to Admin Portal! Awaiting review.", "success");
-        
-        const badge = document.getElementById("liveStatusBadge");
-        badge.className = "live-status-indicator pending";
-        document.getElementById("liveStatusText").textContent = "Awaiting approval in Admin Portal";
-
-        listenForAdminApproval(dispatchId);
+        toast("Dispatch successfully created and active!", "success");
+        updateDispatchBanner();
         showPage('ledgerPage');
     });
 }
 
-function listenForAdminApproval(dispatchId) {
-    if (pendingApprovalListenerRef) {
-        pendingApprovalListenerRef.off();
-    }
-
-    pendingApprovalListenerRef = rtdb.ref(`dispatches/${dispatchId}`);
-    pendingApprovalListenerRef.on("value", (snap) => {
-        const data = snap.val();
-        if (data && (data.status === "Approved" || data.status === "Active")) {
-            pendingApprovalListenerRef.off();
-            currentDispatchId = dispatchId;
-            updateDispatchBanner();
-            
-            startLiveTracking(dispatchId);
-            toast("Admin approval received! GPS telemetry unlocked and active.", "success");
-        }
-    });
-}
-
-function startLiveTracking(dispatchId) {
-    const badge = document.getElementById("liveStatusBadge");
-    const statusText = document.getElementById("liveStatusText");
-    if(badge) badge.className = "live-status-indicator active";
-    if(statusText) statusText.textContent = "Admin Approval Verified — GPS Active (" + dispatchId + ")";
-
-    const trackingBtn = document.getElementById("openLiveTrackingBtn");
-    if (trackingBtn) {
-        trackingBtn.style.pointerEvents = "auto";
-        trackingBtn.style.opacity = "1";
-    }
-
+function startGlobalGPSMonitoring() {
     if (!("geolocation" in navigator)) {
-        const defaultLoc = { lat: -0.3031, lng: 36.0800, speed: "0.0", ts: Date.now() };
-        document.getElementById("liveLat").textContent = defaultLoc.lat.toFixed(5);
-        document.getElementById("liveLng").textContent = defaultLoc.lng.toFixed(5);
-        document.getElementById("liveSpeed").textContent = "0.0 km/h";
-        rtdb.ref(`dispatches/${dispatchId}/lastLocation`).set(defaultLoc);
+        toast("Geolocation is not supported by your browser.", "error");
         return;
     }
 
@@ -725,72 +477,37 @@ function startLiveTracking(dispatchId) {
         navigator.geolocation.clearWatch(activeGeoWatchId);
     }
 
-    navigator.geolocation.getCurrentPosition(
-        (p) => {
-            const lat = p.coords.latitude;
-            const lng = p.coords.longitude;
-            const speedKmh = ((p.coords.speed || 0) * 3.6).toFixed(1);
+    const successCallback = (p) => {
+        const lat = p.coords.latitude;
+        const lng = p.coords.longitude;
+        const speedKmh = ((p.coords.speed || 0) * 3.6).toFixed(1);
 
-            document.getElementById("liveLat").textContent = lat.toFixed(5);
-            document.getElementById("liveLng").textContent = lng.toFixed(5);
-            document.getElementById("liveSpeed").textContent = speedKmh + " km/h";
+        document.getElementById("liveLat").textContent = lat.toFixed(5);
+        document.getElementById("liveLng").textContent = lng.toFixed(5);
+        document.getElementById("liveSpeed").textContent = speedKmh + " km/h";
 
-            rtdb.ref(`dispatches/${dispatchId}/lastLocation`).set({
+        if (currentDispatchId) {
+            rtdb.ref(`dispatches/${currentDispatchId}/lastLocation`).set({
                 lat, lng, speed: speedKmh, ts: Date.now()
             });
-        },
-        (err) => { 
-            console.error("GPS Fix Warning, using active telemetry fallback:", err);
-            const fallbackLoc = { lat: -0.3031, lng: 36.0800, speed: "0.0", ts: Date.now() };
-            document.getElementById("liveLat").textContent = fallbackLoc.lat.toFixed(5);
-            document.getElementById("liveLng").textContent = fallbackLoc.lng.toFixed(5);
-            document.getElementById("liveSpeed").textContent = "0.0 km/h";
-            rtdb.ref(`dispatches/${dispatchId}/lastLocation`).set(fallbackLoc);
-        },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
+        }
+    };
 
-    activeGeoWatchId = navigator.geolocation.watchPosition(
-        (p) => {
-            const lat = p.coords.latitude;
-            const lng = p.coords.longitude;
-            const speedKmh = ((p.coords.speed || 0) * 3.6).toFixed(1);
+    const errorCallback = (err) => {
+        console.error("GPS Error / Turned off:", err);
+    };
 
-            document.getElementById("liveLat").textContent = lat.toFixed(5);
-            document.getElementById("liveLng").textContent = lng.toFixed(5);
-            document.getElementById("liveSpeed").textContent = speedKmh + " km/h";
+    navigator.geolocation.getCurrentPosition(successCallback, errorCallback, {
+        enableHighAccuracy: true, timeout: 10000, maximumAge: 0
+    });
 
-            rtdb.ref(`dispatches/${dispatchId}/lastLocation`).set({
-                lat, lng, speed: speedKmh, ts: Date.now()
-            });
-        },
-        (err) => { console.error("GPS Error:", err); },
-        { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
-    );
-}
-
-function stopLiveTracking() {
-    if (activeGeoWatchId !== null) {
-        navigator.geolocation.clearWatch(activeGeoWatchId);
-        activeGeoWatchId = null;
-    }
-    const badge = document.getElementById("liveStatusBadge");
-    if(badge) badge.className = "live-status-indicator pending";
-    const statusText = document.getElementById("liveStatusText");
-    if(statusText) statusText.textContent = "Awaiting approval in Admin Portal";
-    document.getElementById("liveLat").textContent = "-0.3031";
-    document.getElementById("liveLng").textContent = "36.0800";
-    document.getElementById("liveSpeed").textContent = "0 km/h";
-
-    const trackingBtn = document.getElementById("openLiveTrackingBtn");
-    if (trackingBtn) {
-        trackingBtn.style.pointerEvents = "none";
-        trackingBtn.style.opacity = "0.4";
-    }
+    activeGeoWatchId = navigator.geolocation.watchPosition(successCallback, errorCallback, {
+        enableHighAccuracy: true, maximumAge: 0, timeout: 5000
+    });
 }
 
 function updateDispatchBanner() {
-    const d = dispatches.find(x => x.id === currentDispatchId || x.status === "Approved" || x.status === "Active" || x.status === "Pending");
+    const d = dispatches.find(x => x.id === currentDispatchId || x.status === "Active");
     const banner = document.getElementById("currentDispatchBanner");
     if(!d) { 
         banner.classList.remove("show"); 
@@ -799,8 +516,10 @@ function updateDispatchBanner() {
     banner.classList.add("show");
     const crewStr = Array.isArray(d.agents) ? d.agents.map(a=>a.name).join(", ") : "Crew";
     document.getElementById("bannerDispatch").textContent = d.id + " · Crew: " + crewStr;
-    document.getElementById("bannerRoute").textContent = d.vehicle + " · Status: " + d.status;
+    document.getElementById("bannerRoute").textContent = (d.vehicle || "N/A") + " · Status: " + d.status;
 }
+
+let currentFilter = "all";
 
 function renderLedger() {
     const container = document.getElementById("ledgerContainer");
@@ -809,51 +528,43 @@ function renderLedger() {
         rows = dispatches.filter(d => d.status === currentFilter);
     }
     if(!rows.length) {
-        container.innerHTML = `<div class="empty">No dispatch records found in Firebase for filter: ${currentFilter}.</div>`;
+        container.innerHTML = `<div class="empty">No dispatch records found for filter: ${currentFilter}.</div>`;
         return;
     }
     container.innerHTML = rows.map(d => {
-        const t = totals(d);
         const crewSummary = Array.isArray(d.agents) ? d.agents.map(a => `${a.name} (${a.role})`).join(", ") : "Crew";
-        
-        const isApproved = (d.status === "Approved" || d.status === "Active");
-        let badgeClass = "settled";
-        if(isApproved) badgeClass = "active";
-        if(d.status === "Pending") badgeClass = "pending";
+        const isActive = (d.status === "Active");
+        let badgeClass = isActive ? "active" : "settled";
 
-        let loc = "-0.3031, 36.0800 (Dormant)";
-        if (d.lastLocation) {
-            loc = `${d.lastLocation.lat.toFixed(4)}, ${d.lastLocation.lng.toFixed(4)}`;
-            if (d.status === "Settled") {
-                loc += " (Settled Location)";
-            }
-        } else if (isApproved) {
-            loc = "-0.3031, 36.0800 (GPS Live)";
+        const pendingReq = adminRequests[d.id];
+        if (pendingReq && pendingReq.status === 'Pending') {
+            badgeClass = "pending";
         }
 
+        let loc = "-0.3031, 36.0800";
+        if (d.lastLocation) {
+            loc = `${d.lastLocation.lat.toFixed(4)}, ${d.lastLocation.lng.toFixed(4)}`;
+        }
+        const vehicleDisplay = d.vehicle ? d.vehicle : "N/A";
+        const statusBadgeText = (pendingReq && pendingReq.status === 'Pending') ? ` Pending ${pendingReq.action}` : (isActive ? "🟢 GPS Telemetry Live" : "Settled");
+
         return `
-            <div class="ledger-card" style="${d.status==='Pending'?'border: 2px solid var(--amber)':''}">
+            <div class="ledger-card">
                 <div class="ledger-header">
                     <div>
                         <div class="ledger-id">${esc(d.id)}</div>
                         <div class="ledger-date">${esc(d.date)} ${esc(d.timeString ? 'at '+d.timeString : '')} · Contact: ${esc(d.phone||"—")}</div>
                     </div>
-                    <span class="badge ${badgeClass}">${esc(d.status).toUpperCase()}</span>
+                    <span class="badge ${badgeClass}">${pendingReq && pendingReq.status === 'Pending' ? ('PENDING ' + pendingReq.action.toUpperCase()) : esc(d.status).toUpperCase()}</span>
                 </div>
                 <div class="ledger-grid">
                     <div class="ledger-grid-item"><small>CREW / AGENTS</small><span style="font-weight:850">${esc(crewSummary)}</span></div>
                     <div class="ledger-grid-item"><small>GPS TELEMETRY</small><span style="color:var(--blue)">${esc(loc)}</span></div>
-                    <div class="ledger-grid-item" style="grid-column: 1/-1;"><small>CAR REGISTRATION & CONTACT</small><span>${esc(d.vehicle||"—")} (${esc(d.phone||"—")})</span></div>
-                </div>
-                <div class="ledger-stats">
-                    <div class="ledger-stat-box"><small>ISSUED</small><strong>${t.issued}</strong></div>
-                    <div class="ledger-stat-box"><small>SOLD</small><strong style="color:var(--green)">${t.sold}</strong></div>
-                    <div class="ledger-stat-box"><small>RETURNED</small><strong>${t.returned}</strong></div>
-                    <div class="ledger-stat-box"><small>CASH</small><strong style="color:var(--blue)">${money(t.cash)}</strong></div>
+                    <div class="ledger-grid-item" style="grid-column: 1/-1;"><small>CAR REGISTRATION & CONTACT</small><span>${esc(vehicleDisplay)} (${esc(d.phone||"—")})</span></div>
                 </div>
                 <div class="ledger-footer">
-                    <span class="badge ${badgeClass}">${d.status==="Pending"?" GPS Dormant: Awaiting admin approval":isApproved?"🟢 Admin Approval Confirmed & GPS Live":"🏁 Settled Location Locked"}</span>
-                    <button class="action" onclick="openDispatch('${d.id}')" style="${d.status==='Pending'?'background:var(--amber);color:white;border-color:var(--amber)':''}">Manage / Review</button>
+                    <span class="badge ${badgeClass}">${statusBadgeText}</span>
+                    <button class="action" onclick="openDispatch('${d.id}')">Manage / Review</button>
                 </div>
             </div>
         `;
@@ -870,94 +581,68 @@ function filterLedger(filter, btn) {
 function openDispatch(id) {
     const d = dispatches.find(x => x.id === id);
     if(!d) return;
-    const t = totals(d);
-    const salesPercentage = t.issued > 0 ? Math.round((t.sold / t.issued) * 100) : 0;
     
-    const isApproved = (d.status === "Approved" || d.status === "Active");
-    
-    let lastLocStr = "Dormant (No GPS data)";
+    let lastLocStr = "No GPS data recorded yet";
     if (d.lastLocation) {
         lastLocStr = `Lat: ${d.lastLocation.lat.toFixed(5)}, Lng: ${d.lastLocation.lng.toFixed(5)} — Speed: ${d.lastLocation.speed || '0.0'} km/h`;
-        if (d.status === "Settled") {
-            lastLocStr += " (Settled)";
-        }
-    } else if (isApproved) {
-        lastLocStr = "Lat: -0.30310, Lng: 36.08000 — Speed: 0.0 km/h (GPS Active)";
     }
 
-    const agentsArr = Array.isArray(d.agents) ? d.agents : [{name: "Driver", role: "Driver"}];
-    let crewListHtml = agentsArr.map(a => `
+    const agentsArr = Array.isArray(d.agents) ? d.agents : [{name: "Driver", role: "Driver", isCustomAddition: false}];
+    let crewListHtml = agentsArr.map((a, idx) => `
         <div class="agent-list-item">
-            <div><strong>${esc(a.name)}</strong></div>
-            <span class="badge settled">${esc(a.role)}</span>
+            <div>
+                <strong>${esc(a.name)}</strong> <span style="font-size:11px;color:var(--muted)">(${esc(a.role)})</span>
+                ${a.isCustomAddition ? '<br><span class="badge addition">Custom Addition</span>' : '<br><span class="badge settled">Primary User</span>'}
+            </div>
+            ${a.isCustomAddition ? `<button class="btn warning" onclick="requestAdminEditAgent(${idx}, '${esc(a.name)}')">Request Admin Edit</button>` : `<span style="font-size:10px;color:var(--muted)">Locked</span>`}
         </div>
     `).join("");
 
-    let itemsVisualGraphHtml = (d.items || []).map(i => {
-        const issued = Number(i.issued) || 1;
-        const sold = Number(i.sold) || 0;
-        const soldPct = Math.min(100, Math.round((sold / issued) * 100));
-        const itemVal = sold * (Number(i.price) || 0);
-        return `
-            <div class="chart-bar-wrap">
-                <div class="chart-bar-header">
-                    <span>${esc(i.product)}</span>
-                    <span style="color:var(--blue)">Sold: ${sold}/${issued} (${money(itemVal)})</span>
-                </div>
-                <div class="chart-track">
-                    <div class="chart-fill-sold" style="width: ${soldPct}%;"></div>
-                </div>
-            </div>
-        `;
-    }).join("");
+    let isActive = (d.status === "Active");
+    let badgeClass = isActive ? "active" : "settled";
 
-    let badgeClass = "settled";
-    if(isApproved) badgeClass = "active";
-    if(d.status === "Pending") badgeClass = "pending";
-
-    let actionButtonsHtml = "";
-    if (d.status === "Pending") {
-        actionButtonsHtml = `<button class="btn primary" style="flex:1; background:var(--green);" onclick="updateDispatchStatus('${d.id}', 'Approved')">✅ Approve & Unlock GPS</button>`;
-    } else if (isApproved) {
-        actionButtonsHtml = `<button class="btn primary" style="flex:1" onclick="updateDispatchStatus('${d.id}', 'Settled')"> Settle & Lock Final GPS Location</button>`;
-    } else {
-        actionButtonsHtml = `<button class="btn secondary" style="flex:1" onclick="updateDispatchStatus('${d.id}', 'Pending')"> Relock & Make GPS Dormant</button>`;
+    const pendingReq = adminRequests[d.id];
+    if (pendingReq && pendingReq.status === 'Pending') {
+        badgeClass = "pending";
     }
 
+    let actionButton = isActive ? 
+        `<button class="btn secondary" style="flex:1" onclick="updateDispatchStatus('${d.id}', 'Settled')"> Settle Dispatch</button>` :
+        `<button class="btn primary" style="flex:1" onclick="updateDispatchStatus('${d.id}', 'Active')">🟢 Reactivate Dispatch</button>`;
+
     const timeDisplay = d.timeString ? `at ${d.timeString}` : "";
+    const vehicleDisplay = d.vehicle ? d.vehicle : "N/A";
+
+    let pendingSectionHtml = "";
+    if (pendingReq && pendingReq.status === 'Pending') {
+        pendingSectionHtml = `
+        <div class="drawer-section" style="background:#fffbeb; border-color:#fde68a;">
+            <div class="drawer-section-title" style="color:#d97706;"><span> Pending Admin ${esc(pendingReq.action)} Request</span></div>
+            <p style="font-size:11px; color:#78350f; margin-bottom:4px;"><b>From (Current State):</b> ${esc(pendingReq.fromText)}</p>
+            <p style="font-size:11px; color:#78350f;"><b>To (Requested Changes):</b> ${esc(pendingReq.toText)}</p>
+        </div>`;
+    }
 
     document.getElementById("drawerContent").innerHTML = `
         <div style="margin-bottom:15px;display:flex;justify-content:space-between;align-items:flex-start;">
             <div>
                 <h2 style="font-size:20px;letter-spacing:-.5px;">Dispatch ${esc(d.id)}</h2>
-                <p style="font-size:11px;color:var(--muted);margin-top:4px">${esc(d.date)} ${esc(timeDisplay)} · Car Reg: <b>${esc(d.vehicle||"—")}</b></p>
+                <p style="font-size:11px;color:var(--muted);margin-top:4px">${esc(d.date)} ${esc(timeDisplay)} · Car Reg: <b>${esc(vehicleDisplay)}</b></p>
                 <p style="font-size:11px;color:var(--muted);margin-top:2px">Contact: <b>${esc(d.phone||"—")}</b></p>
             </div>
-            <span class="badge ${badgeClass}" style="font-size:11px;padding:6px 12px;">${esc(d.status).toUpperCase()}</span>
+            <span class="badge ${badgeClass}" style="font-size:11px;padding:6px 12px;">${pendingReq && pendingReq.status === 'Pending' ? ('PENDING ' + pendingReq.action.toUpperCase()) : esc(d.status).toUpperCase()}</span>
         </div>
+
+        ${pendingSectionHtml}
 
         <div class="detail-grid">
             <div class="detail"><small>LOCATION TELEMETRY</small><strong style="font-size:11px;color:var(--blue)">${esc(lastLocStr)}</strong></div>
-            <div class="detail"><small>SALES RATIO</small><strong style="font-size:13px;color:var(--green)">${salesPercentage}% Cleared</strong></div>
             <div class="detail"><small>STATUS</small><strong style="font-size:13px">${esc(d.status)}</strong></div>
         </div>
 
-        <div class="performance">
-            <div class="perf"><b>${t.issued}</b><span>Total Issued</span></div>
-            <div class="perf"><b style="color:var(--green)">${t.sold}</b><span>Total Sold</span></div>
-            <div class="perf"><b>${t.returned}</b><span>Returned</span></div>
-            <div class="perf"><b style="color:var(--blue)">${money(t.cash)}</b><span>Cash Realized</span></div>
-            <div class="perf"><b style="color:var(--amber)">${t.remaining}</b><span>Unsold Stock</span></div>
-        </div>
-
         <div class="drawer-section">
-            <div class="drawer-section-title"><span>Assigned Crew</span><span class="badge settled">${agentsArr.length} Member(s)</span></div>
+            <div class="drawer-section-title"><span>Assigned Crew & Additions</span><span class="badge settled">${agentsArr.length} Member(s)</span></div>
             <div style="display:flex;flex-direction:column;gap:6px;">${crewListHtml}</div>
-        </div>
-
-        <div class="drawer-section">
-            <div class="drawer-section-title"><span>Product Sales Performance</span></div>
-            <div style="display:flex;flex-direction:column;gap:8px;">${itemsVisualGraphHtml}</div>
         </div>
 
         <div class="drawer-section">
@@ -965,87 +650,101 @@ function openDispatch(id) {
             <p style="font-size:12px;color:var(--text);line-height:1.5;">${esc(d.notes || "No remarks recorded.")}</p>
         </div>
 
-        <div style="display:flex;gap:8px;margin-top:20px">
-            ${actionButtonsHtml}
-            <button class="btn danger" onclick="deleteDispatch('${d.id}')">🗑️ Delete</button>
+        <div class="drawer-section" id="editRequestContainer" style="display:none;">
+            <div class="drawer-section-title"><span>Request Edit Details (Field Changes Only)</span></div>
+            <div class="field full" style="margin-bottom:10px;">
+                <label>Specify Exact Change</label>
+                <input id="editFieldInput" type="text" placeholder="e.g., Change to KAU 528F" style="width:100%; padding:10px; border:1px solid var(--line); border-radius:9px; outline:none; font-size:13px;">
+            </div>
+            <button class="btn primary" style="font-size:12px; padding:10px;" onclick="submitEditRequest('${d.id}')">Submit Edit Request to Admin</button>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:20px">
+            ${actionButton}
+            <div style="display:flex;gap:8px;">
+                <button class="btn warning" style="flex:1;" onclick="toggleEditRequestForm()"> Request Edit</button>
+                <button class="btn danger" style="flex:1;" onclick="submitDeleteRequest('${d.id}')"> Request Delete</button>
+            </div>
         </div>
     `;
     document.getElementById("drawerBg").style.display = "block";
 }
 
-function updateDispatchStatus(id, newStatus) {
-    const updateData = { status: newStatus };
-    if (newStatus === "Approved") {
-        rtdb.ref(`dispatches/${id}`).once("value", (snap) => {
-            const val = snap.val();
-            if (val && !val.lastLocation) {
-                updateData.lastLocation = { lat: -0.3031, lng: 36.0800, speed: "0.0", ts: Date.now() };
-            }
-            rtdb.ref(`dispatches/${id}`).update(updateData).then(() => {
-                toast(`Dispatch updated to ${newStatus}!`, "success");
-                hideDrawer();
-                renderLedger();
-            });
-        });
-    } else if (newStatus === "Settled") {
-        const latText = document.getElementById("liveLat").textContent;
-        const lngText = document.getElementById("liveLng").textContent;
-        const speedText = document.getElementById("liveSpeed").textContent;
-        
-        const currentLat = parseFloat(latText) || -0.3031;
-        const currentLng = parseFloat(lngText) || 36.0800;
-        const currentSpeed = speedText.replace(" km/h", "") || "0.0";
-
-        updateData.lastLocation = {
-            lat: currentLat,
-            lng: currentLng,
-            speed: currentSpeed,
-            ts: Date.now()
-        };
-
-        rtdb.ref(`dispatches/${id}`).update(updateData).then(() => {
-            if (currentDispatchId === id) {
-                stopLiveTracking();
-            }
-            toast(`Dispatch settled. Final settlement location locked.`, "success");
-            hideDrawer();
-            renderLedger();
-        });
-    } else {
-        rtdb.ref(`dispatches/${id}`).update(updateData).then(() => {
-            if (newStatus === "Pending") {
-                if (currentDispatchId === id) {
-                    stopLiveTracking();
-                }
-            }
-            toast(`Dispatch updated to ${newStatus}!`, "success");
-            hideDrawer();
-            renderLedger();
-        });
+function toggleEditRequestForm() {
+    const area = document.getElementById("editRequestContainer");
+    if (area) {
+        area.style.display = area.style.display === "none" ? "block" : "none";
     }
 }
 
-function deleteDispatch(id) {
-    if(confirm("Are you sure you want to delete this dispatch record?")) {
-        if(currentDispatchId === id) {
-            stopLiveTracking();
-            currentDispatchId = null;
-            updateDispatchBanner();
-        }
-        rtdb.ref(`dispatches/${id}`).remove().then(() => {
-            toast("Dispatch deleted.", "error");
-            hideDrawer();
-            renderLedger();
-        });
+function submitEditRequest(dispatchId) {
+    const changeInput = document.getElementById("editFieldInput").value.trim();
+    if (!changeInput) {
+        toast("Please enter what is being changed (e.g. Change to KAU 528F).", "error");
+        return;
     }
+
+    const d = dispatches.find(x => x.id === dispatchId);
+    if (!d) return;
+
+    const fromSummary = `Vehicle: ${d.vehicle || 'N/A'}`;
+    const toSummary = `${changeInput}`;
+
+    rtdb.ref(`adminRequests/${dispatchId}`).set({
+        dispatchId: dispatchId,
+        action: 'Edit',
+        fromText: fromSummary,
+        toText: toSummary,
+        requestedAt: Date.now(),
+        status: 'Pending'
+    }).then(() => {
+        toast("Edit request submitted as Pending.", "success");
+        hideDrawer();
+    }).catch(err => {
+        toast("Failed to submit edit request: " + err.message, "error");
+    });
+}
+
+function submitDeleteRequest(dispatchId) {
+    if (!confirm("Are you sure you want to request deletion of this dispatch?")) return;
+
+    const d = dispatches.find(x => x.id === dispatchId);
+    if (!d) return;
+
+    const fromSummary = `Dispatch ID: ${dispatchId}`;
+    const toSummary = 'Complete Deletion';
+
+    rtdb.ref(`adminRequests/${dispatchId}`).set({
+        dispatchId: dispatchId,
+        action: 'Delete',
+        fromText: fromSummary,
+        toText: toSummary,
+        requestedAt: Date.now(),
+        status: 'Pending'
+    }).then(() => {
+        toast("Delete request submitted as Pending.", "success");
+        hideDrawer();
+    }).catch(err => {
+        toast("Failed to submit delete request: " + err.message, "error");
+    });
+}
+
+function requestAdminEditAgent(index, name) {
+    toast(`Edit request sent to admin for crew member: "${name}".`, "success");
+}
+
+function updateDispatchStatus(id, newStatus) {
+    rtdb.ref(`dispatches/${id}`).update({ status: newStatus }).then(() => {
+        toast(`Dispatch updated to ${newStatus}!`, "success");
+        hideDrawer();
+        renderLedger();
+    });
 }
 
 function hideDrawer() { document.getElementById("drawerBg").style.display = "none"; }
 function closeDrawer(e) { if(e.target === document.getElementById("drawerBg")) { hideDrawer(); } }
 
 document.getElementById("date").value = new Date().toISOString().slice(0,10);
-addAgent({name:"", role:"Driver"});
-addItem();
 </script>
 
 </body>
