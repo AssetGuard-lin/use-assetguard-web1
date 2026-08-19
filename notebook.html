@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <script src="error-utils.js"></script>
+<script src="ag-utils.js"></script>
 <script type="module" src="auth-guard.js"></script>
     <meta charset="utf-8">
     <title>Notebook - AssetGuard Ultimate</title>
@@ -62,18 +63,18 @@
 <footer>&copy; 2026 ASSETGUARD LTD. JCORP LTD PARTNERSHIP.</footer>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getDatabase, ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    import { getDb } from "./ag-firebase.js";
+    import { ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
-    const db = getDatabase(initializeApp({ databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com" }));
+    const db = getDb();
     
     // --- USER ISOLATION ---
-    const currentUID = localStorage.getItem("ag_active_uid");
+    const currentUID = AGUtils.getActiveUID();
     if (!currentUID) {
         document.body.innerHTML = "<h2 style='text-align:center; padding-top:50px;'>Authentication Required.</h2>";
     }
     
-    const userNotesPath = `users/${currentUID}/admin_diary`;
+    const userNotesPath = AGUtils.userPath(currentUID, "admin_diary");
     const notesRef = ref(db, userNotesPath);
     let editingId = null;
     let localNotes = [];

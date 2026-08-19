@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <script src="error-utils.js"></script>
+<script src="ag-utils.js"></script>
+<script src="ag-config.js"></script>
 <script type="module" src="auth-guard.js"></script>
 <meta charset="utf-8">
 <title>AssetGuard Ultimate BI & Sales Analytics</title>
@@ -141,44 +143,9 @@
 </div>
 
 <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    let resolvedUID = urlParams.get('uid') || urlParams.get('user') || urlParams.get('currentUID') || urlParams.get('userId');
-
-    if (!resolvedUID) {
-        try {
-            if (window.AppInventor && typeof window.AppInventor.getWebViewString === 'function') {
-                const wvString = window.AppInventor.getWebViewString();
-                if (wvString && wvString !== "undefined" && wvString !== "null" && wvString.trim() !== "") {
-                    if (wvString.startsWith('{') || wvString.startsWith('[')) {
-                        try {
-                            const parsed = JSON.parse(wvString);
-                            resolvedUID = parsed.uid || parsed.userId || parsed.username || wvString;
-                        } catch(e) {
-                            resolvedUID = wvString;
-                        }
-                    } else {
-                        resolvedUID = wvString;
-                    }
-                }
-            }
-        } catch(e) {
-            console.error("WebViewString capture failed", e);
-        }
-    }
-
-    if (!resolvedUID) {
-        resolvedUID = localStorage.getItem("ag_active_uid");
-    }
-
-    if (!resolvedUID || resolvedUID === "null" || resolvedUID === "undefined" || resolvedUID.trim() === "") {
-        resolvedUID = "global_terminal_user";
-    }
-
-    const currentUID = resolvedUID;
-    localStorage.setItem("ag_active_uid", currentUID);
-
-    const CACHE_KEY = `ag_ledger_cache_${currentUID}`;
-    let rawData = JSON.parse(localStorage.getItem(CACHE_KEY)) || {};
+    const currentUID = AGUtils.resolveActiveUID();
+    const CACHE_KEY = AGUtils.uidKey("ag_ledger_cache", currentUID);
+    let rawData = AGUtils.readJSON(CACHE_KEY, {});
     let currentFilter = 'today';
 
     const handleDataUpdate = (newData) => {
@@ -188,11 +155,11 @@
     };
 
     try {
-        firebase.initializeApp({ databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com" });
-        firebase.database().ref(`users/${currentUID}`).on('value', (snap) => {
+        if (!firebase.apps.length) firebase.initializeApp(AG_FIREBASE_CONFIG);
+        firebase.database().ref(AGUtils.userPath(currentUID)).on('value', (snap) => {
             if(snap.exists()) {
                 const dbData = snap.val();
-                localStorage.setItem(CACHE_KEY, JSON.stringify(dbData));
+                AGUtils.writeJSON(CACHE_KEY, dbData);
                 handleDataUpdate(dbData);
             }
         }, error => AGErrors.report("business intelligence live data", error));
@@ -276,7 +243,7 @@
                 debtHtml += `
                     <div class="debt-row" onclick='openSaleDetails(${encodedSale})'>
                         <div><b>${s.customer || 'Customer'}</b><br><small style="color:var(--muted);">${sDate.toLocaleDateString()}</small></div>
-                        <div style="text-align:right"><b style="color:var(--warning);">KES ${balance.toLocaleString()}</b><br><small style="font-size:10px; color:var(--muted);">Tap for details</small></div>
+                        <div style="text-align:right"><b style="color:var(--warning);">${AGUtils.formatCurrency(balance)}</b><br><small style="font-size:10px; color:var(--muted);">Tap for details</small></div>
                     </div>`;
             }
         });
@@ -299,11 +266,11 @@
             metrics.stock += (qty * price);
         });
 
-        document.getElementById('profit').innerText = metrics.rev.toLocaleString();
-        document.getElementById('debt').innerText = metrics.totalDebt.toLocaleString();
-        document.getElementById('exp').innerText = metrics.exp.toLocaleString();
-        document.getElementById('stock').innerText = metrics.stock.toLocaleString();
-        document.getElementById('vat-total').innerText = "KES " + Math.floor(metrics.vat).toLocaleString();
+        document.getElementById('profit').innerText = AGUtils.formatAmount(metrics.rev);
+        document.getElementById('debt').innerText = AGUtils.formatAmount(metrics.totalDebt);
+        document.getElementById('exp').innerText = AGUtils.formatAmount(metrics.exp);
+        document.getElementById('stock').innerText = AGUtils.formatAmount(metrics.stock);
+        document.getElementById('vat-total').innerText = AGUtils.formatCurrency(Math.floor(metrics.vat));
 
         let deadline = new Date(now.getFullYear(), now.getMonth(), 20);
         if (now.getDate() > 20) deadline = new Date(now.getFullYear(), now.getMonth() + 1, 20);
@@ -323,7 +290,7 @@
                         <span class="item-tag">${s.payment || 'Cash'} Sale • ${new Date(s.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
                     </div>
                     <div style="text-align:right;">
-                        <span style="color:var(--success); font-weight:800;">+${totalAmt.toLocaleString()}</span>
+                        <span style="color:var(--success); font-weight:800;">+${AGUtils.formatAmount(totalAmt)}</span>
                         <small style="display:block; font-size:9px; color:var(--muted);">Tap to inspect</small>
                     </div>
                 </div>`;
@@ -334,14 +301,14 @@
 
     window.openSaleDetails = (s) => {
         const total = s.items ? s.items.reduce((acc, i) => acc + (parseFloat(i.total) || 0), 0) : (parseFloat(s.total) || 0);
-        const itemsList = s.items ? s.items.map(i => `${i.name || 'Item'} (x${i.qty || 1}) - KES ${(i.total || 0).toLocaleString()}`).join('<br>') : 'Standard Sale Record';
+        const itemsList = s.items ? s.items.map(i => `${i.name || 'Item'} (x${i.qty || 1}) - ${AGUtils.formatCurrency(i.total || 0)}`).join('<br>') : 'Standard Sale Record';
         
         const rows = [
             { label: "Customer", val: s.customer || 'Walk-in' },
             { label: "Payment Type", val: s.payment || 'Cash' },
-            { label: "Timestamp", val: new Date(s.timestamp).toLocaleString() },
+            { label: "Timestamp", val: AGUtils.formatDateTime(s.timestamp) },
             { label: "Items Purchased", val: itemsList },
-            { label: "Total Amount", val: `KES ${total.toLocaleString()}` }
+            { label: "Total Amount", val: AGUtils.formatCurrency(total) }
         ];
 
         document.getElementById('modalContent').innerHTML = rows.map(r => `

@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <script src="error-utils.js"></script>
+<script src="ag-utils.js"></script>
 <script type="module" src="auth-guard.js"></script>
 <meta charset="utf-8">
 <title>AssetGuard Pro - Unified Purchase Terminal & Analytics</title>
@@ -314,8 +315,8 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-        import { getDatabase, ref, onValue, remove, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+        import { getDb } from "./ag-firebase.js";
+        import { ref, onValue, remove, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
         if (navigator.storage && navigator.storage.persist) {
             navigator.storage.persist().then(granted => {
@@ -327,10 +328,9 @@
             }).catch(error => AGErrors.report("purchase storage persistence request", error));
         }
 
-        const app = initializeApp({ databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com" });
-        const db = getDatabase(app);
-        const currentUID = localStorage.getItem("ag_active_uid") || "global_user";
-        const cloudPath = `users/${currentUID}/purchases`;
+        const db = getDb();
+        const currentUID = AGUtils.getActiveUID({ fallback: "global_user" });
+        const cloudPath = AGUtils.userPath(currentUID, "purchases");
         const ADMIN_PASS = "0000";
 
         let localPurchases = [];
@@ -477,12 +477,12 @@
             activePurchases.forEach(val => {
                 if (val && val.supplier && val.supplier.toLowerCase().includes(search)) {
                     total += parseFloat(val.amount || 0);
-                    htmlBuffer += `<div class="history-item" onclick="viewDetails('${val.id}')"><div><b style="color:var(--dark); font-size:14px;">${val.item_name}</b><br><small style="color:var(--muted); font-weight:600;">${val.supplier}</small></div><div><b style="color:var(--primary);">KES ${parseFloat(val.amount).toLocaleString()}</b></div></div>`;
+                    htmlBuffer += `<div class="history-item" onclick="viewDetails('${val.id}')"><div><b style="color:var(--dark); font-size:14px;">${val.item_name}</b><br><small style="color:var(--muted); font-weight:600;">${val.supplier}</small></div><div><b style="color:var(--primary);">${AGUtils.formatCurrency(val.amount)}</b></div></div>`;
                 }
             });
             list.innerHTML = htmlBuffer || '<div style="text-align:center; color:var(--muted); padding:20px; font-size:12px;">No purchase records found.</div>';
             const totalSpendEl = document.getElementById('totalSpend');
-            if(totalSpendEl) totalSpendEl.innerText = `KES ${total.toLocaleString()}`;
+            if(totalSpendEl) totalSpendEl.innerText = AGUtils.formatCurrency(total);
         };
 
         window.viewDetails = (id) => {
@@ -493,7 +493,7 @@
                 <div class="detail-row"><label>Item</label><b>${item.item_name}</b></div>
                 <div class="detail-row"><label>Supplier</label><b>${item.supplier}</b></div>
                 <div class="detail-row"><label>Quantity</label><b>${item.quantity} ${item.unit}</b></div>
-                <div class="detail-row"><label>Cost</label><b style="color:var(--primary);">KES ${parseFloat(item.amount).toLocaleString()}</b></div>`;
+                <div class="detail-row"><label>Cost</label><b style="color:var(--primary);">${AGUtils.formatCurrency(item.amount)}</b></div>`;
             
             document.getElementById('delBtn').onclick = () => {
                 document.getElementById('pinModal').style.display = 'flex';

@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <script src="error-utils.js"></script>
+<script src="ag-utils.js"></script>
 <script type="module" src="auth-guard.js"></script>
     <meta charset="utf-8">
     <title>AssetGuard Pro - Unified Expense Terminal & Analytics</title>
@@ -543,13 +544,12 @@
     <div id="printArea"></div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-        import { getDatabase, ref, onValue, update, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+        import { getDb } from "./ag-firebase.js";
+        import { ref, onValue, update, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
-        const app = initializeApp({ databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com" });
-        const db = getDatabase(app);
-        const currentUID = localStorage.getItem("ag_active_uid") || "global_user";
-        const cloudPath = `users/${currentUID}/expenses`;
+        const db = getDb();
+        const currentUID = AGUtils.getActiveUID({ fallback: "global_user" });
+        const cloudPath = AGUtils.userPath(currentUID, "expenses");
 
         let ledgerCache = {};
         let pendingDeleteId = null;
@@ -782,17 +782,17 @@
                 badge.style.background = '#f0fdf4';
                 badge.style.color = '#166534';
                 badge.style.border = '1px solid #bbf7d0';
-                badge.innerHTML = `🟢 TRUST METRIC: Low Local Risk (${debtCount} Active Logs)<br><span style="font-weight:500; color:#15803d;">Active phone ledger exposure: KES ${totalDebt.toLocaleString()}. Normal bounds.</span>`;
+                badge.innerHTML = `🟢 TRUST METRIC: Low Local Risk (${debtCount} Active Logs)<br><span style="font-weight:500; color:#15803d;">Active phone ledger exposure: ${AGUtils.formatCurrency(totalDebt)}. Normal bounds.</span>`;
             } else if (totalDebt <= 50000) {
                 badge.style.background = '#fffbeb';
                 badge.style.color = '#92400e';
                 badge.style.border = '1px solid #fde68a';
-                badge.innerHTML = `🟡 TRUST METRIC: Moderate Risk Exposure<br><span style="font-weight:500; color:#b45309;">Total risk pool for this number: KES ${totalDebt.toLocaleString()}. Exercise budgeting care.</span>`;
+                badge.innerHTML = `🟡 TRUST METRIC: Moderate Risk Exposure<br><span style="font-weight:500; color:#b45309;">Total risk pool for this number: ${AGUtils.formatCurrency(totalDebt)}. Exercise budgeting care.</span>`;
             } else {
                 badge.style.background = '#fef2f2';
                 badge.style.color = '#991b1b';
                 badge.style.border = '1px solid #fecaca';
-                badge.innerHTML = `🔴 TRUST METRIC: RECORD EXPOSURE ALERT<br><span style="font-weight:500; color:#b91c1c;">Risk ceiling threshold broken! Total Due KES ${totalDebt.toLocaleString()} across ${debtCount} logs.</span>`;
+                badge.innerHTML = `🔴 TRUST METRIC: RECORD EXPOSURE ALERT<br><span style="font-weight:500; color:#b91c1c;">Risk ceiling threshold broken! Total Due ${AGUtils.formatCurrency(totalDebt)} across ${debtCount} logs.</span>`;
             }
         };
 
@@ -859,15 +859,15 @@
                                     <span class="modern-sub">Reason: ${item.debt_reason || 'Capital Advance'}</span>
                                 </td>
                                 <td class="right">${rate}%</td>
-                                <td class="right" style="font-weight: 600;">${principal.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+                                <td class="right" style="font-weight: 600;">${AGUtils.formatAmount(principal, { minDecimals: 2 })}</td>
                             </tr>
                         </tbody>
                     </table>
                     <div class="modern-summary">
                         <div class="modern-summary-box">
-                            <div class="modern-summary-row"><span>Principal Amount:</span><span>${principal.toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div>
-                            <div class="modern-summary-row"><span>Interest Applied:</span><span>${calculatedProfit.toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div>
-                            <div class="modern-summary-row total"><span>Total Payable:</span><span>KES ${finalPayable.toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div>
+                            <div class="modern-summary-row"><span>Principal Amount:</span><span>${AGUtils.formatAmount(principal, { minDecimals: 2 })}</span></div>
+                            <div class="modern-summary-row"><span>Interest Applied:</span><span>${AGUtils.formatAmount(calculatedProfit, { minDecimals: 2 })}</span></div>
+                            <div class="modern-summary-row total"><span>Total Payable:</span><span>${AGUtils.formatCurrency(finalPayable, { minDecimals: 2 })}</span></div>
                         </div>
                     </div>
                     <div class="modern-terms debt-terms">
@@ -928,13 +928,13 @@
                                     <span class="modern-sub">Category: ${item.category}</span>
                                     ${refText}
                                 </td>
-                                <td class="right" style="font-weight: 600;">${principal.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+                                <td class="right" style="font-weight: 600;">${AGUtils.formatAmount(principal, { minDecimals: 2 })}</td>
                             </tr>
                         </tbody>
                     </table>
                     <div class="modern-summary">
                         <div class="modern-summary-box">
-                            <div class="modern-summary-row total"><span>Net Reimbursement:</span><span>KES ${principal.toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div>
+                            <div class="modern-summary-row total"><span>Net Reimbursement:</span><span>${AGUtils.formatCurrency(principal, { minDecimals: 2 })}</span></div>
                         </div>
                     </div>
                     <div class="modern-terms">
@@ -1028,7 +1028,7 @@
                     body.innerHTML += `<tr>
                         <td class="date-cell" onclick="openDetail('${key}')" style="cursor:pointer;">${d}</td>
                         <td class="item-cell" onclick="openDetail('${key}')" style="cursor:pointer;">${item.expense_name}<br><small style="font-weight:400; color:#94a3b8;">${item.category} • ${item.payment_method || 'Cash'}</small></td>
-                        <td style="text-align:right; cursor:pointer; font-weight:700; color:var(--primary);" onclick="openDetail('${key}')">KES ${parseFloat(item.amount).toLocaleString()}</td>
+                        <td style="text-align:right; cursor:pointer; font-weight:700; color:var(--primary);" onclick="openDetail('${key}')">${AGUtils.formatCurrency(item.amount)}</td>
                         <td class="admin-actions">
                             <button class="btn-action" onclick="openAnalysis('${key}')">📊</button>
                             <button class="btn-action" onclick="openEdit('${key}')">✏️</button>
@@ -1038,7 +1038,7 @@
                 }
             });
             const totalValEl = document.getElementById('totalDisplayVal');
-            if(totalValEl) totalValEl.innerText = `KES ${total.toLocaleString()}`;
+            if(totalValEl) totalValEl.innerText = AGUtils.formatCurrency(total);
         };
 
         window.openDetail = (id) => {
@@ -1062,9 +1062,9 @@
                 rows.push({ label: "Debtor Phone", val: item.debtor_phone || "None" });
                 rows.push({ label: "Reason", val: item.debt_reason || "None" });
                 rows.push({ label: "Interest Rate", val: `${r}%` });
-                rows.push({ label: "Total Payable Balance", val: `KES ${tot.toLocaleString()}` });
+                rows.push({ label: "Total Payable Balance", val: AGUtils.formatCurrency(tot) });
             } else {
-                rows.push({ label: "Amount", val: `KES ${parseFloat(item.amount).toLocaleString()}` });
+                rows.push({ label: "Amount", val: AGUtils.formatCurrency(item.amount) });
             }
 
             document.getElementById('detailContent').innerHTML = rows.map(r => `
@@ -1098,7 +1098,7 @@
             } else if (item.payment_method === 'Mpesa') {
                 insight = `<strong>Liquidity Check:</strong> This M-Pesa transaction is ${deviation > 0 ? 'above' : 'below'} your category average by ${Math.abs(deviation).toFixed(1)}%. Monitor your M-Pesa burn rate to ensure operational capital isn't depleted prematurely.`;
             } else if (item.payment_method === 'Bank') {
-                insight = `<strong>Capital Allocation:</strong> Bank reference validation confirms this outflow. At KES ${parseFloat(item.amount).toLocaleString()}, it is ${deviation > 5 ? 'significantly higher' : 'within normal variance'} for your '${item.category}' category.`;
+                insight = `<strong>Capital Allocation:</strong> Bank reference validation confirms this outflow. At ${AGUtils.formatCurrency(item.amount)}, it is ${deviation > 5 ? 'significantly higher' : 'within normal variance'} for your '${item.category}' category.`;
             } else {
                 insight = `<strong>Operational Review:</strong> Cash expense detected. Without digital traceability, ensure this transaction is balanced against your petty cash reserves to prevent variance in your monthly reconciliation.`;
             }
@@ -1113,7 +1113,7 @@
             const itemTotal = matches.reduce((a,b) => a+parseFloat(b.amount), 0);
             
             document.getElementById('analysisTitle').innerText = item.expense_name;
-            document.getElementById('statAvg').innerText = 'KES ' + Math.round(itemTotal/matches.length).toLocaleString();
+            document.getElementById('statAvg').innerText = AGUtils.formatCurrency(Math.round(itemTotal/matches.length));
             document.getElementById('statFreq').innerText = matches.length;
             
             if(drillChart) drillChart.destroy();
@@ -1198,7 +1198,7 @@
                             <div style="font-size:11px; color:#64748b; margin-top:2px;">${cleanDate} • ${m.payment_method || 'Cash'}</div>
                         </div>
                         <div style="font-weight:800; font-size:14px; color:var(--primary);">
-                            KES ${parseFloat(m.amount).toLocaleString()}
+                            ${AGUtils.formatCurrency(m.amount)}
                         </div>
                     </div>
                 `;
