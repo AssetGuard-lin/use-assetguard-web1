@@ -359,8 +359,7 @@
         databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com"
     }));
 
-    const urlParams = new URLSearchParams(window.location.search);
-    let resolvedUID = urlParams.get('uid') || urlParams.get('user') || urlParams.get('currentUID') || urlParams.get('userId');
+    let resolvedUID = null;
 
     if (!resolvedUID) {
         try {

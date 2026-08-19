@@ -232,10 +232,10 @@ tr:hover { background: #fafafa; }
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
                 <div>
                     <h2 style="font-size: 20px; font-weight: 800;">Registered User Directory</h2>
-                    <p style="font-size: 13px; color: var(--text-muted);">Manage all registered user accounts, track credentials, and grant subscription access.</p>
+                    <p style="font-size: 13px; color: var(--text-muted);">Manage all registered user accounts and grant subscription access.</p>
                 </div>
                 <div>
-                    <input type="text" id="userSearchBox" placeholder="Search email, phone, password or UID..." onkeyup="filterUserDirectory()" style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 12px; width: 280px;">
+                    <input type="text" id="userSearchBox" placeholder="Search email, phone or UID..." onkeyup="filterUserDirectory()" style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 12px; width: 280px;">
                 </div>
             </div>
 
@@ -244,7 +244,7 @@ tr:hover { background: #fafafa; }
                     <table>
                         <thead>
                             <tr>
-                                <th>User Credentials (Email / Phone / Password / UID)</th>
+                                <th>User Identity (Email / Phone / UID)</th>
                                 <th>Date Joined</th>
                                 <th>Last Active Login</th>
                                 <th>Account Status</th>
@@ -304,7 +304,7 @@ tr:hover { background: #fafafa; }
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
                 <div>
                     <h2 style="font-size: 20px; font-weight: 800;">Users Login & Activity History Stream</h2>
-                    <p style="font-size: 13px; color: var(--text-muted);">Every login event captured in real time with exact timestamp, email, phone number, and password used.</p>
+                    <p style="font-size: 13px; color: var(--text-muted);">Every login event captured in real time with exact timestamp, email and phone number.</p>
                 </div>
                 <div>
                     <button class="btn-sm btn-danger" onclick="clearActivityLogs()">Clear Login & Audit Logs</button>
@@ -528,10 +528,6 @@ tr:hover { background: #fafafa; }
             <div class="profile-item" style="grid-column: 1 / -1;">
                 <label>User Identity (Email & Phone)</label>
                 <span id="pModalEmailPhone" style="font-size: 14px; color: var(--primary);">...</span>
-            </div>
-            <div class="profile-item" style="grid-column: 1 / -1;">
-                <label>Captured Account Password</label>
-                <span id="pModalPassword" style="font-size: 14px; color: var(--danger); font-weight: 800; background: #fee2e2; padding: 4px 8px; border-radius: 6px; display: inline-block;">...</span>
             </div>
             <div class="profile-item">
                 <label>User Unique ID (UID)</label>
@@ -852,7 +848,6 @@ function loadAuditLogs() {
             const uidShort = log.uid ? log.uid.substring(0, 12) + '...' : 'Anonymous';
             const email = log.email || usersNodeCache[log.uid]?.email || 'N/A';
             const phone = log.phone || usersNodeCache[log.uid]?.phone || 'N/A';
-            const password = log.password || usersNodeCache[log.uid]?.password || 'N/A';
 
             const sub = subscriptionsCache[log.uid];
             const now = Date.now();
@@ -879,7 +874,6 @@ function loadAuditLogs() {
                         <div style="font-size:11px; margin-top:6px; background:#f8fafc; padding:6px 10px; border-radius:6px; border:1px solid var(--border-color); display:flex; flex-wrap:wrap; gap:12px;">
                             <div><span style="font-weight:700; color:var(--primary);">Email:</span> ${escapeHtml(email)}</div>
                             <div><span style="font-weight:700; color:var(--primary);">Phone:</span> ${escapeHtml(phone)}</div>
-                            <div><span style="font-weight:700; color:var(--danger);">Password:</span> <span style="background:#fee2e2; padding:2px 6px; border-radius:4px; font-weight:800;">${escapeHtml(password)}</span></div>
                         </div>
                     </td>
                     <td><code style="font-size:11px; color:var(--text-muted);">${log.device || 'Client App'}</code></td>
@@ -1159,14 +1153,12 @@ function loadUserDirectory() {
         
         const existingEmail = sourceData.email || usersNodeCache[uid]?.email || profilesNodeCache[uid]?.email || "";
         const existingPhone = sourceData.phone || usersNodeCache[uid]?.phone || profilesNodeCache[uid]?.phone || "";
-        const existingPassword = sourceData.password || usersNodeCache[uid]?.password || profilesNodeCache[uid]?.password || "";
 
         if (!registeredUsersMap[uid]) {
             registeredUsersMap[uid] = {
                 uid: uid,
                 email: existingEmail || "No email saved",
                 phone: existingPhone || "No phone saved",
-                password: existingPassword || "Not captured",
                 joinedAt: sourceData.joinedAt || Date.now(),
                 lastLogin: sourceData.lastLogin || 0,
                 activities: []
@@ -1177,9 +1169,6 @@ function loadUserDirectory() {
             }
             if (!registeredUsersMap[uid].phone || registeredUsersMap[uid].phone === "No phone saved") {
                 registeredUsersMap[uid].phone = existingPhone || registeredUsersMap[uid].phone;
-            }
-            if (!registeredUsersMap[uid].password || registeredUsersMap[uid].password === "Not captured") {
-                registeredUsersMap[uid].password = existingPassword || registeredUsersMap[uid].password;
             }
         }
     };
@@ -1231,8 +1220,7 @@ function renderUserDirectoryTable() {
     let filtered = users.filter(u => 
         u.uid.toLowerCase().includes(searchTerm) || 
         u.email.toLowerCase().includes(searchTerm) || 
-        u.phone.toLowerCase().includes(searchTerm) ||
-        u.password.toLowerCase().includes(searchTerm)
+        u.phone.toLowerCase().includes(searchTerm)
     );
 
     if (filtered.length === 0) {
@@ -1257,7 +1245,6 @@ function renderUserDirectoryTable() {
                 <td>
                     <div style="font-weight: 700; color: var(--text-main);">${escapeHtml(u.email)}</div>
                     <div style="font-size: 11px; color: var(--text-muted);">Phone: ${escapeHtml(u.phone)}</div>
-                    <div style="font-size: 11px; color: var(--danger); font-weight: 700;">Password: ${escapeHtml(u.password)}</div>
                     <code style="background:#f1f5f9; padding:2px 6px; border-radius:4px; font-size:10px; color:var(--text-muted);">UID: ${u.uid.substring(0, 14)}...</code>
                 </td>
                 <td>${joinedStr}</td>
@@ -1297,7 +1284,6 @@ function openUserProfilePopup(uid) {
     if (!user) return;
 
     document.getElementById('pModalEmailPhone').innerText = `${user.email} (Phone: ${user.phone})`;
-    document.getElementById('pModalPassword').innerText = user.password;
     document.getElementById('pModalUid').innerText = user.uid;
     document.getElementById('pModalJoined').innerText = user.joinedAt && user.joinedAt !== user.lastLogin ? new Date(user.joinedAt).toLocaleString() : "Cloud Registered";
     document.getElementById('pModalLastLogin').innerText = user.lastLogin ? new Date(user.lastLogin).toLocaleString() : "Never logged in";
