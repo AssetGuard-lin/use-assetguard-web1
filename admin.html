@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="ag-utils.js"></script>
+<script src="ag-config.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AssetGuard Pro - Master Admin Control Terminal</title>
@@ -621,15 +623,8 @@ tr:hover { background: #fafafa; }
 </div>
 
 <script>
-const firebaseConfig = { 
-    apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA", 
-    authDomain: "assetguard-c8c8c.firebaseapp.com", 
-    projectId: "assetguard-c8c8c",
-    databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com"
-};
-
 if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(AG_FIREBASE_CONFIG);
 }
 const rtdb = firebase.database();
 const auth = firebase.auth();
@@ -844,7 +839,7 @@ function loadAuditLogs() {
 
         let html = "";
         logList.forEach(log => {
-            const timeStr = log.timestamp ? new Date(log.timestamp).toLocaleString() : 'Unknown Time';
+            const timeStr = AGUtils.formatDateTime(log.timestamp);
             const uidShort = log.uid ? log.uid.substring(0, 12) + '...' : 'Anonymous';
             const email = log.email || usersNodeCache[log.uid]?.email || 'N/A';
             const phone = log.phone || usersNodeCache[log.uid]?.phone || 'N/A';
@@ -913,7 +908,7 @@ function loadMarketingRequests() {
         reqList.forEach((req) => {
             const rawTime = req.timestamp || req.createdAt || req.time || req.date || 0;
             const timeVal = Number(rawTime);
-            const dateStr = !isNaN(timeVal) && timeVal > 0 ? new Date(timeVal).toLocaleString() : (rawTime ? String(rawTime) : "Unknown Time");
+            const dateStr = AGUtils.formatDateTime(timeVal, { fallback: rawTime ? String(rawTime) : "Unknown Time" });
             
             const uidShort = req.uid ? req.uid.substring(0, 14) + "..." : "Marketing Team";
             const status = req.status || 'Pending';
@@ -1077,7 +1072,7 @@ function renderTicketsTable() {
 
     let html = "";
     filtered.forEach((data) => {
-        const dateStr = data.timestamp ? new Date(data.timestamp).toLocaleString() : "Unknown Time";
+        const dateStr = AGUtils.formatDateTime(data.timestamp);
         const uidShort = data.uid ? data.uid.substring(0, 12) + "..." : "Anonymous";
         const ticketStatus = data.status || 'Pending';
         
@@ -1230,8 +1225,8 @@ function renderUserDirectoryTable() {
 
     let html = "";
     filtered.forEach(u => {
-        const joinedStr = u.joinedAt && u.joinedAt !== u.lastLogin ? new Date(u.joinedAt).toLocaleString() : "Cloud Registered";
-        const lastLoginStr = u.lastLogin ? new Date(u.lastLogin).toLocaleString() : "Never logged in";
+        const joinedStr = u.joinedAt && u.joinedAt !== u.lastLogin ? AGUtils.formatDateTime(u.joinedAt, { fallback: "Cloud Registered" }) : "Cloud Registered";
+        const lastLoginStr = AGUtils.formatDateTime(u.lastLogin, { fallback: "Never logged in" });
         const status = userStatusesCache[u.uid] || "Active";
 
         let statusBg = "#dcfce7; color: #166534;";
@@ -1285,8 +1280,8 @@ function openUserProfilePopup(uid) {
 
     document.getElementById('pModalEmailPhone').innerText = `${user.email} (Phone: ${user.phone})`;
     document.getElementById('pModalUid').innerText = user.uid;
-    document.getElementById('pModalJoined').innerText = user.joinedAt && user.joinedAt !== user.lastLogin ? new Date(user.joinedAt).toLocaleString() : "Cloud Registered";
-    document.getElementById('pModalLastLogin').innerText = user.lastLogin ? new Date(user.lastLogin).toLocaleString() : "Never logged in";
+    document.getElementById('pModalJoined').innerText = user.joinedAt && user.joinedAt !== user.lastLogin ? AGUtils.formatDateTime(user.joinedAt, { fallback: "Cloud Registered" }) : "Cloud Registered";
+    document.getElementById('pModalLastLogin').innerText = AGUtils.formatDateTime(user.lastLogin, { fallback: "Never logged in" });
     
     const status = userStatusesCache[uid] || "Active";
     document.getElementById('pModalStatus').innerText = status;
@@ -1301,7 +1296,7 @@ function openUserProfilePopup(uid) {
     if (user.activities && user.activities.length > 0) {
         user.activities.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
         user.activities.forEach(act => {
-            const timeStr = act.timestamp ? new Date(act.timestamp).toLocaleString() : "";
+            const timeStr = AGUtils.formatDateTime(act.timestamp, { fallback: "" });
             actHtml += `
                 <div style="background:#ffffff; border:1px solid var(--border-color); padding:8px 12px; border-radius:8px;">
                     <div style="display:flex; justify-content:space-between; font-size:10px; font-weight:800; color:var(--text-muted); margin-bottom:2px;">
@@ -1525,7 +1520,7 @@ function loadHistoryRequests() {
         reqList.forEach((req) => {
             const rawTime = req.timestamp || req.createdAt || req.time || req.date || 0;
             const timeVal = Number(rawTime);
-            const dateStr = !isNaN(timeVal) && timeVal > 0 ? new Date(timeVal).toLocaleString() : (rawTime ? String(rawTime) : "Unknown Time");
+            const dateStr = AGUtils.formatDateTime(timeVal, { fallback: rawTime ? String(rawTime) : "Unknown Time" });
             
             const uidShort = req.uid ? req.uid.substring(0, 14) + "..." : "Anonymous";
             
@@ -1652,7 +1647,7 @@ function openTicketModal(ticketId) {
     if (!ticket) return;
 
     const ticketNumberTag = ticket.ticketNumber ? `[${ticket.ticketNumber}] ` : '';
-    document.getElementById('modalMetaInfo').innerText = `User UID: ${ticket.uid} | ${ticketNumberTag}Created: ${new Date(ticket.timestamp).toLocaleString()}`;
+    document.getElementById('modalMetaInfo').innerText = `User UID: ${ticket.uid} | ${ticketNumberTag}Created: ${AGUtils.formatDateTime(ticket.timestamp)}`;
     document.getElementById('modalReplyText').value = '';
 
     const historyBox = document.getElementById('modalChatHistory');
@@ -1776,8 +1771,7 @@ async function submitAdminReply() {
 }
 
 function escapeHtml(text) {
-    if (!text) return '';
-    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    return AGUtils.escapeHtml(text);
 }
 </script>
 </body>
