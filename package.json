@@ -2,7 +2,7 @@
   "name": "use-assetguard-web1",
   "version": "1.0.0",
   "description": "Web files for AssetGuard mobile app.",
-  "main": "server.js",
+  "private": true,
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
