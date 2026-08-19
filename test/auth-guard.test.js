@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 
-const GUARD = "../auth-guard.js";
+const GUARD = new URL("../auth-guard.js", import.meta.url).pathname;
 
 let firebaseMock;
 let replace;

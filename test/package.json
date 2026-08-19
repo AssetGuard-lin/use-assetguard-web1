@@ -1,14 +1,13 @@
 {
-  "name": "use-assetguard-web1",
+  "name": "use-assetguard-web1-tests",
   "version": "1.0.0",
-  "description": "Web files for AssetGuard mobile app.",
+  "description": "Test tooling for the AssetGuard web files.",
   "private": true,
   "scripts": {
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "coverage": "vitest run --coverage",
-    "build": "echo \"Static site: no build step\"",
-    "start": "node server.js"
+    "test": "NODE_PATH=./node_modules vitest run",
+    "test:watch": "NODE_PATH=./node_modules vitest",
+    "coverage": "NODE_PATH=./node_modules vitest run --coverage",
+    "start": "NODE_PATH=./node_modules node ../server.js"
   },
   "keywords": [],
   "author": "",
