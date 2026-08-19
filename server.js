@@ -1,3 +1,4 @@
+// Requires: express@4.21.2, axios@1.7.9, cors@2.8.5
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
