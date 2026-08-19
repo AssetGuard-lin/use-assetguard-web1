@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "../ag-utils.js";
+import "../error-utils.js";
 import { initSettings, openSettings, saveSettings } from "../settings.js";
 
 const UID = "uid-123";
@@ -122,10 +123,14 @@ describe("saveSettings", () => {
 
   it("does not close the modal or cache anything when the write fails", async () => {
     firebaseMock.set.mockRejectedValue(new Error("permission denied"));
+    const report = vi.spyOn(globalThis.AGErrors, "report");
 
-    await expect(saveSettings()).rejects.toThrow("permission denied");
+    await saveSettings();
+
+    expect(report).toHaveBeenCalled();
     expect(modal().style.display).toBe("flex");
     expect(localStorage.getItem(CACHE_KEY)).toBeNull();
-    expect(globalThis.alert).not.toHaveBeenCalled();
+    expect(globalThis.alert).toHaveBeenCalledWith("Profile save failed: permission denied");
+    report.mockRestore();
   });
 });

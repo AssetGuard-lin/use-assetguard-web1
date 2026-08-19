@@ -135,14 +135,15 @@ describe("POST /stk-push", () => {
     expect(push.body.TransactionType).toBe("CustomerBuyGoodsOnline");
   });
 
-  it("reports the Daraja error message when the push is rejected", async () => {
+  it("propagates the Daraja status and payload when the push is rejected", async () => {
     interceptToken();
     interceptPush(SANDBOX, { status: 400, body: { errorMessage: "Invalid Amount" } });
 
     const res = await request(app).post("/stk-push").send(PAYLOAD);
 
-    expect(res.status).toBe(500);
-    expect(res.body).toEqual({ error: "Invalid Amount" });
+    expect(res.status).toBe(400);
+    expect(res.body.upstream).toEqual({ errorMessage: "Invalid Amount" });
+    expect(res.body.error).toBeTruthy();
   });
 
   it("falls back to the raw error message when the token request fails", async () => {
