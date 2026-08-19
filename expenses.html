@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="error-utils.js"></script>
 <script src="ag-utils.js"></script>
 <script type="module" src="auth-guard.js"></script>
     <meta charset="utf-8">
@@ -614,7 +615,8 @@
                         item.synced = true;
                         await localSaveSingle(item);
                     } catch (err) {
-                        console.log("Sync skipped/failed for expense ID: ", item.id, err);
+                        if (!AGErrors.isOffline(err)) AGErrors.report(`expense sync for ${item.id}`, err);
+                        else console.log("Offline: Expense sync queued for later.", item.id);
                     }
                 }
 
@@ -626,7 +628,8 @@
                             delTx.objectStore("expenses").delete(item.id);
                         }
                     } catch (err) {
-                        console.log("Sync delete failed for expense ID: ", item.id, err);
+                        if (!AGErrors.isOffline(err)) AGErrors.report(`expense deletion sync for ${item.id}`, err);
+                        else console.log("Offline: Expense deletion queued for later.", item.id);
                     }
                 }
 
@@ -674,7 +677,7 @@
                         loadAndRenderLocal();
                     };
                 };
-            });
+            }, error => AGErrors.report("expense live data", error));
         };
 
         window.showToast = () => { const t = document.getElementById('toast'); t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2000); };
@@ -1001,7 +1004,8 @@
                 await localSaveSingle(entry);
                 await loadAndRenderLocal();
             } catch(err) {
-                console.log("Offline: Expense saved locally. Will sync when connection is restored.");
+                if (!AGErrors.isOffline(err)) AGErrors.report("expense cloud save", err);
+                else console.log("Offline: Expense saved locally. Will sync when connection is restored.");
             }
         };
 
@@ -1278,7 +1282,8 @@
                 await localSaveSingle(updated);
                 await loadAndRenderLocal();
             } catch(err) {
-                console.log("Offline: Modification stored locally. Queue active.");
+                if (!AGErrors.isOffline(err)) AGErrors.report("expense cloud modification", err);
+                else console.log("Offline: Modification stored locally. Queue active.");
             }
         };
 
@@ -1302,7 +1307,8 @@
                     tx.objectStore("expenses").delete(pendingDeleteId);
                 }
             } catch (e) {
-                console.log("Offline: Local soft deletion logged. Synchronization pending online state.");
+                if (!AGErrors.isOffline(e)) AGErrors.report("expense cloud deletion", e);
+                else console.log("Offline: Local soft deletion logged. Synchronization pending online state.");
             }
         };
 

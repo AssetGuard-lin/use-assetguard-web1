@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="error-utils.js"></script>
 <script src="ag-utils.js"></script>
 <script type="module" src="auth-guard.js"></script>
     <meta charset="utf-8">
@@ -105,7 +106,7 @@
 
         combinedSales = AGUtils.mergePendingWithCloud(cloudSales, pending);
         render();
-    });
+    }, error => AGErrors.report("bank sales live data", error, showToast));
 
     window.render = () => {
         const container = document.getElementById('ledger-list');
@@ -178,21 +179,33 @@
     };
 
     window.executeDelete = async () => {
-        await remove(ref(db, `${userSalesPath}/${activeID}`));
-        closeGate(); 
-        AGUtils.showToast("Record Deleted 🗑️", { elementId: "toast", duration: 2500 });
+        try {
+            await remove(ref(db, `${userSalesPath}/${activeID}`));
+            closeGate();
+            showToast("Record Deleted 🗑️");
+        } catch (error) {
+            AGErrors.report("bank sales deletion", error, message => showToast(`Delete failed: ${message}`));
+        }
     };
 
     window.syncUpdate = async () => {
-        await update(ref(db, `${userSalesPath}/${activeID}`), { 
-            customer: document.getElementById('edtCust').value, 
-            bank: document.getElementById('edtBank').value 
-        });
-        closeGate(); 
-        AGUtils.showToast("Changes Applied ✅", { elementId: "toast", duration: 2500 });
+        try {
+            await update(ref(db, `${userSalesPath}/${activeID}`), {
+                customer: document.getElementById('edtCust').value,
+                bank: document.getElementById('edtBank').value
+            });
+            closeGate();
+            showToast("Changes Applied ✅");
+        } catch (error) {
+            AGErrors.report("bank sales update", error, message => showToast(`Update failed: ${message}`));
+        }
     };
 
     window.closeGate = () => document.getElementById('adminModal').style.display = 'none';
+
+    function showToast(message) {
+        AGUtils.showToast(message, { elementId: "toast", duration: 2500 });
+    }
 
     // Init Filters
     const mSelect = document.getElementById('fMonth');

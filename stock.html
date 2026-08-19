@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="error-utils.js"></script>
 <script src="ag-utils.js"></script>
 <script type="module" src="auth-guard.js"></script>
     <meta charset="UTF-8">
@@ -153,17 +154,20 @@
     let syncQueue = AGUtils.readJSON(AGUtils.uidKey("ag_inv_queue", currentUID), []);
 
     async function attemptSync() {
-        if (!navigator.onLine || syncQueue.length === 0) return;
-        for (let i = 0; i < syncQueue.length; i++) {
-            const item = syncQueue[i];
+        if (!navigator.onLine || syncQueue.length === 0) return false;
+        while (syncQueue.length > 0) {
+            const item = syncQueue[0];
             try {
                 if (item.isDelete) { await remove(ref(db, `${cloudPath}/${item.id}`)); }
                 else { await update(ref(db, `${cloudPath}/${item.id}`), item); }
-                syncQueue.splice(i, 1);
+                syncQueue.shift();
                 AGUtils.writeJSON(AGUtils.uidKey("ag_inv_queue", currentUID), syncQueue);
-                i--;
-            } catch(e) { break; }
+            } catch(e) {
+                AGErrors.report("inventory queue synchronization", e, message => notify(`Inventory sync failed: ${message}`));
+                break;
+            }
         }
+        return syncQueue.length === 0;
     }
 
     window.handleSave = async () => {
@@ -185,8 +189,8 @@
         resetForm();
         renderDashboard();
         renderAdminList();
-        notify("Saved successfully");
-        attemptSync();
+        const synced = await attemptSync();
+        notify(synced ? "Saved and synced" : "Saved locally; sync pending");
     };
 
     window.popDelete = (k) => {
@@ -199,8 +203,8 @@
             closeModal();
             renderDashboard();
             renderAdminList();
-            notify("Item deleted");
-            attemptSync();
+            notify("Item deleted locally; sync pending");
+            attemptSync().catch(error => AGErrors.report("inventory deletion synchronization", error));
         };
     };
 
@@ -253,7 +257,7 @@
             renderDashboard();
             renderAdminList();
         }
-    });
+    }, error => AGErrors.report("inventory live data", error, (message) => notify(`Live inventory data could not be loaded: ${message}`)));
 
     let pinBuffer = "";
     window.pressNum = (n) => {
