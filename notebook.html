@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="error-utils.js"></script>
 <script src="ag-utils.js"></script>
 <script type="module" src="auth-guard.js"></script>
     <meta charset="utf-8">
@@ -164,8 +165,9 @@
                     timestamp: tempNote.timestamp 
                 });
             }
-        } catch (e) { 
-            console.log("Offline: Note saved locally."); 
+        } catch (e) {
+            if (!AGErrors.isOffline(e)) AGErrors.report("notebook cloud save", e);
+            else console.log("Offline: Note saved locally.");
         }
     };
 
@@ -183,7 +185,8 @@
 
     window.deleteNote = (id) => {
         if(confirm("Delete this note?")) {
-            remove(ref(db, `${userNotesPath}/${id}`));
+            remove(ref(db, `${userNotesPath}/${id}`))
+                .catch(error => AGErrors.report("notebook deletion", error));
         }
     };
 
@@ -220,7 +223,7 @@
         } else {
             renderNotes([]);
         }
-    });
+    }, error => AGErrors.report("notebook live data", error));
 </script>
 </body>
 </html>

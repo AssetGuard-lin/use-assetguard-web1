@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="error-utils.js"></script>
 <script src="ag-utils.js"></script>
 <script src="ag-config.js"></script>
 <meta charset="UTF-8">
@@ -742,7 +743,7 @@ function handleAdminLogout() {
         document.getElementById('adminDashboard').style.display = 'none';
         document.getElementById('loginWrapper').style.display = 'flex';
         document.getElementById('adminPassword').value = '';
-    });
+    }).catch(error => AGErrors.report("admin logout", error, message => alert(`Logout failed: ${message}`)));
 }
 
 function refreshData() {
@@ -764,14 +765,14 @@ function loadSubscriptionsData() {
         subscriptionsCache = snapshot.val() || {};
         loadUserDirectory();
         loadAuditLogs();
-    });
+    }, error => AGErrors.report("admin subscriptions live data", error, alert));
 }
 
 function loadUserStatuses() {
     rtdb.ref('user_statuses').on('value', (snapshot) => {
         userStatusesCache = snapshot.val() || {};
         loadUserDirectory();
-    });
+    }, error => AGErrors.report("admin user statuses live data", error, alert));
 }
 
 function loadUsersNode() {
@@ -779,14 +780,14 @@ function loadUsersNode() {
         usersNodeCache = snapshot.val() || {};
         loadUserDirectory();
         loadAuditLogs();
-    });
+    }, error => AGErrors.report("admin users live data", error, alert));
 }
 
 function loadProfilesNode() {
     rtdb.ref('profiles').on('value', (snapshot) => {
         profilesNodeCache = snapshot.val() || {};
         loadUserDirectory();
-    });
+    }, error => AGErrors.report("admin profiles live data", error, alert));
 }
 
 function loadSubscriptionPauses() {
@@ -795,7 +796,7 @@ function loadSubscriptionPauses() {
         if (currentSelectedProfileUid) {
             updateProfilePauseUI(currentSelectedProfileUid);
         }
-    });
+    }, error => AGErrors.report("admin subscription pauses live data", error, alert));
 }
 
 function loadAdminTickets() {
@@ -815,7 +816,7 @@ function loadAdminTickets() {
         activeTicketsCache = snapshot.val();
         renderTicketsTable();
         loadUserDirectory();
-    });
+    }, error => AGErrors.report("admin support tickets live data", error, alert));
 }
 
 function loadAuditLogs() {
@@ -877,7 +878,7 @@ function loadAuditLogs() {
         });
         tbody.innerHTML = html;
         loadUserDirectory();
-    });
+    }, error => AGErrors.report("admin activity logs live data", error, alert));
 }
 
 function loadMarketingRequests() {
@@ -945,7 +946,7 @@ function loadMarketingRequests() {
             `;
         });
         tbody.innerHTML = html;
-    });
+    }, error => AGErrors.report("admin marketing requests live data", error, alert));
 }
 
 function toggleSelectAllMarketing(source) {
@@ -1553,7 +1554,7 @@ function loadHistoryRequests() {
             `;
         });
         tbody.innerHTML = html;
-    });
+    }, error => AGErrors.report("admin history requests live data", error, alert));
 }
 
 function toggleSelectAllHistoryReqs(source) {
@@ -1613,7 +1614,7 @@ function loadMasterStkConfig() {
             document.getElementById('cfgConsumerKey').value = cfg.consumerKey || '';
             document.getElementById('cfgConsumerSecret').value = cfg.consumerSecret || '';
         }
-    });
+    }).catch(error => AGErrors.report("master STK configuration read", error, message => alert(`Configuration load failed: ${message}`)));
 }
 
 async function saveMasterStkConfig() {

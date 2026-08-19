@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="error-utils.js"></script>
 <script src="ag-utils.js"></script>
 <script src="ag-config.js"></script>
 <script type="module" src="auth-guard.js"></script>
@@ -461,6 +462,7 @@
         updateSalesBadge();
 
         // 2. Push settings and initialize user status in Firebase Cloud
+        let cloudSaved = true;
         try {
             await rtdb.ref(`user_settings/${activeUID}`).set({
                 ...loadedSettings,
@@ -481,16 +483,21 @@
                 device: navigator.userAgent.substring(0, 50)
             });
         } catch (error) {
-            console.error("Firebase sync error:", error);
+            cloudSaved = false;
+            AGErrors.report("settings cloud synchronization", error);
         }
 
         try {
             if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
                 window.AppInventor.setWebViewString(JSON.stringify({ action: "settings_updated", uid: activeUID, data: loadedSettings }));
             }
-        } catch (e) {}
+        } catch (e) {
+            AGErrors.report("settings update bridge notification", e);
+        }
 
-        triggerToast(isSkipAction ? "POS Payment Setup Skipped" : "Settings Saved & Synchronized");
+        triggerToast(cloudSaved
+            ? (isSkipAction ? "POS Payment Setup Skipped" : "Settings Saved & Synchronized")
+            : "Saved locally; cloud synchronization failed");
     }
 
     function triggerToast(msg) {
@@ -505,7 +512,9 @@
             if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
                 window.AppInventor.setWebViewString(JSON.stringify({ action: "navigate_back", uid: activeUID }));
             }
-        } catch (e) {}
+        } catch (e) {
+            AGErrors.report("settings exit bridge notification", e);
+        }
         window.location.href = `dashboard.html?uid=${encodeURIComponent(activeUID)}`;
     }
 </script>

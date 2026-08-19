@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="error-utils.js"></script>
 <script src="ag-utils.js"></script>
 <script type="module" src="auth-guard.js"></script>
     <meta charset="utf-8">
@@ -154,7 +155,7 @@ onValue(ref(db, salesPath), snap => {
             grandTotal: v.items ? v.items.reduce((sum, i) => sum + parseFloat(i.total || 0), 0) : (parseFloat(v.total) || 0) 
         }));
     refreshUnifiedData();
-});
+}, error => AGErrors.report("M-Pesa sales live data", error));
 
 window.renderSales = () => {
     const container = document.getElementById('sales-container');
@@ -222,12 +223,13 @@ document.getElementById('btn-save-changes').onclick = () => {
     update(ref(db, `${salesPath}/${activeId}`), { 
         customer: document.getElementById('edit-cust-name').value, 
         mpesa: document.getElementById('edit-cust-phone').value 
-    });
+    }).catch(error => AGErrors.report("M-Pesa contact update", error));
     closeModals();
 };
 
 document.getElementById('btn-final-del').onclick = () => {
-    remove(ref(db, `${salesPath}/${activeId}`));
+    remove(ref(db, `${salesPath}/${activeId}`))
+        .catch(error => AGErrors.report("M-Pesa contact deletion", error));
     closeConfirmModal(); closeModals();
 };
 

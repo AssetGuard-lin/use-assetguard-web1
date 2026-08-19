@@ -60,6 +60,12 @@ app.post('/stk-push', async (req, res) => {
             headers: { 'Authorization': `Basic ${auth}` }
         });
         const accessToken = tokenResponse.data.access_token;
+        if (!accessToken) {
+            const tokenError = new Error('Safaricom OAuth response did not include an access_token');
+            tokenError.upstreamStatus = tokenResponse.status || 502;
+            tokenError.upstreamPayload = tokenResponse.data;
+            throw tokenError;
+        }
 
         // 2. Generate Password & Timestamp
         const date = new Date();
@@ -92,9 +98,16 @@ app.post('/stk-push', async (req, res) => {
 
         res.json(stkResponse.data);
     } catch (error) {
-        console.error(error.response?.data || error.message);
+        console.error('STK push failed:', error.response?.data || error.upstreamPayload || error.message);
         res.status(502).json({ error: 'Payment request could not be completed.' });
     }
 });
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+process.on('unhandledRejection', (reason) => {
+    console.error('Unhandled promise rejection:', reason);
+});
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught exception:', error);
+});

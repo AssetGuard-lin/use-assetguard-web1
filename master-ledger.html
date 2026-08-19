@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="error-utils.js"></script>
 <script src="ag-utils.js"></script>
 <script type="module" src="auth-guard.js"></script>
     <meta charset="utf-8">
@@ -380,7 +381,9 @@
             combinedRecords = Array.isArray(parsed) ? parsed : Object.values(parsed);
             isDataLoaded = true;
             queueMicrotask(() => window.filterAndRender());
-        } catch(e) {}
+        } catch(e) {
+            AGErrors.report("master ledger cached mirror parsing", e);
+        }
     } else {
         // Render empty state immediately so UI doesn't delay or block
         isDataLoaded = true;
@@ -436,7 +439,7 @@
 
             cloudRecords = temp;
             refreshUnifiedData();
-        }, { onlyOnce: false });
+        }, error => AGErrors.report("master ledger live data", error), { onlyOnce: false });
     }
 
     window.switchTab = (tabId, element) => {
@@ -601,7 +604,7 @@
                     legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 6, padding: 10, font: { family: 'Poppins', size: 10, weight: 600 } } } 
                 } 
             }
-        });
+        }, error => AGErrors.report("master ledger live data", error));
 
         categoryChartInstance = new Chart(ctxCat, {
             type: 'bar',
@@ -676,7 +679,14 @@
     };
     
     window.closeModals = () => { document.getElementById('pinModal').style.display = 'none'; document.getElementById('adminPin').value = ''; };
-    window.deleteEntry = async (path) => { if(confirm("Permanently remove this cash record?")) { await remove(ref(db, path)); } };
+    window.deleteEntry = async (path) => {
+        if (!confirm("Permanently remove this cash record?")) return;
+        try {
+            await remove(ref(db, path));
+        } catch (error) {
+            AGErrors.report("master ledger deletion", error);
+        }
+    };
 </script>
 </body>
 </html>
