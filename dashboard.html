@@ -665,7 +665,9 @@ window.addEventListener('click', (e) => {
     }
 });
 
-const escapeHtml = AGUtils.escapeHtml;
+function escapeHtml(str) {
+    return AGUtils.escapeHtml(str);
+}
 
 function pruneOldActivityLogs() {
     const logsRef = rtdb.ref('user_activity_logs');
@@ -1220,7 +1222,7 @@ function initRealtimeChatListener() {
         sortedTickets.forEach(t => {
             const opt = document.createElement('option');
             opt.value = t.id;
-            opt.innerText = `${t.ticketNumber || 'Ticket'} (${AGUtils.formatDateTime(t.timestamp, { fallback: '' }).split(',')[0]})`;
+            opt.innerText = `${t.ticketNumber || 'Ticket'} (${new Date(t.timestamp).toLocaleDateString()})`;
             dropdown.appendChild(opt);
         });
 

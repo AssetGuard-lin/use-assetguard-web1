@@ -125,7 +125,7 @@
                     <code>REF: ${d.bank || 'No Ref'}</code>
                     <small>${date.toLocaleDateString('en-GB')}</small>
                 </div>
-            <div class="audit-amt"><span>${AGUtils.formatAmount(d.finalAmount, { minDecimals: 2 })}</span><small>KES</small></div>
+                <div class="audit-amt"><span>${AGUtils.formatAmount(d.finalAmount, { minDecimals: 2 })}</span><small>KES</small></div>
                 ${!d.isPending ? `<button class="btn-lock" onclick="gatekeeper('${d.id}')">⚙️</button>` : ''}
             </div>`);
         });

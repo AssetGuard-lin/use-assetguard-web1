@@ -1784,7 +1784,9 @@ async function submitAdminReply() {
     }
 }
 
-const escapeHtml = AGUtils.escapeHtml;
+function escapeHtml(text) {
+    return AGUtils.escapeHtml(text);
+}
 </script>
 </body>
 </html>

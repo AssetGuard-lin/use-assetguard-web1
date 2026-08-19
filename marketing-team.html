@@ -339,7 +339,7 @@ rtdb.ref("adminRequests").on("value", (snapshot) => {
     renderLedger();
 });
 
-const esc = AGUtils.escapeHtml;
+function esc(s) { return AGUtils.escapeHtml(s); }
 
 function toast(message, type="") {
     AGUtils.showToast(message, { type, duration: 4000, elementId: "toast" });
