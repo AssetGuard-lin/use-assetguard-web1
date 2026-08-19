@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="error-utils.js"></script>
+<script src="ag-errors.js"></script>
 <script src="ag-utils.js"></script>
 <script type="module" src="auth-guard.js"></script>
     <meta charset="UTF-8">
@@ -171,6 +171,7 @@
     }
 
     window.handleSave = async () => {
+        try {
         const name = document.getElementById('itemName').value.trim();
         const qty = parseInt(document.getElementById('itemQty').value) || 0;
         const price = parseFloat(document.getElementById('salePrice').value) || 0;
@@ -191,6 +192,9 @@
         renderAdminList();
         const synced = await attemptSync();
         notify(synced ? "Saved and synced" : "Saved locally; sync pending");
+        } catch (error) {
+            AGErrors.report("inventory save", error, message => notify(`Saved locally; sync pending: ${message}`, "error"));
+        }
     };
 
     window.popDelete = (k) => {

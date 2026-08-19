@@ -1,3 +1,12 @@
+function reportError(context, error) {
+    const errors = globalThis.AGErrors;
+    if (errors && typeof errors.report === "function") {
+        errors.report(context, error);
+    } else {
+        console.error(`[AssetGuard Error] ${context}:`, error);
+    }
+}
+
 globalThis.AGUtils = {
     resolveActiveUID({ fallback = "global_terminal_user", persist = true } = {}) {
         let uid = null;
@@ -12,7 +21,9 @@ globalThis.AGUtils = {
                     break;
                 }
             }
-        } catch (_) {}
+        } catch (error) {
+            reportError("active UID query parsing", error);
+        }
 
         if (isMissing(uid)) {
             try {
@@ -24,7 +35,8 @@ globalThis.AGUtils = {
                             try {
                                 const parsed = JSON.parse(trimmed);
                                 uid = parsed && (parsed.uid || parsed.userId || parsed.username) || raw;
-                            } catch (_) {
+                            } catch (error) {
+                                reportError("active UID WebViewString parsing", error);
                                 uid = raw;
                             }
                         } else {
@@ -32,20 +44,26 @@ globalThis.AGUtils = {
                         }
                     }
                 }
-            } catch (_) {}
+            } catch (error) {
+                reportError("active UID WebViewString capture", error);
+            }
         }
 
         if (isMissing(uid)) {
             try {
                 uid = localStorage.getItem("ag_active_uid");
-            } catch (_) {}
+            } catch (error) {
+                reportError("active UID read", error);
+            }
         }
         if (isMissing(uid)) uid = fallback;
         uid = String(uid).trim();
         if (persist) {
             try {
                 localStorage.setItem("ag_active_uid", uid);
-            } catch (_) {}
+            } catch (error) {
+                reportError("active UID write", error);
+            }
         }
         return uid;
     },
@@ -54,13 +72,17 @@ globalThis.AGUtils = {
         let uid = null;
         try {
             uid = localStorage.getItem("ag_active_uid");
-        } catch (_) {}
+        } catch (error) {
+            reportError("active UID cache read", error);
+        }
         if (uid == null || ["", "null", "undefined"].includes(String(uid).trim())) uid = fallback;
         if (uid != null) uid = String(uid).trim();
         if (persist && uid != null) {
             try {
                 localStorage.setItem("ag_active_uid", uid);
-            } catch (_) {}
+            } catch (error) {
+                reportError("active UID cache write", error);
+            }
         }
         return uid;
     },
@@ -73,13 +95,19 @@ globalThis.AGUtils = {
         try {
             const value = localStorage.getItem(key);
             return value == null ? fallback : JSON.parse(value);
-        } catch (_) {
+        } catch (error) {
+            reportError(`JSON cache read for ${key}`, error);
             return fallback;
         }
     },
 
     writeJSON(key, value) {
-        localStorage.setItem(key, JSON.stringify(value));
+        try {
+            localStorage.setItem(key, JSON.stringify(value));
+        } catch (error) {
+            reportError(`JSON cache write for ${key}`, error);
+            throw error;
+        }
     },
 
     uidKey(base, uid) {
@@ -125,7 +153,10 @@ globalThis.AGUtils = {
         }
 
         const toast = document.getElementById(elementId);
-        if (!toast) return;
+        if (!toast) {
+            reportError("toast notification unavailable", new Error(`Toast element not found: ${elementId}`));
+            return;
+        }
         toast.textContent = message;
         toast.className = `toast${type ? ` ${type}` : ""}`;
         toast.style.display = "block";

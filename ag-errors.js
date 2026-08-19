@@ -33,4 +33,4 @@
     global.addEventListener("unhandledrejection", (event) => {
         report("Unhandled promise rejection", event.reason);
     });
-})(window);
+})(globalThis);

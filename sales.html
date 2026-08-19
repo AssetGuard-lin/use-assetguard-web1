@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="error-utils.js"></script>
+<script src="ag-errors.js"></script>
 <script src="ag-utils.js"></script>
 <script type="module" src="auth-guard.js"></script>
 <meta charset="utf-8">
@@ -907,8 +907,8 @@ window.onload = () => {
     populateDropdown();
     updateStatusUI();
     renderSales(); 
-    deepSyncFirebase();
-    if (navigator.onLine) attemptSync();
+    deepSyncFirebase().catch(error => AGErrors.report("sales deep synchronization", error));
+    if (navigator.onLine) attemptSync().catch(error => AGErrors.report("sales queue synchronization", error));
 };
 
 async function deepSyncFirebase() {
@@ -1385,7 +1385,7 @@ function finalizeSaleTransaction() {
     resetFullForm();
     
     renderSales();
-    attemptSync();
+    attemptSync().catch(error => AGErrors.report("sales transaction synchronization", error));
 }
 
 function resetFullForm() {
@@ -1455,11 +1455,11 @@ async function attemptSync() {
                 AGUtils.writeJSON(AGUtils.uidKey("ag_ledger_cache", currentUID), rawLedgerData);
             }
             renderSales();
-        } catch (e) { 
-            console.error("Sync error caught: ", e);
+        } catch (error) {
+            AGErrors.report("sales queue synchronization", error);
             if (diagPanel && diagLog) {
                 diagPanel.style.display = "block";
-                diagLog.innerText = `Sync failed: ${e.message || e}. Will retry when connection stabilizes.`;
+                diagLog.innerText = `Sync failed: ${error.message || error}. Will retry when connection stabilizes.`;
             }
             break; 
         }

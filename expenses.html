@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="error-utils.js"></script>
+<script src="ag-errors.js"></script>
 <script src="ag-utils.js"></script>
 <script type="module" src="auth-guard.js"></script>
     <meta charset="utf-8">
@@ -680,7 +680,12 @@
             }, error => AGErrors.report("expense live data", error));
         };
 
-        window.showToast = () => { const t = document.getElementById('toast'); t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2000); };
+        window.showToast = (message = "Expense saved successfully") => {
+            const t = document.getElementById('toast');
+            t.textContent = message;
+            t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 2000);
+        };
         
         window.toggleView = () => {
             const isEntryActive = document.getElementById('view-entry').classList.contains('active');
@@ -982,8 +987,6 @@
             const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
             document.getElementById('expense_date').value = now.toISOString().slice(0, 16);
             
-            showToast();
-            
             try {
                 await update(ref(db, `${cloudPath}/${id}`), {
                     id: entry.id,
@@ -1003,9 +1006,13 @@
                 entry.synced = true;
                 await localSaveSingle(entry);
                 await loadAndRenderLocal();
-            } catch(err) {
-                if (!AGErrors.isOffline(err)) AGErrors.report("expense cloud save", err);
+                showToast("Expense saved and synced");
+            } catch (error) {
+                if (!AGErrors.isOffline(error)) AGErrors.report("expense cloud save", error);
                 else console.log("Offline: Expense saved locally. Will sync when connection is restored.");
+                showToast(AGErrors.isOffline(error)
+                    ? "Expense saved locally; sync pending"
+                    : "Expense saved locally; cloud sync failed");
             }
         };
 
@@ -1281,9 +1288,13 @@
                 updated.synced = true;
                 await localSaveSingle(updated);
                 await loadAndRenderLocal();
-            } catch(err) {
-                if (!AGErrors.isOffline(err)) AGErrors.report("expense cloud modification", err);
+                showToast("Expense updated and synced");
+            } catch (error) {
+                if (!AGErrors.isOffline(error)) AGErrors.report("expense cloud modification", error);
                 else console.log("Offline: Modification stored locally. Queue active.");
+                showToast(AGErrors.isOffline(error)
+                    ? "Expense updated locally; sync pending"
+                    : "Expense updated locally; cloud sync failed");
             }
         };
 
@@ -1306,9 +1317,12 @@
                     const tx = idbRequest.result.transaction("expenses", "readwrite");
                     tx.objectStore("expenses").delete(pendingDeleteId);
                 }
-            } catch (e) {
-                if (!AGErrors.isOffline(e)) AGErrors.report("expense cloud deletion", e);
+            } catch (error) {
+                if (!AGErrors.isOffline(error)) AGErrors.report("expense cloud deletion", error);
                 else console.log("Offline: Local soft deletion logged. Synchronization pending online state.");
+                showToast(AGErrors.isOffline(error)
+                    ? "Expense deleted locally; sync pending"
+                    : "Expense deleted locally; cloud sync failed");
             }
         };
 
