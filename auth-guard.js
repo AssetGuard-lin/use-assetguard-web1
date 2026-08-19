@@ -22,4 +22,8 @@ onAuthStateChanged(auth, (user) => {
   } else {
     window.location.replace("index.html");
   }
+}, (error) => {
+    AGErrors.report("authentication initialization", error);
+    document.documentElement.style.visibility = "";
+    window.location.replace("index.html?authError=initialization");
 });

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="error-utils.js"></script>
 <script type="module" src="auth-guard.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -250,12 +251,13 @@
     if (navigator.storage && navigator.storage.persist) {
         navigator.storage.persist().then(granted => {
             if (granted) console.log("User Vault Longevity Lock Active.");
-        });
+        }).catch(error => AGErrors.report("persistent storage request", error));
     }
 
     // Warm up
     if (currentUID) {
-        getDB().then(() => console.log(`Vault Active for ${currentUID}`));
+        getDB().then(() => console.log(`Vault Active for ${currentUID}`))
+            .catch(error => AGErrors.report("local vault initialization", error));
     }
 </script>
 

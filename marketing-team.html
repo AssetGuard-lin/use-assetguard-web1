@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="error-utils.js"></script>
 <script type="module" src="auth-guard.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
@@ -337,12 +338,12 @@ rtdb.ref("dispatches").on("value", (snapshot) => {
     }
     renderLedger();
     updateDispatchBanner();
-});
+}, error => AGErrors.report("dispatches live data", error, message => toast(`Live dispatches could not be loaded: ${message}`, "error")));
 
 rtdb.ref("adminRequests").on("value", (snapshot) => {
     adminRequests = snapshot.val() || {};
     renderLedger();
-});
+}, error => AGErrors.report("admin requests live data", error, message => toast(`Live admin requests could not be loaded: ${message}`, "error")));
 
 function esc(s) { return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m])); }
 
@@ -465,7 +466,7 @@ function submitDispatch() {
         toast("Dispatch successfully created and active!", "success");
         updateDispatchBanner();
         showPage('ledgerPage');
-    });
+    }).catch(error => AGErrors.report("dispatch creation", error, message => toast(`Dispatch creation failed: ${message}`, "error")));
 }
 
 function startGlobalGPSMonitoring() {
@@ -490,7 +491,7 @@ function startGlobalGPSMonitoring() {
         if (currentDispatchId) {
             rtdb.ref(`dispatches/${currentDispatchId}/lastLocation`).set({
                 lat, lng, speed: speedKmh, ts: Date.now()
-            });
+            }).catch(error => AGErrors.report("dispatch location update", error));
         }
     };
 
@@ -739,7 +740,7 @@ function updateDispatchStatus(id, newStatus) {
         toast(`Dispatch updated to ${newStatus}!`, "success");
         hideDrawer();
         renderLedger();
-    });
+    }).catch(error => AGErrors.report("dispatch status update", error, message => toast(`Dispatch update failed: ${message}`, "error")));
 }
 
 function hideDrawer() { document.getElementById("drawerBg").style.display = "none"; }

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="error-utils.js"></script>
 <script type="module" src="auth-guard.js"></script>
 <meta charset="utf-8">
 <title>AssetGuard Pro - Unified Purchase Terminal & Analytics</title>
@@ -323,7 +324,7 @@
                 } else {
                     console.log("Storage persistence requested but denied by browser policies.");
                 }
-            });
+            }).catch(error => AGErrors.report("purchase storage persistence request", error));
         }
 
         const app = initializeApp({ databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com" });
@@ -381,7 +382,8 @@
                         item.synced = true;
                         await localSaveSingle(item);
                     } catch (err) {
-                        console.log("Sync skipped/failed for purchase: ", item.id, err);
+                        if (!AGErrors.isOffline(err)) AGErrors.report(`purchase sync for ${item.id}`, err);
+                        else console.log("Offline: Purchase sync queued for later.", item.id);
                     }
                 }
 
@@ -393,7 +395,8 @@
                             delTx.objectStore("purchases").delete(item.id);
                         }
                     } catch (err) {
-                        console.log("Sync delete failed for purchase: ", item.id, err);
+                        if (!AGErrors.isOffline(err)) AGErrors.report(`purchase deletion sync for ${item.id}`, err);
+                        else console.log("Offline: Purchase deletion queued for later.", item.id);
                     }
                 }
 
@@ -440,7 +443,7 @@
                         loadAndRenderLocal();
                     };
                 };
-            });
+            }, error => AGErrors.report("purchase live data", error));
         };
 
         window.showView = (id) => {
@@ -510,7 +513,8 @@
                                 tx.objectStore("purchases").delete(id);
                             }
                         } catch (e) {
-                            console.log("Offline: Deleted registered locally. Syncing deletion later.");
+                            if (!AGErrors.isOffline(e)) AGErrors.report("purchase cloud deletion", e);
+                            else console.log("Offline: Deleted registered locally. Syncing deletion later.");
                         }
                     } else { 
                         document.getElementById('pinError').innerText = "Incorrect PIN"; 
@@ -575,7 +579,8 @@
                 await localSaveSingle(entry);
                 await loadAndRenderLocal();
             } catch (err) {
-                console.log("Offline: Purchase saved locally. Will sync when connection is restored.");
+                if (!AGErrors.isOffline(err)) AGErrors.report("purchase cloud save", err);
+                else console.log("Offline: Purchase saved locally. Will sync when connection is restored.");
             }
         };
 

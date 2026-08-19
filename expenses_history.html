@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="error-utils.js"></script>
 <script type="module" src="auth-guard.js"></script>
     <meta charset="utf-8">
     <title>Expense History - AssetGuard Mirror</title>
@@ -179,7 +180,7 @@
             });
             
             tx.oncomplete = () => refreshUI();
-        });
+        }, error => AGErrors.report("expense history live data", error));
     };
 
     // --- STARTUP ---
@@ -222,7 +223,8 @@
         const newName = document.getElementById('editItemName').value;
         const newAmt = document.getElementById('editItemAmount').value;
         
-        update(ref(db, `${cloudPath}/${activeId}`), { expense_name: newName, amount: newAmt });
+        update(ref(db, `${cloudPath}/${activeId}`), { expense_name: newName, amount: newAmt })
+            .catch(error => AGErrors.report("expense history update", error));
         
         const tx = iDB.transaction("expenses", "readwrite");
         const item = localData.find(x => x.id === activeId);
@@ -233,7 +235,8 @@
     };
 
     document.getElementById('confirmDeleteBtn').onclick = () => {
-        remove(ref(db, `${cloudPath}/${activeId}`));
+        remove(ref(db, `${cloudPath}/${activeId}`))
+            .catch(error => AGErrors.report("expense history deletion", error));
         
         const tx = iDB.transaction("expenses", "readwrite");
         tx.objectStore("expenses").delete(activeId);

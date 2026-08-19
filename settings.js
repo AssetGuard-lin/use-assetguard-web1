@@ -14,7 +14,12 @@ export function initSettings(db, profilePath, userProfile, currentUID) {
 }
 
 export function openSettings() {
-    const p = JSON.parse(localStorage.getItem(`ag_profile_cache_${_currentUID}`)) || _userProfile;
+    let p = _userProfile;
+    try {
+        p = JSON.parse(localStorage.getItem(`ag_profile_cache_${_currentUID}`)) || _userProfile;
+    } catch (error) {
+        AGErrors.report("settings profile cache parsing", error);
+    }
     document.getElementById('set-business-name').value = p.businessName || "";
     document.getElementById('set-business-tagline').value = p.tagline || "";
     document.getElementById('settingsModal').style.display = 'flex';
@@ -25,7 +30,12 @@ export async function saveSettings() {
     const name = document.getElementById('set-business-name').value;
     const tag = document.getElementById('set-business-tagline').value;
     
-    await set(ref(_db, _profilePath), { businessName: name, tagline: tag });
+    try {
+        await set(ref(_db, _profilePath), { businessName: name, tagline: tag });
+    } catch (error) {
+        AGErrors.report("profile settings save", error, message => alert(`Profile save failed: ${message}`));
+        return;
+    }
     
     // Update local cache
     const updatedProfile = { businessName: name, tagline: tag };
