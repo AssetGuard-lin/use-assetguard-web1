@@ -3,37 +3,26 @@ globalThis.AGUtils = {
         let uid = null;
         const isMissing = (value) => value == null || ["", "null", "undefined"].includes(String(value).trim());
 
+        // The UID is never taken from the URL: it would let any visitor read and
+        // overwrite another account's data.
         try {
-            const params = new URLSearchParams(window.location.search);
-            for (const key of ["uid", "user", "currentUID", "userId"]) {
-                const value = params.get(key);
-                if (!isMissing(value)) {
-                    uid = value.trim();
-                    break;
+            if (window.AppInventor && typeof window.AppInventor.getWebViewString === "function") {
+                const raw = window.AppInventor.getWebViewString();
+                if (!isMissing(raw)) {
+                    const trimmed = String(raw).trim();
+                    if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+                        try {
+                            const parsed = JSON.parse(trimmed);
+                            uid = parsed && (parsed.uid || parsed.userId || parsed.username) || raw;
+                        } catch (_) {
+                            uid = raw;
+                        }
+                    } else {
+                        uid = raw;
+                    }
                 }
             }
         } catch (_) {}
-
-        if (isMissing(uid)) {
-            try {
-                if (window.AppInventor && typeof window.AppInventor.getWebViewString === "function") {
-                    const raw = window.AppInventor.getWebViewString();
-                    if (!isMissing(raw)) {
-                        const trimmed = String(raw).trim();
-                        if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
-                            try {
-                                const parsed = JSON.parse(trimmed);
-                                uid = parsed && (parsed.uid || parsed.userId || parsed.username) || raw;
-                            } catch (_) {
-                                uid = raw;
-                            }
-                        } else {
-                            uid = raw;
-                        }
-                    }
-                }
-            } catch (_) {}
-        }
 
         if (isMissing(uid)) {
             try {

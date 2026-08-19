@@ -614,14 +614,13 @@ const auth = firebase.auth();
 
 const activeUID = AGUtils.getActiveUID({ fallback: "global_terminal_user", persist: true });
 
+// Daraja passkey / consumer key / consumer secret are held by the payment
+// backend and are never sent from the browser.
 const MASTER_CONFIG = {
     backendUrl: "https://weathered-glade-c60b.assetguardinfo.workers.dev",
     environment: "production",
     accountType: "Paybill",
-    shortcode: "257471",
-    passkey: "103f80194fedeaefb352960fb340d766ef3f84a9dcb96aafdd21d0b0bb8dfbab",
-    consumerKey: "AGJGJGGktfRf8OHhos6TJXKupDMb3f2wG9pZDdF8tG5qm0qK",
-    consumerSecret: "xmd2sXJzRA6Chl1KHGvR9jG0qtSBse1oRBCdgBjb4DnO7SEi4QzPVwKNWWraubJd"
+    shortcode: "257471"
 };
 
 let pendingSubDays = 0;
@@ -1571,9 +1570,6 @@ async function processStkPush() {
             body: JSON.stringify({
                 environment: MASTER_CONFIG.environment,
                 shortcode: MASTER_CONFIG.shortcode,
-                passkey: MASTER_CONFIG.passkey,
-                consumerKey: MASTER_CONFIG.consumerKey,
-                consumerSecret: MASTER_CONFIG.consumerSecret,
                 accountType: MASTER_CONFIG.accountType,
                 amount: parseInt(pendingAmount, 10),
                 phoneNumber: formattedPhone
@@ -1621,9 +1617,6 @@ function startStatusPolling(checkoutRequestID) {
                 body: JSON.stringify({
                     environment: MASTER_CONFIG.environment,
                     shortcode: MASTER_CONFIG.shortcode,
-                    passkey: MASTER_CONFIG.passkey,
-                    consumerKey: MASTER_CONFIG.consumerKey,
-                    consumerSecret: MASTER_CONFIG.consumerSecret,
                     checkoutRequestID: checkoutRequestID
                 })
             });
