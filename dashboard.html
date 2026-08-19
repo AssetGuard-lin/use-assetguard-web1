@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="ag-utils.js"></script>
+<script src="ag-config.js"></script>
 <script type="module" src="auth-guard.js"></script>
 
 <meta charset="UTF-8">
@@ -603,23 +605,13 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
 </div>
 
 <script>
-const firebaseConfig = { 
-    apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA", 
-    authDomain: "assetguard-c8c8c.firebaseapp.com", 
-    projectId: "assetguard-c8c8c",
-    databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com"
-};
-
 if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(AG_FIREBASE_CONFIG);
 }
 const rtdb = firebase.database();
 const auth = firebase.auth();
 
-const activeUID = localStorage.getItem("ag_active_uid") || "global_terminal_user";
-if (!localStorage.getItem("ag_active_uid")) {
-    localStorage.setItem("ag_active_uid", activeUID);
-}
+const activeUID = AGUtils.getActiveUID({ fallback: "global_terminal_user", persist: true });
 
 const MASTER_CONFIG = {
     backendUrl: "https://weathered-glade-c60b.assetguardinfo.workers.dev",
@@ -673,15 +665,7 @@ window.addEventListener('click', (e) => {
     }
 });
 
-function escapeHtml(str) {
-    if (!str) return '';
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-}
+const escapeHtml = AGUtils.escapeHtml;
 
 function pruneOldActivityLogs() {
     const logsRef = rtdb.ref('user_activity_logs');
@@ -852,7 +836,7 @@ function renderBroadcastModalList(itemsList) {
     }
     let html = "";
     itemsList.forEach((item) => {
-        const dateStr = item.timestamp ? new Date(item.timestamp).toLocaleString() : '';
+        const dateStr = AGUtils.formatDateTime(item.timestamp, { fallback: '' });
         let priorityColor = 'var(--primary)';
         if (item.priority === 'Important') priorityColor = 'var(--warning)';
         if (item.priority === 'Urgent') priorityColor = 'var(--danger)';
@@ -1236,7 +1220,7 @@ function initRealtimeChatListener() {
         sortedTickets.forEach(t => {
             const opt = document.createElement('option');
             opt.value = t.id;
-            opt.innerText = `${t.ticketNumber || 'Ticket'} (${new Date(t.timestamp).toLocaleDateString()})`;
+            opt.innerText = `${t.ticketNumber || 'Ticket'} (${AGUtils.formatDateTime(t.timestamp, { fallback: '' }).split(',')[0]})`;
             dropdown.appendChild(opt);
         });
 

@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="ag-utils.js"></script>
+<script src="ag-config.js"></script>
 <script type="module" src="auth-guard.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
@@ -287,15 +289,8 @@ if (!localStorage.getItem("routeStockUser")) {
 <div class="toast" id="toast"></div>
 
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA",
-  authDomain: "assetguard-c8c8c.firebaseapp.com",
-  projectId: "assetguard-c8c8c",
-  databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com"
-};
-
 if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(AG_FIREBASE_CONFIG);
 }
 const rtdb = firebase.database();
 const auth = firebase.auth();
@@ -344,15 +339,10 @@ rtdb.ref("adminRequests").on("value", (snapshot) => {
     renderLedger();
 });
 
-function esc(s) { return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m])); }
+const esc = AGUtils.escapeHtml;
 
 function toast(message, type="") {
-    const el = document.getElementById("toast");
-    el.textContent = message;
-    el.className = "toast " + type;
-    el.style.display = "block";
-    clearTimeout(window.toastTimer);
-    window.toastTimer = setTimeout(() => { el.style.display = "none"; }, 4000);
+    AGUtils.showToast(message, { type, duration: 4000, elementId: "toast" });
 }
 
 function showPage(id) {
