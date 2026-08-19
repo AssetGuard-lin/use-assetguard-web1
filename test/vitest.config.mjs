@@ -20,7 +20,7 @@ const stubFirebaseCdn = {
   name: "stub-firebase-cdn",
   enforce: "pre",
   transform(code, id) {
-    if (!/\/(auth-guard|settings)\.js$/.test(id)) return null;
+    if (!/\/(auth-guard|settings|ag-firebase)\.js$/.test(id)) return null;
     const stubbed = code.replace(
       /https:\/\/www\.gstatic\.com\/firebasejs\/[\d.]+\/firebase-(app|auth|database)\.js/g,
       (_match, module) => stubs[module]

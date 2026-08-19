@@ -14,7 +14,7 @@ export function initSettings(db, profilePath, userProfile, currentUID) {
 }
 
 export function openSettings() {
-    const p = JSON.parse(localStorage.getItem(`ag_profile_cache_${_currentUID}`)) || _userProfile;
+    const p = globalThis.AGUtils.readJSON(globalThis.AGUtils.uidKey("ag_profile_cache", _currentUID), _userProfile);
     document.getElementById('set-business-name').value = p.businessName || "";
     document.getElementById('set-business-tagline').value = p.tagline || "";
     document.getElementById('settingsModal').style.display = 'flex';
@@ -29,7 +29,7 @@ export async function saveSettings() {
     
     // Update local cache
     const updatedProfile = { businessName: name, tagline: tag };
-    localStorage.setItem(`ag_profile_cache_${_currentUID}`, JSON.stringify(updatedProfile));
+    globalThis.AGUtils.writeJSON(globalThis.AGUtils.uidKey("ag_profile_cache", _currentUID), updatedProfile);
     
     document.getElementById('settingsModal').style.display = 'none';
     alert("Profile Updated Successfully");

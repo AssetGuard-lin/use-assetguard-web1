@@ -1,5 +1,6 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import "../ag-utils.js";
 import { initSettings, openSettings, saveSettings } from "../settings.js";
 
 const UID = "uid-123";
