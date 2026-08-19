@@ -1,6 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script type="module">
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-auth.js";
+  
+  const auth = getAuth();
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      // Not logged in, redirect to login page
+      window.location.href = "index.html"; 
+    }
+  });
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AssetGuard Pro - The Hub</title>
@@ -23,7 +35,7 @@
 }
 
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg-light);display:flex;height:100vh;overflow:hidden;color:var(--text-main);}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg-light);display:flex;height:100vh;overflow:hidden;color:var(--text-main);user-select:none;}
 
 /* Absolute Lock Shield Class */
 body.app-locked .sidebar,
@@ -53,7 +65,6 @@ body.app-locked iframe {
     .floating-menu-btn { display: none; }
 }
 
-/* Updated Draggable Notification Bell Button */
 .notification-bell-btn {
     position: fixed; top: 90px; right: 20px; z-index: 1100;
     background: white; color: var(--primary-dark); border: 1px solid var(--border-color);
@@ -139,7 +150,6 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
     .col-6, .col-4, .col-3 { grid-column: span 12; }
 }
 
-/* Institutional Broker-Style Hero */
 .broker-hero {
     background: linear-gradient(135deg, #071952 0%, #0b2545 100%);
     color: white; border-radius: 18px; padding: 35px;
@@ -155,7 +165,6 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
 .broker-hero p { font-size: 14px; color: #cbd5e1; max-width: 600px; line-height: 1.5; }
 .hero-cta-group { display: flex; gap: 12px; margin-top: 5px; }
 
-/* Stats Hub Card */
 .stats-hub-card {
     background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     color: white; border-radius: 16px; padding: 28px;
@@ -165,7 +174,6 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
 .stats-hub-value { font-size: 40px; font-weight: 800; color: #ffffff; margin-bottom: 4px; }
 .stats-hub-desc { font-size: 12px; color: #94a3b8; font-weight: 600; }
 
-/* Feature Cards Style */
 .asset-card {
     background: var(--card-bg); border-radius: 16px; padding: 22px;
     border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.02);
@@ -176,7 +184,6 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
 .asset-title { font-size: 15px; font-weight: 800; color: var(--text-main); }
 .asset-desc { font-size: 12px; color: var(--text-muted); line-height: 1.45; }
 
-/* Reduced & Draggable WhatsApp Chat Widget Button Styles */
 .chat-widget-btn {
     position: fixed; bottom: 20px; right: 20px; z-index: 1400;
     background: var(--whatsapp); color: white; border: none;
@@ -197,7 +204,6 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
     100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
 }
 
-/* Separate Pill-Shaped Tagged Popup Buttons for Agent & AI */
 .chat-sub-btn {
     position: fixed; z-index: 1399; height: 38px; border-radius: 19px;
     border: none; display: flex; align-items: center; gap: 8px; padding: 0 14px 0 8px;
@@ -213,7 +219,6 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
 .chat-sub-btn.agent-btn { background: var(--whatsapp); }
 .chat-sub-btn.ai-btn { background: var(--primary); }
 
-/* Separate Chat Containers/Pages */
 .chat-container {
     position: fixed; bottom: 85px; right: 20px; z-index: 1400;
     width: 380px; max-width: calc(100vw - 30px); height: 540px;
@@ -243,7 +248,6 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
 .chat-header-actions button { background: rgba(255,255,255,0.15); border: none; color: white; font-size: 11px; padding: 4px 8px; border-radius: 4px; cursor: pointer; }
 .chat-header-actions button:hover { background: rgba(255,255,255,0.25); }
 
-/* Clear Options Dropdown Menu */
 .clear-dropdown-menu {
     display: none; position: absolute; right: 0; top: 30px; background: white; color: var(--text-main);
     box-shadow: 0 10px 25px rgba(0,0,0,0.2); border-radius: 8px; z-index: 1500; width: 140px; overflow: hidden; border: 1px solid var(--border-color);
@@ -287,7 +291,6 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
 }
 .ticket-selector-bar select { padding: 3px 6px; border-radius: 4px; border: 1px solid var(--border-color); font-size: 11px; outline: none; }
 
-/* STK & Subscription Overlay Styles */
 .stk-overlay {
     position: fixed; inset: 0; background: rgba(0, 26, 53, 0.92);
     backdrop-filter: blur(8px); z-index: 10000000; display: none;
@@ -329,14 +332,12 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
 .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 </style>
 
-<!-- Firebase Classic SDK -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body class="app-locked">
 
-<!-- Subscription Blocker Overlay -->
 <div id="hubSubscriptionBlocker" style="position: fixed; inset: 0; background: rgba(0, 26, 53, 0.98); backdrop-filter: blur(16px); z-index: 9999999; display: flex; align-items: center; justify-content: center; padding: 20px; color: #ffffff;">
     <div style="background: #ffffff; color: #0f172a; width: 100%; max-width: 420px; border-radius: 24px; padding: 32px 24px; text-align: center; box-shadow: 0 25px 60px rgba(0,0,0,0.6);">
         <div style="width: 64px; height: 64px; background: #fee2e2; color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
@@ -359,7 +360,6 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
     </div>
 </div>
 
-<!-- STK Push Modal Overlay -->
 <div id="stkModal" class="stk-overlay">
     <div class="lock-card">
         <button class="modal-close-btn" onclick="closeStkModal()" id="stkCloseBtn">
@@ -392,7 +392,6 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
 
 <button class="floating-menu-btn" onclick="toggleMenu()">☰</button>
 
-<!-- Draggable Notification Bell Button -->
 <button class="notification-bell-btn" id="notificationBellBtn" title="System Announcements & Direct Notices">
     <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/></svg>
     <span id="broadcastBadge" style="display:none; position:absolute; top:4px; right:4px; background:var(--danger); color:white; font-size:9px; font-weight:800; padding:2px 5px; border-radius:10px;">0</span>
@@ -400,7 +399,6 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
 
 <div class="overlay" id="overlay" onclick="closeAll()"></div>
 
-<!-- Notifications Modal -->
 <div class="custom-modal" id="broadcastModal">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding-bottom:10px; border-bottom:1px solid var(--border-color);">
         <div style="font-size: 16px; font-weight: 800; color:var(--primary-dark);">Notifications & Direct Notices</div>
@@ -409,9 +407,7 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
             <button onclick="closeBroadcastModal()" style="background:#f1f5f9; border:none; color:var(--text-muted); width: 28px; height: 28px; border-radius: 8px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">✕</button>
         </div>
     </div>
-    <div id="broadcastListContainer" style="max-height: 350px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
-        <!-- Notifications loaded dynamically -->
-    </div>
+    <div id="broadcastListContainer" style="max-height: 350px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;"></div>
     <div class="modal-btns">
         <button class="btn btn-primary" onclick="closeBroadcastModal()">Got It</button>
     </div>
@@ -434,7 +430,7 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
         <div class="label">Operations</div>
         <div class="nav-link" onclick="loadPage('sales')">Sales Terminal</div>
         <div class="nav-link" onclick="loadPage('purchases')">Purchases</div>
-<div class="nav-link" onclick="loadPage('marketing-team')">Marketing team</div>
+        <div class="nav-link" onclick="loadPage('marketing-team')">Marketing team</div>
         
         <div class="label">Relationships</div>
         <div class="nav-link" onclick="loadPage('crm')" style="color:#4ade80;">Customer Registry</div>
@@ -444,7 +440,7 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
         
         <div class="label">Finance</div>
         <div class="nav-link" onclick="loadPage('expenses')">Record Expense</div>
-   <div class="nav-link" onclick="loadPage('bi_dashboard')">BI Dashboard</div>
+        <div class="nav-link" onclick="loadPage('bi_dashboard')">BI Dashboard</div>
         <div class="nav-link" onclick="loadPage('master-ledger')">Master Ledger</div>
         
         <div class="label">Reports</div>
@@ -489,13 +485,13 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
             </div>
 
             <div class="asset-card col-4">
-                <div class="asset-icon"></div>
+                <div class="asset-icon">📦</div>
                 <div class="asset-title">Real-Time Inventory Engine</div>
                 <div class="asset-desc">Track precise stock levels, Weighted Average Costs (WAC), and automated low-stock reorder thresholds.</div>
             </div>
 
             <div class="asset-card col-4">
-                <div class="asset-icon"></div>
+                <div class="asset-icon">📊</div>
                 <div class="asset-title">Automated Master Ledger</div>
                 <div class="asset-desc">Every checkout or petty cash adjustment writes double-entry records, producing instantaneous P&L reports.</div>
             </div>
@@ -512,12 +508,10 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
     <span id="toastText">Settings Updated Successfully</span>
 </div>
 
-<!-- Reduced & Draggable WhatsApp Floating Button -->
 <button class="chat-widget-btn" id="chatWidgetBtn" title="Open Support Options">
     <svg viewBox="0 0 24 24"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01-1.87-1.87-4.36-2.9-7.01-2.9zm0 1.67c2.2 0 4.27.86 5.82 2.42 1.56 1.55 2.42 3.63 2.42 5.82 0 4.54-3.69 8.24-8.24 8.24-1.46 0-2.88-.39-4.12-1.13l-.3-.18-3.11.82.83-3.03-.19-.31c-.81-1.28-1.24-2.77-1.24-4.31 0-4.54 3.69-8.24 8.24-8.24zm4.51 5.92c-.17-.09-.98-.48-1.13-.54-.15-.06-.26-.09-.37.09-.11.17-.43.54-.53.65-.1.11-.21.13-.38.05-.17-.09-.72-.27-1.37-.84-.51-.45-.85-1-1.0-1.17-.15-.17-.02-.26.07-.35.07-.07.15-.17.23-.26.08-.09.11-.15.17-.26.06-.11.03-.2-.01-.28-.04-.09-.37-.89-.51-1.22-.13-.32-.27-.28-.37-.28h-.32c-.11 0-.28.04-.43.2-.15.17-.57.55-.57 1.34 0 .79.58 1.55.66 1.66.08.11 1.14 1.74 2.77 2.44.39.17.69.27.93.35.39.12.74.1 1.02.06.31-.05.98-.4 1.12-.79.14-.39.14-.72.1-.79-.04-.07-.15-.11-.32-.2z"/></svg>
 </button>
 
-<!-- Separate Tagged Popup Floating Buttons (Talk to an Agent & Ask AI) -->
 <button class="chat-sub-btn agent-btn" id="agentSubBtn" onclick="openAgentChat()">
     <svg viewBox="0 0 24 24"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01-1.87-1.87-4.36-2.9-7.01-2.9z"/></svg>
     Talk to an Agent
@@ -527,7 +521,6 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
     Ask AI
 </button>
 
-<!-- Separate Chat Page 1: Agent Support Chat Container -->
 <div class="chat-container" id="agentChatContainer">
     <div class="chat-header">
         <span>WhatsApp Support Agent Chat</span>
@@ -545,7 +538,6 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
         <select id="ticketSelectDropdown" onchange="switchActiveTicket(this.value)"></select>
     </div>
 
-    <!-- Pinned Always-Visible Quick Actions Bar at the TOP -->
     <div style="background:#f1f5f9; padding:8px 12px; border-bottom:1px solid var(--border-color); display:flex; flex-direction:column; gap:4px; flex-shrink:0;">
         <span style="font-size:10px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Quick Support Actions:</span>
         <div class="chat-actions" style="margin-top:0;">
@@ -555,9 +547,7 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
         </div>
     </div>
 
-    <div class="chat-messages" id="agentChatMessages">
-        <!-- Messages stream here dynamically -->
-    </div>
+    <div class="chat-messages" id="agentChatMessages"></div>
 
     <div class="chat-input-area">
         <div id="agentReplyingBar" style="display:none; background:#e0f2fe; padding:6px 10px; border-radius:6px; font-size:11px; color:var(--primary-dark); justify-content:space-between; align-items:center; margin-bottom:6px;">
@@ -579,7 +569,6 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
     </div>
 </div>
 
-<!-- Separate Chat Page 2: Ask AI Chat Container -->
 <div class="chat-container" id="aiChatContainer">
     <div class="chat-header">
         <span>Ask AI — AssetGuard Pro Guide</span>
@@ -665,8 +654,23 @@ let allBroadcastsCache = {};
 let allUserNotificationsCache = {};
 let isAiSelectiveMode = false;
 let isAgentSelectiveMode = false;
+let agentFlowState = null;
 
-// Global Window Click Listener to Shrink/Close Clear Menus When Clicking Outside
+// Security layer: Anti-tamper copy restriction
+document.addEventListener('copy', (e) => {
+    const selection = window.getSelection().toString();
+    if (selection.includes('uid=') || selection.includes('token=') || selection.includes('assetguard')) {
+        e.preventDefault();
+        triggerToast("Copying system links or auth tokens is restricted.");
+    }
+});
+
+auth.onAuthStateChanged((user) => {
+    if (!user && !localStorage.getItem("ag_active_uid")) {
+        window.location.href = "index.html";
+    }
+});
+
 window.addEventListener('click', (e) => {
     const aiMenu = document.getElementById('aiClearMenu');
     const agentMenu = document.getElementById('agentClearMenu');
@@ -679,7 +683,6 @@ window.addEventListener('click', (e) => {
     }
 });
 
-// HTML Escape helper to prevent injection
 function escapeHtml(str) {
     if (!str) return '';
     return String(str)
@@ -690,7 +693,6 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;');
 }
 
-// Automated log pruner to keep database clean and prevent bloat lag
 function pruneOldActivityLogs() {
     const logsRef = rtdb.ref('user_activity_logs');
     logsRef.orderByChild('timestamp').once('value', (snapshot) => {
@@ -710,7 +712,6 @@ function pruneOldActivityLogs() {
     });
 }
 
-// Audit Activity Logger
 function logUserActivity(category, description) {
     try {
         rtdb.ref('user_activity_logs').push({
@@ -726,26 +727,22 @@ function logUserActivity(category, description) {
     }
 }
 
-// Unified Notification Listener (Broadcasts + Individual Direct Notices)
 function initBroadcastListener() {
-    // 1. Global Broadcasts
     rtdb.ref('system_broadcasts').on('value', (snapshot) => {
         allBroadcastsCache = snapshot.val() || {};
         renderCombinedNotifications();
     });
 
-    // 2. Individual Direct Admin Notifications
     if (activeUID) {
         rtdb.ref(`user_notifications/${activeUID}`).on('value', (snapshot) => {
             allUserNotificationsCache = snapshot.val() || {};
             renderCombinedNotifications();
         });
 
-        // Popup toast for new individual notices arriving in real-time
         rtdb.ref(`user_notifications/${activeUID}`).on('child_added', (snapshot) => {
             const notif = snapshot.val();
             if (!notif) return;
-            if (Date.now() - (notif.timestamp || 0) < 60000) { // within last minute
+            if (Date.now() - (notif.timestamp || 0) < 60000) {
                 showAdminNotificationPopup(notif.title || "Admin Notice", notif.message || "");
             }
         });
@@ -755,12 +752,10 @@ function initBroadcastListener() {
 function renderCombinedNotifications() {
     let combinedList = [];
 
-    // Add global broadcasts
     for (let id in allBroadcastsCache) {
         combinedList.push({ id, ...allBroadcastsCache[id], origin: 'Broadcast' });
     }
 
-    // Add individual user direct notifications
     for (let id in allUserNotificationsCache) {
         combinedList.push({ 
             id, 
@@ -791,7 +786,6 @@ function renderCombinedNotifications() {
     renderBroadcastModalList(combinedList);
 }
 
-// Clear All Notifications Handler
 async function clearAllNotifications() {
     try {
         if (activeUID) {
@@ -892,7 +886,6 @@ function renderBroadcastModalList(itemsList) {
     container.innerHTML = html;
 }
 
-// Notification Bell Drag & 12-Second Snap-Back Logic
 const notificationBellBtn = document.getElementById('notificationBellBtn');
 let isBellDragging = false;
 let bellDragStartX = 0, bellDragStartY = 0;
@@ -954,7 +947,6 @@ notificationBellBtn.addEventListener('pointerup', (e) => {
     }
 });
 
-// Draggable WhatsApp Button Logic with Screen Boundary Clamping & Adaptive Popup Positioning
 const chatWidgetBtn = document.getElementById('chatWidgetBtn');
 const agentSubBtn = document.getElementById('agentSubBtn');
 const aiSubBtn = document.getElementById('aiSubBtn');
@@ -1092,7 +1084,6 @@ function openAiChat() {
     logUserActivity('SUPPORT', 'Opened Ask AI Guide');
 }
 
-// Clear Menu Toggles & Execution
 function toggleClearMenu(type) {
     const aiMenu = document.getElementById('aiClearMenu');
     const agentMenu = document.getElementById('agentClearMenu');
@@ -1463,7 +1454,6 @@ function cancelAgentReplyHighlight() {
     document.getElementById('agentReplyingBar').style.display = 'none';
 }
 
-// Unified, Race-Free Subscription and Access Guard
 function enforceSubscriptionLock(isExpired, reason = "Subscription Expired") {
     const blocker = document.getElementById('hubSubscriptionBlocker');
     const titleEl = document.getElementById('hubBlockTitle');
@@ -1784,8 +1774,6 @@ window.customLogoutTrigger = () => {
     };
 };
 
-let agentFlowState = null;
-
 function appendAiMessage(sender, text, htmlContent = '') {
     const messagesDiv = document.getElementById('aiChatMessages');
     const bubble = document.createElement('div');
@@ -1892,177 +1880,94 @@ window.handleAgentChoice = (choice) => {
         appendAgentMessage('user', 'Follow-up');
         agentFlowState = 'awaiting_followup_ticket_number';
         setTimeout(() => {
-            appendAgentMessage('agent-reply', 'Please enter your ticket number (e.g., AG-1234):');
+            appendAgentMessage('agent-reply', 'Please enter your active ticket number or reference code to proceed.');
         }, 400);
     }
 };
+
+function sendAgentMessage() {
+    const input = document.getElementById('agentChatInputBox');
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+
+    if (agentEditingMessageKey) {
+        const editKey = agentEditingMessageKey;
+        cancelAgentEdit();
+        if (editKey.startsWith('root_')) {
+            const ticketId = editKey.replace('root_', '');
+            rtdb.ref(`support_tickets/${ticketId}`).update({ message: text, updatedAt: Date.now() });
+        } else if (activeSelectedTicketId) {
+            rtdb.ref(`support_tickets/${activeSelectedTicketId}/conversation/${editKey}`).update({ text: text, editedAt: Date.now() });
+        }
+        return;
+    }
+
+    if (agentHighlightedMessageId && agentHighlightedMessageSnippet) {
+        const replySnippet = agentHighlightedMessageSnippet;
+        cancelAgentReplyHighlight();
+        if (activeSelectedTicketId) {
+            rtdb.ref(`support_tickets/${activeSelectedTicketId}/conversation`).push({
+                sender: 'user',
+                text: text,
+                replyToText: replySnippet,
+                timestamp: Date.now()
+            });
+        }
+        return;
+    }
+
+    if (agentFlowState === 'awaiting_new_msg') {
+        agentFlowState = null;
+        rtdb.ref('support_tickets').push({
+            uid: activeUID,
+            ticketNumber: 'TKT-' + Math.floor(100000 + Math.random() * 900000),
+            message: text,
+            status: 'Pending',
+            timestamp: Date.now()
+        });
+        appendAgentMessage('user', text);
+        appendAgentMessage('agent-reply', '✅ New ticket created successfully. An agent will respond shortly.');
+        return;
+    }
+
+    if (agentFlowState === 'awaiting_followup_ticket_number') {
+        agentFlowState = 'awaiting_followup_msg';
+        appendAgentMessage('user', text);
+        appendAgentMessage('agent-reply', `Ticket #${text} selected. Please type your update or question.`);
+        return;
+    }
+
+    if (activeSelectedTicketId) {
+        rtdb.ref(`support_tickets/${activeSelectedTicketId}/conversation`).push({
+            sender: 'user',
+            text: text,
+            timestamp: Date.now()
+        });
+    } else {
+        rtdb.ref('support_tickets').push({
+            uid: activeUID,
+            ticketNumber: 'TKT-' + Math.floor(100000 + Math.random() * 900000),
+            message: text,
+            status: 'Pending',
+            timestamp: Date.now()
+        });
+    }
+}
 
 function appendAgentMessage(senderClass, text) {
     const messagesDiv = document.getElementById('agentChatMessages');
     const bubble = document.createElement('div');
     bubble.className = `chat-bubble ${senderClass}`;
-    bubble.innerText = text;
+    if (isAgentSelectiveMode) {
+        bubble.classList.add('selectable');
+        bubble.onclick = () => bubble.classList.toggle('selected');
+    }
+    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    bubble.innerHTML = `${escapeHtml(text)}<span class="bubble-meta">${timeStr}</span>`;
     messagesDiv.appendChild(bubble);
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
-
-window.handleAgentKeyPress = (e) => {
-    if (e.key === 'Enter') {
-        sendAgentMessage();
-    }
-};
-
-window.sendAgentMessage = async () => {
-    const input = document.getElementById('agentChatInputBox');
-    const text = input.value.trim();
-    if (!text) return;
-
-    input.value = '';
-
-    if (agentEditingMessageKey && activeSelectedTicketId) {
-        try {
-            if (agentEditingMessageKey.startsWith('root_')) {
-                await rtdb.ref(`support_tickets/${activeSelectedTicketId}`).update({
-                    message: text,
-                    edited_timestamp: Date.now()
-                });
-            } else {
-                await rtdb.ref(`support_tickets/${activeSelectedTicketId}/conversation/${agentEditingMessageKey}`).update({
-                    text: text,
-                    edited_timestamp: Date.now()
-                });
-            }
-            cancelAgentEdit();
-            logUserActivity('SUPPORT', 'Edited support message');
-        } catch (error) {
-            console.error("Failed to edit message:", error);
-        }
-        return;
-    }
-
-    if (agentFlowState === 'awaiting_followup_ticket_number') {
-        const enteredTicketNum = text.toUpperCase();
-        let foundTicketId = null;
-
-        for (let key in allUserTicketsData) {
-            const t = allUserTicketsData[key];
-            if (t.ticketNumber && t.ticketNumber.toUpperCase() === enteredTicketNum) {
-                foundTicketId = key;
-                break;
-            }
-        }
-
-        if (foundTicketId) {
-            activeSelectedTicketId = foundTicketId;
-            document.getElementById('ticketSelectDropdown').value = foundTicketId;
-            initRealtimeChatListener();
-            agentFlowState = 'awaiting_followup_msg';
-            appendAgentMessage('agent-reply', `✅ Ticket ${enteredTicketNum} found! Please type your follow-up message below and press Send.`);
-        } else {
-            appendAgentMessage('agent-reply', '❌ Ticket not found. Please use a correct ticket number.');
-        }
-        return;
-    }
-
-    if (agentFlowState === 'awaiting_new_msg' || agentFlowState === 'awaiting_followup_msg') {
-        const isFollow = agentFlowState === 'awaiting_followup_msg';
-        agentFlowState = null;
-        try {
-            if (isFollow && activeSelectedTicketId) {
-                const ticketRef = rtdb.ref('support_tickets/' + activeSelectedTicketId);
-                const ticketData = allUserTicketsData[activeSelectedTicketId];
-                if (ticketData) {
-                    if (!ticketData.conversation && ticketData.message) {
-                        const rootMsgKey = ticketRef.child('conversation').push().key;
-                        await ticketRef.child(`conversation/${rootMsgKey}`).set({
-                            sender: 'user',
-                            text: ticketData.message,
-                            timestamp: ticketData.timestamp || Date.now()
-                        });
-                        await ticketRef.child('message').remove();
-                        if (ticketData.admin_reply) {
-                            await ticketRef.child('conversation').push({
-                                sender: 'admin',
-                                text: ticketData.admin_reply,
-                                timestamp: ticketData.reply_timestamp || Date.now()
-                            });
-                        }
-                    }
-                    await ticketRef.child('conversation').push({
-                        sender: 'user',
-                        text: text,
-                        replyToText: agentHighlightedMessageSnippet || null,
-                        timestamp: Date.now()
-                    });
-                    await ticketRef.update({ last_updated: Date.now() });
-                    appendAgentMessage('agent-reply', `✅ Follow-up message added to your active ticket.`);
-                    logUserActivity('SUPPORT', 'Sent follow-up message to active support ticket');
-                }
-            } else {
-                const ticketNumber = "AG-" + Math.floor(1000 + Math.random() * 9000);
-                const newTicketRef = rtdb.ref('support_tickets').push();
-                const initialMsgKey = newTicketRef.child('conversation').push().key;
-                await newTicketRef.set({
-                    uid: activeUID || "Anonymous",
-                    ticketNumber: ticketNumber,
-                    status: "Pending",
-                    timestamp: Date.now(),
-                    conversation: {
-                        [initialMsgKey]: {
-                            sender: 'user',
-                            text: text,
-                            timestamp: Date.now()
-                        }
-                    }
-                });
-                activeSelectedTicketId = newTicketRef.key;
-                initRealtimeChatListener();
-                appendAgentMessage('agent-reply', `✅ New Issue ticket ${ticketNumber} transmitted successfully.`);
-                logUserActivity('SUPPORT', `Created new support issue ticket: ${ticketNumber}`);
-            }
-        } catch (error) {
-            appendAgentMessage('agent-reply', `⚠️ Error: ${error.message}`);
-        }
-        cancelAgentReplyHighlight();
-        return;
-    }
-
-    // Default message sending if no explicit flow state is active
-    if (!activeSelectedTicketId) {
-        const ticketNumber = "AG-" + Math.floor(1000 + Math.random() * 9000);
-        const newTicketRef = rtdb.ref('support_tickets').push();
-        const initialMsgKey = newTicketRef.child('conversation').push().key;
-        newTicketRef.set({
-            uid: activeUID || "Anonymous",
-            ticketNumber: ticketNumber,
-            status: "Pending",
-            timestamp: Date.now(),
-            conversation: {
-                [initialMsgKey]: {
-                    sender: 'user',
-                    text: text,
-                    timestamp: Date.now()
-                }
-            }
-        }).then(() => {
-            activeSelectedTicketId = newTicketRef.key;
-            initRealtimeChatListener();
-            logUserActivity('SUPPORT', `Created support ticket ${ticketNumber} via direct input`);
-        });
-    } else {
-        const ticketRef = rtdb.ref('support_tickets/' + activeSelectedTicketId);
-        ticketRef.child('conversation').push({
-            sender: 'user',
-            text: text,
-            replyToText: agentHighlightedMessageSnippet || null,
-            timestamp: Date.now()
-        }).then(() => {
-            ticketRef.update({ last_updated: Date.now() });
-            logUserActivity('SUPPORT', 'Sent message to existing support ticket');
-        });
-    }
-    cancelAgentReplyHighlight();
-};
 </script>
 </body>
 </html>
