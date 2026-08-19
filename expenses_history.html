@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="ag-utils.js"></script>
 <script type="module" src="auth-guard.js"></script>
     <meta charset="utf-8">
     <title>Expense History - AssetGuard Mirror</title>
@@ -121,18 +122,18 @@
 </div>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getDatabase, ref, onValue, remove, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    import { getDb } from "./ag-firebase.js";
+    import { ref, onValue, remove, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
-    const db = getDatabase(initializeApp({ databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com" }));
+    const db = getDb();
 
     // --- USER ISOLATION ---
-    const currentUID = localStorage.getItem("ag_active_uid");
+    const currentUID = AGUtils.getActiveUID();
     if (!currentUID) {
         document.getElementById('appContent').innerHTML = "<h2 style='text-align:center; padding-top:50px;'>Authentication Required.</h2>";
     }
 
-    const cloudPath = `users/${currentUID}/expenses`;
+    const cloudPath = AGUtils.userPath(currentUID, "expenses");
     let localData = [];
     let activeId = null;
     let iDB;
@@ -261,7 +262,7 @@
                         <td style="color:#64748b">${dateStr.split('-').slice(1).join('/')}</td>
                         <td><b>${item.expense_name}</b></td>
                         <td><span class="category-tag">${(item.category || 'N/A').substring(0,8)}</span></td>
-                        <td class="amount-cell">${parseFloat(item.amount || 0).toLocaleString()}</td>
+                        <td class="amount-cell">${AGUtils.formatAmount(item.amount || 0)}</td>
                         <td class="admin-actions">
                             <button class="btn-action" onclick="openEdit('${item.id}')">✏️</button>
                             <button class="btn-action" style="color:var(--danger)" onclick="openDelete('${item.id}')">🗑️</button>
@@ -269,7 +270,7 @@
                     </tr>`;
             }
         });
-        document.getElementById('totalAmount').innerText = total.toLocaleString();
+        document.getElementById('totalAmount').innerText = AGUtils.formatAmount(total);
     }
 
     window.closeModals = () => {

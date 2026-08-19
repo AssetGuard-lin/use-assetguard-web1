@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="ag-utils.js"></script>
 <script type="module" src="auth-guard.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -162,7 +163,7 @@
      * MULTI-USER CONFIGURATION
      * Each user gets a unique physical database file on the device
      */
-    const currentUID = localStorage.getItem("ag_active_uid");
+    const currentUID = AGUtils.getActiveUID();
     
     if (!currentUID) {
         document.getElementById('vault-ui').style.display = 'none';
