@@ -115,7 +115,7 @@ if (!currentUID) {
     document.body.innerHTML = "<h2 style='text-align:center; padding-top:50px;'>Authentication Required.</h2>";
 }
 
-const salesPath = 'sales';
+const salesPath = `users/${currentUID}/sales`;
 const queueKey = `ag_sales_queue_${currentUID}`;
 const cacheKey = `ag_mpesa_cache_${currentUID}`;
 
