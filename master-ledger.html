@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="error-utils.js"></script>
-<script src="ag-utils.js"></script>
 <script type="module" src="auth-guard.js"></script>
     <meta charset="utf-8">
     <title>Accounts Audit Pro - AssetGuard Ultimate</title>
@@ -348,8 +346,8 @@
 </div>
 
 <script type="module">
-    import { getDb } from "./ag-firebase.js";
-    import { ref, onValue, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
     // Setup Month and Year dropdown options instantly before anything else
     const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -357,10 +355,39 @@
     document.getElementById('fMonth').innerHTML = months.map((m, i) => `<option value="${i}" ${i===now.getMonth()?'selected':''}>${m}</option>`).join('');
     document.getElementById('fYear').innerHTML = [2024, 2025, 2026].map(y => `<option value="${y}" ${y===now.getFullYear()?'selected':''}>${y}</option>`).join('');
 
-    const db = getDb();
-    const currentUID = AGUtils.resolveActiveUID();
-    const queueKey = AGUtils.uidKey("ag_sales_queue", currentUID);
-    const mirrorKey = AGUtils.uidKey("ag_cash_audit_mirror", currentUID);
+    const db = getDatabase(initializeApp({
+        databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com"
+    }));
+
+    const urlParams = new URLSearchParams(window.location.search);
+    let resolvedUID = urlParams.get('uid') || urlParams.get('user') || urlParams.get('currentUID') || urlParams.get('userId');
+
+    if (!resolvedUID) {
+        try {
+            if (window.AppInventor && typeof window.AppInventor.getWebViewString === 'function') {
+                const wvString = window.AppInventor.getWebViewString();
+                if (wvString && wvString !== "undefined" && wvString !== "null" && wvString.trim() !== "") {
+                    if (wvString.startsWith('{') || wvString.startsWith('[')) {
+                        try {
+                            const parsed = JSON.parse(wvString);
+                            resolvedUID = parsed.uid || parsed.userId || parsed.username || wvString;
+                        } catch(e) {}
+                    } else {
+                        resolvedUID = wvString;
+                    }
+                }
+            }
+        } catch(e) {}
+    }
+
+    if (!resolvedUID) resolvedUID = localStorage.getItem("ag_active_uid");
+    if (!resolvedUID || resolvedUID === "null" || resolvedUID === "undefined" || resolvedUID.trim() === "") resolvedUID = "global_terminal_user";
+
+    const currentUID = resolvedUID;
+    localStorage.setItem("ag_active_uid", currentUID);
+
+    const queueKey = `ag_sales_queue_${currentUID}`;
+    const mirrorKey = `ag_cash_audit_mirror_${currentUID}`;
 
     let isAdmin = false;
     let cloudRecords = [];
@@ -380,18 +407,16 @@
             const parsed = JSON.parse(cachedMirror);
             combinedRecords = Array.isArray(parsed) ? parsed : Object.values(parsed);
             isDataLoaded = true;
-            queueMicrotask(() => window.filterAndRender());
-        } catch(e) {
-            AGErrors.report("master ledger cached mirror parsing", e);
-        }
+            filterAndRender();
+        } catch(e) {}
     } else {
         // Render empty state immediately so UI doesn't delay or block
         isDataLoaded = true;
-        queueMicrotask(() => window.filterAndRender());
+        filterAndRender();
     }
 
     const refreshUnifiedData = () => {
-        const syncQueue = AGUtils.readJSON(queueKey, []);
+        const syncQueue = JSON.parse(localStorage.getItem(queueKey)) || [];
         const pendingSales = syncQueue
             .filter(q => q.payment === 'Cash')
             .map(q => ({
@@ -405,14 +430,17 @@
                 rawItems: q.items || []
             }));
 
-        combinedRecords = AGUtils.mergePendingWithCloud(cloudRecords, pendingSales, { sortKey: "date" });
+        const cloudIds = new Set(cloudRecords.map(r => r.id));
+        const allPending = pendingSales.filter(p => !cloudIds.has(p.id));
+
+        combinedRecords = [...allPending, ...cloudRecords].sort((a,b) => new Date(b.date) - new Date(a.date));
         isDataLoaded = true;
-        AGUtils.writeJSON(mirrorKey, combinedRecords);
+        localStorage.setItem(mirrorKey, JSON.stringify(combinedRecords));
         filterAndRender();
     };
 
     if (currentUID) {
-        onValue(ref(db, AGUtils.userPath(currentUID)), (snap) => {
+        onValue(ref(db, `users/${currentUID}`), (snap) => {
             const data = snap.val() || {};
             let temp = [];
             
@@ -427,7 +455,7 @@
                     temp.push({ 
                         id, date: d.timestamp || d.expense_date, cat, type, 
                         sub: d.customer || d.category || d.supplier || "General", 
-                        amt: val, path: AGUtils.userPath(currentUID, pathSuffix, id), isPending: false,
+                        amt: val, path: `users/${currentUID}/${pathSuffix}/${id}`, isPending: false,
                         rawItems: d.items || null, notes: d.notes || d.description || null
                     });
                 }
@@ -439,7 +467,7 @@
 
             cloudRecords = temp;
             refreshUnifiedData();
-        }, error => AGErrors.report("master ledger live data", error), { onlyOnce: false });
+        }, { onlyOnce: false });
     }
 
     window.switchTab = (tabId, element) => {
@@ -506,7 +534,7 @@
                             ${isAdmin && !r.isPending ? `<button class="admin-btn" onclick="event.stopPropagation(); deleteEntry('${r.path}')">DELETE</button>` : ''}
                         </div>
                         <div class="entry-val" style="color:var(--${r.type==='IN'?'success':'danger'})">
-                            <span class="val-amt">${r.type==='IN'?'+Ksh ':'-Ksh '}${AGUtils.formatAmount(r.amt)}</span>
+                            <span class="val-amt">${r.type==='IN'?'+Ksh ':'-Ksh '}${r.amt.toLocaleString()}</span>
                             <span class="val-type">CASH ${r.type}</span>
                         </div>
                     </div>`);
@@ -517,12 +545,12 @@
             list.innerHTML = htmlChunks.length > 0 ? htmlChunks.join('') : '<p style="text-align:center; color:var(--text-muted); padding:20px;">No transaction records found.</p>';
         }
 
-        document.getElementById('total-in').innerText = 'Ksh ' + AGUtils.formatAmount(tin);
-        document.getElementById('total-out').innerText = 'Ksh ' + AGUtils.formatAmount(tout);
+        document.getElementById('total-in').innerText = 'Ksh ' + tin.toLocaleString();
+        document.getElementById('total-out').innerText = 'Ksh ' + tout.toLocaleString();
         
         const netElement = document.getElementById('net-cash');
         const netAmt = tin - tout;
-        netElement.innerText = (netAmt >= 0 ? '+Ksh ' : '-Ksh ') + AGUtils.formatAmount(Math.abs(netAmt));
+        netElement.innerText = (netAmt >= 0 ? '+Ksh ' : '-Ksh ') + Math.abs(netAmt).toLocaleString();
 
         if (currentActiveTab === 'analytics') {
             requestAnimationFrame(() => {
@@ -542,7 +570,7 @@
         document.getElementById('det-cat').innerText = item.cat;
         document.getElementById('det-sub').innerText = item.sub;
         document.getElementById('det-date').innerText = `${dt.toLocaleDateString('en-GB')} at ${dt.toLocaleTimeString()}`;
-        document.getElementById('det-amt').innerText = `${item.type === 'IN' ? '+' : '-'} Ksh ${AGUtils.formatAmount(item.amt)}`;
+        document.getElementById('det-amt').innerText = `${item.type === 'IN' ? '+' : '-'} Ksh ${item.amt.toLocaleString()}`;
         document.getElementById('det-amt').style.color = item.type === 'IN' ? 'var(--success)' : 'var(--danger)';
         document.getElementById('det-type').innerText = `Cash Flow ${item.type}`;
         document.getElementById('det-status').innerText = item.isPending ? "Local Mirror Queue (Pending Synchronization)" : "Complete Decentralized Realtime Sync";
@@ -555,7 +583,7 @@
             itemsList.innerHTML = item.rawItems.map(i => `
                 <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:4px; padding-bottom:4px; border-bottom:1px dashed #e2e8f0;">
                     <span>${i.name || 'Item'} (x${i.qty || 1})</span>
-                    <strong style="color:var(--primary)">Ksh ${AGUtils.formatAmount(i.total || 0)}</strong>
+                    <strong style="color:var(--primary)">Ksh ${parseFloat(i.total || 0).toLocaleString()}</strong>
                 </div>
             `).join('');
         } else if(item.notes) {
@@ -604,7 +632,7 @@
                     legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 6, padding: 10, font: { family: 'Poppins', size: 10, weight: 600 } } } 
                 } 
             }
-        }, error => AGErrors.report("master ledger live data", error));
+        });
 
         categoryChartInstance = new Chart(ctxCat, {
             type: 'bar',
@@ -679,14 +707,7 @@
     };
     
     window.closeModals = () => { document.getElementById('pinModal').style.display = 'none'; document.getElementById('adminPin').value = ''; };
-    window.deleteEntry = async (path) => {
-        if (!confirm("Permanently remove this cash record?")) return;
-        try {
-            await remove(ref(db, path));
-        } catch (error) {
-            AGErrors.report("master ledger deletion", error);
-        }
-    };
+    window.deleteEntry = async (path) => { if(confirm("Permanently remove this cash record?")) { await remove(ref(db, path)); } };
 </script>
 </body>
 </html>

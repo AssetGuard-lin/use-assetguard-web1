@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="error-utils.js"></script>
-<script src="ag-utils.js"></script>
 <script type="module" src="auth-guard.js"></script>
     <meta charset="utf-8">
     <title>M-Pesa Revenue - AssetGuard</title>
@@ -107,20 +105,20 @@
 </div>
 
 <script type="module">
-import { getDb } from "./ag-firebase.js";
-import { ref, onValue, remove, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getDatabase, ref, onValue, remove, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
-const db = getDb();
+const db = getDatabase(initializeApp({ databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com" }));
 
 // --- USER ISOLATION ---
-const currentUID = AGUtils.getActiveUID();
+const currentUID = localStorage.getItem("ag_active_uid");
 if (!currentUID) {
     document.body.innerHTML = "<h2 style='text-align:center; padding-top:50px;'>Authentication Required.</h2>";
 }
 
-const salesPath = AGUtils.userPath(currentUID, "sales");
-const queueKey = AGUtils.uidKey("ag_sales_queue", currentUID);
-const cacheKey = AGUtils.uidKey("ag_mpesa_cache", currentUID);
+const salesPath = `users/${currentUID}/sales`;
+const queueKey = `ag_sales_queue_${currentUID}`;
+const cacheKey = `ag_mpesa_cache_${currentUID}`;
 
 const ADMIN_PASS = "1234";
 let cloudRecords = [];
@@ -129,7 +127,7 @@ let activeId = null;
 
 const refreshUnifiedData = () => {
     // Pull the pending queue for THIS specific user
-    const localQueue = AGUtils.readJSON(queueKey, []);
+    const localQueue = JSON.parse(localStorage.getItem(queueKey)) || [];
     const pendingMpesa = localQueue
         .filter(q => q.payment === "M-Pesa")
         .map(q => ({
@@ -139,8 +137,12 @@ const refreshUnifiedData = () => {
             grandTotal: q.items ? q.items.reduce((sum, i) => sum + parseFloat(i.total || 0), 0) : (parseFloat(q.total) || 0)
         }));
 
-    combinedStore = AGUtils.mergePendingWithCloud(cloudRecords, pendingMpesa);
-    AGUtils.writeJSON(cacheKey, combinedStore);
+    // Deduplicate: Cloud IDs take priority
+    const cloudIds = new Set(cloudRecords.map(r => r.id));
+    const uniquePending = pendingMpesa.filter(p => !cloudIds.has(p.id));
+
+    combinedStore = [...uniquePending, ...cloudRecords].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+    localStorage.setItem(cacheKey, JSON.stringify(combinedStore));
     renderSales();
 };
 
@@ -155,7 +157,7 @@ onValue(ref(db, salesPath), snap => {
             grandTotal: v.items ? v.items.reduce((sum, i) => sum + parseFloat(i.total || 0), 0) : (parseFloat(v.total) || 0) 
         }));
     refreshUnifiedData();
-}, error => AGErrors.report("M-Pesa sales live data", error));
+});
 
 window.renderSales = () => {
     const container = document.getElementById('sales-container');
@@ -175,7 +177,7 @@ window.renderSales = () => {
         if (matchSearch && matchDate) {
             count++; gross += amt;
             const itemHTML = s.items?.map(i => `
-                <div class="item-line"><span>${i.product}</span><span>x${i.quantity}</span><span>${AGUtils.formatAmount(i.total)}</span></div>
+                <div class="item-line"><span>${i.product}</span><span>x${i.quantity}</span><span>${parseFloat(i.total).toLocaleString()}</span></div>
             `).join('') || "";
 
             container.insertAdjacentHTML('beforeend', `
@@ -186,7 +188,7 @@ window.renderSales = () => {
                     <span class="customer-name">${s.customer}</span>
                     <span class="customer-phone">${s.mpesa || '07XXXXXXXX'}</span>
                     <div class="items-breakdown">${itemHTML}</div>
-                    <div class="total-row"><span>${AGUtils.formatCurrency(amt)}</span><b>M-PESA</b></div>
+                    <div class="total-row"><span>KES ${amt.toLocaleString()}</span><b>M-PESA</b></div>
                     ${!s.isPending ? `<button style="position:absolute; right:12px; top:55px; border:none; background:none; font-size:20px; opacity:0.15;" onclick="openManager('${s.id}')">⚙️</button>` : ''}
                 </div>
             `);
@@ -194,9 +196,9 @@ window.renderSales = () => {
     });
 
     if (count === 0) container.innerHTML = '<div class="no-data">No active M-Pesa records for this period.</div>';
-    document.getElementById('stat-gross').innerText = AGUtils.formatCurrency(gross);
+    document.getElementById('stat-gross').innerText = `KES ${gross.toLocaleString()}`;
     document.getElementById('stat-count').innerText = count;
-    document.getElementById('grand-total').innerText = AGUtils.formatCurrency(gross);
+    document.getElementById('grand-total').innerText = `KES ${gross.toLocaleString()}`;
     document.getElementById('header-rev-box').classList.toggle('active', gross > 0);
     document.getElementById('footer-bar').classList.toggle('active', gross > 0);
 };
@@ -223,13 +225,12 @@ document.getElementById('btn-save-changes').onclick = () => {
     update(ref(db, `${salesPath}/${activeId}`), { 
         customer: document.getElementById('edit-cust-name').value, 
         mpesa: document.getElementById('edit-cust-phone').value 
-    }).catch(error => AGErrors.report("M-Pesa contact update", error));
+    });
     closeModals();
 };
 
 document.getElementById('btn-final-del').onclick = () => {
-    remove(ref(db, `${salesPath}/${activeId}`))
-        .catch(error => AGErrors.report("M-Pesa contact deletion", error));
+    remove(ref(db, `${salesPath}/${activeId}`));
     closeConfirmModal(); closeModals();
 };
 

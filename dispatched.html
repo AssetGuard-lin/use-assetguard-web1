@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="error-utils.js"></script>
 <script type="module" src="auth-guard.js"></script>
 <meta charset="utf-8">
 <title>Master Tracker Pro | Signal Turbo V5.1 (Secure Edition)</title>
@@ -240,10 +239,8 @@ if ("geolocation" in navigator) {
             const dateKey = new Date().toISOString().split('T')[0];
             const coords = { lat: p.coords.latitude, lng: p.coords.longitude, ts: Date.now() };
             const speed = (p.coords.speed * 3.6 || 0).toFixed(1);
-            update(carRef, { ...coords, speed: speed })
-                .catch(error => AGErrors.report("dispatch vehicle location update", error));
-            push(ref(db, `cars/car_01/history/${dateKey}`), coords)
-                .catch(error => AGErrors.report("dispatch vehicle history write", error));
+            update(carRef, { ...coords, speed: speed });
+            push(ref(db, `cars/car_01/history/${dateKey}`), coords);
         },
         (err) => console.error("GPS Error:", err),
         { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
@@ -278,10 +275,7 @@ async function updateAreaSpeed(lat, lng) {
             }
         }
         document.getElementById('areaLimit').innerText = speed.replace(/\D/g,'') + " km/h";
-    } catch(e) {
-        AGErrors.report("dispatch area speed lookup", e);
-        document.getElementById('areaLimit').innerText = "50 km/h";
-    }
+    } catch(e) { document.getElementById('areaLimit').innerText = "50 km/h"; }
 }
 
 // --- HISTORY ---
@@ -297,7 +291,7 @@ document.getElementById('historyBtn').onclick = () => {
             const poly = L.polyline(pts, {color:'#6c5ce7', weight:4, dashArray:'5,10'}).addTo(historyLayer);
             map.fitBounds(poly.getBounds(), {padding:[50,50]});
         }
-    }, error => AGErrors.report("dispatch history live data", error, message => window.sendPush(`History unavailable: ${message}`)), {onlyOnce: true});
+    }, {onlyOnce: true});
 };
 window.clearHistoryMap = () => { historyLayer.clearLayers(); };
 
@@ -351,7 +345,7 @@ onValue(carRef, snap => {
         const dPos = [data.destination.lat, data.destination.lng];
         if(!destMarker) destMarker = L.marker(dPos).addTo(map);
         destMarker.setLatLng(dPos);
-        drawRoute(pos, dPos).catch(error => AGErrors.report("dispatch route drawing", error));
+        drawRoute(pos, dPos);
         if(routeLocked) { 
             follow = false;
             document.getElementById('followBtn').innerText = "FOLLOW: OFF";
@@ -360,7 +354,7 @@ onValue(carRef, snap => {
     }
     if(!lastPos || L.latLng(lastPos).distanceTo(pos) > 50) updateAreaSpeed(pos[0], pos[1]);
     lastPos = pos;
-}, error => AGErrors.report("dispatch vehicle live data", error, message => window.sendPush(`Live vehicle data unavailable: ${message}`)));
+});
 
 // --- UI UTILS ---
 window.switchMap = v => { Object.values(layers).forEach(l=>map.removeLayer(l)); layers[v].addTo(map); };
@@ -369,9 +363,8 @@ window.centerDestination = () => { if(destMarker) { map.setView(destMarker.getLa
 window.searchPlace = () => {
     const q = document.getElementById('search').value;
     fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}`).then(r=>r.json()).then(res=>{
-        if(res.length) update(carRef,{destination:{lat:parseFloat(res[0].lat),lng:parseFloat(res[0].lon)}})
-            .catch(error => AGErrors.report("dispatch destination update", error));
-    }).catch(error => AGErrors.report("dispatch place search", error));
+        if(res.length) update(carRef,{destination:{lat:parseFloat(res[0].lat),lng:parseFloat(res[0].lon)}});
+    });
 };
 async function drawRoute(car,dest){
     const r = await fetch(`https://router.project-osrm.org/route/v1/driving/${car[1]},${car[0]};${dest[1]},${dest[0]}?overview=full&geometries=geojson`);
@@ -389,20 +382,9 @@ window.secureSpeedSet = () => {
 };
 window.openSpeedClear = () => { window.openAdminModal("BYPASS", "Unlock?", () => { const i = document.getElementById('maxSpeedLimit'); i.disabled = false; i.value = ""; activeLimit = null; }); };
 window.secureAddFence = () => { if(lastPos) window.openAdminModal("FENCE", "Deploy?", () => { document.getElementById('fenceModal').style.display='flex'; }); };
-window.confirmFence = () => {
-    update(carRef, {geofence:{lat:lastPos[0], lng:lastPos[1], radius:parseInt(document.getElementById('fenceInput').value)}})
-        .then(() => { document.getElementById('fenceModal').style.display='none'; })
-        .catch(error => AGErrors.report("dispatch geofence update", error));
-};
-window.clearGeofence = () => { window.openAdminModal("REMOVE", "Kill fence?", () => {
-    update(carRef, {geofence:null}).catch(error => AGErrors.report("dispatch geofence removal", error));
-    if(fenceCircle) map.removeLayer(fenceCircle);
-}); };
-window.openSystemReset = () => { window.openAdminModal("PURGE", "Clear data?", () => {
-    set(ref(db, 'cars/car_01'), {lat:0, lng:0, speed:0, ts:Date.now()})
-        .then(() => location.reload())
-        .catch(error => AGErrors.report("dispatch system reset", error));
-}); };
+window.confirmFence = () => { update(carRef, {geofence:{lat:lastPos[0], lng:lastPos[1], radius:parseInt(document.getElementById('fenceInput').value)}}); document.getElementById('fenceModal').style.display='none'; };
+window.clearGeofence = () => { window.openAdminModal("REMOVE", "Kill fence?", () => { update(carRef, {geofence:null}); if(fenceCircle) map.removeLayer(fenceCircle); }); };
+window.openSystemReset = () => { window.openAdminModal("PURGE", "Clear data?", () => { set(ref(db, 'cars/car_01'), {lat:0, lng:0, speed:0, ts:Date.now()}); location.reload(); }); };
 
 document.getElementById('hoverBtn').onclick = () => document.getElementById('panel').classList.toggle('hidden');
 document.getElementById('followBtn').onclick = function() { follow = !follow; this.innerText = `FOLLOW: ${follow?'ON':'OFF'}`; };
