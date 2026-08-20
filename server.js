@@ -1,10 +1,14 @@
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
+const path = require('path');
 
 const app = express();
 app.use(express.json());
 app.use(cors());
+
+// Serve static files from current directory
+app.use(express.static(path.join(__dirname)));
 
 app.post('/stk-push', async (req, res) => {
     try {
