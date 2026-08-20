@@ -774,7 +774,7 @@ let isThermalReceiptMode = false;
 let bluetoothDevice = null;
 let bluetoothCharacteristic = null;
 
-let firebaseInventory = JSON.parse(localStorage.getItem(`ag_stock_cache_${currentUID}`)) || {};
+let firebaseInventory = JSON.parse(localStorage.getItem(`ag_inv_cache_${currentUID}`)) || {};
 let syncQueue = JSON.parse(localStorage.getItem(`ag_sales_queue_${currentUID}`)) || [];
 let rawLedgerData = JSON.parse(localStorage.getItem(`ag_ledger_cache_${currentUID}`)) || {}; 
 
@@ -996,7 +996,7 @@ async function deepSyncFirebase() {
 
 onValue(ref(db, inventoryPath), snap => {
     firebaseInventory = snap.val() || {};
-    localStorage.setItem(`ag_stock_cache_${currentUID}`, JSON.stringify(firebaseInventory));
+    localStorage.setItem(`ag_inv_cache_${currentUID}`, JSON.stringify(firebaseInventory));
     populateDropdown();
 });
 
@@ -1431,7 +1431,7 @@ function finalizeSaleTransaction() {
             firebaseInventory[itm.dbKey].qty = Math.max(0, firebaseInventory[itm.dbKey].qty - itm.quantity);
         }
     });
-    localStorage.setItem(`ag_stock_cache_${currentUID}`, JSON.stringify(firebaseInventory));
+    localStorage.setItem(`ag_inv_cache_${currentUID}`, JSON.stringify(firebaseInventory));
     populateDropdown();
 
     openReceiptSummary([...cart]);
