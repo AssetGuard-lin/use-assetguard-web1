@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="error-utils.js"></script>
-<script src="ag-utils.js"></script>
-<script type="module" src="auth-guard.js"></script>
 <meta charset="utf-8">
 <title>AssetGuard Pro - Unified Purchase Terminal & Analytics</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -315,8 +312,8 @@
     </div>
 
     <script type="module">
-        import { getDb } from "./ag-firebase.js";
-        import { ref, onValue, remove, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getDatabase, ref, onValue, remove, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
         if (navigator.storage && navigator.storage.persist) {
             navigator.storage.persist().then(granted => {
@@ -325,12 +322,13 @@
                 } else {
                     console.log("Storage persistence requested but denied by browser policies.");
                 }
-            }).catch(error => AGErrors.report("purchase storage persistence request", error));
+            });
         }
 
-        const db = getDb();
-        const currentUID = AGUtils.getActiveUID({ fallback: "global_user" });
-        const cloudPath = AGUtils.userPath(currentUID, "purchases");
+        const app = initializeApp({ databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com" });
+        const db = getDatabase(app);
+        const currentUID = localStorage.getItem("ag_active_uid") || "global_user";
+        const cloudPath = `users/${currentUID}/purchases`;
         const ADMIN_PASS = "0000";
 
         let localPurchases = [];
@@ -382,8 +380,7 @@
                         item.synced = true;
                         await localSaveSingle(item);
                     } catch (err) {
-                        if (!AGErrors.isOffline(err)) AGErrors.report(`purchase sync for ${item.id}`, err);
-                        else console.log("Offline: Purchase sync queued for later.", item.id);
+                        console.log("Sync skipped/failed for purchase: ", item.id, err);
                     }
                 }
 
@@ -395,8 +392,7 @@
                             delTx.objectStore("purchases").delete(item.id);
                         }
                     } catch (err) {
-                        if (!AGErrors.isOffline(err)) AGErrors.report(`purchase deletion sync for ${item.id}`, err);
-                        else console.log("Offline: Purchase deletion queued for later.", item.id);
+                        console.log("Sync delete failed for purchase: ", item.id, err);
                     }
                 }
 
@@ -443,7 +439,7 @@
                         loadAndRenderLocal();
                     };
                 };
-            }, error => AGErrors.report("purchase live data", error));
+            });
         };
 
         window.showView = (id) => {
@@ -477,12 +473,12 @@
             activePurchases.forEach(val => {
                 if (val && val.supplier && val.supplier.toLowerCase().includes(search)) {
                     total += parseFloat(val.amount || 0);
-                    htmlBuffer += `<div class="history-item" onclick="viewDetails('${val.id}')"><div><b style="color:var(--dark); font-size:14px;">${val.item_name}</b><br><small style="color:var(--muted); font-weight:600;">${val.supplier}</small></div><div><b style="color:var(--primary);">${AGUtils.formatCurrency(val.amount)}</b></div></div>`;
+                    htmlBuffer += `<div class="history-item" onclick="viewDetails('${val.id}')"><div><b style="color:var(--dark); font-size:14px;">${val.item_name}</b><br><small style="color:var(--muted); font-weight:600;">${val.supplier}</small></div><div><b style="color:var(--primary);">KES ${parseFloat(val.amount).toLocaleString()}</b></div></div>`;
                 }
             });
             list.innerHTML = htmlBuffer || '<div style="text-align:center; color:var(--muted); padding:20px; font-size:12px;">No purchase records found.</div>';
             const totalSpendEl = document.getElementById('totalSpend');
-            if(totalSpendEl) totalSpendEl.innerText = AGUtils.formatCurrency(total);
+            if(totalSpendEl) totalSpendEl.innerText = `KES ${total.toLocaleString()}`;
         };
 
         window.viewDetails = (id) => {
@@ -493,7 +489,7 @@
                 <div class="detail-row"><label>Item</label><b>${item.item_name}</b></div>
                 <div class="detail-row"><label>Supplier</label><b>${item.supplier}</b></div>
                 <div class="detail-row"><label>Quantity</label><b>${item.quantity} ${item.unit}</b></div>
-                <div class="detail-row"><label>Cost</label><b style="color:var(--primary);">${AGUtils.formatCurrency(item.amount)}</b></div>`;
+                <div class="detail-row"><label>Cost</label><b style="color:var(--primary);">KES ${parseFloat(item.amount).toLocaleString()}</b></div>`;
             
             document.getElementById('delBtn').onclick = () => {
                 document.getElementById('pinModal').style.display = 'flex';
@@ -513,8 +509,7 @@
                                 tx.objectStore("purchases").delete(id);
                             }
                         } catch (e) {
-                            if (!AGErrors.isOffline(e)) AGErrors.report("purchase cloud deletion", e);
-                            else console.log("Offline: Deleted registered locally. Syncing deletion later.");
+                            console.log("Offline: Deleted registered locally. Syncing deletion later.");
                         }
                     } else { 
                         document.getElementById('pinError').innerText = "Incorrect PIN"; 
@@ -579,8 +574,7 @@
                 await localSaveSingle(entry);
                 await loadAndRenderLocal();
             } catch (err) {
-                if (!AGErrors.isOffline(err)) AGErrors.report("purchase cloud save", err);
-                else console.log("Offline: Purchase saved locally. Will sync when connection is restored.");
+                console.log("Offline: Purchase saved locally. Will sync when connection is restored.");
             }
         };
 

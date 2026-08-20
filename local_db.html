@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="error-utils.js"></script>
-<script src="ag-utils.js"></script>
-<script type="module" src="auth-guard.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AssetGuard - Persistent Vault</title>
@@ -164,7 +161,7 @@
      * MULTI-USER CONFIGURATION
      * Each user gets a unique physical database file on the device
      */
-    const currentUID = AGUtils.getActiveUID();
+    const currentUID = localStorage.getItem("ag_active_uid");
     
     if (!currentUID) {
         document.getElementById('vault-ui').style.display = 'none';
@@ -252,13 +249,12 @@
     if (navigator.storage && navigator.storage.persist) {
         navigator.storage.persist().then(granted => {
             if (granted) console.log("User Vault Longevity Lock Active.");
-        }).catch(error => AGErrors.report("persistent storage request", error));
+        });
     }
 
     // Warm up
     if (currentUID) {
-        getDB().then(() => console.log(`Vault Active for ${currentUID}`))
-            .catch(error => AGErrors.report("local vault initialization", error));
+        getDB().then(() => console.log(`Vault Active for ${currentUID}`));
     }
 </script>
 

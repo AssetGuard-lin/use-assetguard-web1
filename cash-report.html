@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="error-utils.js"></script>
-<script src="ag-utils.js"></script>
-<script type="module" src="auth-guard.js"></script>
     <meta charset="utf-8">
     <title>Cash Audit - AssetGuard Pro</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -93,15 +90,17 @@
 </div>
 
 <script type="module">
-    import { getDb } from "./ag-firebase.js";
-    import { ref, onValue, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
-    const db = getDb();
+    const db = getDatabase(initializeApp({
+        databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com"
+    }));
 
     // --- USER ISOLATION CONFIG ---
-    const currentUID = AGUtils.getActiveUID();
-    const queueKey = AGUtils.uidKey("ag_sales_queue", currentUID);
-    const mirrorKey = AGUtils.uidKey("ag_cash_audit_mirror", currentUID);
+    const currentUID = localStorage.getItem("ag_active_uid");
+    const queueKey = `ag_sales_queue_${currentUID}`;
+    const mirrorKey = `ag_cash_audit_mirror_${currentUID}`;
 
     if (!currentUID) {
         document.getElementById('auth-error').style.display = 'block';
@@ -115,7 +114,7 @@
 
     // --- 1. UNIFIED MIRROR ENGINE (USER ISOLATED) ---
     const refreshUnifiedData = () => {
-        const syncQueue = AGUtils.readJSON(queueKey, []);
+        const syncQueue = JSON.parse(localStorage.getItem(queueKey)) || [];
         const pendingSales = syncQueue
             .filter(q => q.payment === 'Cash')
             .map(q => ({
@@ -128,15 +127,18 @@
                 isPending: true
             }));
 
-        combinedRecords = AGUtils.mergePendingWithCloud(cloudRecords, pendingSales, { sortKey: "date" });
+        const cloudIds = new Set(cloudRecords.map(r => r.id));
+        const allPending = pendingSales.filter(p => !cloudIds.has(p.id));
+
+        combinedRecords = [...allPending, ...cloudRecords].sort((a,b) => new Date(b.date) - new Date(a.date));
         
-        AGUtils.writeJSON(mirrorKey, combinedRecords);
+        localStorage.setItem(mirrorKey, JSON.stringify(combinedRecords));
         filterAndRender();
     };
 
     // Listen to User-Specific Firebase Node
     if (currentUID) {
-        onValue(ref(db, AGUtils.userPath(currentUID)), (snap) => {
+        onValue(ref(db, `users/${currentUID}`), (snap) => {
             const data = snap.val() || {};
             let temp = [];
             
@@ -151,7 +153,7 @@
                     temp.push({ 
                         id, date: d.timestamp || d.expense_date, cat, type, 
                         sub: d.customer || d.category || d.supplier || "General", 
-                        amt: val, path: AGUtils.userPath(currentUID, pathSuffix, id), isPending: false
+                        amt: val, path: `users/${currentUID}/${pathSuffix}/${id}`, isPending: false
                     });
                 });
             };
@@ -162,7 +164,7 @@
 
             cloudRecords = temp;
             refreshUnifiedData();
-        }, error => AGErrors.report("cash report live data", error));
+        });
     }
 
     window.filterAndRender = () => {
@@ -187,15 +189,15 @@
                         ${isAdmin && !r.isPending ? `<button class="admin-btn" onclick="deleteEntry('${r.path}')">DELETE</button>` : ''}
                     </div>
                     <div class="entry-val" style="color:var(--${r.type==='IN'?'success':'danger'})">
-                        <span class="val-amt">${r.type==='IN'?'+':'-'}${AGUtils.formatAmount(r.amt)}</span>
+                        <span class="val-amt">${r.type==='IN'?'+':'-'}${r.amt.toLocaleString()}</span>
                         <span class="val-type">CASH ${r.type}</span>
                     </div>
                 </div>`;
         });
 
-        document.getElementById('total-in').innerText = AGUtils.formatAmount(tin);
-        document.getElementById('total-out').innerText = AGUtils.formatAmount(tout);
-        document.getElementById('net-cash').innerText = AGUtils.formatAmount(tin - tout);
+        document.getElementById('total-in').innerText = tin.toLocaleString();
+        document.getElementById('total-out').innerText = tout.toLocaleString();
+        document.getElementById('net-cash').innerText = (tin - tout).toLocaleString();
     };
 
     window.addEventListener('storage', (e) => {

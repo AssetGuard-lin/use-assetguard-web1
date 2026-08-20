@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="error-utils.js"></script>
-<script src="ag-utils.js"></script>
-<script type="module" src="auth-guard.js"></script>
     <meta charset="utf-8">
     <title>Notebook - AssetGuard Ultimate</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -63,18 +60,18 @@
 <footer>&copy; 2026 ASSETGUARD LTD. JCORP LTD PARTNERSHIP.</footer>
 
 <script type="module">
-    import { getDb } from "./ag-firebase.js";
-    import { ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getDatabase, ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
-    const db = getDb();
+    const db = getDatabase(initializeApp({ databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com" }));
     
     // --- USER ISOLATION ---
-    const currentUID = AGUtils.getActiveUID();
+    const currentUID = localStorage.getItem("ag_active_uid");
     if (!currentUID) {
         document.body.innerHTML = "<h2 style='text-align:center; padding-top:50px;'>Authentication Required.</h2>";
     }
     
-    const userNotesPath = AGUtils.userPath(currentUID, "admin_diary");
+    const userNotesPath = `users/${currentUID}/admin_diary`;
     const notesRef = ref(db, userNotesPath);
     let editingId = null;
     let localNotes = [];
@@ -165,9 +162,8 @@
                     timestamp: tempNote.timestamp 
                 });
             }
-        } catch (e) {
-            if (!AGErrors.isOffline(e)) AGErrors.report("notebook cloud save", e);
-            else console.log("Offline: Note saved locally.");
+        } catch (e) { 
+            console.log("Offline: Note saved locally."); 
         }
     };
 
@@ -185,8 +181,7 @@
 
     window.deleteNote = (id) => {
         if(confirm("Delete this note?")) {
-            remove(ref(db, `${userNotesPath}/${id}`))
-                .catch(error => AGErrors.report("notebook deletion", error));
+            remove(ref(db, `${userNotesPath}/${id}`));
         }
     };
 
@@ -223,7 +218,7 @@
         } else {
             renderNotes([]);
         }
-    }, error => AGErrors.report("notebook live data", error));
+    });
 </script>
 </body>
 </html>

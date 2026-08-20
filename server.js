@@ -9,13 +9,6 @@ app.use(cors());
 app.post('/stk-push', async (req, res) => {
     try {
         const { environment, shortcode, passkey, consumerKey, consumerSecret, accountType, amount, phoneNumber } = req.body;
-        const required = { environment, shortcode, passkey, consumerKey, consumerSecret, accountType, amount, phoneNumber };
-        const missing = Object.entries(required)
-            .filter(([, value]) => value === undefined || value === null || value === '')
-            .map(([key]) => key);
-        if (missing.length > 0) {
-            return res.status(400).json({ error: `Missing required fields: ${missing.join(', ')}` });
-        }
         
         const baseUrl = environment === 'production' 
             ? 'https://api.safaricom.co.ke' 
@@ -27,12 +20,6 @@ app.post('/stk-push', async (req, res) => {
             headers: { 'Authorization': `Basic ${auth}` }
         });
         const accessToken = tokenResponse.data.access_token;
-        if (!accessToken) {
-            const tokenError = new Error('Safaricom OAuth response did not include an access_token');
-            tokenError.upstreamStatus = tokenResponse.status || 502;
-            tokenError.upstreamPayload = tokenResponse.data;
-            throw tokenError;
-        }
 
         // 2. Generate Password & Timestamp
         const date = new Date();
@@ -65,27 +52,10 @@ app.post('/stk-push', async (req, res) => {
 
         res.json(stkResponse.data);
     } catch (error) {
-        const upstreamPayload = error.response?.data || error.upstreamPayload;
-        const status = error.response?.status || error.upstreamStatus || 500;
-        console.error('STK push failed:', upstreamPayload || error.message);
-        res.status(status).json({
-            error: error.message,
-            upstream: upstreamPayload || undefined
-        });
+        console.error(error.response?.data || error.message);
+        res.status(500).json({ error: error.response?.data?.errorMessage || error.message });
     }
 });
 
 const PORT = process.env.PORT || 3000;
-
-if (require.main === module) {
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
-    process.on('unhandledRejection', (reason) => {
-        console.error('Unhandled promise rejection:', reason);
-    });
-    process.on('uncaughtException', (error) => {
-        console.error('Uncaught exception:', error);
-    });
-}
-
-module.exports = app;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

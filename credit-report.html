@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="error-utils.js"></script>
-<script src="ag-utils.js"></script>
-<script type="module" src="auth-guard.js"></script>
     <meta charset="utf-8">
     <title>Credit Ledger - AssetGuard Pro</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -65,22 +62,22 @@
 </div>
 
 <script type="module">
-    import { getDb } from "./ag-firebase.js";
-    import { ref, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
-    const db = getDb();
-    const currentUID = AGUtils.getActiveUID();
+    const db = getDatabase(initializeApp({ databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com" }));
+    const currentUID = localStorage.getItem("ag_active_uid");
     
     let debtors = [];
 
     const loadData = () => {
-        onValue(ref(db, AGUtils.userPath(currentUID, "sales")), (snap) => {
+        onValue(ref(db, `users/${currentUID}/sales`), (snap) => {
             const data = snap.val() || {};
             debtors = Object.entries(data)
                 .filter(([_, v]) => v.payment === "Credit")
                 .map(([id, v]) => ({ id, ...v }));
             renderReport();
-        }, error => AGErrors.report("credit report sales live data", error));
+        });
     };
 
     window.renderReport = () => {
@@ -109,7 +106,7 @@
             const logs = d.payments ? Object.values(d.payments).map(p => `
                 <div class="log-row">
                     <span style="font-weight:600; color:#64748b;">${new Date(p.date).toLocaleDateString()}</span>
-                    <span style="color:var(--success); font-weight:800;">+${AGUtils.formatAmount(p.amount)}</span>
+                    <span style="color:var(--success); font-weight:800;">+${parseFloat(p.amount).toLocaleString()}</span>
                 </div>
             `).join('') : '<p style="font-size:10px; color:#94a3b8; text-align:center; padding:10px;">No payments recorded.</p>';
 
@@ -121,7 +118,7 @@
                             <p style="font-size:10px; font-weight:600; color:#94a3b8;">Ref: ${d.id.slice(-6).toUpperCase()}</p>
                         </div>
                         <div class="debt-amount">
-                            <span class="amt-due">${AGUtils.formatCurrency(balance)}</span>
+                            <span class="amt-due">KES ${balance.toLocaleString()}</span>
                         </div>
                     </div>
                     <div class="debt-body" id="body-${d.id}">
@@ -132,9 +129,9 @@
             `;
         });
 
-        document.getElementById('stat-total-debt').innerText = AGUtils.formatCurrency(totalVal);
+        document.getElementById('stat-total-debt').innerText = `KES ${totalVal.toLocaleString()}`;
         document.getElementById('stat-count').innerText = count;
-        document.getElementById('foot-total').innerText = AGUtils.formatCurrency(totalVal);
+        document.getElementById('foot-total').innerText = `KES ${totalVal.toLocaleString()}`;
     };
 
     window.toggleCard = (id) => {

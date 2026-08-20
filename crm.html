@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="error-utils.js"></script>
-<script src="ag-utils.js"></script>
-<script type="module" src="auth-guard.js"></script>
     <meta charset="utf-8">
     <title>AssetGuard Pro - Contacts</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -92,16 +89,25 @@
 </div></div>
 
 <script type="module">
-    import { getDb } from "./ag-firebase.js";
-    import { ref, onValue, set, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
-    const db = getDb();
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getDatabase, ref, onValue, set, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA",
+        authDomain: "assetguard-c8c8c.firebaseapp.com",
+        databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com",
+        projectId: "assetguard-c8c8c"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
     // --- USER ISOLATION ---
-    const currentUID = AGUtils.getActiveUID();
-    const userSalesPath = AGUtils.userPath(currentUID, "sales");
-    const cacheKey = AGUtils.uidKey("ag_contacts_cache", currentUID);
+    const currentUID = localStorage.getItem("ag_active_uid");
+    const userSalesPath = `users/${currentUID}/sales`;
+    const cacheKey = `ag_contacts_cache_${currentUID}`;
     
-    let contacts = AGUtils.readJSON(cacheKey, []);
+    let contacts = JSON.parse(localStorage.getItem(cacheKey) || "[]");
     let isAdmin = false;
     let selectedIds = new Set();
     let currentEditId = null;
@@ -122,9 +128,9 @@
             ts: s.timestamp || 0
         })).filter(c => c.phone !== "No Number").sort((a,b) => b.ts - a.ts);
         
-        AGUtils.writeJSON(cacheKey, contacts);
+        localStorage.setItem(cacheKey, JSON.stringify(contacts));
         render();
-    }, error => AGErrors.report("CRM sales live data", error));
+    });
 
     function render() {
         const list = document.getElementById('contact-list');
@@ -192,8 +198,7 @@
         render();
         updateBatchBar();
         closeConfirm();
-        idsToDelete.forEach(id => remove(ref(db, `${userSalesPath}/${id}`))
-            .catch(error => AGErrors.report("CRM batch contact deletion", error)));
+        idsToDelete.forEach(id => remove(ref(db, `${userSalesPath}/${id}`)));
     };
 
     const executeAutoClean = () => {
@@ -209,8 +214,7 @@
         });
         render();
         closeConfirm();
-        toRemove.forEach(id => remove(ref(db, `${userSalesPath}/${id}`))
-            .catch(error => AGErrors.report("CRM duplicate contact deletion", error)));
+        toRemove.forEach(id => remove(ref(db, `${userSalesPath}/${id}`)));
     };
 
     window.closeConfirm = () => document.getElementById('confirmOverlay').style.display = 'none';
@@ -260,7 +264,7 @@
 
         set(ref(db, `${userSalesPath}/${id}`), { 
             customer: name, mpesa: phone, timestamp: Date.now(), payment: 'Cash'
-        }).catch(error => AGErrors.report("CRM contact save", error));
+        });
     };
 
     window.openAdd = () => {
