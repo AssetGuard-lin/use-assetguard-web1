@@ -2014,12 +2014,22 @@ window.renderSales = () => {
         let sQty = 0;
         let sTotal = 0;
         let sTax = 0;
+        let totalReturned = 0;
+        let totalSpoiled = 0;
         
         const rows = s.items.map(i => {
-            sQty += parseFloat(i.quantity || 0);
+            const returnedQty = parseFloat(i.returnedQty || 0);
+            const spoiltQty = parseFloat(i.spoiltQty || 0);
+            const actualSoldQty = parseFloat(i.quantity || 0) - returnedQty - spoiltQty;
+            totalReturned += returnedQty;
+            totalSpoiled += spoiltQty;
+            sQty += actualSoldQty;
             sTotal += parseFloat(i.total || 0);
             sTax += parseFloat(i.vatAmount || 0);
-            return `<div class="ledger-row"><div><b>${i.quantity}</b></div><div style="padding-right: 4px;">${i.product}</div><div style="color:var(--muted)">@${i.price}</div><div style="color:var(--danger); font-size:9px;">V:${i.vatRate}%</div><div style="text-align:right; font-weight: 800;">KES ${parseFloat(i.total).toLocaleString()}</div></div>`;
+            let statusBadges = '';
+            if (returnedQty > 0) statusBadges += `<span style="background:#d1fae5; color:#047857; font-size:8px; padding:2px 5px; border-radius:4px; margin-right:3px; font-weight:700;">↩️ ${returnedQty}</span>`;
+            if (spoiltQty > 0) statusBadges += `<span style="background:#fee2e2; color:#dc2626; font-size:8px; padding:2px 5px; border-radius:4px; margin-right:3px; font-weight:700;">⚠️ ${spoiltQty}</span>`;
+            return `<div class="ledger-row"><div><b>${actualSoldQty}</b></div><div style="padding-right: 4px;">${i.product}</div><div style="color:var(--muted)">@${i.price}</div><div style="color:var(--danger); font-size:9px;">V:${i.vatRate}%</div><div style="text-align:right; font-weight: 800;">KES ${parseFloat(i.total).toLocaleString()}</div></div><div style="margin-left:10px; margin-bottom:6px; display:flex; align-items:center; gap:4px; font-size:10px;">${statusBadges}</div>`;
         }).join('');
 
         const isCredit = (s.payment === "Credit");
@@ -2045,6 +2055,10 @@ window.renderSales = () => {
                 </div>
                 <div class="sale-body" id="body-${s.id}">
                     <div style="font-size: 10px; color: var(--muted); margin-bottom: 8px; font-weight: 800;">PAYMENT: ${s.payment} ${payDetailStr}</div>
+                    ${totalReturned > 0 || totalSpoiled > 0 ? `<div style="background:#fffbeb; border:1px solid #fde68a; border-radius:8px; padding:8px; margin-bottom:10px; display:flex; gap:12px; font-size:11px; font-weight:700;">
+                        ${totalReturned > 0 ? `<div style="color:#047857;">↩️ <b>${totalReturned}</b> Returned to Stock</div>` : ''}
+                        ${totalSpoiled > 0 ? `<div style="color:#dc2626;">⚠️ <b>${totalSpoiled}</b> Marked Spoiled</div>` : ''}
+                    </div>` : ''}
                     ${rows}
                     ${isCredit ? `
                         <div style="margin-top:10px; background:#fff7ed; padding:8px; border-radius:8px; border:1px solid #ffedd5; display:flex; justify-content:space-between; align-items:center;">
@@ -2053,7 +2067,7 @@ window.renderSales = () => {
                         </div>
                     ` : ''}
                     <div style="display:flex; gap:8px; margin-top:12px;">
-                        <button class="btn btn-dark" style="flex:1;" onclick="event.stopPropagation(); showPinModal('${s.id}')" ${isPending ? 'disabled' : ''}>MANAGE / PAY</button>
+                        <button class="btn btn-dark" style="flex:1;" onclick="event.stopPropagation(); showPinModal('${s.id}')" ${isPending ? 'disabled' : ''}>MANAGE / ADJUST</button>
                         <button class="btn" style="flex:1; background:var(--primary); color:white;" onclick="event.stopPropagation(); reprintReceipt('${s.id}')">INVOICE</button>
                     </div>
                 </div>
