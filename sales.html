@@ -89,6 +89,10 @@
     .modal-content { background:#fff; width:100%; max-width:420px; border-radius:18px; max-height:90vh; overflow:auto; padding: 20px; box-sizing: border-box; }
     .edit-block { background: #f8fafc; padding: 10px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #e2e8f0; }
     .edit-row { display: grid; grid-template-columns: 1fr 50px 60px 70px; gap: 6px; margin-top: 5px; }
+    .edit-labels { display: grid; grid-template-columns: 1fr 50px 60px 70px 70px 70px; gap: 6px; color: var(--muted); font-size: 9px; font-weight: 800; text-transform: uppercase; }
+    .edit-labels span:nth-child(n+5) { color: var(--warning); }
+    .edit-labels span:last-child { color: var(--danger); }
+    .edit-row { grid-template-columns: 1fr 50px 60px 70px 70px 70px; }
     .edit-row input { padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 11px; width:100%; box-sizing:border-box; }
     .btn { border:none; padding:12px; border-radius:10px; font-size:12px; font-weight:600; cursor:pointer; transition: 0.2s; }
     .btn-dark { background:var(--dark); color:#fff; width: 100%; }
@@ -751,6 +755,7 @@ const currentUID = resolvedUID;
 localStorage.setItem("ag_active_uid", currentUID);
 
 const inventoryPath = `users/${currentUID}/inventory`;
+const inventoryMovementsPath = `users/${currentUID}/inventoryMovements`;
 const salesPath = 'sales';
 const profilePath = `users/${currentUID}/profile`;
 const userSettingsPath = `user_settings/${currentUID}`;
@@ -894,7 +899,9 @@ window.openManager = (id) => {
         }).join('') || '<small style="color:var(--muted); font-style:italic;">No payments yet.</small>';
     } else { creditBlock.style.display = 'none'; }
 
-    document.getElementById('edit-items-container').innerHTML = (s.items || []).map((item, idx) => `
+    document.getElementById('edit-items-container').innerHTML = `
+        <div class="edit-labels"><span>Item</span><span>Qty</span><span>Price</span><span>VAT</span><span>Returned</span><span>Spoilt</span></div>
+        ${(s.items || []).map((item, idx) => `
         <div class="edit-block" data-index="${idx}">
             <div class="edit-row">
                 <input type="text" value="${item.product}" class="item-prod" readonly>
@@ -904,7 +911,7 @@ window.openManager = (id) => {
                 <input type="number" min="0" max="${item.quantity}" value="${item.returnedQty || 0}" class="item-returned" placeholder="Returned">
                 <input type="number" min="0" max="${item.quantity}" value="${item.spoiltQty || 0}" class="item-spoilt" placeholder="Spoilt">
             </div>
-        </div>`).join('');
+        </div>`).join('')}`;
     document.getElementById('manageModal').style.display = 'flex';
 };
 
@@ -1434,6 +1441,20 @@ function finalizeSaleTransaction() {
     attemptSync();
 }
 
+async function recordInventoryMovement(movement) {
+    const movementId = movement.id || `${movement.sourceId}-${movement.type}-${movement.productKey}-${Date.now()}`;
+    await set(ref(db, `${inventoryMovementsPath}/${movementId}`), {
+        type: movement.type,
+        productKey: movement.productKey,
+        product: movement.product,
+        quantity: movement.quantity,
+        sourceId: movement.sourceId,
+        notes: movement.notes || "",
+        timestamp: new Date().toISOString(),
+        createdBy: currentUID
+    });
+}
+
 function resetFullForm() {
     cart = []; 
     editIndex = -1; 
@@ -1481,6 +1502,14 @@ async function attemptSync() {
                         const currentQty = await snap.json() || 0;
                         await set(ref(db, `${inventoryPath}/${itm.dbKey}/qty`), Math.max(0, currentQty - itm.quantity));
                     }
+                    await recordInventoryMovement({
+                        id: `${sID}-${itm.dbKey}-sale`,
+                        type: "sale",
+                        productKey: itm.dbKey,
+                        product: itm.product,
+                        quantity: itm.quantity,
+                        sourceId: sID
+                    });
                 }
                 await set(ref(db, `${salesPath}/${sID}`), trans); 
             }
@@ -2083,7 +2112,37 @@ document.getElementById('btn-save-changes').onclick = async () => {
         return;
     }
     const payload = { customer: document.getElementById('edit-cust-name').value, items: updated, adjustmentNotes: document.getElementById('edit-adjustment-notes').value.trim() };
-    if (navigator.onLine) { await update(ref(db, `${salesPath}/${currentActiveLedgerId}`), payload); }
+    if (navigator.onLine) {
+        for (let idx = 0; idx < updated.length; idx++) {
+            const previousItem = s.items[idx];
+            const updatedItem = updated[idx];
+            const returnedDelta = updatedItem.returnedQty - (previousItem.returnedQty || 0);
+            const spoiltDelta = updatedItem.spoiltQty - (previousItem.spoiltQty || 0);
+
+            if (returnedDelta !== 0) {
+                await runTransaction(ref(db, `${inventoryPath}/${updatedItem.dbKey}/qty`), quantity => Math.max(0, (quantity || 0) + returnedDelta));
+                await recordInventoryMovement({
+                    type: "return",
+                    productKey: updatedItem.dbKey,
+                    product: updatedItem.product,
+                    quantity: returnedDelta,
+                    sourceId: currentActiveLedgerId,
+                    notes: payload.adjustmentNotes
+                });
+            }
+            if (spoiltDelta !== 0) {
+                await recordInventoryMovement({
+                    type: "spoilage",
+                    productKey: updatedItem.dbKey,
+                    product: updatedItem.product,
+                    quantity: spoiltDelta,
+                    sourceId: currentActiveLedgerId,
+                    notes: payload.adjustmentNotes
+                });
+            }
+        }
+        await update(ref(db, `${salesPath}/${currentActiveLedgerId}`), payload);
+    }
     document.getElementById('manageModal').style.display = 'none'; 
 };
 
