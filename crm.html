@@ -104,7 +104,7 @@
 
     // --- USER ISOLATION ---
     const currentUID = localStorage.getItem("ag_active_uid");
-    const userSalesPath = `users/${currentUID}/sales`;
+    const userSalesPath = 'sales';
     const cacheKey = `ag_contacts_cache_${currentUID}`;
     
     let contacts = JSON.parse(localStorage.getItem(cacheKey) || "[]");

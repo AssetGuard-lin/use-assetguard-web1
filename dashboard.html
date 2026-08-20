@@ -430,7 +430,7 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
         <div class="label">Operations</div>
         <div class="nav-link" onclick="loadPage('sales')">Sales Terminal</div>
         <div class="nav-link" onclick="loadPage('purchases')">Purchases</div>
-        <div class="nav-link" onclick="loadPage('marketing-team')">Marketing team</div>
+        <div class="nav-link" id="marketingNavLink" onclick="loadPage('marketing-team')">Marketing team</div>
         
         <div class="label">Relationships</div>
         <div class="nav-link" onclick="loadPage('crm')" style="color:#4ade80;">Customer Registry</div>
@@ -627,8 +627,14 @@ const rtdb = firebase.database();
 const auth = firebase.auth();
 
 const activeUID = localStorage.getItem("ag_active_uid") || "global_terminal_user";
+const activeRole = localStorage.getItem("ag_user_role") || "fixed_area";
 if (!localStorage.getItem("ag_active_uid")) {
     localStorage.setItem("ag_active_uid", activeUID);
+}
+
+if (activeRole !== "marketing_team") {
+    const marketingNavLink = document.getElementById("marketingNavLink");
+    if (marketingNavLink) marketingNavLink.style.display = "none";
 }
 
 const MASTER_CONFIG = {
@@ -1753,6 +1759,10 @@ window.showDashboard = () => {
 
 window.loadPage = (pageName) => { 
     if (document.body.classList.contains('app-locked')) return;
+    if (pageName === 'marketing-team' && activeRole !== 'marketing_team') {
+        triggerToast('Marketing Team access is limited to marketing accounts.');
+        return;
+    }
     document.getElementById('dashboard-wrapper').style.display = 'none';
     document.getElementById('main-frame').style.display = 'block';
     document.getElementById('main-frame').src = `${pageName}.html?uid=${activeUID}`;

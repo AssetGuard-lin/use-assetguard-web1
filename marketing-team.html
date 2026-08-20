@@ -137,6 +137,11 @@ input:checked + .slider:before { transform: translateX(16px); }
 </style>
 
 <script>
+if (localStorage.getItem("ag_user_role") !== "marketing_team") {
+    document.documentElement.innerHTML = '<body style="font-family: sans-serif; padding: 30px; text-align: center;"><h2>Marketing Team access required</h2><p>Please sign in with a Marketing Team account.</p></body>';
+    throw new Error("Marketing Team access required");
+}
+
 if (!localStorage.getItem("routeStockUser")) {
     localStorage.setItem("routeStockUser", JSON.stringify({
         name: "John Karanja",

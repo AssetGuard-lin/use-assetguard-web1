@@ -679,6 +679,8 @@
         <label style="font-size:10px;font-weight:800; color: var(--muted)">PAYMENT REFERENCE</label>
         <input type="text" id="edit-pay-ref" class="search-input" style="margin-bottom: 15px;">
         <div id="edit-items-container"></div>
+        <label style="display:block; font-size:10px; font-weight:800; color:var(--muted); margin-top:15px;">RETURN / SPOILT NOTES</label>
+        <textarea id="edit-adjustment-notes" class="search-input" rows="2" placeholder="Optional reason or condition"></textarea>
         <div style="display:flex; flex-direction: column; gap: 8px; margin-top: 15px;">
             <button id="btn-save-changes" class="btn btn-success">Update Record</button>
             <button id="btn-del-mode" class="btn btn-del">Delete Transaction</button>
@@ -749,7 +751,7 @@ const currentUID = resolvedUID;
 localStorage.setItem("ag_active_uid", currentUID);
 
 const inventoryPath = `users/${currentUID}/inventory`;
-const salesPath = `users/${currentUID}/sales`;
+const salesPath = 'sales';
 const profilePath = `users/${currentUID}/profile`;
 const userSettingsPath = `user_settings/${currentUID}`;
 
@@ -875,6 +877,7 @@ window.openManager = (id) => {
     document.getElementById('edit-cust-name').value = s.customer;
     document.getElementById('edit-pay-ref').value = s.mpesaRef || s.mpesa || s.bank || "";
     document.getElementById('manual-pay-amt').value = "";
+    document.getElementById('edit-adjustment-notes').value = s.adjustmentNotes || "";
     
     const isCredit = (s.payment === "Credit");
     const creditBlock = document.getElementById('credit-payment-block');
@@ -898,6 +901,8 @@ window.openManager = (id) => {
                 <input type="number" value="${item.quantity}" class="item-qty">
                 <input type="number" value="${item.price}" class="item-price">
                 <input type="number" value="${item.vatRate}" class="item-vrate">
+                <input type="number" min="0" max="${item.quantity}" value="${item.returnedQty || 0}" class="item-returned" placeholder="Returned">
+                <input type="number" min="0" max="${item.quantity}" value="${item.spoiltQty || 0}" class="item-spoilt" placeholder="Spoilt">
             </div>
         </div>`).join('');
     document.getElementById('manageModal').style.display = 'flex';
@@ -953,7 +958,7 @@ window.onload = () => {
 
 async function deepSyncFirebase() {
     const baseURL = "https://assetguard-c8c8c-default-rtdb.firebaseio.com/";
-    const paths = [`users/${currentUID}/sales.json`];
+    const paths = ['sales.json', `users/${currentUID}/sales.json`];
     let consolidatedSales = {}; 
 
     const extract = (data) => {
@@ -1398,6 +1403,8 @@ function finalizeSaleTransaction() {
 
     const trans = {
         saleId: uniqueSaleId,
+        source: localStorage.getItem('ag_user_role') === 'marketing_team' ? 'marketing_team' : 'fixed_area',
+        createdBy: currentUID,
         customer: cart[0].customer,
         payment: cart[0].payment,
         mpesa: cart[0].mpesa || "",
@@ -1405,7 +1412,8 @@ function finalizeSaleTransaction() {
         bank: cart[0].bank || "",
         timestamp: new Date().toISOString(),
         items: cart,
-        payments: [] 
+        payments: [],
+        adjustmentNotes: ""
     };
     
     syncQueue.push(trans);
@@ -2056,14 +2064,25 @@ document.getElementById('btn-add-payment').onclick = async () => {
 document.getElementById('btn-save-changes').onclick = async () => {
     const s = runtimeActiveLedgerSalesMap.get(currentActiveLedgerId);
     const updated = [];
+    let adjustmentIsValid = true;
     document.querySelectorAll('.edit-block').forEach((block, idx) => {
         const q = parseFloat(block.querySelector('.item-qty').value);
+        const returnedQty = parseFloat(block.querySelector('.item-returned').value) || 0;
+        const spoiltQty = parseFloat(block.querySelector('.item-spoilt').value) || 0;
+        if (returnedQty + spoiltQty > q) {
+            adjustmentIsValid = false;
+            return;
+        }
         const p = parseFloat(block.querySelector('.item-price').value);
         const vr = parseFloat(block.querySelector('.item-vrate').value);
         const sub = q * p; const vat = sub * (vr/100);
-        updated.push({ ...s.items[idx], quantity: q, price: p, vatRate: vr, total: (sub+vat).toFixed(2), vatAmount: vat.toFixed(2) });
+        updated.push({ ...s.items[idx], quantity: q, price: p, vatRate: vr, returnedQty, spoiltQty, total: (sub+vat).toFixed(2), vatAmount: vat.toFixed(2) });
     });
-    const payload = { customer: document.getElementById('edit-cust-name').value, items: updated };
+    if (!adjustmentIsValid) {
+        showAlertModal('Invalid Adjustment', 'Returned and spoilt quantities cannot exceed the sold quantity.');
+        return;
+    }
+    const payload = { customer: document.getElementById('edit-cust-name').value, items: updated, adjustmentNotes: document.getElementById('edit-adjustment-notes').value.trim() };
     if (navigator.onLine) { await update(ref(db, `${salesPath}/${currentActiveLedgerId}`), payload); }
     document.getElementById('manageModal').style.display = 'none'; 
 };
