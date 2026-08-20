@@ -2109,20 +2109,38 @@ document.getElementById('btn-save-changes').onclick = async () => {
     const updated = [];
     let adjustmentIsValid = true;
     document.querySelectorAll('.edit-block').forEach((block, idx) => {
-        const q = parseFloat(block.querySelector('.item-qty').value);
+        const q = parseFloat(block.querySelector('.item-qty').value) || 0;
         const returnedQty = parseFloat(block.querySelector('.item-returned').value) || 0;
         const spoiltQty = parseFloat(block.querySelector('.item-spoilt').value) || 0;
+        const p = parseFloat(block.querySelector('.item-price').value) || 0;
+        const vr = parseFloat(block.querySelector('.item-vrate').value) || 0;
+        
+        // Validate all values are numbers and not NaN
+        if (isNaN(q) || isNaN(returnedQty) || isNaN(spoiltQty) || isNaN(p) || isNaN(vr)) {
+            adjustmentIsValid = false;
+            return;
+        }
+        
         if (returnedQty + spoiltQty > q) {
             adjustmentIsValid = false;
             return;
         }
-        const p = parseFloat(block.querySelector('.item-price').value);
-        const vr = parseFloat(block.querySelector('.item-vrate').value);
-        const sub = q * p; const vat = sub * (vr/100);
-        updated.push({ ...s.items[idx], quantity: q, price: p, vatRate: vr, returnedQty, spoiltQty, total: (sub+vat).toFixed(2), vatAmount: vat.toFixed(2) });
+        
+        const sub = q * p; 
+        const vat = sub * (vr/100);
+        updated.push({ 
+            ...s.items[idx], 
+            quantity: q, 
+            price: p, 
+            vatRate: vr, 
+            returnedQty: isNaN(returnedQty) ? 0 : returnedQty, 
+            spoiltQty: isNaN(spoiltQty) ? 0 : spoiltQty, 
+            total: (sub+vat).toFixed(2), 
+            vatAmount: vat.toFixed(2) 
+        });
     });
     if (!adjustmentIsValid) {
-        showAlertModal('Invalid Adjustment', 'Returned and spoilt quantities cannot exceed the sold quantity.');
+        showAlertModal('Invalid Adjustment', 'Please ensure all quantity and price fields have valid numbers. Returned and spoilt quantities cannot exceed the sold quantity.');
         return;
     }
     const payload = { customer: document.getElementById('edit-cust-name').value, items: updated, adjustmentNotes: document.getElementById('edit-adjustment-notes').value.trim() };
@@ -2130,10 +2148,11 @@ document.getElementById('btn-save-changes').onclick = async () => {
         for (let idx = 0; idx < updated.length; idx++) {
             const previousItem = s.items[idx];
             const updatedItem = updated[idx];
-            const returnedDelta = updatedItem.returnedQty - (previousItem.returnedQty || 0);
-            const spoiltDelta = updatedItem.spoiltQty - (previousItem.spoiltQty || 0);
+            const returnedDelta = (updatedItem.returnedQty || 0) - (previousItem.returnedQty || 0);
+            const spoiltDelta = (updatedItem.spoiltQty || 0) - (previousItem.spoiltQty || 0);
 
-            if (returnedDelta !== 0) {
+            // Ensure delta values are valid numbers
+            if (!isNaN(returnedDelta) && returnedDelta !== 0) {
                 await runTransaction(ref(db, `${inventoryPath}/${updatedItem.dbKey}/qty`), quantity => Math.max(0, (quantity || 0) + returnedDelta));
                 await recordInventoryMovement({
                     type: "return",
@@ -2144,7 +2163,7 @@ document.getElementById('btn-save-changes').onclick = async () => {
                     notes: payload.adjustmentNotes
                 });
             }
-            if (spoiltDelta !== 0) {
+            if (!isNaN(spoiltDelta) && spoiltDelta !== 0) {
                 await recordInventoryMovement({
                     type: "spoilage",
                     productKey: updatedItem.dbKey,
