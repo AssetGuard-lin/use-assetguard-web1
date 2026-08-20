@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="error-utils.js"></script>
+<script src="ag-utils.js"></script>
+<script src="ag-config.js"></script>
+<script type="module" src="auth-guard.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>RouteStock Pro — Direct Dispatches & Live Tracking</title>
@@ -137,11 +141,6 @@ input:checked + .slider:before { transform: translateX(16px); }
 </style>
 
 <script>
-if (localStorage.getItem("ag_user_role") !== "marketing_team") {
-    document.documentElement.innerHTML = '<body style="font-family: sans-serif; padding: 30px; text-align: center;"><h2>Marketing Team access required</h2><p>Please sign in with a Marketing Team account.</p></body>';
-    throw new Error("Marketing Team access required");
-}
-
 if (!localStorage.getItem("routeStockUser")) {
     localStorage.setItem("routeStockUser", JSON.stringify({
         name: "John Karanja",
@@ -291,15 +290,8 @@ if (!localStorage.getItem("routeStockUser")) {
 <div class="toast" id="toast"></div>
 
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA",
-  authDomain: "assetguard-c8c8c.firebaseapp.com",
-  projectId: "assetguard-c8c8c",
-  databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com"
-};
-
 if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(AG_FIREBASE_CONFIG);
 }
 const rtdb = firebase.database();
 const auth = firebase.auth();
@@ -341,22 +333,17 @@ rtdb.ref("dispatches").on("value", (snapshot) => {
     }
     renderLedger();
     updateDispatchBanner();
-});
+}, error => AGErrors.report("dispatches live data", error, message => toast(`Live dispatches could not be loaded: ${message}`, "error")));
 
 rtdb.ref("adminRequests").on("value", (snapshot) => {
     adminRequests = snapshot.val() || {};
     renderLedger();
-});
+}, error => AGErrors.report("admin requests live data", error, message => toast(`Live admin requests could not be loaded: ${message}`, "error")));
 
-function esc(s) { return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m])); }
+function esc(s) { return AGUtils.escapeHtml(s); }
 
 function toast(message, type="") {
-    const el = document.getElementById("toast");
-    el.textContent = message;
-    el.className = "toast " + type;
-    el.style.display = "block";
-    clearTimeout(window.toastTimer);
-    window.toastTimer = setTimeout(() => { el.style.display = "none"; }, 4000);
+    AGUtils.showToast(message, { type, duration: 4000, elementId: "toast" });
 }
 
 function showPage(id) {
@@ -469,7 +456,7 @@ function submitDispatch() {
         toast("Dispatch successfully created and active!", "success");
         updateDispatchBanner();
         showPage('ledgerPage');
-    });
+    }).catch(error => AGErrors.report("dispatch creation", error, message => toast(`Dispatch creation failed: ${message}`, "error")));
 }
 
 function startGlobalGPSMonitoring() {
@@ -494,7 +481,7 @@ function startGlobalGPSMonitoring() {
         if (currentDispatchId) {
             rtdb.ref(`dispatches/${currentDispatchId}/lastLocation`).set({
                 lat, lng, speed: speedKmh, ts: Date.now()
-            });
+            }).catch(error => AGErrors.report("dispatch location update", error));
         }
     };
 
@@ -743,7 +730,7 @@ function updateDispatchStatus(id, newStatus) {
         toast(`Dispatch updated to ${newStatus}!`, "success");
         hideDrawer();
         renderLedger();
-    });
+    }).catch(error => AGErrors.report("dispatch status update", error, message => toast(`Dispatch update failed: ${message}`, "error")));
 }
 
 function hideDrawer() { document.getElementById("drawerBg").style.display = "none"; }

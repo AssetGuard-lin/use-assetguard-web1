@@ -1,17 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script type="module">
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.x.x/firebase-auth.js";
-  
-  const auth = getAuth();
-  onAuthStateChanged(auth, (user) => {
-    if (!user) {
-      // Not logged in, redirect to login page
-      window.location.href = "index.html"; 
-    }
-  });
-</script>
+<script src="error-utils.js"></script>
+<script src="ag-utils.js"></script>
+<script src="ag-config.js"></script>
+<script type="module" src="auth-guard.js"></script>
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -430,7 +423,7 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
         <div class="label">Operations</div>
         <div class="nav-link" onclick="loadPage('sales')">Sales Terminal</div>
         <div class="nav-link" onclick="loadPage('purchases')">Purchases</div>
-        <div class="nav-link" id="marketingNavLink" onclick="loadPage('marketing-team')">Marketing team</div>
+        <div class="nav-link" onclick="loadPage('marketing-team')">Marketing team</div>
         
         <div class="label">Relationships</div>
         <div class="nav-link" onclick="loadPage('crm')" style="color:#4ade80;">Customer Registry</div>
@@ -613,29 +606,13 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
 </div>
 
 <script>
-const firebaseConfig = { 
-    apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA", 
-    authDomain: "assetguard-c8c8c.firebaseapp.com", 
-    projectId: "assetguard-c8c8c",
-    databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com"
-};
-
 if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(AG_FIREBASE_CONFIG);
 }
 const rtdb = firebase.database();
 const auth = firebase.auth();
 
-const activeUID = localStorage.getItem("ag_active_uid") || "global_terminal_user";
-const activeRole = localStorage.getItem("ag_user_role") || "fixed_area";
-if (!localStorage.getItem("ag_active_uid")) {
-    localStorage.setItem("ag_active_uid", activeUID);
-}
-
-if (activeRole !== "marketing_team") {
-    const marketingNavLink = document.getElementById("marketingNavLink");
-    if (marketingNavLink) marketingNavLink.style.display = "none";
-}
+const activeUID = AGUtils.getActiveUID({ fallback: "global_terminal_user", persist: true });
 
 const MASTER_CONFIG = {
     backendUrl: "https://weathered-glade-c60b.assetguardinfo.workers.dev",
@@ -672,8 +649,8 @@ document.addEventListener('copy', (e) => {
 });
 
 auth.onAuthStateChanged((user) => {
-    if (!user && !localStorage.getItem("ag_active_uid")) {
-        window.location.href = "index.html";
+    if (!user) {
+        window.location.replace("index.html");
     }
 });
 
@@ -690,13 +667,7 @@ window.addEventListener('click', (e) => {
 });
 
 function escapeHtml(str) {
-    if (!str) return '';
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
+    return AGUtils.escapeHtml(str);
 }
 
 function pruneOldActivityLogs() {
@@ -712,7 +683,7 @@ function pruneOldActivityLogs() {
                 }
             });
             keysToDelete.forEach(key => {
-                logsRef.child(key).remove();
+                logsRef.child(key).remove().catch(error => AGErrors.report("activity log cleanup", error));
             });
         }
     });
@@ -726,7 +697,7 @@ function logUserActivity(category, description) {
             description: description,
             timestamp: Date.now(),
             device: navigator.userAgent.substring(0, 50)
-        });
+        }).catch(error => AGErrors.report("activity log write", error));
         pruneOldActivityLogs();
     } catch (err) {
         console.error("Failed to log activity:", err);
@@ -737,13 +708,13 @@ function initBroadcastListener() {
     rtdb.ref('system_broadcasts').on('value', (snapshot) => {
         allBroadcastsCache = snapshot.val() || {};
         renderCombinedNotifications();
-    });
+    }, error => AGErrors.report("system broadcasts live data", error, message => triggerToast(`Live broadcasts could not be loaded: ${message}`)));
 
     if (activeUID) {
         rtdb.ref(`user_notifications/${activeUID}`).on('value', (snapshot) => {
             allUserNotificationsCache = snapshot.val() || {};
             renderCombinedNotifications();
-        });
+        }, error => AGErrors.report("user notifications live data", error, message => triggerToast(`Live notifications could not be loaded: ${message}`)));
 
         rtdb.ref(`user_notifications/${activeUID}`).on('child_added', (snapshot) => {
             const notif = snapshot.val();
@@ -751,7 +722,7 @@ function initBroadcastListener() {
             if (Date.now() - (notif.timestamp || 0) < 60000) {
                 showAdminNotificationPopup(notif.title || "Admin Notice", notif.message || "");
             }
-        });
+        }, error => AGErrors.report("new user notification live data", error));
     }
 }
 
@@ -868,7 +839,7 @@ function renderBroadcastModalList(itemsList) {
     }
     let html = "";
     itemsList.forEach((item) => {
-        const dateStr = item.timestamp ? new Date(item.timestamp).toLocaleString() : '';
+        const dateStr = AGUtils.formatDateTime(item.timestamp, { fallback: '' });
         let priorityColor = 'var(--primary)';
         if (item.priority === 'Important') priorityColor = 'var(--warning)';
         if (item.priority === 'Urgent') priorityColor = 'var(--danger)';
@@ -1208,7 +1179,7 @@ window.requestHistoryRetrieval = () => {
         reason: 'User requested history access from chat widget',
         status: 'Pending',
         timestamp: Date.now()
-    });
+    }).catch(error => AGErrors.report("history retrieval request", error, message => triggerToast(`History request failed: ${message}`)));
 
     setTimeout(() => {
         initRealtimeChatListener();
@@ -1329,7 +1300,7 @@ function initRealtimeChatListener() {
         }
 
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    });
+    }, error => AGErrors.report("support tickets live data", error, message => triggerToast(`Live support data could not be loaded: ${message}`)));
 }
 
 function switchActiveTicket(ticketId) {
@@ -1487,9 +1458,9 @@ function initSubscriptionGuards() {
         return;
     }
 
-    rtdb.ref(`user_statuses/${activeUID}`).on('value', () => evaluateUnifiedAccess());
-    rtdb.ref(`subscription_pauses/${activeUID}`).on('value', () => evaluateUnifiedAccess());
-    rtdb.ref(`subscriptions/${activeUID}`).on('value', () => evaluateUnifiedAccess());
+    rtdb.ref(`user_statuses/${activeUID}`).on('value', () => evaluateUnifiedAccess(), error => AGErrors.report("user status live data", error));
+    rtdb.ref(`subscription_pauses/${activeUID}`).on('value', () => evaluateUnifiedAccess(), error => AGErrors.report("subscription pause live data", error));
+    rtdb.ref(`subscriptions/${activeUID}`).on('value', () => evaluateUnifiedAccess(), error => AGErrors.report("subscription live data", error));
 }
 
 async function evaluateUnifiedAccess() {
@@ -1630,6 +1601,7 @@ function startStatusPolling(checkoutRequestID) {
     descEl.innerText = "Please check your phone and enter your M-Pesa PIN.";
     
     let attempts = 0;
+    let consecutiveFailures = 0;
     pollInterval = setInterval(async () => {
         attempts++;
         if (attempts > 18) {
@@ -1656,6 +1628,7 @@ function startStatusPolling(checkoutRequestID) {
                 })
             });
             const data = await response.json();
+            consecutiveFailures = 0;
             if (data.ResultCode === "0") {
                 clearInterval(pollInterval);
                 document.getElementById('stkSpinnerIcon').style.display = "none";
@@ -1675,7 +1648,18 @@ function startStatusPolling(checkoutRequestID) {
                 document.getElementById('stkRetryBtn').style.display = "block";
                 document.getElementById('stkCloseBtn').style.display = "flex";
             }
-        } catch (err) {}
+        } catch (err) {
+            consecutiveFailures++;
+            AGErrors.report("STK payment status polling", err);
+            if (consecutiveFailures >= 3) {
+                clearInterval(pollInterval);
+                document.getElementById('stkSpinnerIcon').style.display = "none";
+                titleEl.innerText = "Payment status unavailable";
+                descEl.innerText = "We could not confirm the payment status. Please check M-Pesa before retrying.";
+                document.getElementById('stkCloseBtn').style.display = "flex";
+                triggerToast("Payment status could not be confirmed.");
+            }
+        }
     }, 4000);
 }
 
@@ -1759,10 +1743,6 @@ window.showDashboard = () => {
 
 window.loadPage = (pageName) => { 
     if (document.body.classList.contains('app-locked')) return;
-    if (pageName === 'marketing-team' && activeRole !== 'marketing_team') {
-        triggerToast('Marketing Team access is limited to marketing accounts.');
-        return;
-    }
     document.getElementById('dashboard-wrapper').style.display = 'none';
     document.getElementById('main-frame').style.display = 'block';
     document.getElementById('main-frame').src = `${pageName}.html?uid=${activeUID}`;
@@ -1780,7 +1760,8 @@ window.customLogoutTrigger = () => {
         logUserActivity('SECURITY', 'User logged out');
         localStorage.removeItem("ag_active_uid");
         localStorage.removeItem("ag_session_active");
-        auth.signOut().then(() => { window.location.href = "index.html"; });
+        auth.signOut().then(() => { window.location.href = "index.html"; })
+            .catch(error => AGErrors.report("dashboard logout", error));
     };
 };
 
@@ -1906,9 +1887,11 @@ function sendAgentMessage() {
         cancelAgentEdit();
         if (editKey.startsWith('root_')) {
             const ticketId = editKey.replace('root_', '');
-            rtdb.ref(`support_tickets/${ticketId}`).update({ message: text, updatedAt: Date.now() });
+            rtdb.ref(`support_tickets/${ticketId}`).update({ message: text, updatedAt: Date.now() })
+                .catch(error => AGErrors.report("support ticket edit", error, message => triggerToast(`Message update failed: ${message}`)));
         } else if (activeSelectedTicketId) {
-            rtdb.ref(`support_tickets/${activeSelectedTicketId}/conversation/${editKey}`).update({ text: text, editedAt: Date.now() });
+            rtdb.ref(`support_tickets/${activeSelectedTicketId}/conversation/${editKey}`).update({ text: text, editedAt: Date.now() })
+                .catch(error => AGErrors.report("support reply edit", error, message => triggerToast(`Message update failed: ${message}`)));
         }
         return;
     }
@@ -1922,7 +1905,7 @@ function sendAgentMessage() {
                 text: text,
                 replyToText: replySnippet,
                 timestamp: Date.now()
-            });
+            }).catch(error => AGErrors.report("support reply write", error, message => triggerToast(`Reply failed: ${message}`)));
         }
         return;
     }
@@ -1935,7 +1918,7 @@ function sendAgentMessage() {
             message: text,
             status: 'Pending',
             timestamp: Date.now()
-        });
+        }).catch(error => AGErrors.report("support ticket creation", error, message => triggerToast(`Ticket creation failed: ${message}`)));
         appendAgentMessage('user', text);
         appendAgentMessage('agent-reply', '✅ New ticket created successfully. An agent will respond shortly.');
         return;
@@ -1953,7 +1936,7 @@ function sendAgentMessage() {
             sender: 'user',
             text: text,
             timestamp: Date.now()
-        });
+        }).catch(error => AGErrors.report("support message write", error, message => triggerToast(`Message failed: ${message}`)));
     } else {
         rtdb.ref('support_tickets').push({
             uid: activeUID,
@@ -1961,7 +1944,7 @@ function sendAgentMessage() {
             message: text,
             status: 'Pending',
             timestamp: Date.now()
-        });
+        }).catch(error => AGErrors.report("support ticket write", error, message => triggerToast(`Ticket creation failed: ${message}`)));
     }
 }
 

@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="ag-utils.js"></script>
+<script src="ag-config.js"></script>
 <meta charset="UTF-8">
 <title>AssetGuard Pro - Advanced Portal</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<script src="error-utils.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -136,15 +139,8 @@ button.action-btn:disabled { background: #94a3b8; cursor: not-allowed; }
 <script>
 const DASHBOARD_URL = "dashboard.html"; 
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA",
-  authDomain: "assetguard-c8c8c.firebaseapp.com",
-  projectId: "assetguard-c8c8c",
-  databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com"
-};
-
 if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(AG_FIREBASE_CONFIG);
 }
 const auth = firebase.auth();
 const rtdb = firebase.database();
@@ -153,6 +149,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const todayStr = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   const rDateDisplay = document.getElementById("r_dateDisplay");
   if (rDateDisplay) rDateDisplay.innerText = "Date: " + todayStr;
+
+  if (new URLSearchParams(window.location.search).get("authError")) {
+    msg("Session could not be verified. Please sign in again.");
+  }
 });
 
 function toggleRoleFields(prefix) {
