@@ -5,7 +5,7 @@
 <script src="ag-utils.js"></script>
 <script type="module" src="auth-guard.js"></script>
     <meta charset="utf-8">
-    <title>Expense History - AssetGuard Mirror</title>
+    <title>Expense & Debt Ledger - AssetGuard Mirror</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
@@ -18,9 +18,10 @@
             align-items: center; justify-content: center; padding: 20px;
         }
         .modal-card { 
-            background: white; width: 100%; max-width: 340px; padding: 28px; 
+            background: white; width: 100%; max-width: 360px; padding: 28px; 
             border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
             animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            max-height: 90vh; overflow-y: auto; box-sizing: border-box;
         }
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         
@@ -29,10 +30,10 @@
         
         .modal-input-group { text-align: left; margin-bottom: 15px; }
         .modal-input-group label { font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 5px; }
-        .modal-card input:not(.pin-input) { width: 100%; padding: 14px; border: 2px solid #f1f5f9; border-radius: 14px; box-sizing: border-box; font-size: 15px; outline: none; background: #f8fafc; font-family: inherit; transition: border 0.2s; }
-        .modal-card input:focus { border-color: var(--primary); }
+        .modal-card input:not(.pin-input), .modal-card select { width: 100%; padding: 14px; border: 2px solid #f1f5f9; border-radius: 14px; box-sizing: border-box; font-size: 15px; outline: none; background: #f8fafc; font-family: inherit; transition: border 0.2s; }
+        .modal-card input:focus, .modal-card select:focus { border-color: var(--primary); }
         
-        .modal-btns { display: flex; flex-direction: column; gap: 10px; }
+        .modal-btns { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
         .btn-confirm-save { background: var(--dark); color: white; border: none; padding: 16px; border-radius: 16px; font-weight: 800; cursor: pointer; font-size: 14px; }
         .btn-confirm-del { background: var(--danger); color: white; border: none; padding: 16px; border-radius: 16px; font-weight: 800; cursor: pointer; font-size: 14px; }
         .btn-cancel-mod { background: transparent; color: #64748b; border: none; padding: 10px; font-weight: 700; cursor: pointer; font-size: 13px; }
@@ -47,27 +48,50 @@
         
         table { width: 100%; border-collapse: collapse; font-size: 12px; }
         th { text-align: left; color: #94a3b8; padding: 10px 5px; font-size: 9px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #f1f5f9; }
-        td { padding: 14px 5px; border-bottom: 1px solid #f8fafc; }
+        td { padding: 14px 5px; border-bottom: 1px solid #f8fafc; vertical-align: middle; }
         
         .amount-cell { font-weight: 800; text-align: right; color: var(--dark); font-size: 13px; }
-        .category-tag { color: var(--accent); font-size: 10px; font-weight: 800; background: #fff4f0; padding: 3px 8px; border-radius: 6px; }
+        .badge-type { font-size: 9px; font-weight: 800; padding: 3px 6px; border-radius: 4px; text-transform: uppercase; }
+        .badge-expense { background: #e0f2fe; color: #0369a1; }
+        .badge-debt { background: #fee2e2; color: #b91c1c; }
         
         .admin-actions { display: none; opacity: 0; }
         .unlocked .admin-actions { display: table-cell; opacity: 1; text-align: right; }
-        .btn-action { border: none; background: #f1f5f9; padding: 10px; border-radius: 10px; cursor: pointer; margin-left: 5px; font-size: 14px; }
+        .btn-action { border: none; background: #f1f5f9; padding: 8px; border-radius: 10px; cursor: pointer; margin-left: 3px; font-size: 13px; }
         
+        .payment-history-list { background: #f8fafc; border-radius: 12px; padding: 10px; margin-top: 10px; max-height: 150px; overflow-y: auto; }
+        .payment-item { display: flex; justify-content: space-between; font-size: 11px; padding: 6px 0; border-bottom: 1px solid #edf2f7; }
+        .payment-item:last-child { border-bottom: none; }
+
         .total-section { margin-top: 20px; text-align: right; font-size: 20px; font-weight: 800; padding: 16px; background: #f8fafc; border-radius: 16px; color: var(--dark); border: 1px dashed #e2e8f0; }
         #syncStatus { font-size: 8px; color: #94a3b8; text-align: center; margin-top: 10px; display: block; }
     </style>
 </head>
 <body id="mainBody">
 
+<!-- EDIT / PARTIAL PAYMENT MODAL -->
 <div class="modal-overlay" id="editModal">
     <div class="modal-card">
-        <h3>Edit Expense</h3>
-        <p>Update item details. Changes mirror to cloud when online.</p>
+        <h3>Manage Entry</h3>
+        <p>Update expense/debt details or record a partial payment.</p>
         <div class="modal-input-group"><label>Item Name</label><input type="text" id="editItemName"></div>
-        <div class="modal-input-group"><label>Amount (KES)</label><input type="number" id="editItemAmount"></div>
+        <div class="modal-input-group"><label>Entry Type</label>
+            <select id="editEntryType">
+                <option value="expense">Regular Expense (Cash / Paid)</option>
+                <option value="debt">Debt / Credit (Partial Payments)</option>
+            </select>
+        </div>
+        <div class="modal-input-group"><label>Total Amount (KES)</label><input type="number" id="editItemAmount"></div>
+        
+        <div id="debtSection">
+            <hr style="border:0; border-top:1px solid #f1f5f9; margin: 15px 0;">
+            <div class="modal-input-group"><label>Add Partial Payment (KES)</label><input type="number" id="partialPayAmount" placeholder="Enter amount"></div>
+            <div style="margin-top:10px;">
+                <label style="font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 5px;">Payment Log</label>
+                <div class="payment-history-list" id="modalPaymentLog"></div>
+            </div>
+        </div>
+
         <div class="modal-btns">
             <button class="btn-confirm-save" id="confirmSaveBtn">Save Changes</button>
             <button class="btn-cancel-mod" onclick="closeModals()">Discard</button>
@@ -75,11 +99,12 @@
     </div>
 </div>
 
+<!-- DELETE MODAL -->
 <div class="modal-overlay" id="deleteModal">
-    <div class="modal-card">
+    <div class="modal-card" style="max-width: 340px;">
         <div style="font-size: 40px; text-align: center; margin-bottom: 10px;">🗑️</div>
         <h3>Delete Record?</h3>
-        <p>This will remove the entry from this device and the cloud mirror permanently.</p>
+        <p>This will remove the entry and its payment logs permanently.</p>
         <div class="modal-btns">
             <button class="btn-confirm-del" id="confirmDeleteBtn">Delete Permanently</button>
             <button class="btn-cancel-mod" onclick="closeModals()">Cancel</button>
@@ -88,7 +113,7 @@
 </div>
 
 <div class="container" id="appContent">
-    <h2>Expense History</h2>
+    <h2>Expense & Debt Ledger</h2>
     <div class="security-bar" id="lockBar">
         <span style="color:white; font-size:11px; font-weight:800; letter-spacing: 0.5px;" id="lockLabel">LOCKED (ADMIN)</span>
         <input type="password" id="masterPin" class="pin-input" maxlength="4" placeholder="••••" oninput="handleSecurity()">
@@ -106,8 +131,8 @@
                     <tr>
                         <th>Date</th>
                         <th>Item</th>
-                        <th>Cat.</th>
-                        <th style="text-align: right;">Amount</th>
+                        <th>Balance / Total</th>
+                        <th style="text-align: right;">Paid</th>
                         <th class="admin-actions">Action</th>
                     </tr>
                 </thead>
@@ -115,7 +140,7 @@
             </table>
         </div>
         <div class="total-section">
-            <span style="color:var(--accent); font-size:12px; display:block; margin-bottom: 4px;">GRAND TOTAL</span>
+            <span style="color:var(--accent); font-size:12px; display:block; margin-bottom: 4px;">TOTAL OUTSTANDING DEBT</span>
             <span id="totalAmount">0.00</span> <small style="font-size:11px; opacity:0.6;">KES</small>
         </div>
     </div>
@@ -128,7 +153,6 @@
 
     const db = getDb();
 
-    // --- USER ISOLATION ---
     const currentUID = AGUtils.getActiveUID();
     if (!currentUID) {
         document.getElementById('appContent').innerHTML = "<h2 style='text-align:center; padding-top:50px;'>Authentication Required.</h2>";
@@ -139,10 +163,9 @@
     let activeId = null;
     let iDB;
 
-    // --- STEP 1: INITIALIZE USER-SPECIFIC INDEXEDDB ---
     const initIDB = () => {
         return new Promise((resolve) => {
-            const request = indexedDB.open(`AssetGuard_Mirror_${currentUID}`, 1);
+            const request = indexedDB.open(`AssetGuard_Mirror_${currentUID}`, 3);
             request.onupgradeneeded = (e) => {
                 const db = e.target.result;
                 if (!db.objectStoreNames.contains("expenses")) {
@@ -156,7 +179,6 @@
         });
     };
 
-    // --- STEP 2: RENDER FROM DISK ---
     const refreshUI = async () => {
         if (!iDB) return;
         const tx = iDB.transaction("expenses", "readonly");
@@ -168,7 +190,6 @@
         };
     };
 
-    // --- STEP 3: MIRROR FIREBASE TO DISK (Isolated Path) ---
     const startSync = () => {
         onValue(ref(db, cloudPath), (snap) => {
             const cloudData = snap.val() || {};
@@ -184,7 +205,6 @@
         }, error => AGErrors.report("expense history live data", error));
     };
 
-    // --- STARTUP ---
     await initIDB();
     await refreshUI(); 
     startSync();      
@@ -210,10 +230,35 @@
     window.openEdit = (id) => {
         activeId = id;
         const item = localData.find(x => x.id === id);
-        document.getElementById('editItemName').value = item.expense_name;
-        document.getElementById('editItemAmount').value = item.amount;
+        document.getElementById('editItemName').value = item.expense_name || '';
+        document.getElementById('editItemAmount').value = item.amount || 0;
+        const typeSelect = document.getElementById('editEntryType');
+        typeSelect.value = item.entry_type || 'expense';
+        document.getElementById('partialPayAmount').value = '';
+        
+        toggleDebtSection();
+
+        const logContainer = document.getElementById('modalPaymentLog');
+        const payments = item.payments || [];
+        if (payments.length === 0) {
+            logContainer.innerHTML = '<div style="font-size:11px; color:#94a3b8; text-align:center; padding:10px;">No partial payments recorded.</div>';
+        } else {
+            logContainer.innerHTML = payments.map(p => `
+                <div class="payment-item">
+                    <span>${new Date(p.timestamp).toLocaleString()}</span>
+                    <b>+${AGUtils.formatAmount(p.amount)} KES</b>
+                </div>
+            `).join('');
+        }
+
         document.getElementById('editModal').style.display = 'flex';
     };
+
+    document.getElementById('editEntryType').onchange = toggleDebtSection;
+    function toggleDebtSection() {
+        const type = document.getElementById('editEntryType').value;
+        document.getElementById('debtSection').style.display = (type === 'debt') ? 'block' : 'none';
+    }
 
     window.openDelete = (id) => {
         activeId = id;
@@ -222,14 +267,38 @@
 
     document.getElementById('confirmSaveBtn').onclick = () => {
         const newName = document.getElementById('editItemName').value;
-        const newAmt = document.getElementById('editItemAmount').value;
+        const newAmt = parseFloat(document.getElementById('editItemAmount').value) || 0;
+        const entryType = document.getElementById('editEntryType').value;
+        const partialAmtInput = document.getElementById('partialPayAmount').value;
         
-        update(ref(db, `${cloudPath}/${activeId}`), { expense_name: newName, amount: newAmt })
-            .catch(error => AGErrors.report("expense history update", error));
+        const item = localData.find(x => x.id === activeId);
+        let payments = item.payments || [];
+        
+        if (entryType === 'expense') {
+            payments = []; // Regular expenses don't track partial debt payments
+        } else if (partialAmtInput && parseFloat(partialAmtInput) > 0) {
+            payments.push({
+                id: 'p_' + Date.now(),
+                amount: parseFloat(partialAmtInput),
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        const totalPaid = entryType === 'expense' ? newAmt : payments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+
+        const updatedData = { 
+            expense_name: newName, 
+            amount: newAmt,
+            entry_type: entryType,
+            paid_amount: totalPaid,
+            payments: payments
+        };
+        
+        update(ref(db, `${cloudPath}/${activeId}`), updatedData)
+            .catch(error => AGErrors.report("expense update", error));
         
         const tx = iDB.transaction("expenses", "readwrite");
-        const item = localData.find(x => x.id === activeId);
-        tx.objectStore("expenses").put({ ...item, expense_name: newName, amount: newAmt });
+        tx.objectStore("expenses").put({ ...item, ...updatedData });
         
         closeModals();
         refreshUI();
@@ -237,7 +306,7 @@
 
     document.getElementById('confirmDeleteBtn').onclick = () => {
         remove(ref(db, `${cloudPath}/${activeId}`))
-            .catch(error => AGErrors.report("expense history deletion", error));
+            .catch(error => AGErrors.report("expense deletion", error));
         
         const tx = iDB.transaction("expenses", "readwrite");
         tx.objectStore("expenses").delete(activeId);
@@ -250,7 +319,7 @@
         const search = document.getElementById('searchInput').value.toLowerCase();
         const start = document.getElementById('startDate').value;
         const end = document.getElementById('endDate').value;
-        let total = 0;
+        let totalDebt = 0;
         const body = document.getElementById('tableBody');
         body.innerHTML = "";
 
@@ -258,22 +327,42 @@
 
         sorted.forEach((item) => {
             const dateStr = (item.expense_date || '').split('T')[0];
-            if (item.expense_name.toLowerCase().includes(search) && (!start || dateStr >= start) && (!end || dateStr <= end)) {
-                total += parseFloat(item.amount || 0);
+            if ((item.expense_name || '').toLowerCase().includes(search) && (!start || dateStr >= start) && (!end || dateStr <= end)) {
+                const totalAmt = parseFloat(item.amount || 0);
+                const paidAmt = parseFloat(item.paid_amount || 0);
+                const entryType = item.entry_type || 'expense';
+                const balance = entryType === 'debt' ? (totalAmt - paidAmt) : 0;
+                
+                if (entryType === 'debt') {
+                    totalDebt += balance;
+                }
+
                 body.innerHTML += `
                     <tr>
-                        <td style="color:#64748b">${dateStr.split('-').slice(1).join('/')}</td>
-                        <td><b>${item.expense_name}</b></td>
-                        <td><span class="category-tag">${(item.category || 'N/A').substring(0,8)}</span></td>
-                        <td class="amount-cell">${AGUtils.formatAmount(item.amount || 0)}</td>
+                        <td style="color:#64748b">${dateStr ? dateStr.split('-').slice(1).join('/') : 'N/A'}</td>
+                        <td>
+                            <b>${item.expense_name}</b><br>
+                            <span class="badge-type ${entryType === 'debt' ? 'badge-debt' : 'badge-expense'}">${entryType}</span>
+                        </td>
+                        <td>
+                            ${entryType === 'debt' ? `
+                                <span style="color:${balance > 0 ? 'var(--danger)' : 'var(--success)'}; font-weight:800;">
+                                    ${AGUtils.formatAmount(balance)}
+                                </span><br>
+                                <span style="font-size:9px; color:#94a3b8;">Total: ${AGUtils.formatAmount(totalAmt)}</span>
+                            ` : `
+                                <span style="font-weight:800; color:var(--dark);">${AGUtils.formatAmount(totalAmt)}</span>
+                            `}
+                        </td>
+                        <td class="amount-cell" style="color:var(--success)">${AGUtils.formatAmount(paidAmt)}</td>
                         <td class="admin-actions">
-                            <button class="btn-action" onclick="openEdit('${item.id}')">✏️</button>
-                            <button class="btn-action" style="color:var(--danger)" onclick="openDelete('${item.id}')">🗑️</button>
+                            <button class="btn-action" onclick="openEdit('${item.id}')" title="Edit">✏️</button>
+                            <button class="btn-action" style="color:var(--danger)" onclick="openDelete('${item.id}')" title="Delete">🗑️</button>
                         </td>
                     </tr>`;
             }
         });
-        document.getElementById('totalAmount').innerText = AGUtils.formatAmount(total);
+        document.getElementById('totalAmount').innerText = AGUtils.formatAmount(totalDebt);
     }
 
     window.closeModals = () => {
