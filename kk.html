@@ -3,93 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Direct File Hardcoded Secret Scanner</title>
+    <title>Universal Code & String Extractor</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans min-h-screen p-6">
-    <div class="max-w-5xl mx-auto space-y-6">
+    <div class="max-w-6xl mx-auto space-y-6">
         
         <header class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-lg">
-            <h1 class="text-xl font-bold text-indigo-400">Direct File Hardcoded Secret Scanner</h1>
-            <p class="text-xs text-slate-400 mt-1">Select and upload your project files directly. The tool will scan them instantly for hardcoded passwords, PINs, keys, and credentials.</p>
+            <h1 class="text-xl font-bold text-indigo-400">Universal Code & String Extractor</h1>
+            <p class="text-xs text-slate-400 mt-1">Upload your file. This tool extracts every quoted string and displays the full file contents line-by-line so you can see everything instantly.</p>
         </header>
 
         <!-- File Upload Section -->
         <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-lg space-y-4">
-            <label class="block text-xs uppercase tracking-wider text-slate-400">Upload Code Files (.html, .js, .php, .py, .txt, .json):</label>
-            <input type="file" id="file-input" multiple accept=".html,.js,.php,.py,.txt,.json,.css" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-xs text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer">
-            <button onclick="scanUploadedFiles()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-lg text-xs font-medium transition">Scan Uploaded Files</button>
+            <label class="block text-xs uppercase tracking-wider text-slate-400">Upload Code File:</label>
+            <input type="file" id="file-input" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-xs text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer">
+            <button onclick="extractAllStrings()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-lg text-xs font-medium transition">Extract All Strings & Content</button>
         </div>
 
-        <!-- Results Section -->
-        <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-lg">
-            <h2 class="text-sm font-semibold text-slate-200 mb-3">Scan Results & Detected Secrets</h2>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs text-slate-300">
-                    <thead class="bg-slate-900 uppercase text-slate-400">
-                        <tr>
-                            <th class="p-3">File Name</th>
-                            <th class="p-3">Variable / Secret Type</th>
-                            <th class="p-3">Extracted Value</th>
-                        </tr>
-                    </thead>
-                    <tbody id="results-tbody" class="divide-y divide-slate-700">
-                        <tr><td colspan="3" class="p-4 text-center text-slate-500">No files uploaded or scanned yet.</td></tr>
-                    </tbody>
-                </table>
+        <!-- Results Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            <!-- Extracted Quoted Strings -->
+            <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-lg">
+                <h2 class="text-sm font-semibold text-slate-200 mb-3">All Quoted Strings Found in File</h2>
+                <div class="overflow-x-auto max-h-96">
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <thead class="bg-slate-900 uppercase text-slate-400 sticky top-0">
+                            <tr>
+                                <th class="p-2.5">#</th>
+                                <th class="p-2.5">Extracted String Value</th>
+                            </tr>
+                        </thead>
+                        <tbody id="strings-tbody" class="divide-y divide-slate-700">
+                            <tr><td colspan="2" class="p-4 text-center text-slate-500">No file uploaded yet.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
+
+            <!-- Line-by-Line Viewer -->
+            <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-lg">
+                <h2 class="text-sm font-semibold text-slate-200 mb-3">Line-by-Line File Content</h2>
+                <div class="overflow-x-auto max-h-96 bg-slate-900 p-3 rounded-xl border border-slate-700 font-mono text-xs">
+                    <pre id="raw-content-view" class="text-slate-300 whitespace-pre-wrap">Upload a file to view content...</pre>
+                </div>
+            </div>
+
         </div>
 
     </div>
 
     <script>
-        async function scanUploadedFiles() {
+        async function extractAllStrings() {
             const fileInput = document.getElementById('file-input');
-            const tbody = document.getElementById('results-tbody');
-            tbody.innerHTML = '';
+            const stringsTbody = document.getElementById('strings-tbody');
+            const rawView = document.getElementById('raw-content-view');
+            
+            stringsTbody.innerHTML = '';
+            rawView.textContent = '';
 
             if (fileInput.files.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500">Please select at least one file first.</td></tr>`;
+                stringsTbody.innerHTML = `<tr><td colspan="2" class="p-4 text-center text-slate-500">Please select a file first.</td></tr>`;
                 return;
             }
 
-            let totalMatches = 0;
-            const patterns = [
-                /(?:password|passwd|pwd|pass|secret|api[_-]?key|token|auth)\s*[:=]\s*["']([^"'\s]+)["']/gi,
-                /["'](pass[a-z0-9_-]*)["']\s*[:=]\s*["']([^"'\s]+)["']/gi
-            ];
+            const file = fileInput.files[0];
+            try {
+                const text = await readFileContent(file);
+                rawView.textContent = text;
 
-            for (let file of fileInput.files) {
-                try {
-                    const text = await readFileContent(file);
-                    const seenValues = new Set();
+                // Extract all strings inside double or single quotes (at least 2 characters long)
+                const stringRegex = /["']([^"'\n\r]{2,})["']/g;
+                let match;
+                let count = 0;
+                const seen = new Set();
 
-                    patterns.forEach(regex => {
-                        let match;
-                        while ((match = regex.exec(text)) !== null) {
-                            const label = match[1] || "Potential Secret";
-                            const value = match[2] || match[1];
-
-                            if (!seenValues.has(value)) {
-                                seenValues.add(value);
-                                totalMatches++;
-                                tbody.innerHTML += `
-                                    <tr class="hover:bg-slate-700/40">
-                                        <td class="p-3 font-mono text-slate-300">${escapeHtml(file.name)}</td>
-                                        <td class="p-3 font-mono text-amber-400">${escapeHtml(label)}</td>
-                                        <td class="p-3 font-mono text-indigo-300 font-bold select-all">${escapeHtml(value)}</td>
-                                    </tr>
-                                `;
-                            }
-                        }
-                    });
-                } catch (err) {
-                    console.error("Error reading file:", file.name, err);
+                while ((match = stringRegex.exec(text)) !== null) {
+                    const val = match[1];
+                    if (!seen.has(val)) {
+                        seen.add(val);
+                        count++;
+                        stringsTbody.innerHTML += `
+                            <tr class="hover:bg-slate-700/40">
+                                <td class="p-2.5 font-mono text-slate-500">${count}</td>
+                                <td class="p-2.5 font-mono text-indigo-300 font-bold select-all">${escapeHtml(val)}</td>
+                            </tr>
+                        `;
+                    }
                 }
-            }
 
-            if (totalMatches === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500">No hardcoded passwords or secrets found in the uploaded files.</td></tr>`;
+                if (count === 0) {
+                    stringsTbody.innerHTML = `<tr><td colspan="2" class="p-4 text-center text-slate-500">No quoted strings found.</td></tr>`;
+                }
+
+            } catch (err) {
+                alert("Error reading file: " + err.message);
             }
         }
 
