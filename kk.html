@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hardcoded Password & Secret Finder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen p-6">
+    <div class="max-w-4xl mx-auto space-y-6">
+        
+        <header class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-lg">
+            <h1 class="text-xl font-bold text-indigo-400">Hardcoded Password & Secret Scanner</h1>
+            <p class="text-xs text-slate-400 mt-1">Paste your source code or script below to instantly detect and extract hardcoded passwords, PINs, keys, and secrets.</p>
+        </header>
+
+        <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-lg space-y-4">
+            <label class="block text-xs uppercase tracking-wider text-slate-400">Paste Source Code / Script Here:</label>
+            <textarea id="source-code-input" rows="8" placeholder="Paste your HTML, JS, PHP, or Python code here..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-xs font-mono focus:outline-none focus:border-indigo-500 text-white"></textarea>
+            <button onclick="scanForSecrets()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-lg text-xs font-medium transition">Scan For Hardcoded Secrets</button>
+        </div>
+
+        <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-lg">
+            <h2 class="text-sm font-semibold text-slate-200 mb-3">Detected Secrets & Passwords</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs text-slate-300">
+                    <thead class="bg-slate-900 uppercase text-slate-400">
+                        <tr>
+                            <th class="p-3">Match Type / Variable</th>
+                            <th class="p-3">Extracted Value</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-tbody" class="divide-y divide-slate-700">
+                        <tr><td colspan="2" class="p-4 text-center text-slate-500">No code scanned yet.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function scanForSecrets() {
+            const code = document.getElementById('source-code-input').value;
+            const tbody = document.getElementById('results-tbody');
+            tbody.innerHTML = '';
+
+            if (!code.trim()) {
+                tbody.innerHTML = `<tr><td colspan="2" class="p-4 text-center text-slate-500">Please paste some code first.</td></tr>`;
+                return;
+            }
+
+            // Regex patterns to find variable assignments or string patterns matching passwords/secrets
+            // Matches things like: password = "...", pass: '...', secret: "...", apiKey: "...", pin = "1234"
+            const patterns = [
+                /(?:password|passwd|pwd|pass|secret|api[_-]?key|token|auth)\s*[:=]\s*["']([^"'\s]+)["']/gi,
+                /["'](pass[a-z0-9_-]*)["']\s*[:=]\s*["']([^"'\s]+)["']/gi
+            ];
+
+            let matchesFound = 0;
+            const seenValues = new Set();
+
+            patterns.forEach(regex => {
+                let match;
+                while ((match = regex.exec(code)) !== null) {
+                    const label = match[1] || "Potential Secret";
+                    const value = match[2] || match[1];
+
+                    if (!seenValues.has(value)) {
+                        seenValues.add(value);
+                        matchesFound++;
+                        tbody.innerHTML += `
+                            <tr class="hover:bg-slate-700/40">
+                                <td class="p-3 font-mono text-amber-400">${escapeHtml(label)}</td>
+                                <td class="p-3 font-mono text-indigo-300 font-bold select-all">${escapeHtml(value)}</td>
+                            </tr>
+                        `;
+                    }
+                }
+            });
+
+            if (matchesFound === 0) {
+                tbody.innerHTML = `<tr><td colspan="2" class="p-4 text-center text-slate-500">No hardcoded passwords or secrets matched the regex pattern.</td></tr>`;
+            }
+        }
+
+        function escapeHtml(str) {
+            return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
