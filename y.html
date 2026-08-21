@@ -1,0 +1,2150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>AssetGuard — My Dashboard Security</title>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;
+ background:#07111f;
+ color:#eef5ff;
+ font-family:Arial,sans-serif
+}
+.wrap{max-width:1000px;margin:auto;padding:14px}
+.panel{
+ background:#0d1b2e;
+ border:1px solid #20334d;
+ border-radius:15px;
+ padding:15px;
+ margin:12px 0
+}
+h1{font-size:21px;margin:0 0 8px}
+h3{margin:0 0 10px}
+.muted{color:#91a4bd;font-size:12px;line-height:1.5}
+.user{
+ background:#091626;
+ border:1px solid #20334d;
+ padding:12px;
+ border-radius:10px
+}
+.user b{display:block;margin-bottom:4px}
+input,textarea{
+ width:100%;
+ background:#071321;
+ border:1px solid #29415f;
+ border-radius:9px;
+ color:#fff;
+ padding:11px;
+ outline:none
+}
+textarea{
+ min-height:500px;
+ font-family:monospace;
+ font-size:12px
+}
+button{
+ border:0;
+ border-radius:9px;
+ padding:11px 14px;
+ font-weight:800;
+ cursor:pointer;
+ margin:3px
+}
+.scan{background:#35d07f;color:#04130b}
+.edit{background:#4da3ff;color:#fff}
+.save{background:#35d07f;color:#04130b}
+.delete{background:#ff6678;color:#fff}
+.cancel{background:#263449;color:#fff}
+.export{background:#183252;color:#fff}
+.logout{background:#ff6678;color:#fff}
+.stats{
+ display:grid;
+ grid-template-columns:repeat(3,1fr);
+ gap:8px
+}
+.stat{
+ background:#091626;
+ border:1px solid #20334d;
+ padding:12px;
+ border-radius:10px
+}
+.stat b{display:block;font-size:21px}
+.stat span{font-size:10px;color:#91a4bd}
+.status{
+ margin-top:9px;
+ font-size:12px;
+ color:#91a4bd;
+ white-space:pre-wrap
+}
+.page{
+ background:#091727;
+ border:1px solid #20334d;
+ border-radius:12px;
+ margin:9px 0;
+ overflow:hidden
+}
+.pageHead{
+ padding:12px;
+ display:flex;
+ justify-content:space-between;
+ gap:10px;
+ align-items:center
+}
+.pageName{
+ font-size:14px;
+ font-weight:900
+}
+.pagePath{
+ font-size:10px;
+ color:#617792;
+ margin-top:4px
+}
+.badge{
+ padding:4px 8px;
+ border-radius:20px;
+ font-size:10px;
+ font-weight:900;
+ white-space:nowrap
+}
+.found{background:#143c2a;color:#6ff0a5}
+.clean{background:#263449;color:#b4c1d1}
+.err{background:#4a2028;color:#ff9aa6}
+.finding{
+ border-top:1px solid #20334d;
+ padding:11px
+}
+.type{
+ color:#6ff0a5;
+ font-weight:900;
+ font-size:10px
+}
+.value{
+ background:#050d17;
+ padding:8px;
+ border-radius:7px;
+ margin-top:5px;
+ font-family:monospace;
+ word-break:break-all
+}
+.line{
+ color:#91a4bd;
+ font-size:10px;
+ margin-top:5px
+}
+.editor{display:none}
+.editor.active{display:block}
+.login{
+ text-align:center;
+ padding:35px 15px
+}
+.hidden{display:none!important}
+@media(max-width:600px){
+ .stats{grid-template-columns:1fr 1fr}
+ .pageHead{display:block}
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+<div id="loginScreen" class="panel login">
+
+<h1>🔐 AssetGuard Security</h1>
+
+<div class="muted">
+Checking your AssetGuard account...
+</div>
+
+</div>
+
+
+<div id="app" class="hidden">
+
+<div class="panel">
+
+<h1>🔐 My Dashboard Security</h1>
+
+<div class="user">
+<b id="userName">Loading...</b>
+<span id="userEmail" class="muted"></span>
+</div>
+
+<div class="status" id="status">
+Loading your permissions...
+</div>
+
+</div>
+
+
+<div class="panel">
+
+<div class="stats">
+
+<div class="stat">
+<b id="allowedCount">0</b>
+<span>MY PAGES</span>
+</div>
+
+<div class="stat">
+<b id="scannedCount">0</b>
+<span>SCANNED</span>
+</div>
+
+<div class="stat">
+<b id="findingCount">0</b>
+<span>PASSWORD/PIN</span>
+</div>
+
+</div>
+
+</div>
+
+
+<div class="panel">
+
+<button class="scan" onclick="scanMyPages()">
+🔎 SCAN MY PAGES
+</button>
+
+<button class="export" onclick="exportReport()">
+⬇ EXPORT
+</button>
+
+<button class="logout" onclick="logout()">
+LOGOUT
+</button>
+
+</div>
+
+
+<div class="panel">
+
+<input
+id="search"
+placeholder="Search my pages or findings...">
+
+</div>
+
+
+<div class="panel">
+
+<h3>My Allowed Dashboard Pages</h3>
+
+<div id="pages">
+<div class="muted">
+Loading...
+</div>
+</div>
+
+</div>
+
+
+<div class="panel">
+
+<h3>My Security Findings</h3>
+
+<div id="results">
+<div class="muted">
+Nothing scanned yet.
+</div>
+</div>
+
+</div>
+
+
+<div id="editorPanel" class="panel editor">
+
+<h3 id="editorTitle"></h3>
+
+<textarea
+id="editorText"
+spellcheck="false"></textarea>
+
+<br>
+
+<button class="save" onclick="saveFile()">
+💾 SAVE
+</button>
+
+<button class="delete" onclick="deleteFile()">
+🗑 DELETE
+</button>
+
+<button class="cancel" onclick="closeEditor()">
+CANCEL
+</button>
+
+<div id="editorStatus" class="status"></div>
+
+</div>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+FIREBASE
+=========================================================
+
+USE THE SAME FIREBASE CONFIG AS YOUR ASSETGUARD DASHBOARD.
+
+Replace ONLY these values with the existing values from your
+main AssetGuard project.
+========================================================= */
+
+const firebaseConfig={
+
+apiKey:"YOUR_FIREBASE_API_KEY",
+
+authDomain:"YOUR_FIREBASE_AUTH_DOMAIN",
+
+databaseURL:"YOUR_FIREBASE_DATABASE_URL",
+
+projectId:"YOUR_FIREBASE_PROJECT_ID",
+
+storageBucket:"YOUR_FIREBASE_STORAGE_BUCKET",
+
+messagingSenderId:"YOUR_FIREBASE_MESSAGING_SENDER_ID",
+
+appId:"YOUR_FIREBASE_APP_ID"
+
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const auth=firebase.auth();
+const db=firebase.database();
+
+
+/* =========================================================
+GITHUB
+========================================================= */
+
+const GITHUB_API="https://api.github.com";
+
+const GITHUB_REPO=
+"assetguard-lin/use-assetguard-web1";
+
+const GITHUB_OWNER=
+"assetguard-lin";
+
+const GITHUB_REPOSITORY=
+"use-assetguard-web1";
+
+
+/* =========================================================
+STATE
+========================================================= */
+
+let currentUser=null;
+
+let userRecord=null;
+
+let allowedPages=[];
+
+let scanResults=[];
+
+let currentFile=null;
+
+
+/* =========================================================
+AUTH
+========================================================= */
+
+auth.onAuthStateChanged(async user=>{
+
+if(!user){
+
+document
+.getElementById("loginScreen")
+.innerHTML=`
+
+<h1>🔒 Login Required</h1>
+
+<div class="muted">
+You must sign in through the AssetGuard dashboard.
+</div>
+
+`;
+
+return;
+
+}
+
+
+currentUser=user;
+
+document
+.getElementById("loginScreen")
+.classList.add("hidden");
+
+document
+.getElementById("app")
+.classList.remove("hidden");
+
+
+document
+.getElementById("userEmail")
+.textContent=
+user.email||"";
+
+
+await loadUserPermissions();
+
+});
+
+
+/* =========================================================
+LOAD USER
+========================================================= */
+
+async function loadUserPermissions(){
+
+try{
+
+status(
+"Loading your account permissions..."
+);
+
+
+/*
+FIRST:
+Try users/{uid}
+*/
+
+let snap=
+await db.ref(
+"users/"+currentUser.uid
+).once("value");
+
+
+userRecord=
+snap.val();
+
+
+/*
+SECOND:
+Try userProfiles/{uid}
+*/
+
+if(!userRecord){
+
+snap=
+await db.ref(
+"userProfiles/"+currentUser.uid
+).once("value");
+
+userRecord=
+snap.val();
+
+}
+
+
+/*
+THIRD:
+Try admins/{uid}
+*/
+
+if(!userRecord){
+
+snap=
+await db.ref(
+"admins/"+currentUser.uid
+).once("value");
+
+userRecord=
+snap.val();
+
+}
+
+
+if(!userRecord){
+
+throw new Error(
+"No AssetGuard user record was found for this account."
+);
+
+}
+
+
+document
+.getElementById("userName")
+.textContent=
+userRecord.name||
+userRecord.displayName||
+userRecord.fullName||
+currentUser.displayName||
+currentUser.email||
+"User";
+
+
+allowedPages=
+extractUserPages(userRecord);
+
+
+document
+.getElementById("allowedCount")
+.textContent=
+allowedPages.length;
+
+
+renderAllowedPages();
+
+
+status(
+"✓ Loaded only pages assigned to this account."
+);
+
+}
+catch(error){
+
+status(
+"❌ "+error.message
+);
+
+}
+
+}
+
+
+/* =========================================================
+EXTRACT USER PAGES
+========================================================= */
+
+function extractUserPages(user){
+
+const output=[];
+
+
+/*
+Common permission fields used by AssetGuard.
+*/
+
+const fields=[
+
+user.pages,
+
+user.allowedPages,
+
+user.dashboardPages,
+
+user.permissions,
+
+user.modules,
+
+user.menuItems,
+
+user.access,
+
+user.pageAccess,
+
+user.allowedModules
+
+];
+
+
+for(const value of fields){
+
+parsePermissionValue(value,output);
+
+}
+
+
+/*
+Individual boolean fields.
+
+Example:
+
+sales:true
+purchases:true
+inventory:true
+*/
+
+for(const key in user){
+
+if(
+typeof user[key]==="boolean" &&
+user[key]===true
+){
+
+if(
+isPossiblePageName(key)
+){
+
+output.push({
+name:formatName(key),
+path:guessPath(key)
+});
+
+}
+
+}
+
+
+/*
+Object permissions.
+
+Example:
+
+permissions:{
+ sales:true,
+ purchases:true
+}
+
+*/
+
+if(
+user[key] &&
+typeof user[key]==="object" &&
+!Array.isArray(user[key])
+){
+
+const obj=user[key];
+
+for(const sub in obj){
+
+if(
+obj[sub]===true &&
+isPossiblePageName(sub)
+){
+
+output.push({
+name:formatName(sub),
+path:guessPath(sub)
+});
+
+}
+
+}
+
+}
+
+}
+
+
+return uniquePages(output);
+
+}
+
+
+/* =========================================================
+PARSE PERMISSION VALUE
+========================================================= */
+
+function parsePermissionValue(value,out){
+
+if(!value)return;
+
+
+/*
+Array.
+*/
+
+if(Array.isArray(value)){
+
+for(const item of value){
+
+if(typeof item==="string"){
+
+out.push({
+name:item,
+path:guessPath(item)
+});
+
+}
+else if(item){
+
+if(
+item.allowed===false ||
+item.enabled===false
+)
+continue;
+
+out.push({
+name:
+item.name||
+item.title||
+item.label||
+item.page||
+item.module||
+item.displayName||
+"Dashboard Page",
+
+path:
+item.path||
+item.file||
+item.url||
+item.href||
+item.page||
+guessPath(
+item.name||
+item.title||
+item.label||
+item.module||
+""
+)
+
+});
+
+}
+
+}
+
+return;
+
+}
+
+
+/*
+Object.
+*/
+
+if(typeof value==="object"){
+
+for(const key in value){
+
+const item=value[key];
+
+
+/*
+Explicit false = no access.
+*/
+
+if(
+item===false ||
+item===null
+)
+continue;
+
+
+if(item===true){
+
+out.push({
+name:formatName(key),
+path:guessPath(key)
+});
+
+continue;
+
+}
+
+
+if(typeof item==="object"){
+
+if(
+item.allowed===false ||
+item.enabled===false
+)
+continue;
+
+
+out.push({
+
+name:
+item.name||
+item.title||
+item.label||
+item.displayName||
+formatName(key),
+
+path:
+item.path||
+item.file||
+item.url||
+item.href||
+guessPath(
+item.name||
+item.title||
+item.label||
+item.displayName||
+key
+)
+
+});
+
+}
+
+}
+
+return;
+
+}
+
+
+/*
+String.
+
+*/
+
+if(typeof value==="string"){
+
+out.push({
+name:value,
+path:guessPath(value)
+});
+
+}
+
+}
+
+
+/* =========================================================
+PAGE NAME
+========================================================= */
+
+function formatName(value){
+
+return String(value)
+.replace(/[_-]+/g," ")
+.replace(/\b\w/g,c=>c.toUpperCase())
+.replace(/\.(html?|php|js)$/i,"")
+.trim();
+
+}
+
+
+/* =========================================================
+GUESS PAGE
+========================================================= */
+
+function guessPath(value){
+
+let x=
+String(value||"")
+.trim();
+
+
+if(!x)
+return "";
+
+
+x=
+x.split("?")[0]
+.split("#")[0];
+
+
+/*
+Already a file.
+*/
+
+if(
+/\.(html?|php)$/i.test(x)
+)
+return x;
+
+
+/*
+URL.
+*/
+
+if(
+x.includes("/")
+){
+
+return x.endsWith("/")
+?x+"index.html"
+:x+".html";
+
+}
+
+
+/*
+Known AssetGuard names.
+*/
+
+const map={
+
+"sales":"sales.html",
+"sale":"sales.html",
+"sales terminal":"sales.html",
+
+"purchases":"purchases.html",
+"purchase":"purchases.html",
+"purchase hub":"purchases.html",
+
+"expenses":"expenses.html",
+"expense":"expenses.html",
+"record expense":"expenses.html",
+
+"inventory":"inventory.html",
+"stock":"inventory.html",
+"inventory list":"inventory.html",
+
+"crm":"crm.html",
+
+"cash report":"cash-report.html",
+"cash":"cash-report.html",
+
+"mpesa report":"mpesa-report.html",
+"m-pesa report":"mpesa-report.html",
+
+"master ledger":"master-ledger.html",
+"ledger":"master-ledger.html",
+
+"bi dashboard":"bi-dashboard.html",
+"business intelligence":"bi-dashboard.html",
+
+"marketing":"marketing.html",
+"dispatch":"dispatch.html",
+
+"admin":"admin.html",
+
+"products":"products.html",
+"product editor":"product-editor.html"
+
+};
+
+
+const lower=x.toLowerCase();
+
+if(map[lower])
+return map[lower];
+
+
+return x
+.toLowerCase()
+.replace(/\s+/g,"-")+
+".html";
+
+}
+
+
+/* =========================================================
+POSSIBLE PAGE NAME
+========================================================= */
+
+function isPossiblePageName(key){
+
+const k=
+key.toLowerCase();
+
+const blocked=[
+"uid",
+"email",
+"name",
+"role",
+"active",
+"enabled",
+"status",
+"created",
+"updated",
+"phone",
+"password",
+"pin",
+"gps",
+"latitude",
+"longitude"
+];
+
+if(blocked.includes(k))
+return false;
+
+return(
+k.includes("sale")||
+k.includes("purchase")||
+k.includes("expense")||
+k.includes("inventory")||
+k.includes("stock")||
+k.includes("crm")||
+k.includes("cash")||
+k.includes("report")||
+k.includes("ledger")||
+k.includes("dashboard")||
+k.includes("marketing")||
+k.includes("dispatch")||
+k.includes("product")||
+k.includes("admin")
+);
+
+}
+
+
+/* =========================================================
+UNIQUE
+========================================================= */
+
+function uniquePages(arr){
+
+const map=new Map();
+
+
+for(const p of arr){
+
+if(!p.path && !p.name)
+continue;
+
+
+const key=
+(p.path||p.name)
+.toLowerCase();
+
+
+if(!map.has(key)){
+
+map.set(key,{
+
+name:
+p.name||
+formatName(p.path),
+
+path:
+p.path||
+guessPath(p.name)
+
+});
+
+}
+
+}
+
+
+return [...map.values()];
+
+}
+
+
+/* =========================================================
+RENDER USER PAGES
+========================================================= */
+
+function renderAllowedPages(){
+
+const box=
+document.getElementById("pages");
+
+
+if(!allowedPages.length){
+
+box.innerHTML=`
+
+<div class="muted">
+
+No dashboard pages have been assigned to this account.
+
+</div>
+
+`;
+
+return;
+
+}
+
+
+box.innerHTML=
+allowedPages.map(p=>`
+
+<div class="page">
+
+<div class="pageHead">
+
+<div>
+
+<div class="pageName">
+${escapeHtml(p.name)}
+</div>
+
+<div class="pagePath">
+${escapeHtml(p.path)}
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+`).join("");
+
+}
+
+
+/* =========================================================
+SCAN ONLY USER PAGES
+========================================================= */
+
+async function scanMyPages(){
+
+if(!currentUser){
+
+alert("Login required.");
+
+return;
+
+}
+
+
+if(!allowedPages.length){
+
+status(
+"No pages are assigned to your account."
+);
+
+return;
+
+}
+
+
+scanResults=[];
+
+
+status(
+"Scanning only your assigned pages..."
+);
+
+
+for(
+let i=0;
+i<allowedPages.length;
+i++
+){
+
+const p=
+allowedPages[i];
+
+
+status(
+"Scanning "+p.name+
+"\n"+
+(i+1)+" of "+
+allowedPages.length
+);
+
+
+try{
+
+const file=
+await getGitHubFile(p.path);
+
+
+/*
+Only this user's permitted path is scanned.
+*/
+
+scanResults.push({
+
+name:p.name,
+
+path:p.path,
+
+sha:file.sha,
+
+content:file.content,
+
+size:file.size,
+
+findings:
+findSecrets(file.content)
+
+});
+
+}
+catch(error){
+
+scanResults.push({
+
+name:p.name,
+
+path:p.path,
+
+sha:"",
+
+content:"",
+
+size:0,
+
+findings:[],
+
+error:error.message
+
+});
+
+}
+
+}
+
+
+renderResults();
+
+
+status(
+"✓ Scan complete.\n"+
+"Only your assigned pages were scanned."
+);
+
+}
+
+
+/* =========================================================
+GITHUB FILE
+========================================================= */
+
+async function getGitHubFile(path){
+
+const response=
+await fetch(
+
+`${GITHUB_API}/repos/${GITHUB_OWNER}/${GITHUB_REPOSITORY}/contents/${encodePath(path)}?ref=HEAD`
+
+);
+
+
+if(!response.ok){
+
+const d=
+await response.json()
+.catch(()=>({}));
+
+throw new Error(
+d.message||
+"Unable to read "+path
+);
+
+}
+
+
+const d=
+await response.json();
+
+
+if(
+!d.content
+){
+
+throw new Error(
+"No readable content for "+path
+);
+
+}
+
+
+return{
+
+sha:d.sha,
+
+size:d.size||0,
+
+content:decode64(d.content)
+
+};
+
+}
+
+
+/* =========================================================
+ENCODE PATH
+========================================================= */
+
+function encodePath(path){
+
+return path
+.split("/")
+.map(encodeURIComponent)
+.join("/");
+
+}
+
+
+/* =========================================================
+DECODE
+========================================================= */
+
+function decode64(s){
+
+s=s.replace(/\s/g,"");
+
+const binary=atob(s);
+
+const bytes=
+Uint8Array.from(
+binary,
+c=>c.charCodeAt(0)
+);
+
+return new TextDecoder().decode(bytes);
+
+}
+
+
+/* =========================================================
+SECRET SCANNER
+========================================================= */
+
+function findSecrets(text){
+
+const patterns=[
+
+{
+type:"PASSWORD",
+re:
+/\b(?:password|passwd|pwd)\b\s*(?:=|:|=>)\s*["'`]([^"'`\r\n]{3,200})["'`]/gi
+},
+
+{
+type:"PIN",
+re:
+/\b(?:pin|passcode|accessPin|access_pin|adminPin|admin_pin|securityPin|security_pin)\b\s*(?:=|:|=>)\s*["'`](\d{4,12})["'`]/gi
+},
+
+{
+type:"PASSWORD COMPARISON",
+re:
+/\b(?:password|passwd|pwd|pass|pin|passcode)\b[\s\S]{0,120}?(?:===|==|!==|!=)\s*["'`]([^"'`\r\n]{3,200})["'`]/gi
+},
+
+{
+type:"HARDCODED CREDENTIAL",
+re:
+/["'`](?:password|passwd|pwd|pin|passcode)["'`]\s*[,=:]\s*["'`]([^"'`\r\n]{3,200})["'`]/gi
+},
+
+{
+type:"LOCAL STORAGE CREDENTIAL",
+re:
+/localStorage\.(?:setItem|getItem)\s*\(\s*["'`]([^"'`]*(?:password|passwd|pwd|pin|token|secret|key)[^"'`]*)["'`]\s*(?:,\s*["'`]([^"'`]*)["'`])?/gi
+}
+
+];
+
+
+const output=[];
+const seen=new Set();
+
+
+for(const p of patterns){
+
+let m;
+
+while((m=p.re.exec(text))){
+
+let value=
+p.type==="LOCAL STORAGE CREDENTIAL"
+?(m[2]||m[1])
+:m[1];
+
+
+if(!value)
+continue;
+
+
+value=value.trim();
+
+
+if(
+/^(xxx+|example|placeholder|change[_ -]?me|your[_ -]?(password|pin|key|token)|enter[_ -]?here)$/i
+.test(value)
+)
+continue;
+
+
+const unique=
+p.type+"|"+value;
+
+
+if(seen.has(unique))
+continue;
+
+
+seen.add(unique);
+
+
+const line=
+text
+.slice(0,m.index)
+.split(/\r?\n/)
+.length;
+
+
+output.push({
+
+type:p.type,
+
+value:value,
+
+line:line
+
+});
+
+}
+
+}
+
+
+return output;
+
+}
+
+
+/* =========================================================
+RESULTS
+========================================================= */
+
+function renderResults(){
+
+let total=0;
+
+for(const x of scanResults){
+
+total+=
+(x.findings||[]).length;
+
+}
+
+
+document
+.getElementById("scannedCount")
+.textContent=
+scanResults.length;
+
+
+document
+.getElementById("findingCount")
+.textContent=
+total;
+
+
+const query=
+document
+.getElementById("search")
+.value
+.toLowerCase()
+.trim();
+
+
+const visible=
+scanResults.filter(x=>{
+
+const s=
+x.name+
+" "+
+x.path+
+" "+
+(x.findings||[])
+.map(f=>f.type+" "+f.value)
+.join(" ");
+
+return s.toLowerCase().includes(query);
+
+});
+
+
+if(!visible.length){
+
+document.getElementById("results")
+.innerHTML=`
+
+<div class="muted">
+
+No passwords or PINs found in your assigned pages.
+
+</div>
+
+`;
+
+return;
+
+}
+
+
+document.getElementById("results")
+.innerHTML=
+visible.map(x=>{
+
+if(x.error){
+
+return`
+
+<div class="page">
+
+<div class="pageHead">
+
+<div>
+
+<div class="pageName">
+${escapeHtml(x.name)}
+</div>
+
+<div class="pagePath">
+${escapeHtml(x.path)}
+</div>
+
+</div>
+
+<span class="badge err">
+ERROR
+</span>
+
+</div>
+
+<div class="finding">
+${escapeHtml(x.error)}
+</div>
+
+</div>
+
+`;
+
+}
+
+
+const findings=
+x.findings||[];
+
+
+const badge=
+findings.length
+?`<span class="badge found">${findings.length} FOUND</span>`
+:`<span class="badge clean">CLEAN</span>`;
+
+
+let html="";
+
+
+for(const f of findings){
+
+html+=`
+
+<div class="finding">
+
+<div class="type">
+${escapeHtml(f.type)}
+</div>
+
+<div class="value">
+${escapeHtml(f.value)}
+</div>
+
+<div class="line">
+Line ${f.line}
+</div>
+
+</div>
+
+`;
+
+}
+
+
+return`
+
+<div class="page">
+
+<div class="pageHead">
+
+<div>
+
+<div class="pageName">
+${escapeHtml(x.name)}
+</div>
+
+<div class="pagePath">
+${escapeHtml(x.path)}
+</div>
+
+</div>
+
+${badge}
+
+</div>
+
+<div style="padding:7px">
+
+<button
+class="edit"
+onclick='openEditor(${JSON.stringify(x.path)})'>
+✏️ EDIT
+</button>
+
+<button
+class="delete"
+onclick='deleteFile(${JSON.stringify(x.path)})'>
+🗑 DELETE
+</button>
+
+</div>
+
+${html}
+
+</div>
+
+`;
+
+}).join("");
+
+}
+
+
+/* =========================================================
+PERMISSION CHECK
+========================================================= */
+
+function canAccess(path){
+
+return allowedPages.some(p=>
+normalizePath(p.path)===
+normalizePath(path)
+);
+
+
+/*
+This check is performed before every edit/delete.
+*/
+
+}
+
+
+/* =========================================================
+EDITOR
+========================================================= */
+
+function openEditor(path){
+
+if(!canAccess(path)){
+
+alert(
+"You are not authorized to access this page."
+);
+
+return;
+
+}
+
+
+currentFile=
+scanResults.find(
+x=>x.path===path
+);
+
+
+if(!currentFile)
+return;
+
+
+document
+.getElementById("editorPanel")
+.classList.add("active");
+
+
+document
+.getElementById("editorTitle")
+.textContent=
+"Edit: "+currentFile.name;
+
+
+document
+.getElementById("editorText")
+.value=
+currentFile.content;
+
+
+document
+.getElementById("editorStatus")
+.textContent=
+"";
+
+
+window.scrollTo({
+
+top:
+document
+.getElementById("editorPanel")
+.offsetTop-10,
+
+behavior:"smooth"
+
+});
+
+}
+
+
+/* =========================================================
+CLOSE
+========================================================= */
+
+function closeEditor(){
+
+currentFile=null;
+
+document
+.getElementById("editorPanel")
+.classList.remove("active");
+
+}
+
+
+/* =========================================================
+SAVE
+========================================================= */
+
+async function saveFile(){
+
+if(!currentFile)
+return;
+
+
+if(!canAccess(currentFile.path)){
+
+alert(
+"Unauthorized page."
+);
+
+return;
+
+}
+
+
+const token=
+getGitHubToken();
+
+
+if(!token){
+
+alert(
+"GitHub edit authorization is required."
+);
+
+return;
+
+}
+
+
+if(!confirm(
+"Save changes to "+currentFile.name+"?"
+))
+return;
+
+
+const content=
+document
+.getElementById("editorText")
+.value;
+
+
+document
+.getElementById("editorStatus")
+.textContent=
+"Saving...";
+
+
+try{
+
+const response=
+await fetch(
+
+`${GITHUB_API}/repos/${GITHUB_OWNER}/${GITHUB_REPOSITORY}/contents/${encodePath(currentFile.path)}`,
+
+{
+
+method:"PUT",
+
+headers:{
+
+"Accept":
+"application/vnd.github+json",
+
+"Authorization":
+"Bearer "+token,
+
+"X-GitHub-Api-Version":
+"2022-11-28",
+
+"Content-Type":
+"application/json"
+
+},
+
+body:JSON.stringify({
+
+message:
+"Update authorized dashboard page: "+
+currentFile.name,
+
+content:
+encode64(content),
+
+sha:
+currentFile.sha
+
+})
+
+);
+
+
+const data=
+await response.json();
+
+
+if(!response.ok){
+
+throw new Error(
+data.message||
+"Save failed."
+);
+
+}
+
+
+currentFile.content=
+content;
+
+currentFile.sha=
+data.content.sha;
+
+currentFile.findings=
+findSecrets(content);
+
+
+document
+.getElementById("editorStatus")
+.textContent=
+"✓ Saved.";
+
+renderResults();
+
+}
+catch(error){
+
+document
+.getElementById("editorStatus")
+.textContent=
+"❌ "+error.message;
+
+}
+
+}
+
+
+/* =========================================================
+DELETE
+========================================================= */
+
+async function deleteFile(path){
+
+if(!canAccess(path)){
+
+alert(
+"You are not authorized to delete this page."
+);
+
+return;
+
+}
+
+
+const token=
+getGitHubToken();
+
+
+if(!token){
+
+alert(
+"GitHub edit authorization is required."
+);
+
+return;
+
+}
+
+
+const file=
+scanResults.find(
+x=>x.path===path
+);
+
+
+if(!file)
+return;
+
+
+if(!confirm(
+"PERMANENTLY DELETE:\n\n"+
+file.name+
+"\n\n"+path+
+"\n\nContinue?"
+))
+return;
+
+
+try{
+
+const response=
+await fetch(
+
+`${GITHUB_API}/repos/${GITHUB_OWNER}/${GITHUB_REPOSITORY}/contents/${encodePath(path)}`,
+
+{
+
+method:"DELETE",
+
+headers:{
+
+"Accept":
+"application/vnd.github+json",
+
+"Authorization":
+"Bearer "+token,
+
+"X-GitHub-Api-Version":
+"2022-11-28",
+
+"Content-Type":
+"application/json"
+
+},
+
+body:JSON.stringify({
+
+message:
+"Delete authorized dashboard page: "+
+file.name,
+
+sha:file.sha
+
+})
+
+});
+
+
+const data=
+await response.json();
+
+
+if(!response.ok){
+
+throw new Error(
+data.message||
+"Delete failed."
+);
+
+}
+
+
+scanResults=
+scanResults.filter(
+x=>x.path!==path
+);
+
+
+closeEditor();
+renderResults();
+
+
+status(
+"✓ "+file.name+" deleted."
+);
+
+}
+catch(error){
+
+status(
+"❌ "+error.message
+);
+
+}
+
+}
+
+
+/* =========================================================
+GITHUB TOKEN
+========================================================= */
+
+function getGitHubToken(){
+
+/*
+Token is deliberately not stored in Firebase or localStorage.
+If your main dashboard already exposes a secure backend/API for
+GitHub changes, replace this function with that API call.
+*/
+
+let t=
+sessionStorage.getItem(
+"ag_github_edit_token"
+);
+
+if(t)
+return t;
+
+
+t=prompt(
+"Enter GitHub edit token:"
+);
+
+if(t){
+
+sessionStorage.setItem(
+"ag_github_edit_token",
+t.trim()
+);
+
+}
+
+return t||"";
+
+}
+
+
+/* =========================================================
+EXPORT
+========================================================= */
+
+function exportReport(){
+
+if(!scanResults.length){
+
+alert("Scan your pages first.");
+
+return;
+
+}
+
+
+const rows=[
+["PAGE NAME","FILE","FINDING","VALUE","LINE"]
+];
+
+
+for(const x of scanResults){
+
+if(!x.findings.length){
+
+rows.push([
+x.name,
+x.path,
+"CLEAN",
+"",
+""
+]);
+
+}
+else{
+
+for(const f of x.findings){
+
+rows.push([
+x.name,
+x.path,
+f.type,
+f.value,
+f.line
+]);
+
+}
+
+}
+
+}
+
+
+const csv=
+rows.map(row=>
+row.map(v=>
+`"${String(v).replace(/"/g,'""')}"`
+).join(",")
+).join("\n");
+
+
+const blob=
+new Blob(
+[csv],
+{
+type:"text/csv;charset=utf-8"
+}
+);
+
+
+const url=
+URL.createObjectURL(blob);
+
+
+const a=
+document.createElement("a");
+
+a.href=url;
+
+a.download=
+"my-dashboard-security-report.csv";
+
+a.click();
+
+setTimeout(
+()=>URL.revokeObjectURL(url),
+1000
+);
+
+}
+
+
+/* =========================================================
+SEARCH
+========================================================= */
+
+document
+.getElementById("search")
+.addEventListener(
+"input",
+renderResults
+);
+
+
+/* =========================================================
+LOGOUT
+========================================================= */
+
+function logout(){
+
+auth.signOut();
+
+}
+
+
+/* =========================================================
+NORMALIZE
+========================================================= */
+
+function normalizePath(path){
+
+return String(path||"")
+.replace(/\\/g,"/")
+.replace(/^\/+/,"")
+.replace(/\/+/g,"/")
+.replace(/\/$/,"")
+.toLowerCase();
+
+}
+
+
+/* =========================================================
+ESCAPE
+========================================================= */
+
+function escapeHtml(value){
+
+return String(value)
+.replace(/[&<>"']/g,c=>({
+
+"&":"&amp;",
+"<":"&lt;",
+">":"&gt;",
+'"':"&quot;",
+"'":"&#039;"
+
+}[c]));
+
+}
+
+</script>
+
+</body>
+</html>
