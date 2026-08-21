@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="error-utils.js"></script>
+<script src="ag-utils.js"></script>
+<script src="ag-config.js"></script>
+<script type="module" src="auth-guard.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AssetGuard Pro - Business Setup & Settings</title>
@@ -306,22 +310,12 @@
 </div>
 
 <script>
-    const firebaseConfig = { 
-        apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA", 
-        authDomain: "assetguard-c8c8c.firebaseapp.com", 
-        projectId: "assetguard-c8c8c",
-        databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com"
-    };
-
     if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
+        firebase.initializeApp(AG_FIREBASE_CONFIG);
     }
     const rtdb = firebase.database();
 
-    const activeUID = localStorage.getItem("ag_active_uid") || "global_terminal_user";
-    if (!localStorage.getItem("ag_active_uid")) {
-        localStorage.setItem("ag_active_uid", activeUID);
-    }
+    const activeUID = AGUtils.getActiveUID({ fallback: "global_terminal_user", persist: true });
 
     const MASTER_CONFIG = {
         backendUrl: "https://weathered-glade-c60b.assetguardinfo.workers.dev",
@@ -354,13 +348,7 @@
     };
 
     function resolveUserIdentity() {
-        let resolved = null;
-        const urlParams = new URLSearchParams(window.location.search);
-        resolved = urlParams.get('uid') || urlParams.get('user') || urlParams.get('userId');
-        if (!resolved) resolved = localStorage.getItem('ag_active_uid');
-        if (resolved && resolved.trim() !== "") {
-            localStorage.setItem('ag_active_uid', resolved.trim());
-        }
+        AGUtils.resolveActiveUID({ fallback: activeUID });
     }
 
     function toggleSalesConfig() {
@@ -406,16 +394,13 @@
     }
 
     function loadLocalSettings() {
-        const cacheKey = `ag_profile_cache_${activeUID}`;
-        const cachedData = localStorage.getItem(cacheKey);
-        if (cachedData) {
-            try {
-                const parsed = JSON.parse(cachedData);
-                loadedSettings = { ...loadedSettings, ...parsed };
-                if (!loadedSettings.salesDaraja) {
-                    loadedSettings.salesDaraja = { environment: "production", accountType: "Paybill", shortcode: "", passkey: "", consumerKey: "", consumerSecret: "" };
-                }
-            } catch (e) {}
+        const cacheKey = AGUtils.uidKey("ag_profile_cache", activeUID);
+        const parsed = AGUtils.readJSON(cacheKey, null);
+        if (parsed) {
+            loadedSettings = { ...loadedSettings, ...parsed };
+            if (!loadedSettings.salesDaraja) {
+                loadedSettings.salesDaraja = { environment: "production", accountType: "Paybill", shortcode: "", passkey: "", consumerKey: "", consumerSecret: "" };
+            }
         } else {
             loadedSettings.salesConfigSkipped = true;
         }
@@ -474,10 +459,11 @@
         };
 
         // 1. Save locally for instant offline UI rendering
-        localStorage.setItem(`ag_profile_cache_${activeUID}`, JSON.stringify(loadedSettings));
+        AGUtils.writeJSON(AGUtils.uidKey("ag_profile_cache", activeUID), loadedSettings);
         updateSalesBadge();
 
         // 2. Push settings and initialize user status in Firebase Cloud
+        let cloudSaved = true;
         try {
             await rtdb.ref(`user_settings/${activeUID}`).set({
                 ...loadedSettings,
@@ -498,16 +484,21 @@
                 device: navigator.userAgent.substring(0, 50)
             });
         } catch (error) {
-            console.error("Firebase sync error:", error);
+            cloudSaved = false;
+            AGErrors.report("settings cloud synchronization", error);
         }
 
         try {
             if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
                 window.AppInventor.setWebViewString(JSON.stringify({ action: "settings_updated", uid: activeUID, data: loadedSettings }));
             }
-        } catch (e) {}
+        } catch (e) {
+            AGErrors.report("settings update bridge notification", e);
+        }
 
-        triggerToast(isSkipAction ? "POS Payment Setup Skipped" : "Settings Saved & Synchronized");
+        triggerToast(cloudSaved
+            ? (isSkipAction ? "POS Payment Setup Skipped" : "Settings Saved & Synchronized")
+            : "Saved locally; cloud synchronization failed");
     }
 
     function triggerToast(msg) {
@@ -522,7 +513,9 @@
             if (window.AppInventor && typeof window.AppInventor.setWebViewString === 'function') {
                 window.AppInventor.setWebViewString(JSON.stringify({ action: "navigate_back", uid: activeUID }));
             }
-        } catch (e) {}
+        } catch (e) {
+            AGErrors.report("settings exit bridge notification", e);
+        }
         window.location.href = `dashboard.html?uid=${encodeURIComponent(activeUID)}`;
     }
 </script>

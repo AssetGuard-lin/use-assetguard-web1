@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="error-utils.js"></script>
+<script src="ag-utils.js"></script>
+<script type="module" src="auth-guard.js"></script>
 <meta charset="utf-8">
 <title>AssetGuard Pro - Unified Terminal & Sales Analytics</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -699,58 +702,15 @@
 </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getDatabase, ref, onValue, push, set, runTransaction, remove, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+import { getDb } from "./ag-firebase.js";
+import { ref, onValue, push, set, runTransaction, remove, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
-const firebaseConfig = {
-    apiKey: "AIzaSyDCkP7LTzdNcvZhp24rRsQirYDCcrsuvOA",
-    authDomain: "assetguard-c8c8c.firebaseapp.com",
-    databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com/",
-    projectId: "assetguard-c8c8c"
-};
+const db = getDb();
+const currentUID = AGUtils.resolveActiveUID();
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-
-const urlParams = new URLSearchParams(window.location.search);
-let resolvedUID = urlParams.get('uid') || urlParams.get('user') || urlParams.get('currentUID') || urlParams.get('userId');
-
-if (!resolvedUID) {
-    try {
-        if (window.AppInventor && typeof window.AppInventor.getWebViewString === 'function') {
-            const wvString = window.AppInventor.getWebViewString();
-            if (wvString && wvString !== "undefined" && wvString !== "null" && wvString.trim() !== "") {
-                if (wvString.startsWith('{') || wvString.startsWith('[')) {
-                    try {
-                        const parsed = JSON.parse(wvString);
-                        resolvedUID = parsed.uid || parsed.userId || parsed.username || wvString;
-                    } catch(e) {
-                        resolvedUID = wvString;
-                    }
-                } else {
-                    resolvedUID = wvString;
-                }
-            }
-        }
-    } catch(e) {
-        console.error("WebViewString capture failed", e);
-    }
-}
-
-if (!resolvedUID) {
-    resolvedUID = localStorage.getItem("ag_active_uid");
-}
-
-if (!resolvedUID || resolvedUID === "null" || resolvedUID === "undefined" || resolvedUID.trim() === "") {
-    resolvedUID = "global_terminal_user";
-}
-
-const currentUID = resolvedUID;
-localStorage.setItem("ag_active_uid", currentUID);
-
-const inventoryPath = `users/${currentUID}/inventory`;
-const salesPath = `users/${currentUID}/sales`;
-const profilePath = `users/${currentUID}/profile`;
+const inventoryPath = AGUtils.userPath(currentUID, "inventory");
+const salesPath = AGUtils.userPath(currentUID, "sales");
+const profilePath = AGUtils.userPath(currentUID, "profile");
 const userSettingsPath = `user_settings/${currentUID}`;
 
 let cart = [];
@@ -767,11 +727,11 @@ let isThermalReceiptMode = false;
 let bluetoothDevice = null;
 let bluetoothCharacteristic = null;
 
-let firebaseInventory = JSON.parse(localStorage.getItem(`ag_stock_cache_${currentUID}`)) || {};
-let syncQueue = JSON.parse(localStorage.getItem(`ag_sales_queue_${currentUID}`)) || [];
-let rawLedgerData = JSON.parse(localStorage.getItem(`ag_ledger_cache_${currentUID}`)) || {}; 
+let firebaseInventory = AGUtils.readJSON(AGUtils.uidKey("ag_stock_cache", currentUID), {});
+let syncQueue = AGUtils.readJSON(AGUtils.uidKey("ag_sales_queue", currentUID), []);
+let rawLedgerData = AGUtils.readJSON(AGUtils.uidKey("ag_ledger_cache", currentUID), {});
 
-let userProfile = JSON.parse(localStorage.getItem(`ag_profile_cache_${currentUID}`)) || { 
+let userProfile = AGUtils.readJSON(AGUtils.uidKey("ag_profile_cache", currentUID), {
     businessName: "Business Name", 
     tagline: "Your Business Tagline", 
     logoUrl: "", 
@@ -785,7 +745,7 @@ let userProfile = JSON.parse(localStorage.getItem(`ag_profile_cache_${currentUID
         consumerKey: "",
         consumerSecret: ""
     }
-};
+});
 
 if(!userProfile.adminPin) { userProfile.adminPin = "0000"; }
 if(userProfile.salesConfigSkipped === undefined) { userProfile.salesConfigSkipped = false; }
@@ -883,11 +843,11 @@ window.openManager = (id) => {
         const saleTotal = (s.items || []).reduce((acc, i) => acc + parseFloat(i.total || 0), 0);
         const paidSoFar = (s.payments || []).reduce((acc, p) => acc + parseFloat(p.amount || 0), 0);
         const bal = saleTotal - paidSoFar;
-        document.getElementById('credit-bal-text').innerText = `KES ${bal.toLocaleString()}`;
+        document.getElementById('credit-bal-text').innerText = AGUtils.formatCurrency(bal);
         const historyList = document.getElementById('payment-history-list');
         historyList.innerHTML = (s.payments || []).map(p => {
             const d = new Date(p.date);
-            return `<div class="history-item"><div class="history-meta"><b>KES ${parseFloat(p.amount).toLocaleString()}</b><small>${d.toLocaleDateString()}</small></div></div>`;
+            return `<div class="history-item"><div class="history-meta"><b>${AGUtils.formatCurrency(p.amount)}</b><small>${d.toLocaleDateString()}</small></div></div>`;
         }).join('') || '<small style="color:var(--muted); font-style:italic;">No payments yet.</small>';
     } else { creditBlock.style.display = 'none'; }
 
@@ -953,7 +913,7 @@ window.onload = () => {
 
 async function deepSyncFirebase() {
     const baseURL = "https://assetguard-c8c8c-default-rtdb.firebaseio.com/";
-    const paths = [`users/${currentUID}/sales.json`];
+    const paths = [`${AGUtils.userPath(currentUID, "sales")}.json`];
     let consolidatedSales = {}; 
 
     const extract = (data) => {
@@ -976,24 +936,26 @@ async function deepSyncFirebase() {
         }
         if(Object.keys(consolidatedSales).length > 0) {
             rawLedgerData = consolidatedSales;
-            localStorage.setItem(`ag_ledger_cache_${currentUID}`, JSON.stringify(rawLedgerData));
+            AGUtils.writeJSON(AGUtils.uidKey("ag_ledger_cache", currentUID), rawLedgerData);
             renderSales();
         }
-    } catch (e) { console.error("Deep Sync Failed", e); }
+    } catch (e) {
+        AGErrors.report("sales deep synchronization", e);
+    }
 }
 
 onValue(ref(db, inventoryPath), snap => {
     firebaseInventory = snap.val() || {};
-    localStorage.setItem(`ag_stock_cache_${currentUID}`, JSON.stringify(firebaseInventory));
+    AGUtils.writeJSON(AGUtils.uidKey("ag_stock_cache", currentUID), firebaseInventory);
     populateDropdown();
-});
+}, error => AGErrors.report("sales inventory live data", error, message => showAlertModal("Data Error", `Live inventory data could not be loaded: ${message}`)));
 
 onValue(ref(db, salesPath), snapshot => {
     const snapVal = snapshot.val();
     rawLedgerData = snapVal || {};
-    localStorage.setItem(`ag_ledger_cache_${currentUID}`, JSON.stringify(rawLedgerData));
+    AGUtils.writeJSON(AGUtils.uidKey("ag_ledger_cache", currentUID), rawLedgerData);
     renderSales();
-});
+}, error => AGErrors.report("sales ledger live data", error, message => showAlertModal("Data Error", `Live sales data could not be loaded: ${message}`)));
 
 onValue(ref(db, profilePath), snap => {
     if (snap.exists()) {
@@ -1004,9 +966,9 @@ onValue(ref(db, profilePath), snap => {
             salesConfigSkipped: val.salesConfigSkipped !== undefined ? val.salesConfigSkipped : userProfile.salesConfigSkipped,
             daraja: val.daraja || userProfile.daraja
         };
-        localStorage.setItem(`ag_profile_cache_${currentUID}`, JSON.stringify(userProfile));
+        AGUtils.writeJSON(AGUtils.uidKey("ag_profile_cache", currentUID), userProfile);
     }
-});
+}, error => AGErrors.report("sales profile live data", error));
 
 onValue(ref(db, userSettingsPath), snap => {
     if (snap.exists()) {
@@ -1019,9 +981,9 @@ onValue(ref(db, userSettingsPath), snap => {
             salesConfigSkipped: val.salesConfigSkipped !== undefined ? val.salesConfigSkipped : false,
             daraja: val.salesDaraja || val.daraja || userProfile.daraja
         };
-        localStorage.setItem(`ag_profile_cache_${currentUID}`, JSON.stringify(userProfile));
+        AGUtils.writeJSON(AGUtils.uidKey("ag_profile_cache", currentUID), userProfile);
     }
-});
+}, error => AGErrors.report("sales settings live data", error));
 
 function populateDropdown() {
     const listContainer = document.getElementById('customStockListItems');
@@ -1242,7 +1204,7 @@ function updateCartUI() {
                     <div class="math-item">Price: <b>${item.price}</b></div>
                     <div class="math-item">Qty: <b>${item.quantity}</b></div>
                     <div class="math-item">VAT: <b>${item.vatAmount}</b></div>
-                    <div class="math-total-text">KES ${parseFloat(item.total).toLocaleString()}</div>
+                    <div class="math-total-text">${AGUtils.formatCurrency(item.total)}</div>
                 </div>
                 <div class="cart-footer">
                     <button class="btn-edit" onclick="editCart(${i})">Edit</button>
@@ -1250,7 +1212,7 @@ function updateCartUI() {
                 </div>
             </div>`;
     });
-    document.getElementById('grand-total-terminal').innerText = "KES " + grand.toLocaleString();
+    document.getElementById('grand-total-terminal').innerText = AGUtils.formatCurrency(grand);
 }
 
 window.editCart = (i) => {
@@ -1409,14 +1371,14 @@ function finalizeSaleTransaction() {
     };
     
     syncQueue.push(trans);
-    localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
+    AGUtils.writeJSON(AGUtils.uidKey("ag_sales_queue", currentUID), syncQueue);
     
     cart.forEach(itm => {
         if (firebaseInventory[itm.dbKey]) {
             firebaseInventory[itm.dbKey].qty = Math.max(0, firebaseInventory[itm.dbKey].qty - itm.quantity);
         }
     });
-    localStorage.setItem(`ag_stock_cache_${currentUID}`, JSON.stringify(firebaseInventory));
+    AGUtils.writeJSON(AGUtils.uidKey("ag_stock_cache", currentUID), firebaseInventory);
     populateDropdown();
 
     openReceiptSummary([...cart]);
@@ -1469,22 +1431,28 @@ async function attemptSync() {
                             return Math.max(0, q - itm.quantity);
                         });
                     } catch (transErr) {
-                        const snap = await fetch(`https://assetguard-c8c8c-default-rtdb.firebaseio.com/${inventoryPath}/${itm.dbKey}/qty.json`);
-                        const currentQty = await snap.json() || 0;
-                        await set(ref(db, `${inventoryPath}/${itm.dbKey}/qty`), Math.max(0, currentQty - itm.quantity));
+                        AGErrors.report("sales inventory transaction fallback", transErr);
+                        try {
+                            const snap = await fetch(`https://assetguard-c8c8c-default-rtdb.firebaseio.com/${inventoryPath}/${itm.dbKey}/qty.json`);
+                            const currentQty = await snap.json() || 0;
+                            await set(ref(db, `${inventoryPath}/${itm.dbKey}/qty`), Math.max(0, currentQty - itm.quantity));
+                        } catch (fallbackErr) {
+                            AGErrors.report("sales inventory fallback write", fallbackErr);
+                            throw fallbackErr;
+                        }
                     }
                 }
                 await set(ref(db, `${salesPath}/${sID}`), trans); 
             }
             syncQueue.shift();
-            localStorage.setItem(`ag_sales_queue_${currentUID}`, JSON.stringify(syncQueue));
+            AGUtils.writeJSON(AGUtils.uidKey("ag_sales_queue", currentUID), syncQueue);
             
             if (!trans.isDeleteOnly) {
                 rawLedgerData[sID] = trans;
-                localStorage.setItem(`ag_ledger_cache_${currentUID}`, JSON.stringify(rawLedgerData));
+                AGUtils.writeJSON(AGUtils.uidKey("ag_ledger_cache", currentUID), rawLedgerData);
             } else {
                 delete rawLedgerData[sID];
-                localStorage.setItem(`ag_ledger_cache_${currentUID}`, JSON.stringify(rawLedgerData));
+                AGUtils.writeJSON(AGUtils.uidKey("ag_ledger_cache", currentUID), rawLedgerData);
             }
             renderSales();
         } catch (e) { 
@@ -1645,16 +1613,16 @@ window.printDirectToBluetooth = async () => {
             subTotal += lineSub;
             totalTax += parseFloat(s.vatAmount);
             commands.push(encoder.encode(`* ${s.product}\n`));
-            commands.push(encoder.encode(`  ${s.quantity} x ${parseFloat(s.price).toLocaleString()} = KES ${parseFloat(s.total).toLocaleString()}\n`));
+            commands.push(encoder.encode(`  ${s.quantity} x ${AGUtils.formatAmount(s.price)} = ${AGUtils.formatCurrency(s.total)}\n`));
         });
 
         const grandTotal = subTotal + totalTax;
         commands.push(encoder.encode('--------------------------------\n'));
-        commands.push(encoder.encode(`Subtotal: KES ${subTotal.toLocaleString()}\n`));
-        commands.push(encoder.encode(`VAT (16%): KES ${totalTax.toLocaleString()}\n`));
+        commands.push(encoder.encode(`Subtotal: ${AGUtils.formatCurrency(subTotal)}\n`));
+        commands.push(encoder.encode(`VAT (16%): ${AGUtils.formatCurrency(totalTax)}\n`));
         
         commands.push(new Uint8Array([0x1B, 0x45, 0x01]));
-        commands.push(encoder.encode(`TOTAL: KES ${grandTotal.toLocaleString()}\n`));
+        commands.push(encoder.encode(`TOTAL: ${AGUtils.formatCurrency(grandTotal)}\n`));
         commands.push(new Uint8Array([0x1B, 0x45, 0x00]));
 
         commands.push(new Uint8Array([0x1B, 0x61, 0x01]));
@@ -1723,8 +1691,8 @@ window.generateReceiptContent = () => {
     if (!activeReceiptPayload) return;
     const { customer, payment, reference, items, timestamp, partialPayments } = activeReceiptPayload;
 
-    const savedProfile = localStorage.getItem(`ag_profile_cache_${currentUID}`);
-    if (savedProfile) { userProfile = JSON.parse(savedProfile); }
+    const savedProfile = AGUtils.readJSON(AGUtils.uidKey("ag_profile_cache", currentUID), null);
+    if (savedProfile) { userProfile = savedProfile; }
 
     const dateObj = new Date(timestamp);
     const dateStr = dateObj.toLocaleDateString();
@@ -1741,8 +1709,8 @@ window.generateReceiptContent = () => {
                 <div style="margin-bottom: 6px;">
                     <div style="font-weight: 700;">${s.product}</div>
                     <div style="display:flex; justify-content:space-between;">
-                        <span>${s.quantity} x ${parseFloat(s.price).toLocaleString()}</span>
-                        <span><b>KES ${parseFloat(s.total).toLocaleString()}</b></span>
+                        <span>${s.quantity} x ${AGUtils.formatAmount(s.price)}</span>
+                        <span><b>${AGUtils.formatCurrency(s.total)}</b></span>
                     </div>
                 </div>`;
         }).join('');
@@ -1770,12 +1738,12 @@ window.generateReceiptContent = () => {
                     ${thermalRows}
                 </div>
                 <div style="border-top:1px dashed #000; padding-top:5px; margin-top:5px;">
-                    <div style="display:flex; justify-content:space-between;"><span>Subtotal:</span><span>KES ${subTotal.toLocaleString()}</span></div>
-                    <div style="display:flex; justify-content:space-between;"><span>VAT (16%):</span><span>KES ${totalTax.toLocaleString()}</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>Subtotal:</span><span>${AGUtils.formatCurrency(subTotal)}</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>VAT (16%):</span><span>${AGUtils.formatCurrency(totalTax)}</span></div>
                     <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:800; margin-top:4px; border-top:1px solid #000; padding-top:4px;">
-                        <span>TOTAL:</span><span>KES ${grandTotal.toLocaleString()}</span>
+                        <span>TOTAL:</span><span>${AGUtils.formatCurrency(grandTotal)}</span>
                     </div>
-                    ${isCredit ? `<div style="display:flex; justify-content:space-between; color:#c2410c; font-weight:800; margin-top:4px;"><span>Balance Due:</span><span>KES ${balance.toLocaleString()}</span></div>` : ''}
+                    ${isCredit ? `<div style="display:flex; justify-content:space-between; color:#c2410c; font-weight:800; margin-top:4px;"><span>Balance Due:</span><span>${AGUtils.formatCurrency(balance)}</span></div>` : ''}
                 </div>
                 <div style="text-align:center; margin-top:10px; font-size:11px; border-top:1px dashed #000; padding-top:6px;">
                     <span>Thank you for shopping!</span><br>
@@ -1791,9 +1759,9 @@ window.generateReceiptContent = () => {
             return `<tr style="border-bottom: 1px solid #f1f5f9;">
                 <td style="padding:12px 0; font-size:11px;">${s.product}</td>
                 <td style="text-align:center; font-size:11px;">${s.quantity}</td>
-                <td style="text-align:center; font-size:11px;">${parseFloat(s.price).toLocaleString()}</td>
+                <td style="text-align:center; font-size:11px;">${AGUtils.formatAmount(s.price)}</td>
                 <td style="text-align:center; font-size:11px;">${s.vatRate}%</td>
-                <td style="text-align:right; font-size:11px; font-weight:700;">${parseFloat(s.total).toLocaleString()}</td>
+                <td style="text-align:right; font-size:11px; font-weight:700;">${AGUtils.formatAmount(s.total)}</td>
             </tr>`;
         }).join('');
 
@@ -1813,7 +1781,7 @@ window.generateReceiptContent = () => {
                 return `
                 <div style="display:flex; justify-content:space-between; padding:4px 0; font-size:10px; border-bottom:1px dashed #e2e8f0;">
                     <span style="color:#64748b;">${pDate.toLocaleDateString()} ${pDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                    <b style="color:#22c55e;">KES ${parseFloat(p.amount).toLocaleString()}</b>
+                    <b style="color:#22c55e;">${AGUtils.formatCurrency(p.amount)}</b>
                 </div>`;
             }).join('');
         }
@@ -1867,7 +1835,7 @@ window.generateReceiptContent = () => {
                         <div style="width:250px; text-align:right;">
                             <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:11px;">
                                 <span style="color:#64748b;">Invoice Total</span>
-                                <b>${grandTotal.toLocaleString()}</b>
+                                <b>${AGUtils.formatAmount(grandTotal)}</b>
                             </div>
                             ${isCredit && paymentHistoryRows ? `
                                 <div style="text-align:left; margin:10px 0; border:1px solid #e2e8f0; border-radius:6px; padding:8px; background:#fafafa;">
@@ -1878,12 +1846,12 @@ window.generateReceiptContent = () => {
                             ${isCredit ? `
                                 <div style="border-top:2px solid #0072CE; padding-top:12px; display:flex; justify-content:space-between; align-items:center;">
                                     <b style="color:#ef4444; font-size:14px;">Balance Due</b>
-                                    <b style="color:#ef4444; font-size:18px;">KES ${balance.toLocaleString()}</b>
+                                    <b style="color:#ef4444; font-size:18px;">${AGUtils.formatCurrency(balance)}</b>
                                 </div>
                             ` : `
                                 <div style="border-top:2px solid #0072CE; padding-top:12px; display:flex; justify-content:space-between; align-items:center;">
                                     <b style="color:#0072CE; font-size:14px;">Amount Paid</b>
-                                    <b style="color:#0072CE; font-size:18px;">KES ${grandTotal.toLocaleString()}</b>
+                                    <b style="color:#0072CE; font-size:18px;">${AGUtils.formatCurrency(grandTotal)}</b>
                                 </div>
                             `}
                         </div>
@@ -1929,7 +1897,12 @@ window.nativeShare = async () => {
             window.shareReceipt();
         }
     } catch (err) {
-        window.shareReceipt();
+        AGErrors.report("native receipt sharing", err);
+        try {
+            window.shareReceipt();
+        } catch (fallbackErr) {
+            AGErrors.report("receipt PDF sharing fallback", fallbackErr, message => showAlertModal("Receipt Share Error", message));
+        }
     }
 };
 
@@ -1982,7 +1955,7 @@ window.renderSales = () => {
             sQty += parseFloat(i.quantity || 0);
             sTotal += parseFloat(i.total || 0);
             sTax += parseFloat(i.vatAmount || 0);
-            return `<div class="ledger-row"><div><b>${i.quantity}</b></div><div style="padding-right: 4px;">${i.product}</div><div style="color:var(--muted)">@${i.price}</div><div style="color:var(--danger); font-size:9px;">V:${i.vatRate}%</div><div style="text-align:right; font-weight: 800;">KES ${parseFloat(i.total).toLocaleString()}</div></div>`;
+            return `<div class="ledger-row"><div><b>${i.quantity}</b></div><div style="padding-right: 4px;">${i.product}</div><div style="color:var(--muted)">@${i.price}</div><div style="color:var(--danger); font-size:9px;">V:${i.vatRate}%</div><div style="text-align:right; font-weight: 800;">${AGUtils.formatCurrency(i.total)}</div></div>`;
         }).join('');
 
         const isCredit = (s.payment === "Credit");
@@ -2004,7 +1977,7 @@ window.renderSales = () => {
                         <h3>${s.customer} ${isCredit ? `<span class="credit-tag">Credit ${bal > 0 ? '(Pending)' : '(Settled)'}</span>` : ''}${pendingBadge}</h3>
                         <span>${d.toLocaleDateString()} ${d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} • ${s.payment}</span>
                     </div>
-                    <div class="sale-total">KES ${sTotal.toLocaleString()}</div>
+                    <div class="sale-total">${AGUtils.formatCurrency(sTotal)}</div>
                 </div>
                 <div class="sale-body" id="body-${s.id}">
                     <div style="font-size: 10px; color: var(--muted); margin-bottom: 8px; font-weight: 800;">PAYMENT: ${s.payment} ${payDetailStr}</div>
@@ -2012,7 +1985,7 @@ window.renderSales = () => {
                     ${isCredit ? `
                         <div style="margin-top:10px; background:#fff7ed; padding:8px; border-radius:8px; border:1px solid #ffedd5; display:flex; justify-content:space-between; align-items:center;">
                             <span style="font-size:11px; font-weight:800; color:#c2410c;">REMAINING BALANCE:</span>
-                            <b style="color:var(--danger); font-size:14px;">KES ${bal.toLocaleString()}</b>
+                            <b style="color:var(--danger); font-size:14px;">${AGUtils.formatCurrency(bal)}</b>
                         </div>
                     ` : ''}
                     <div style="display:flex; gap:8px; margin-top:12px;">
@@ -2023,10 +1996,10 @@ window.renderSales = () => {
             </div>`);
     });
 
-    document.getElementById('stat-gross').innerText = "KES " + gTotal.toLocaleString();
-    document.getElementById('stat-tax').innerText = "KES " + gTax.toLocaleString();
+    document.getElementById('stat-gross').innerText = AGUtils.formatCurrency(gTotal);
+    document.getElementById('stat-tax').innerText = AGUtils.formatCurrency(gTax);
     document.getElementById('grand-qty-ledger').innerText = gQty;
-    document.getElementById('grand-total-ledger').innerText = "KES " + gTotal.toLocaleString();
+    document.getElementById('grand-total-ledger').innerText = AGUtils.formatCurrency(gTotal);
 };
 
 window.toggleLedgerCard = id => {
