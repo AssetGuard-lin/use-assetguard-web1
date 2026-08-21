@@ -3,51 +3,155 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>AssetGuard Dashboard File Security Manager</title>
+<title>AssetGuard Dashboard Password & PIN Scanner</title>
 
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#07111f;color:#eef5ff;font-family:Arial,sans-serif}
-.wrap{max-width:1100px;margin:auto;padding:15px}
-.panel{background:#0d1b2e;border:1px solid #20334d;border-radius:15px;padding:15px;margin:12px 0}
-h1{font-size:22px;margin:0 0 8px}
-h3{margin-top:0}
+body{
+ margin:0;
+ background:#07111f;
+ color:#eef5ff;
+ font-family:Arial,sans-serif
+}
+.wrap{max-width:1100px;margin:auto;padding:14px}
+.panel{
+ background:#0d1b2e;
+ border:1px solid #20334d;
+ border-radius:15px;
+ padding:15px;
+ margin:12px 0
+}
+h1{font-size:21px;margin:0 0 8px}
+h3{margin:0 0 10px}
 .muted{color:#91a4bd;font-size:12px;line-height:1.5}
-input,textarea{width:100%;background:#071321;border:1px solid #29415f;border-radius:9px;color:white;padding:11px;outline:none}
-textarea{min-height:520px;font-family:monospace;font-size:12px;resize:vertical}
-button{border:0;border-radius:9px;padding:11px 14px;font-weight:800;cursor:pointer;margin:3px}
-button:disabled{opacity:.4}
+input,textarea{
+ width:100%;
+ background:#071321;
+ border:1px solid #29415f;
+ border-radius:9px;
+ color:#fff;
+ padding:11px;
+ outline:none
+}
+textarea{
+ min-height:500px;
+ font-family:monospace;
+ font-size:12px;
+ resize:vertical
+}
+button{
+ border:0;
+ border-radius:9px;
+ padding:11px 14px;
+ font-weight:800;
+ cursor:pointer;
+ margin:3px
+}
 .scan{background:#35d07f;color:#04130b}
-.edit{background:#4da3ff;color:white}
+.edit{background:#4da3ff;color:#fff}
 .save{background:#35d07f;color:#04130b}
-.delete{background:#ff6678;color:white}
-.cancel{background:#263449;color:white}
-.export{background:#183252;color:white}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.stat{background:#091626;border:1px solid #20334d;padding:12px;border-radius:10px}
+.delete{background:#ff6678;color:#fff}
+.cancel{background:#263449;color:#fff}
+.export{background:#183252;color:#fff}
+.refresh{background:#815cff;color:#fff}
+.stats{
+ display:grid;
+ grid-template-columns:repeat(4,1fr);
+ gap:8px
+}
+.stat{
+ background:#091626;
+ border:1px solid #20334d;
+ padding:12px;
+ border-radius:10px
+}
 .stat b{display:block;font-size:21px}
 .stat span{font-size:10px;color:#91a4bd}
-.file{background:#091727;border:1px solid #20334d;border-radius:12px;margin:9px 0;overflow:hidden}
-.fileHead{padding:12px;display:flex;justify-content:space-between;gap:10px}
-.path{font-weight:800;font-size:13px;word-break:break-all}
-.badge{padding:4px 8px;border-radius:20px;font-size:10px;font-weight:900;white-space:nowrap}
+.status{
+ margin-top:9px;
+ font-size:12px;
+ color:#91a4bd;
+ white-space:pre-wrap
+}
+.tree{
+ background:#081423;
+ border:1px solid #20334d;
+ border-radius:10px;
+ padding:10px;
+ max-height:350px;
+ overflow:auto
+}
+.treeItem{
+ padding:7px;
+ border-bottom:1px solid #17283c;
+ font-size:12px;
+ word-break:break-all
+}
+.root{color:#6ff0a5;font-weight:900}
+.attached{color:#8ec8ff}
+.file{
+ background:#091727;
+ border:1px solid #20334d;
+ border-radius:12px;
+ margin:10px 0;
+ overflow:hidden
+}
+.fileHead{
+ padding:12px;
+ display:flex;
+ justify-content:space-between;
+ gap:10px
+}
+.path{
+ font-weight:800;
+ font-size:13px;
+ word-break:break-all
+}
+.badge{
+ padding:4px 8px;
+ border-radius:20px;
+ font-size:10px;
+ font-weight:900;
+ white-space:nowrap;
+ height:max-content
+}
 .found{background:#143c2a;color:#6ff0a5}
 .clean{background:#263449;color:#b4c1d1}
 .err{background:#4a2028;color:#ff9aa6}
-.finding{border-top:1px solid #20334d;padding:11px}
-.type{color:#6ff0a5;font-weight:900;font-size:10px}
-.value{font-family:monospace;background:#050d17;padding:8px;border-radius:7px;margin-top:5px;word-break:break-all}
-.line{font-size:10px;color:#91a4bd;margin-top:5px}
+.finding{
+ border-top:1px solid #20334d;
+ padding:11px
+}
+.type{
+ color:#6ff0a5;
+ font-weight:900;
+ font-size:10px
+}
+.value{
+ background:#050d17;
+ padding:8px;
+ border-radius:7px;
+ margin-top:5px;
+ font-family:monospace;
+ word-break:break-all
+}
+.line{
+ color:#91a4bd;
+ font-size:10px;
+ margin-top:5px
+}
 .editor{display:none}
 .editor.active{display:block}
-.status{font-size:12px;color:#91a4bd;margin-top:8px;line-height:1.5}
 .tokenBox{display:none}
 .tokenBox.active{display:block}
-.tree{background:#081423;border:1px solid #20334d;border-radius:10px;padding:10px;margin-top:10px}
-.tree div{padding:5px 0;font-size:12px;word-break:break-all}
-.root{color:#6ff0a5;font-weight:900}
-.linked{color:#8ec8ff}
-@media(max-width:650px){.stats{grid-template-columns:repeat(2,1fr)}}
+.small{
+ font-size:10px;
+ color:#91a4bd
+}
+@media(max-width:650px){
+ .stats{grid-template-columns:repeat(2,1fr)}
+ .fileHead{display:block}
+}
 </style>
 </head>
 
@@ -56,31 +160,38 @@ button:disabled{opacity:.4}
 <div class="wrap">
 
 <div class="panel">
-<h1>🔐 AssetGuard Dashboard Security Manager</h1>
+<h1>🔐 AssetGuard Dashboard Security Scanner</h1>
+
 <div class="muted">
-Starts from <b>dashboard.html</b>, follows files referenced by it,
-then follows references inside those files. Passwords and PINs are
-searched throughout the discovered dashboard file tree.
+Scans <b>dashboard.html</b> and follows the dashboard's connected
+HTML, JavaScript, CSS, JSON and other source files. It also detects
+dashboard pages referenced through links, buttons, scripts,
+location changes, imports, fetch calls, iframes and similar references.
 </div>
 </div>
 
 
 <div class="panel">
 
-<h3>Repository</h3>
+<h3>GitHub Repository</h3>
 
 <input
 id="repo"
-value="https://github.com/assetguard-lin/use-assetguard-web1">
+value="https://github.com/assetguard-lin/use-assetguard-web1"
+placeholder="https://github.com/owner/repository">
 
 <br>
 
 <button class="scan" onclick="startScan()">
-🔎 SCAN DASHBOARD + ATTACHED FILES
+🔎 SCAN NOW
+</button>
+
+<button class="refresh" onclick="startScan()">
+🔄 RESCAN
 </button>
 
 <button class="export" onclick="exportReport()">
-⬇ EXPORT
+⬇ EXPORT REPORT
 </button>
 
 <div id="status" class="status">
@@ -93,14 +204,13 @@ Ready.
 <div class="panel">
 
 <button class="edit" onclick="toggleToken()">
-🔑 GitHub EDIT / DELETE AUTHORIZATION
+🔑 EDIT / DELETE ACCESS
 </button>
 
 <div id="tokenBox" class="tokenBox">
 
 <div class="muted">
-GitHub token is required only for modifying repository files.
-It is not stored by this page.
+Enter a GitHub token only when you need to edit or delete a file.
 </div>
 
 <br>
@@ -121,7 +231,7 @@ placeholder="GitHub token">
 
 <div class="stat">
 <b id="files">0</b>
-<span>ATTACHED FILES</span>
+<span>CONNECTED FILES</span>
 </div>
 
 <div class="stat">
@@ -131,7 +241,7 @@ placeholder="GitHub token">
 
 <div class="stat">
 <b id="findings">0</b>
-<span>PASSWORD/PIN FINDINGS</span>
+<span>PASSWORD/PIN</span>
 </div>
 
 <div class="stat">
@@ -148,17 +258,19 @@ placeholder="GitHub token">
 
 <input
 id="search"
-placeholder="Search file, password, PIN...">
+placeholder="Search file, password, PIN, key...">
 
 </div>
 
 
 <div class="panel">
 
-<h3>Discovered Dashboard Files</h3>
+<h3>Files Connected To dashboard.html</h3>
 
-<div id="tree" class="tree">
-<div class="muted">Nothing scanned yet.</div>
+<div id="tree">
+<div class="muted">
+Scan to discover files.
+</div>
 </div>
 
 </div>
@@ -166,10 +278,12 @@ placeholder="Search file, password, PIN...">
 
 <div class="panel">
 
-<h3>Security Findings</h3>
+<h3>Passwords / PINs / Credentials</h3>
 
 <div id="results">
-<div class="muted">Nothing scanned yet.</div>
+<div class="muted">
+Scan to begin.
+</div>
 </div>
 
 </div>
@@ -186,11 +300,11 @@ spellcheck="false"></textarea>
 <br>
 
 <button class="save" onclick="saveFile()">
-💾 SAVE TO GITHUB
+💾 SAVE
 </button>
 
-<button class="delete" onclick="deleteCurrentFile()">
-🗑 DELETE FILE
+<button class="delete" onclick="deleteCurrent()">
+🗑 DELETE
 </button>
 
 <button class="cancel" onclick="closeEditor()">
@@ -206,23 +320,19 @@ CANCEL
 
 <script>
 
-/* =========================================================
-CONFIG
-========================================================= */
-
 const API="https://api.github.com";
 const API_VERSION="2022-11-28";
 
 let repoInfo=null;
-let allRepoFiles=[];
-let discoveredFiles=new Map();
-let scanResults=[];
+let repoFiles=[];
+let connected=new Map();
+let results=[];
 let currentFile=null;
 
 
-/* =========================================================
-REPO
-========================================================= */
+/* =========================
+REPOSITORY
+========================= */
 
 function parseRepo(url){
 
@@ -230,27 +340,26 @@ url=url.trim()
 .replace(/\/+$/,"")
 .replace(/\.git$/i,"");
 
-const match=
-url.match(
+const m=url.match(
 /github\.com\/([^\/]+)\/([^\/#?]+)/
 );
 
-if(!match)
+if(!m)
 throw new Error("Invalid GitHub repository URL.");
 
 return{
-owner:match[1],
-repo:match[2]
+owner:m[1],
+repo:m[2]
 };
 
 }
 
 
-/* =========================================================
-GITHUB API
-========================================================= */
+/* =========================
+GITHUB
+========================= */
 
-async function github(url,options={}){
+async function api(url,options={}){
 
 options.headers={
 "Accept":"application/vnd.github+json",
@@ -258,35 +367,43 @@ options.headers={
 ...(options.headers||{})
 };
 
-const response=
-await fetch(url,options);
+const r=await fetch(url,options);
 
-if(!response.ok){
+if(!r.ok){
 
-let message=
-"GitHub HTTP "+response.status;
+let msg="GitHub HTTP "+r.status;
 
 try{
 
-const data=await response.json();
+const d=await r.json();
 
-if(data.message)
-message+=": "+data.message;
+if(d.message)msg+=": "+d.message;
 
 }catch(e){}
 
-throw new Error(message);
+throw new Error(msg);
 
 }
 
-return response.json();
+return r.json();
 
 }
 
 
-/* =========================================================
+/* =========================
+STATUS
+========================= */
+
+function setStatus(x){
+
+document.getElementById("status").textContent=x;
+
+}
+
+
+/* =========================
 TOKEN
-========================================================= */
+========================= */
 
 function toggleToken(){
 
@@ -296,7 +413,7 @@ document
 
 }
 
-function token(){
+function getToken(){
 
 return document
 .getElementById("token")
@@ -305,34 +422,30 @@ return document
 }
 
 
-/* =========================================================
-PATH HELPERS
-========================================================= */
+/* =========================
+PATH
+========================= */
 
-function encodePath(path){
+function encPath(path){
 
 return path
 .split("/")
-.map(x=>encodeURIComponent(x))
+.map(encodeURIComponent)
 .join("/");
 
 }
 
+function normalize(path){
 
-function normalizePath(path){
-
-const parts=path.split("/");
+const a=path.split("/");
 const out=[];
 
-for(const part of parts){
+for(const p of a){
 
-if(!part || part===".")continue;
+if(!p||p===".")continue;
 
-if(part===".."){
-out.pop();
-}else{
-out.push(part);
-}
+if(p==="..")out.pop();
+else out.push(p);
 
 }
 
@@ -340,32 +453,308 @@ return out.join("/");
 
 }
 
+function dir(path){
 
-function directoryOf(path){
+const i=path.lastIndexOf("/");
 
-const p=path.lastIndexOf("/");
-
-return p===-1 ? "" : path.slice(0,p);
+return i<0?"":path.slice(0,i);
 
 }
 
 
-/* =========================================================
-RESOLVE REFERENCE
-========================================================= */
+/* =========================
+REPO FILE LOOKUP
+========================= */
 
-function resolveReference(fromPath,ref){
+function repoFile(path){
 
-ref=ref.trim();
+path=normalize(path);
+
+let f=repoFiles.find(x=>x.path===path);
+
+if(f)return f;
+
+
+/* Try extension */
+
+const possibilities=[
+path+".html",
+path+".js",
+path+".css",
+path+".json",
+path+"/index.html"
+];
+
+for(const p of possibilities){
+
+f=repoFiles.find(x=>x.path===p);
+
+if(f)return f;
+
+}
+
+
+/*
+Try case-insensitive.
+*/
+
+f=repoFiles.find(
+x=>x.path.toLowerCase()===path.toLowerCase()
+);
+
+return f||null;
+
+}
+
+
+/* =========================
+SOURCE FILE
+========================= */
+
+function sourceFile(path){
+
+const p=path.toLowerCase();
+
+return(
+p.endsWith(".html")||
+p.endsWith(".htm")||
+p.endsWith(".js")||
+p.endsWith(".mjs")||
+p.endsWith(".cjs")||
+p.endsWith(".css")||
+p.endsWith(".json")||
+p.endsWith(".ts")||
+p.endsWith(".tsx")||
+p.endsWith(".jsx")||
+p.endsWith(".vue")||
+p.endsWith(".svelte")||
+p.endsWith(".xml")||
+p.endsWith(".txt")||
+p.endsWith(".php")||
+p.endsWith(".py")||
+p.endsWith(".yaml")||
+p.endsWith(".yml")||
+!p.includes(".")
+);
+
+}
+
+
+/* =========================
+BASE64
+========================= */
+
+function decodeBase64(s){
+
+s=s.replace(/\s/g,"");
+
+const bin=atob(s);
+
+const bytes=
+Uint8Array.from(
+bin,
+c=>c.charCodeAt(0)
+);
+
+try{
+return new TextDecoder().decode(bytes);
+}catch(e){
+return bin;
+}
+
+}
+
+
+function encodeBase64(s){
+
+const bytes=
+new TextEncoder().encode(s);
+
+let bin="";
+
+const chunk=0x8000;
+
+for(
+let i=0;
+i<bytes.length;
+i+=chunk
+){
+
+bin+=String.fromCharCode(
+...bytes.subarray(
+i,
+Math.min(i+chunk,bytes.length)
+)
+);
+
+}
+
+return btoa(bin);
+
+}
+
+
+/* =========================
+GET FILE
+========================= */
+
+async function getFile(path){
+
+const d=
+await api(
+`${API}/repos/${repoInfo.owner}/${repoInfo.repo}/contents/${encPath(path)}?ref=HEAD`
+);
+
+return{
+path:path,
+sha:d.sha,
+size:d.size||0,
+content:decodeBase64(d.content||"")
+};
+
+}
+
+
+/* =========================
+REFERENCE EXTRACTION
+========================= */
+
+function references(text){
+
+const set=new Set();
+
+let m;
+
+
+/*
+HTML src/href/action
+*/
+
+const html=
+/(?:href|src|action|data-src|data-url|data-page|data-href)\s*=\s*["']([^"']+)["']/gi;
+
+while((m=html.exec(text))){
+
+set.add(m[1]);
+
+}
+
+
+/*
+onclick/navigation/location
+*/
+
+const nav=
+/(?:location(?:\.href|\.assign|\.replace)?|window\.location|window\.open|openPage|loadPage|navigate|navigateTo|goToPage|showPage|openPage|href)\s*(?:\(|=|:)\s*["'`]([^"'`]+)["'`]/gi;
+
+while((m=nav.exec(text))){
+
+set.add(m[1]);
+
+}
+
+
+/*
+JS import/from/require
+*/
+
+const imports=
+/(?:import\s*(?:[^"'`]*?\sfrom\s*)?|require\s*\(|import\s*\()\s*["'`]([^"'`]+)["'`]/gi;
+
+while((m=imports.exec(text))){
+
+set.add(m[1]);
+
+}
+
+
+/*
+fetch/axios
+*/
+
+const requests=
+/(?:fetch|axios\.(?:get|post|put|patch|delete))\s*\(\s*["'`]([^"'`]+)["'`]/gi;
+
+while((m=requests.exec(text))){
+
+set.add(m[1]);
+
+}
+
+
+/*
+iframe
+*/
+
+const iframe=
+/<iframe[^>]+src\s*=\s*["']([^"']+)["']/gi;
+
+while((m=iframe.exec(text))){
+
+set.add(m[1]);
+
+}
+
+
+/*
+HTML strings
+*/
+
+const pages=
+/["'`]([^"'`\s?#]+\.(?:html?|js|mjs|css|json)(?:\?[^"'`]*)?)["'`]/gi;
+
+while((m=pages.exec(text))){
+
+set.add(m[1]);
+
+}
+
+
+/*
+CSS url
+*/
+
+const css=
+/url\s*\(\s*["']?([^"')]+)["']?\s*\)/gi;
+
+while((m=css.exec(text))){
+
+set.add(m[1]);
+
+}
+
+
+/*
+Firebase/database references aren't files,
+so intentionally ignored.
+*/
+
+return [...set];
+
+}
+
+
+/* =========================
+RESOLVE
+========================= */
+
+function resolve(from,ref){
 
 if(!ref)return null;
 
-ref=ref.replace(/^["']|["']$/g,"");
+ref=String(ref).trim();
+
+ref=ref
+.replace(/^["'`]/,"")
+.replace(/["'`]$/,"");
+
+if(!ref)return null;
 
 if(
-ref.startsWith("#") ||
-ref.startsWith("data:") ||
-ref.startsWith("mailto:") ||
+ref.startsWith("#")||
+ref.startsWith("data:")||
+ref.startsWith("blob:")||
+ref.startsWith("mailto:")||
 ref.startsWith("tel:")
 )
 return null;
@@ -375,14 +764,9 @@ if(
 )
 return null;
 
-if(
-/^(javascript:|mailto:|tel:)/i.test(ref)
-)
-return null;
-
 
 /*
-Remove query and hash.
+Remove query/hash.
 */
 
 ref=ref.split("#")[0];
@@ -392,267 +776,47 @@ if(!ref)return null;
 
 
 /*
-Root-relative reference.
+Remove GitHub Pages absolute URL.
 */
 
 if(ref.startsWith("/")){
 
-ref=ref.replace(/^\/+/,"");
-
-return normalizePath(ref);
-
-}
-
-
-/*
-Relative reference.
-*/
-
-return normalizePath(
-directoryOf(fromPath)+"/"+ref
+return normalize(
+ref.replace(/^\/+/,"")
 );
 
 }
 
 
-/* =========================================================
-GET RAW CONTENT
-========================================================= */
-
-function rawUrl(path){
-
-return(
-"https://raw.githubusercontent.com/"+
-encodeURIComponent(repoInfo.owner)+"/"+
-encodeURIComponent(repoInfo.repo)+
-"/HEAD/"+
-path.split("/")
-.map(encodeURIComponent)
-.join("/")
+return normalize(
+dir(from)+"/"+ref
 );
 
 }
 
 
-/* =========================================================
-BASE64 DECODE
-========================================================= */
-
-function decodeBase64(value){
-
-value=value.replace(/\n/g,"");
-
-const binary=atob(value);
-
-const bytes=
-Uint8Array.from(
-binary,
-c=>c.charCodeAt(0)
-);
-
-try{
-
-return new TextDecoder()
-.decode(bytes);
-
-}catch(e){
-
-return binary;
-
-}
-
-}
-
-
-/* =========================================================
-GET FILE CONTENT
-========================================================= */
-
-async function getFile(path){
-
-const data=
-await github(
-`${API}/repos/${repoInfo.owner}/${repoInfo.repo}/contents/${encodePath(path)}?ref=HEAD`
-);
-
-return{
-
-path:path,
-
-sha:data.sha,
-
-size:data.size||0,
-
-content:
-decodeBase64(data.content||"")
-
-};
-
-}
-
-
-/* =========================================================
-FIND REFERENCES IN CONTENT
-========================================================= */
-
-function extractReferences(content){
-
-const refs=new Set();
-
-
-/*
-HTML:
-
-href
-src
-action
-data-src
-*/
-
-const htmlRegex=
-/(?:href|src|action|data-src)\s*=\s*["']([^"']+)["']/gi;
-
-let match;
-
-while(
-(match=htmlRegex.exec(content))
-){
-
-refs.add(match[1]);
-
-}
-
-
-/*
-JavaScript imports:
-
-import "...";
-require("...");
-import("...");
-*/
-
-const jsRegex=
-/(?:import\s*(?:[^'"]*from\s*)?|import\s*\(|require\s*\()\s*["']([^"']+)["']/gi;
-
-while(
-(match=jsRegex.exec(content))
-){
-
-refs.add(match[1]);
-
-}
-
-
-/*
-CSS url(...)
-*/
-
-const cssRegex=
-/url\s*\(\s*["']?([^"')]+)["']?\s*\)/gi;
-
-while(
-(match=cssRegex.exec(content))
-){
-
-refs.add(match[1]);
-
-}
-
-
-/*
-Inline JS string references to HTML pages.
-*/
-
-const htmlStringRegex=
-/["'`]([^"'`?#\s]+\.html(?:\?[^"'`]*)?)["'`]/gi;
-
-while(
-(match=htmlStringRegex.exec(content))
-){
-
-refs.add(match[1]);
-
-}
-
-
-/*
-Common JS files.
-*/
-
-const jsStringRegex=
-/["'`]([^"'`?#\s]+\.(?:js|mjs|json|css))["'`]/gi;
-
-while(
-(match=jsStringRegex.exec(content))
-){
-
-refs.add(match[1]);
-
-}
-
-
-return [...refs];
-
-}
-
-
-/* =========================================================
-DASHBOARD ENTRY FILE
-========================================================= */
-
-function findDashboardFile(){
-
-const exact=
-allRepoFiles.find(
-f=>f.path.toLowerCase()==="dashboard.html"
-);
-
-if(exact)
-return exact;
-
-
-/*
-Fallback: root dashboard-like page.
-*/
-
-return allRepoFiles.find(
-f=>
-f.path.toLowerCase().endsWith("/dashboard.html")
-);
-
-}
-
-
-/* =========================================================
-RECURSIVE DISCOVERY
-========================================================= */
+/* =========================
+DISCOVERY
+========================= */
 
 async function discover(path){
 
-if(discoveredFiles.has(path))
+path=normalize(path);
+
+if(connected.has(path))
 return;
 
-const repoFile=
-allRepoFiles.find(
-f=>f.path===path
-);
+const rf=repoFile(path);
 
-if(!repoFile)
+if(!rf)
 return;
 
-
-/*
-Only readable source-like files.
-*/
-
-if(
-!isReadable(repoFile.path)
-)
+if(!sourceFile(path))
 return;
 
 
-status(
-"Reading attached file: "+path
+setStatus(
+"Following: "+path
 );
 
 
@@ -661,155 +825,92 @@ try{
 const file=
 await getFile(path);
 
-discoveredFiles.set(
-path,
-file
-);
+connected.set(path,file);
 
 
 /*
-Now inspect this file for references.
+Follow all references.
 */
 
 const refs=
-extractReferences(
-file.content
-);
+references(file.content);
 
 
 for(const ref of refs){
 
-const resolved=
-resolveReference(
-path,
-ref
-);
-
-if(!resolved)
-continue;
-
-
 const target=
-findRepoFile(resolved);
-
+resolve(path,ref);
 
 if(!target)
 continue;
 
+const found=
+repoFile(target);
+
+if(!found)
+continue;
 
 if(
-isReadable(target.path)
+sourceFile(found.path)
 ){
 
-await discover(target.path);
+await discover(found.path);
 
 }
 
 }
 
 }
-catch(error){
+catch(e){
 
-discoveredFiles.set(
+connected.set(
 path,
 {
 path:path,
-sha:repoFile.sha,
-size:repoFile.size,
+sha:rf.sha,
+size:rf.size,
 content:"",
-error:error.message
-});
-
+error:e.message
 }
-
-}
-
-
-/* =========================================================
-FILE LOOKUP
-========================================================= */
-
-function findRepoFile(path){
-
-let exact=
-allRepoFiles.find(
-f=>f.path===path
 );
 
-if(exact)return exact;
+}
+
+}
 
 
-/*
-Try adding common extensions.
-*/
+/* =========================
+DASHBOARD
+========================= */
 
-const candidates=[
+function locateDashboard(){
 
-path+".html",
-path+".js",
-path+".css",
-path+".json",
-
-path+"/index.html"
-
-];
-
-
-for(
-const candidate
-of candidates
-){
-
-exact=
-allRepoFiles.find(
-f=>f.path===candidate
+let f=
+repoFiles.find(
+x=>x.path==="dashboard.html"
 );
 
-if(exact)return exact;
-
-}
+if(f)return f;
 
 
-return null;
+f=
+repoFiles.find(
+x=>x.path.toLowerCase()==="dashboard.html"
+);
 
-}
+if(f)return f;
 
 
-/* =========================================================
-READABLE FILE
-========================================================= */
-
-function isReadable(path){
-
-const p=path.toLowerCase();
-
-return(
-p.endsWith(".html") ||
-p.endsWith(".htm") ||
-p.endsWith(".js") ||
-p.endsWith(".mjs") ||
-p.endsWith(".css") ||
-p.endsWith(".json") ||
-p.endsWith(".txt") ||
-p.endsWith(".xml") ||
-p.endsWith(".php") ||
-p.endsWith(".py") ||
-p.endsWith(".ts") ||
-p.endsWith(".tsx") ||
-p.endsWith(".jsx") ||
-p.endsWith(".vue") ||
-p.endsWith(".svelte") ||
-p.endsWith(".yaml") ||
-p.endsWith(".yml") ||
-!p.includes(".")
+return repoFiles.find(
+x=>x.path.toLowerCase().endsWith("/dashboard.html")
 );
 
 }
 
 
-/* =========================================================
-START SCAN
-========================================================= */
+/* =========================
+SCAN
+========================= */
 
 async function startScan(){
 
@@ -820,23 +921,23 @@ parseRepo(
 document.getElementById("repo").value
 );
 
-discoveredFiles.clear();
-scanResults=[];
-allRepoFiles=[];
+repoFiles=[];
+connected.clear();
+results=[];
 
 
-status(
-"Loading repository tree..."
+setStatus(
+"Loading ALL repository files..."
 );
 
 
 const tree=
-await github(
+await api(
 `${API}/repos/${repoInfo.owner}/${repoInfo.repo}/git/trees/HEAD?recursive=1`
 );
 
 
-allRepoFiles=
+repoFiles=
 (tree.tree||[])
 .filter(
 x=>x.type==="blob"
@@ -844,33 +945,26 @@ x=>x.type==="blob"
 
 
 const dashboard=
-findDashboardFile();
+locateDashboard();
 
 
 if(!dashboard){
 
 throw new Error(
-"dashboard.html was not found in the repository."
+"dashboard.html was not found."
 );
 
 }
 
 
-status(
-"Found dashboard.html. Following attached files..."
+setStatus(
+"✓ dashboard.html found\n"+
+"Starting connected-file scan..."
 );
 
 
 /*
-THIS IS THE IMPORTANT PART:
-
-Start ONLY at dashboard.html.
-
-Every referenced file is followed.
-
-Referenced files can reference other files.
-
-Those are followed too.
+Start ONLY from dashboard.html.
 */
 
 await discover(
@@ -878,51 +972,41 @@ dashboard.path
 );
 
 
-status(
-"Scanning discovered dashboard files for passwords and PINs..."
-);
+/*
+IMPORTANT FALLBACK:
+
+If dashboard.html uses buttons/functions that don't contain
+literal file paths, scan other HTML files that are clearly
+dashboard pages in the same application.
+
+This does NOT scan unrelated assets blindly.
+*/
+
+await discoverLikelyDashboardPages();
 
 
-for(
-const file
-of discoveredFiles.values()
-){
+/*
+Scan every connected file.
+*/
 
-if(file.error){
+for(const f of connected.values()){
 
-scanResults.push({
+if(f.error){
 
-path:file.path,
-sha:file.sha,
-size:file.size,
-content:"",
-findings:[],
-error:file.error
-
-});
+results.push(f);
 
 continue;
 
 }
 
 
-const findings=
-findSecrets(
-file.content
-);
+results.push({
 
-
-scanResults.push({
-
-path:file.path,
-
-sha:file.sha,
-
-size:file.size,
-
-content:file.content,
-
-findings:findings
+path:f.path,
+sha:f.sha,
+size:f.size,
+content:f.content,
+findings:findSecrets(f.content)
 
 });
 
@@ -932,16 +1016,19 @@ findings:findings
 renderTree();
 renderResults();
 
-
-status(
-`Complete. ${discoveredFiles.size} attached file(s) discovered and scanned.`
+setStatus(
+"✓ SCAN COMPLETE\n"+
+"dashboard.html: "+dashboard.path+
+"\nConnected files: "+connected.size+
+"\nPasswords/PINs found: "+
+results.reduce((n,x)=>n+(x.findings||[]).length,0)
 );
 
 }
-catch(error){
+catch(e){
 
-status(
-"ERROR: "+error.message
+setStatus(
+"❌ "+e.message
 );
 
 }
@@ -949,9 +1036,70 @@ status(
 }
 
 
-/* =========================================================
-SECRET SCANNER
-========================================================= */
+/* =========================
+LIKELY DASHBOARD PAGES
+========================= */
+
+async function discoverLikelyDashboardPages(){
+
+const dashboard=
+locateDashboard();
+
+if(!dashboard)return;
+
+
+/*
+HTML pages near dashboard.
+*/
+
+const candidates=
+repoFiles.filter(f=>{
+
+const p=f.path.toLowerCase();
+
+if(!p.endsWith(".html"))
+return false;
+
+if(connected.has(f.path))
+return false;
+
+
+/*
+Dashboard-related naming.
+*/
+
+return(
+p.includes("dashboard")||
+p.includes("sales")||
+p.includes("purchase")||
+p.includes("expense")||
+p.includes("inventory")||
+p.includes("stock")||
+p.includes("crm")||
+p.includes("cash")||
+p.includes("ledger")||
+p.includes("report")||
+p.includes("marketing")||
+p.includes("dispatch")||
+p.includes("admin")||
+p.includes("product")
+);
+
+});
+
+
+for(const f of candidates){
+
+await discover(f.path);
+
+}
+
+}
+
+
+/* =========================
+PASSWORD/PIN DETECTION
+========================= */
 
 function findSecrets(text){
 
@@ -959,50 +1107,56 @@ const patterns=[
 
 {
 type:"PASSWORD",
-regex:
-/\b(?:password|passwd|pwd)\b\s*(?:=|:|=>)\s*["'`]([^"'`\r\n]{3,120})["'`]/gi
+re:
+/\b(?:password|passwd|pwd)\b\s*(?:=|:|=>)\s*["'`]([^"'`\r\n]{3,200})["'`]/gi
 },
 
 {
 type:"PIN",
-regex:
-/\b(?:pin|passcode|accessPin|access_pin|adminPin|admin_pin|securityPin|security_pin)\b\s*(?:=|:|=>)\s*["'`](\d{4,10})["'`]/gi
+re:
+/\b(?:pin|passcode|accessPin|access_pin|adminPin|admin_pin|securityPin|security_pin)\b\s*(?:=|:|=>)\s*["'`](\d{4,12})["'`]/gi
 },
 
 {
 type:"PASSWORD COMPARISON",
-regex:
-/\b(?:password|passwd|pwd|pass|pin|passcode)\b[^;\r\n]{0,120}?(?:===|==|!==|!=)\s*["'`]([^"'`\r\n]{3,120})["'`]/gi
+re:
+/\b(?:password|passwd|pwd|pass|pin|passcode)\b[\s\S]{0,100}?(?:===|==|!==|!=)\s*["'`]([^"'`\r\n]{3,200})["'`]/gi
 },
 
 {
-type:"ACCESS KEY",
-regex:
-/\b(?:accessKey|access_key|accessCode|access_code)\b\s*(?:=|:|=>)\s*["'`]([^"'`\r\n]{3,150})["'`]/gi
+type:"HARDCODED CREDENTIAL",
+re:
+/["'`](?:password|passwd|pwd|pin|passcode)["'`]\s*[,=:]\s*["'`]([^"'`\r\n]{3,200})["'`]/gi
 },
 
 {
 type:"API KEY",
-regex:
+re:
 /\b(?:apiKey|api_key|apikey)\b\s*(?:=|:|=>)\s*["'`]([^"'`\r\n]{8,300})["'`]/gi
 },
 
 {
 type:"SECRET",
-regex:
+re:
 /\b(?:secret|secretKey|secret_key|clientSecret|client_secret)\b\s*(?:=|:|=>)\s*["'`]([^"'`\r\n]{4,300})["'`]/gi
 },
 
 {
 type:"TOKEN",
-regex:
+re:
 /\b(?:token|authToken|auth_token|accessToken|access_token)\b\s*(?:=|:|=>)\s*["'`]([^"'`\r\n]{8,500})["'`]/gi
 },
 
 {
 type:"LOCAL STORAGE CREDENTIAL",
-regex:
-/localStorage\.(?:setItem|getItem)\s*\(\s*["'`]([^"'`]*(?:password|pass|pin|token|secret|key)[^"'`]*)["'`]\s*(?:,\s*["'`]([^"'`]*)["'`])?/gi
+re:
+/localStorage\.(?:setItem|getItem)\s*\(\s*["'`]([^"'`]*(?:password|passwd|pwd|pin|token|secret|key)[^"'`]*)["'`]\s*(?:,\s*["'`]([^"'`]*)["'`])?/gi
+},
+
+{
+type:"FIREBASE CREDENTIAL",
+re:
+/(?:password|pin|passcode)\s*:\s*["'`]([^"'`\r\n]{3,200})["'`]/gi
 }
 
 ];
@@ -1012,72 +1166,55 @@ const found=[];
 const seen=new Set();
 
 
-for(
-const pattern of patterns
-){
+for(const p of patterns){
 
-let match;
+let m;
 
-
-while(
-(match=pattern.regex.exec(text))
-){
+while((m=p.re.exec(text))){
 
 let value=
-match[1];
-
-
-if(
-pattern.type===
-"LOCAL STORAGE CREDENTIAL"
-){
-
-value=
-match[2]||match[1];
-
-}
-
+p.type==="LOCAL STORAGE CREDENTIAL"
+?(m[2]||m[1])
+:m[1];
 
 if(!value)
 continue;
 
-
 value=value.trim();
 
 
+/*
+Ignore obvious placeholders.
+*/
+
 if(
-/^(your[_ -]?password|your[_ -]?key|your[_ -]?token|xxx+|change[_ -]?me|placeholder|example)$/i
+/^(xxx+|xxxx|example|placeholder|your[_ -]?(password|pin|key|token)|change[_ -]?me|enter[_ -]?here)$/i
 .test(value)
 )
 continue;
 
 
 const key=
-pattern.type+"|"+value;
+p.type+"|"+value;
 
 
 if(seen.has(key))
 continue;
-
 
 seen.add(key);
 
 
 const line=
 text
-.slice(0,match.index)
+.substring(0,m.index)
 .split(/\r?\n/)
 .length;
 
 
 found.push({
-
-type:pattern.type,
-
+type:p.type,
 value:value,
-
 line:line
-
 });
 
 }
@@ -1090,41 +1227,38 @@ return found;
 }
 
 
-/* =========================================================
+/* =========================
 TREE
-========================================================= */
+========================= */
 
 function renderTree(){
 
 const files=
-[...discoveredFiles.values()];
+[...connected.values()];
 
 
 document.getElementById("files")
-.textContent=
-files.length;
+.textContent=files.length;
 
 
 if(!files.length){
 
-document.getElementById("tree")
-.innerHTML=
-`<div class="muted">No files discovered.</div>`;
+document.getElementById("tree").innerHTML=
+"<div class='muted'>No connected files found.</div>";
 
 return;
 
 }
 
 
-document.getElementById("tree")
-.innerHTML=
-files.map((file,index)=>`
+document.getElementById("tree").innerHTML=
+files.map((f,i)=>`
 
-<div class="${index===0?"root":"linked"}">
+<div class="treeItem ${i===0?"root":"attached"}">
 
-${index===0?"🟢 ":"↳ "}
-
-${escapeHtml(file.path)}
+${i===0?"🟢":"↳"}
+&nbsp;
+${escapeHtml(f.path)}
 
 </div>
 
@@ -1133,13 +1267,13 @@ ${escapeHtml(file.path)}
 }
 
 
-/* =========================================================
+/* =========================
 RESULTS
-========================================================= */
+========================= */
 
 function renderResults(){
 
-const query=
+const q=
 document
 .getElementById("search")
 .value
@@ -1148,20 +1282,18 @@ document
 
 
 const visible=
-scanResults.filter(item=>{
+results.filter(f=>{
 
 const text=
-item.path+
+f.path+
 " "+
-item.findings
-.map(
-f=>f.type+" "+f.value
-)
+(f.findings||[])
+.map(x=>x.type+" "+x.value)
 .join(" ");
 
 return text
 .toLowerCase()
-.includes(query);
+.includes(q);
 
 });
 
@@ -1169,40 +1301,30 @@ return text
 let total=0;
 let errors=0;
 
+for(const f of results){
 
-for(
-const item
-of scanResults
-){
+if(f.error)errors++;
 
-total+=
-item.findings.length;
-
-if(item.error)
-errors++;
+total+=(f.findings||[]).length;
 
 }
 
 
 document.getElementById("scanned")
-.textContent=
-scanResults.length;
+.textContent=results.length;
 
 document.getElementById("findings")
-.textContent=
-total;
+.textContent=total;
 
 document.getElementById("errors")
-.textContent=
-errors;
+.textContent=errors;
 
 
 if(!visible.length){
 
-document.getElementById("results")
-.innerHTML=
+document.getElementById("results").innerHTML=
 `<div class="muted">
-No passwords or PINs found in the discovered files.
+No password or PIN findings.
 </div>`;
 
 return;
@@ -1210,61 +1332,66 @@ return;
 }
 
 
-document.getElementById("results")
-.innerHTML=
-visible.map(item=>{
+document.getElementById("results").innerHTML=
+visible.map(f=>{
 
-let badge;
+if(f.error){
 
+return`
 
-if(item.error){
+<div class="file">
 
-badge=
-`<span class="badge err">
+<div class="fileHead">
+
+<div class="path">
+📄 ${escapeHtml(f.path)}
+</div>
+
+<span class="badge err">
 ERROR
-</span>`;
+</span>
 
-}
-else if(item.findings.length){
+</div>
 
-badge=
-`<span class="badge found">
-${item.findings.length} FOUND
-</span>`;
+<div class="finding">
+${escapeHtml(f.error)}
+</div>
 
-}
-else{
+</div>
 
-badge=
-`<span class="badge clean">
-CLEAN
-</span>`;
+`;
 
 }
 
 
-let findingHTML="";
+const findings=f.findings||[];
 
 
-for(
-const f
-of item.findings
-){
+let badge=
+findings.length
+?`<span class="badge found">${findings.length} FOUND</span>`
+:`<span class="badge clean">CLEAN</span>`;
 
-findingHTML+=`
+
+let html="";
+
+
+for(const x of findings){
+
+html+=`
 
 <div class="finding">
 
 <div class="type">
-${escapeHtml(f.type)}
+${escapeHtml(x.type)}
 </div>
 
 <div class="value">
-${escapeHtml(f.value)}
+${escapeHtml(x.value)}
 </div>
 
 <div class="line">
-Line ${f.line}
+Line ${x.line}
 </div>
 
 </div>
@@ -1281,7 +1408,7 @@ return`
 <div class="fileHead">
 
 <div class="path">
-📄 ${escapeHtml(item.path)}
+📄 ${escapeHtml(f.path)}
 </div>
 
 ${badge}
@@ -1292,19 +1419,19 @@ ${badge}
 
 <button
 class="edit"
-onclick='openEditor(${JSON.stringify(item.path)})'>
+onclick='openEditor(${JSON.stringify(f.path)})'>
 ✏️ EDIT
 </button>
 
 <button
 class="delete"
-onclick='deleteFile(${JSON.stringify(item.path)})'>
+onclick='deleteFile(${JSON.stringify(f.path)})'>
 🗑 DELETE
 </button>
 
 </div>
 
-${findingHTML}
+${html}
 
 </div>
 
@@ -1315,39 +1442,36 @@ ${findingHTML}
 }
 
 
-/* =========================================================
+/* =========================
 EDITOR
-========================================================= */
+========================= */
 
 function openEditor(path){
 
 currentFile=
-scanResults.find(
+results.find(
 x=>x.path===path
 );
 
-if(!currentFile)
-return;
-
+if(!currentFile)return;
 
 document
 .getElementById("editorPanel")
 .classList.add("active");
 
-
-document.getElementById("editorTitle")
+document
+.getElementById("editorTitle")
 .textContent=
 "Edit: "+path;
 
-
-document.getElementById("editorText")
+document
+.getElementById("editorText")
 .value=
-currentFile.content;
+currentFile.content||"";
 
-
-document.getElementById("editorStatus")
+document
+.getElementById("editorStatus")
 .textContent="";
-
 
 window.scrollTo({
 
@@ -1374,40 +1498,34 @@ document
 }
 
 
-/* =========================================================
+/* =========================
 SAVE
-========================================================= */
+========================= */
 
 async function saveFile(){
 
-if(!currentFile)
-return;
+if(!currentFile)return;
 
+const t=getToken();
 
-const accessToken=
-token();
+if(!t){
 
-
-if(!accessToken){
-
-alert(
-"Enter your GitHub token first."
-);
+alert("Enter GitHub token first.");
 
 return;
 
 }
 
 
-if(
-!confirm(
-"Save this file directly to GitHub?"
-)
-)
+if(!confirm(
+"Save changes to:\n\n"+
+currentFile.path+
+"\n\nContinue?"
+))
 return;
 
 
-const newContent=
+const content=
 document
 .getElementById("editorText")
 .value;
@@ -1416,159 +1534,139 @@ document
 document
 .getElementById("editorStatus")
 .textContent=
-"Saving...";
+"Saving to GitHub...";
 
 
 try{
 
-const response=
-await github(
+const data=
+await api(
 
-`${API}/repos/${repoInfo.owner}/${repoInfo.repo}/contents/${encodePath(currentFile.path)}`,
+`${API}/repos/${repoInfo.owner}/${repoInfo.repo}/contents/${encPath(currentFile.path)}`,
 
 {
 
 method:"PUT",
 
 headers:{
-"Authorization":
-"Bearer "+accessToken,
-"Content-Type":
-"application/json"
+"Authorization":"Bearer "+t,
+"Content-Type":"application/json"
 },
 
-body:
-JSON.stringify({
+body:JSON.stringify({
 
 message:
-"Update dashboard attached file: "+
+"Update dashboard file: "+
 currentFile.path,
 
 content:
-utf8ToBase64(newContent),
+encodeBase64(content),
 
-sha:
-currentFile.sha
-
-})
-
-);
-
-
-currentFile.content=
-newContent;
-
-currentFile.sha=
-response.content.sha;
-
-currentFile.findings=
-findSecrets(newContent);
-
-
-document
-.getElementById("editorStatus")
-.textContent=
-"✅ Saved successfully.";
-
-renderResults();
-
-}
-catch(error){
-
-document
-.getElementById("editorStatus")
-.textContent=
-"❌ "+error.message;
-
-}
-
-}
-
-
-/* =========================================================
-DELETE
-========================================================= */
-
-async function deleteFile(path){
-
-const accessToken=
-token();
-
-
-if(!accessToken){
-
-alert(
-"Enter your GitHub token first."
-);
-
-return;
-
-}
-
-
-const item=
-scanResults.find(
-x=>x.path===path
-);
-
-
-if(!item)
-return;
-
-
-if(
-!confirm(
-"DELETE THIS FILE FROM GITHUB?\n\n"+
-path+
-"\n\nThis action creates a GitHub commit."
-)
-)
-return;
-
-
-status(
-"Deleting "+path+"..."
-);
-
-
-try{
-
-await github(
-
-`${API}/repos/${repoInfo.owner}/${repoInfo.repo}/contents/${encodePath(path)}`,
-
-{
-
-method:"DELETE",
-
-headers:{
-"Authorization":
-"Bearer "+accessToken,
-"Content-Type":
-"application/json"
-},
-
-body:
-JSON.stringify({
-
-message:
-"Delete dashboard attached file: "+
-path,
-
-sha:item.sha
+sha:currentFile.sha
 
 })
 
 });
 
 
-scanResults=
-scanResults.filter(
-x=>x.path!==path
+currentFile.content=content;
+currentFile.sha=data.content.sha;
+currentFile.findings=findSecrets(content);
+
+
+document
+.getElementById("editorStatus")
+textContent=""; /* harmless fallback */
+
+document
+.getElementById("editorStatus")
+.textContent=
+"✅ Saved successfully to GitHub.";
+
+renderResults();
+
+}
+catch(e){
+
+document
+.getElementById("editorStatus")
+.textContent=
+"❌ "+e.message;
+
+}
+
+}
+
+
+/* =========================
+DELETE
+========================= */
+
+async function deleteFile(path){
+
+const t=getToken();
+
+if(!t){
+
+alert("Enter GitHub token first.");
+
+return;
+
+}
+
+
+const f=
+results.find(
+x=>x.path===path
+);
+
+if(!f)return;
+
+
+if(!confirm(
+"PERMANENTLY DELETE:\n\n"+
+path+
+"\n\nThis creates a GitHub commit.\n\nContinue?"
+))
+return;
+
+
+setStatus(
+"Deleting "+path+"..."
 );
 
 
-discoveredFiles.delete(path);
+try{
+
+await api(
+
+`${API}/repos/${repoInfo.owner}/${repoInfo.repo}/contents/${encPath(path)}`,
+
+{
+
+method:"DELETE",
+
+headers:{
+"Authorization":"Bearer "+t,
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+message:
+"Delete dashboard file: "+path,
+
+sha:f.sha
+
+})
+
+});
+
+
+results=
+results.filter(x=>x.path!==path);
+
+connected.delete(path);
 
 
 renderTree();
@@ -1576,114 +1674,66 @@ renderResults();
 closeEditor();
 
 
-status(
-"✅ Deleted "+path
+setStatus(
+"✅ Deleted "+path+" from GitHub."
 );
 
 }
-catch(error){
+catch(e){
 
-status(
-"❌ Delete failed: "+error.message
-);
-
-}
-
-}
-
-
-/* =========================================================
-BASE64 ENCODE
-========================================================= */
-
-function utf8ToBase64(text){
-
-const bytes=
-new TextEncoder()
-.encode(text);
-
-let binary="";
-
-const chunk=0x8000;
-
-
-for(
-let i=0;
-i<bytes.length;
-i+=chunk
-){
-
-binary+=
-String.fromCharCode(
-...bytes.subarray(
-i,
-Math.min(
-i+chunk,
-bytes.length
-)
-)
+setStatus(
+"❌ Delete failed: "+e.message
 );
 
 }
 
-
-return btoa(binary);
-
 }
 
 
-/* =========================================================
+/* =========================
 EXPORT
-========================================================= */
+========================= */
 
 function exportReport(){
 
-if(!scanResults.length)
+if(!results.length){
+
+alert("Run a scan first.");
+
 return;
+
+}
 
 
 const rows=[
-
-[
-"File",
-"Finding",
-"Value",
-"Line"
-]
-
+["FILE","FINDING","VALUE","LINE"]
 ];
 
 
-for(
-const item
-of scanResults
-){
+for(const f of results){
 
-if(!item.findings.length){
+if(!f.findings||!f.findings.length){
 
 rows.push([
-item.path,
-"CLEAN",
-"",
+f.path,
+f.error?"ERROR":"CLEAN",
+f.error||"",
 ""
 ]);
 
-}
-else{
+continue;
 
-for(
-const f
-of item.findings
-){
+}
+
+
+for(const x of f.findings){
 
 rows.push([
-item.path,
-f.type,
-f.value,
-f.line
+f.path,
+x.type,
+x.value,
+x.line
 ]);
-
-}
 
 }
 
@@ -1691,30 +1741,22 @@ f.line
 
 
 const csv=
-rows
-.map(row=>
-row
-.map(x=>
-`"${String(x)
-.replace(/"/g,'""')}"`
-)
-.join(",")
-)
-.join("\n");
+rows.map(r=>
+r.map(x=>
+`"${String(x).replace(/"/g,'""')}"`
+).join(",")
+).join("\n");
 
 
 const blob=
 new Blob(
 [csv],
-{
-type:"text/csv;charset=utf-8"
-}
+{type:"text/csv;charset=utf-8"}
 );
 
 
 const url=
 URL.createObjectURL(blob);
-
 
 const a=
 document.createElement("a");
@@ -1722,7 +1764,7 @@ document.createElement("a");
 a.href=url;
 
 a.download=
-"AssetGuard-Dashboard-Security-Report.csv";
+"AssetGuard-Dashboard-Password-PIN-Scan.csv";
 
 a.click();
 
@@ -1734,26 +1776,13 @@ setTimeout(
 }
 
 
-/* =========================================================
-STATUS
-========================================================= */
-
-function status(text){
-
-document
-.getElementById("status")
-.textContent=text;
-
-}
-
-
-/* =========================================================
+/* =========================
 ESCAPE
-========================================================= */
+========================= */
 
-function escapeHtml(value){
+function escapeHtml(x){
 
-return String(value)
+return String(x)
 .replace(/[&<>"']/g,c=>({
 
 "&":"&amp;",
@@ -1767,9 +1796,9 @@ return String(value)
 }
 
 
-/* =========================================================
+/* =========================
 SEARCH
-========================================================= */
+========================= */
 
 document
 .getElementById("search")
