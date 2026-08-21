@@ -4,12 +4,7 @@
 <script src="error-utils.js"></script>
 <script src="ag-utils.js"></script>
 <script src="ag-config.js"></script>
-<script src="instant-loader.js"></script>
 <script type="module" src="auth-guard.js"></script>
-<script>
-    // Keep protected content hidden until Firebase confirms the session.
-    document.documentElement.classList.add('auth-pending');
-</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>RouteStock Pro — Direct Dispatches & Live Tracking</title>
@@ -39,21 +34,6 @@
 *{ box-sizing:border-box; margin:0; padding:0; }
 html,body{ width:100%; min-height:100%; font-family:'Segoe UI',Roboto,system-ui,sans-serif; background:var(--bg); color:var(--text); }
 body{ overflow-x:hidden; }
-html.auth-pending { background:var(--bg); }
-html.auth-pending body { visibility:hidden; }
-#auth-loading-screen {
-  position:fixed; inset:0; z-index:9999999; display:flex; align-items:center;
-  justify-content:center; background:var(--bg); color:var(--text); visibility:visible;
-}
-.auth-loading-card {
-  display:flex; align-items:center; gap:10px; padding:16px 20px; border:1px solid var(--line);
-  border-radius:14px; background:var(--card); box-shadow:var(--shadow); font-size:13px; font-weight:800;
-}
-.auth-loading-spinner {
-  width:18px; height:18px; border:3px solid #dbeafe; border-top-color:var(--blue);
-  border-radius:50%; animation:auth-spin .8s linear infinite;
-}
-@keyframes auth-spin { to { transform:rotate(360deg); } }
 button,input,textarea,select{ font:inherit; }
 button{ cursor:pointer; -webkit-tap-highlight-color:transparent; }
 
@@ -173,13 +153,6 @@ if (!localStorage.getItem("routeStockUser")) {
 </head>
 
 <body>
-
-<div id="auth-loading-screen" role="status" aria-live="polite">
-    <div class="auth-loading-card">
-        <div class="auth-loading-spinner" aria-hidden="true"></div>
-        <div>Securing your session…</div>
-    </div>
-</div>
 
 <div class="app">
 <main class="main">
@@ -327,15 +300,6 @@ let dispatches = [];
 let adminRequests = {};
 let activeGeoWatchId = null;
 let currentDispatchId = null;
-
-auth.onAuthStateChanged((user) => {
-    if (!user) return;
-
-    document.documentElement.classList.remove("auth-pending");
-    document.documentElement.classList.add("auth-ready");
-    document.getElementById("auth-loading-screen")?.remove();
-    window.AGInstantLoader?.hide();
-});
 
 // Direct-route protection: Fixed Area users must not open this page manually.
 (function enforceMarketingTeamAccess() {

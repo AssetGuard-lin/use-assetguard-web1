@@ -4,7 +4,6 @@
 <script src="error-utils.js"></script>
 <script src="ag-utils.js"></script>
 <script src="ag-config.js"></script>
-<script src="instant-loader.js"></script>
 <script type="module" src="auth-guard.js"></script>
 <script>
     // Keep the protected UI invisible until Firebase has resolved the session.
@@ -152,7 +151,6 @@ body.app-locked iframe {
 }
 
 iframe { width: 100%; height: 100%; border: none; display: none; }
-iframe.content-loading { visibility: hidden; }
 
 .overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.65); backdrop-filter: blur(4px); z-index: 1050; }
 .overlay.active { display: block; }
@@ -711,7 +709,6 @@ auth.onAuthStateChanged((user) => {
     document.documentElement.classList.remove('auth-pending');
     document.documentElement.classList.add('auth-ready');
     document.getElementById('auth-loading-screen')?.remove();
-    window.AGInstantLoader?.hide();
 });
 
 window.addEventListener('click', (e) => {
@@ -1808,11 +1805,8 @@ window.loadPage = (pageName) => {
         return;
     }
     document.getElementById('dashboard-wrapper').style.display = 'none';
-    const mainFrame = document.getElementById('main-frame');
-    mainFrame.classList.add('content-loading');
-    mainFrame.onload = () => mainFrame.classList.remove('content-loading');
-    mainFrame.style.display = 'block';
-    mainFrame.src = `${pageName}.html?uid=${activeUID}`;
+    document.getElementById('main-frame').style.display = 'block';
+    document.getElementById('main-frame').src = `${pageName}.html?uid=${activeUID}`;
     closeAll(); 
     logUserActivity('GENERAL', `Loaded module page: ${pageName}`);
 };
