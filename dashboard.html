@@ -5,6 +5,10 @@
 <script src="ag-utils.js"></script>
 <script src="ag-config.js"></script>
 <script type="module" src="auth-guard.js"></script>
+<script>
+    // Keep the protected UI invisible until Firebase has resolved the session.
+    document.documentElement.classList.add('auth-pending');
+</script>
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -29,6 +33,29 @@
 
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg-light);display:flex;height:100vh;overflow:hidden;color:var(--text-main);user-select:none;}
+
+/* Prevent a protected page flash while Firebase restores the session. */
+html.auth-pending { background: var(--bg-light); }
+html.auth-pending body { visibility: hidden; }
+html.auth-pending #auth-loading-screen { visibility: visible; }
+html.auth-ready body { visibility: visible; }
+#auth-loading-screen {
+    position: fixed; inset: 0; z-index: 99999;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg-light);
+}
+#auth-loading-screen .auth-loading-card {
+    width: min(300px, calc(100vw - 40px)); padding: 24px;
+    border: 1px solid var(--border-color); border-radius: 16px;
+    background: var(--card-bg); box-shadow: 0 12px 35px rgba(15,23,42,.08);
+    text-align: center; color: var(--text-muted); font-size: 13px;
+}
+#auth-loading-screen .auth-loading-spinner {
+    width: 26px; height: 26px; margin: 0 auto 12px;
+    border: 3px solid #dbeafe; border-top-color: var(--primary);
+    border-radius: 50%; animation: auth-spin .8s linear infinite;
+}
+@keyframes auth-spin { to { transform: rotate(360deg); } }
 
 /* Absolute Lock Shield Class */
 body.app-locked .sidebar,
@@ -330,6 +357,12 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body class="app-locked">
+<div id="auth-loading-screen" role="status" aria-live="polite">
+    <div class="auth-loading-card">
+        <div class="auth-loading-spinner" aria-hidden="true"></div>
+        <div>Securing your session…</div>
+    </div>
+</div>
 
 <div id="hubSubscriptionBlocker" style="position: fixed; inset: 0; background: rgba(0, 26, 53, 0.98); backdrop-filter: blur(16px); z-index: 9999999; display: flex; align-items: center; justify-content: center; padding: 20px; color: #ffffff;">
     <div style="background: #ffffff; color: #0f172a; width: 100%; max-width: 420px; border-radius: 24px; padding: 32px 24px; text-align: center; box-shadow: 0 25px 60px rgba(0,0,0,0.6);">
@@ -651,7 +684,13 @@ document.addEventListener('copy', (e) => {
 auth.onAuthStateChanged((user) => {
     if (!user) {
         window.location.replace("index.html");
+        return;
     }
+
+    // Reveal the dashboard only after Firebase has confirmed access.
+    document.documentElement.classList.remove('auth-pending');
+    document.documentElement.classList.add('auth-ready');
+    document.getElementById('auth-loading-screen')?.remove();
 });
 
 window.addEventListener('click', (e) => {
