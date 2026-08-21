@@ -1,119 +1,1197 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Universal Code & String Extractor</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+
+<title>AssetGuard Password & PIN Scanner</title>
+
+<style>
+:root{
+  --bg:#07111f;
+  --card:#0d1b2e;
+  --line:#20334d;
+  --text:#eaf2ff;
+  --muted:#91a4bd;
+  --accent:#35d07f;
+  --warn:#ffbd4a;
+  --danger:#ff6678;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  background:linear-gradient(145deg,#06101d,#0a1728);
+  color:var(--text);
+  font-family:Arial,sans-serif;
+}
+
+.wrap{
+  max-width:1000px;
+  margin:auto;
+  padding:18px;
+}
+
+.hero{
+  padding:22px 4px;
+}
+
+.hero h1{
+  margin:0 0 8px;
+  font-size:25px;
+}
+
+.hero p{
+  margin:0;
+  color:var(--muted);
+  line-height:1.5;
+}
+
+.panel{
+  background:rgba(13,27,46,.96);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:16px;
+  margin:12px 0;
+  box-shadow:0 12px 35px #0004;
+}
+
+.actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.btn{
+  border:0;
+  border-radius:10px;
+  padding:12px 15px;
+  font-weight:800;
+  cursor:pointer;
+  background:#183252;
+  color:white;
+}
+
+.btn.primary{
+  background:var(--accent);
+  color:#04130b;
+}
+
+.btn.warn{
+  background:var(--warn);
+  color:#1b1300;
+}
+
+.btn.danger{
+  background:#6e2330;
+}
+
+.btn:disabled{
+  opacity:.45;
+}
+
+input[type=file]{
+  display:none;
+}
+
+.drop{
+  border:2px dashed #315171;
+  border-radius:14px;
+  padding:25px;
+  text-align:center;
+  cursor:pointer;
+  background:#0a1727;
+}
+
+.drop strong{
+  display:block;
+  margin-bottom:7px;
+}
+
+.drop span{
+  color:var(--muted);
+  font-size:13px;
+}
+
+.stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:9px;
+}
+
+.stat{
+  background:#091626;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:13px;
+}
+
+.stat b{
+  display:block;
+  font-size:22px;
+}
+
+.stat small{
+  color:var(--muted);
+}
+
+.progress{
+  height:9px;
+  background:#06101c;
+  border-radius:20px;
+  overflow:hidden;
+  margin:10px 0;
+}
+
+.bar{
+  height:100%;
+  width:0;
+  background:var(--accent);
+  transition:.2s;
+}
+
+.search{
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid var(--line);
+  background:#081423;
+  color:white;
+  outline:none;
+}
+
+.result{
+  border:1px solid var(--line);
+  border-radius:12px;
+  margin:9px 0;
+  padding:13px;
+  background:#091727;
+}
+
+.rhead{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.fname{
+  font-weight:800;
+  word-break:break-word;
+}
+
+.badge{
+  padding:4px 8px;
+  border-radius:20px;
+  font-size:11px;
+  font-weight:800;
+  white-space:nowrap;
+}
+
+.found{
+  background:#143c2a;
+  color:#6ff0a5;
+}
+
+.none{
+  background:#263449;
+  color:#aab8ca;
+}
+
+.err{
+  background:#4a2028;
+  color:#ff9aa6;
+}
+
+.item{
+  margin-top:9px;
+  padding:9px;
+  background:#06111e;
+  border-radius:9px;
+  font-family:monospace;
+  font-size:12px;
+  word-break:break-all;
+}
+
+.item .type{
+  color:#6ff0a5;
+  font-weight:bold;
+}
+
+.item .loc{
+  color:#91a4bd;
+}
+
+.note{
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.5;
+}
+
+.empty{
+  text-align:center;
+  color:var(--muted);
+  padding:30px;
+}
+
+@media(max-width:650px){
+  .stats{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .hero h1{
+    font-size:21px;
+  }
+}
+</style>
 </head>
-<body class="bg-slate-900 text-slate-100 font-sans min-h-screen p-6">
-    <div class="max-w-6xl mx-auto space-y-6">
-        
-        <header class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-lg">
-            <h1 class="text-xl font-bold text-indigo-400">Universal Code & String Extractor</h1>
-            <p class="text-xs text-slate-400 mt-1">Upload your file. This tool extracts every quoted string and displays the full file contents line-by-line so you can see everything instantly.</p>
-        </header>
 
-        <!-- File Upload Section -->
-        <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-lg space-y-4">
-            <label class="block text-xs uppercase tracking-wider text-slate-400">Upload Code File:</label>
-            <input type="file" id="file-input" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-xs text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer">
-            <button onclick="extractAllStrings()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-lg text-xs font-medium transition">Extract All Strings & Content</button>
-        </div>
+<body>
 
-        <!-- Results Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            
-            <!-- Extracted Quoted Strings -->
-            <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-lg">
-                <h2 class="text-sm font-semibold text-slate-200 mb-3">All Quoted Strings Found in File</h2>
-                <div class="overflow-x-auto max-h-96">
-                    <table class="w-full text-left text-xs text-slate-300">
-                        <thead class="bg-slate-900 uppercase text-slate-400 sticky top-0">
-                            <tr>
-                                <th class="p-2.5">#</th>
-                                <th class="p-2.5">Extracted String Value</th>
-                            </tr>
-                        </thead>
-                        <tbody id="strings-tbody" class="divide-y divide-slate-700">
-                            <tr><td colspan="2" class="p-4 text-center text-slate-500">No file uploaded yet.</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+<div class="wrap">
 
-            <!-- Line-by-Line Viewer -->
-            <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-lg">
-                <h2 class="text-sm font-semibold text-slate-200 mb-3">Line-by-Line File Content</h2>
-                <div class="overflow-x-auto max-h-96 bg-slate-900 p-3 rounded-xl border border-slate-700 font-mono text-xs">
-                    <pre id="raw-content-view" class="text-slate-300 whitespace-pre-wrap">Upload a file to view content...</pre>
-                </div>
-            </div>
+  <div class="hero">
+    <h1>🔐 AssetGuard Password & PIN Scanner</h1>
 
-        </div>
+    <p>
+      Select the folder containing your files and scan all readable
+      source/text files for password, PIN, access-key, token and API-key
+      values.
+    </p>
+  </div>
+
+
+  <!-- FILE SELECTOR -->
+  <div class="panel">
+
+    <label class="drop" for="fileInput">
+
+      <strong>
+        📁 Select Folder Containing Your Files
+      </strong>
+
+      <span>
+        Choose the folder. The scanner will automatically process
+        the files inside it.
+      </span>
+
+    </label>
+
+    <input
+      id="fileInput"
+      type="file"
+      multiple
+      webkitdirectory
+      directory
+    >
+
+    <div style="height:10px"></div>
+
+    <div class="actions">
+
+      <button
+        class="btn primary"
+        id="scanBtn"
+        disabled>
+        ▶ Scan Files
+      </button>
+
+      <button
+        class="btn warn"
+        id="stopBtn"
+        disabled>
+        ■ Stop
+      </button>
+
+      <button
+        class="btn"
+        id="exportBtn"
+        disabled>
+        ⬇ Export Report
+      </button>
+
+      <button
+        class="btn danger"
+        id="clearBtn">
+        Clear
+      </button>
 
     </div>
 
-    <script>
-        async function extractAllStrings() {
-            const fileInput = document.getElementById('file-input');
-            const stringsTbody = document.getElementById('strings-tbody');
-            const rawView = document.getElementById('raw-content-view');
-            
-            stringsTbody.innerHTML = '';
-            rawView.textContent = '';
+    <div class="progress">
+      <div
+        class="bar"
+        id="bar">
+      </div>
+    </div>
 
-            if (fileInput.files.length === 0) {
-                stringsTbody.innerHTML = `<tr><td colspan="2" class="p-4 text-center text-slate-500">Please select a file first.</td></tr>`;
-                return;
-            }
+    <div
+      id="status"
+      class="note">
+      No files selected.
+    </div>
 
-            const file = fileInput.files[0];
-            try {
-                const text = await readFileContent(file);
-                rawView.textContent = text;
+  </div>
 
-                // Extract all strings inside double or single quotes (at least 2 characters long)
-                const stringRegex = /["']([^"'\n\r]{2,})["']/g;
-                let match;
-                let count = 0;
-                const seen = new Set();
 
-                while ((match = stringRegex.exec(text)) !== null) {
-                    const val = match[1];
-                    if (!seen.has(val)) {
-                        seen.add(val);
-                        count++;
-                        stringsTbody.innerHTML += `
-                            <tr class="hover:bg-slate-700/40">
-                                <td class="p-2.5 font-mono text-slate-500">${count}</td>
-                                <td class="p-2.5 font-mono text-indigo-300 font-bold select-all">${escapeHtml(val)}</td>
-                            </tr>
-                        `;
-                    }
-                }
+  <!-- STATISTICS -->
+  <div class="panel">
 
-                if (count === 0) {
-                    stringsTbody.innerHTML = `<tr><td colspan="2" class="p-4 text-center text-slate-500">No quoted strings found.</td></tr>`;
-                }
+    <div class="stats">
 
-            } catch (err) {
-                alert("Error reading file: " + err.message);
-            }
-        }
+      <div class="stat">
+        <b id="fileCount">0</b>
+        <small>Files</small>
+      </div>
 
-        function readFileContent(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = e => resolve(e.target.result);
-                reader.onerror = e => reject(e);
-                reader.readAsText(file);
-            });
-        }
+      <div class="stat">
+        <b id="scanned">0</b>
+        <small>Scanned</small>
+      </div>
 
-        function escapeHtml(str) {
-            return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-        }
-    </script>
+      <div class="stat">
+        <b id="hits">0</b>
+        <small>Password/PIN Hits</small>
+      </div>
+
+      <div class="stat">
+        <b id="errors">0</b>
+        <small>Errors</small>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- SEARCH -->
+  <div class="panel">
+
+    <input
+      class="search"
+      id="search"
+      placeholder="Search filename, password, PIN, API key, token...">
+
+  </div>
+
+
+  <!-- RESULTS -->
+  <div class="panel">
+
+    <div id="results">
+
+      <div class="empty">
+        Scan results will appear here.
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <div class="panel note">
+
+    <b>Important:</b>
+
+    This scanner detects credentials that are actually present
+    in readable source/text files.
+
+    It does not decrypt encrypted ZIP/PDF/DOCX files and does not
+    bypass passwords.
+
+  </div>
+
+</div>
+
+
+<script>
+
+const input =
+  document.getElementById("fileInput");
+
+const scanBtn =
+  document.getElementById("scanBtn");
+
+const stopBtn =
+  document.getElementById("stopBtn");
+
+const exportBtn =
+  document.getElementById("exportBtn");
+
+const clearBtn =
+  document.getElementById("clearBtn");
+
+const resultsEl =
+  document.getElementById("results");
+
+const statusEl =
+  document.getElementById("status");
+
+const bar =
+  document.getElementById("bar");
+
+const searchEl =
+  document.getElementById("search");
+
+
+let files = [];
+let results = [];
+let stop = false;
+
+
+/*
+==========================================================
+SUPPORTED TEXT FILES
+==========================================================
+*/
+
+const TEXT_EXT =
+  /\.(html?|js|css|json|txt|xml|csv|md|php|py|java|kt|dart|ts|tsx|jsx|vue|sql|yaml|yml|env|ini|conf|config|log)$/i;
+
+
+/*
+==========================================================
+FILES WE DON'T NEED TO READ AS TEXT
+==========================================================
+*/
+
+const SKIP_EXT =
+  /\.(png|jpe?g|gif|webp|bmp|ico|mp3|mp4|avi|mov|mkv|woff2?|ttf|otf|exe|apk|bin)$/i;
+
+
+/*
+==========================================================
+FILE SELECTION
+==========================================================
+*/
+
+input.addEventListener("change", () => {
+
+  files = [...input.files];
+
+  results = [];
+
+  render();
+
+  scanBtn.disabled = !files.length;
+
+  exportBtn.disabled = true;
+
+  statusEl.textContent =
+    files.length
+      ? `${files.length} file(s) ready. Press Scan.`
+      : "No files selected.";
+
+  bar.style.width = "0%";
+
+});
+
+
+/*
+==========================================================
+HTML ESCAPE
+==========================================================
+*/
+
+function esc(value){
+
+  return String(value)
+    .replace(/[&<>"']/g, m => ({
+
+      "&":"&amp;",
+      "<":"&lt;",
+      ">":"&gt;",
+      '"':"&quot;",
+      "'":"&#039;"
+
+    }[m]));
+
+}
+
+
+/*
+==========================================================
+ADD RESULT
+==========================================================
+*/
+
+function addResult(
+  file,
+  status,
+  items = [],
+  message = ""
+){
+
+  results.push({
+
+    name:
+      file.webkitRelativePath ||
+      file.name,
+
+    size:
+      file.size,
+
+    type:
+      file.type,
+
+    status,
+
+    items,
+
+    message
+
+  });
+
+}
+
+
+/*
+==========================================================
+PASSWORD / PIN DETECTION
+==========================================================
+*/
+
+function regexHits(text){
+
+  const found = [];
+
+  const seen = new Set();
+
+
+  const patterns = [
+
+    /*
+    PIN
+    */
+
+    {
+      type:"PIN / Numeric Code",
+
+      re:
+      /\b(?:pin|passcode|access\s*pin|admin\s*pin|security\s*pin)\b\s*(?:=|:|=>)\s*["'`](\d{4,8})["'`]/gi
+    },
+
+
+    /*
+    PASSWORD
+    */
+
+    {
+      type:"Password",
+
+      re:
+      /\b(?:password|passwd|pass|access\s*key|secret)\b\s*(?:=|:|=>)\s*["'`]([^"'`]{3,80})["'`]/gi
+    },
+
+
+    /*
+    PASSWORD COMPARISON
+    */
+
+    {
+      type:"Password Comparison",
+
+      re:
+      /\b(?:password|pass|pin|access\s*key|secret)\b[^;\n]{0,100}?(?:===|==)\s*["'`]([^"'`]{3,80})["'`]/gi
+    },
+
+
+    /*
+    API KEY / TOKEN
+    */
+
+    {
+      type:"API Key / Token",
+
+      re:
+      /\b(?:api[_ -]?key|token|access[_ -]?token|secret[_ -]?key)\b\s*(?:=|:|=>)\s*["'`]([^"'`]{6,200})["'`]/gi
+    },
+
+
+    /*
+    LOCAL STORAGE CREDENTIAL
+    */
+
+    {
+      type:"Credential Storage Key",
+
+      re:
+      /localStorage\.(?:setItem|getItem)\s*\(\s*["'`]([^"'`]*(?:pass|pin|token|key|secret)[^"'`]*)["'`]/gi
+    }
+
+  ];
+
+
+  for(const pattern of patterns){
+
+    let match;
+
+
+    while((match = pattern.re.exec(text))){
+
+      const value =
+        match[1]?.trim();
+
+
+      if(!value)
+        continue;
+
+
+      const key =
+        pattern.type +
+        "|" +
+        value;
+
+
+      if(seen.has(key))
+        continue;
+
+
+      seen.add(key);
+
+
+      const line =
+        text
+          .slice(0, match.index)
+          .split(/\r?\n/)
+          .length;
+
+
+      found.push({
+
+        type:
+          pattern.type,
+
+        value:
+          value,
+
+        line:
+          line
+
+      });
+
+
+      if(found.length >= 100)
+        return found;
+
+    }
+
+  }
+
+
+  return found;
+
+}
+
+
+/*
+==========================================================
+READ FILE
+==========================================================
+*/
+
+async function readFile(file){
+
+  /*
+  Skip images/binary files
+  */
+
+  if(SKIP_EXT.test(file.name)){
+
+    return {
+
+      items:[],
+
+      message:
+        "Binary/media file skipped."
+
+    };
+
+  }
+
+
+  /*
+  Prevent extremely large files
+  */
+
+  if(file.size > 15 * 1024 * 1024){
+
+    return {
+
+      items:[],
+
+      message:
+        "File larger than 15 MB skipped."
+
+    };
+
+  }
+
+
+  try{
+
+    const text =
+      await file.text();
+
+
+    return {
+
+      items:
+        regexHits(text),
+
+      message:""
+
+    };
+
+  }
+
+  catch(error){
+
+    return {
+
+      items:[],
+
+      message:
+        error.message ||
+        "Could not read file."
+
+    };
+
+  }
+
+}
+
+
+/*
+==========================================================
+SCAN
+==========================================================
+*/
+
+async function scan(){
+
+  if(!files.length)
+    return;
+
+
+  stop = false;
+
+  results = [];
+
+
+  scanBtn.disabled = true;
+
+  stopBtn.disabled = false;
+
+  exportBtn.disabled = true;
+
+
+  for(let i = 0; i < files.length; i++){
+
+    if(stop)
+      break;
+
+
+    const file =
+      files[i];
+
+
+    const result =
+      await readFile(file);
+
+
+    addResult(
+
+      file,
+
+      result.message
+        ? "error"
+        : result.items.length
+          ? "found"
+          : "none",
+
+      result.items,
+
+      result.message
+
+    );
+
+
+    document.getElementById("scanned")
+      .textContent = i + 1;
+
+
+    bar.style.width =
+      Math.round(
+        ((i + 1) / files.length) * 100
+      ) + "%";
+
+
+    statusEl.textContent =
+      `Scanning ${i + 1} of ${files.length}: ${
+        file.webkitRelativePath ||
+        file.name
+      }`;
+
+
+    render();
+
+
+    await new Promise(
+      requestAnimationFrame
+    );
+
+  }
+
+
+  stopBtn.disabled = true;
+
+  scanBtn.disabled = false;
+
+  exportBtn.disabled =
+    !results.length;
+
+
+  statusEl.textContent =
+    stop
+      ? `Stopped after ${results.length} file(s).`
+      : `Finished. ${results.length} file(s) scanned.`;
+
+}
+
+
+/*
+==========================================================
+RENDER
+==========================================================
+*/
+
+function render(){
+
+  document.getElementById("fileCount")
+    .textContent = files.length;
+
+
+  document.getElementById("scanned")
+    .textContent = results.length;
+
+
+  document.getElementById("hits")
+    .textContent =
+      results.reduce(
+        (total, result) =>
+          total + result.items.length,
+        0
+      );
+
+
+  document.getElementById("errors")
+    .textContent =
+      results.filter(
+        result =>
+          result.status === "error"
+      ).length;
+
+
+  const query =
+    searchEl.value
+      .trim()
+      .toLowerCase();
+
+
+  const visible =
+    results.filter(result => {
+
+      const text =
+        result.name +
+        " " +
+        result.items
+          .map(x =>
+            x.type +
+            " " +
+            x.value
+          )
+          .join(" ");
+
+
+      return text
+        .toLowerCase()
+        .includes(query);
+
+    });
+
+
+  if(!visible.length){
+
+    resultsEl.innerHTML =
+      `<div class="empty">
+        No matching results.
+      </div>`;
+
+    return;
+
+  }
+
+
+  resultsEl.innerHTML =
+    visible.map(result => {
+
+
+      let badge;
+
+
+      if(result.status === "found"){
+
+        badge =
+          `<span class="badge found">
+            FOUND
+          </span>`;
+
+      }
+
+      else if(result.status === "error"){
+
+        badge =
+          `<span class="badge err">
+            ERROR
+          </span>`;
+
+      }
+
+      else{
+
+        badge =
+          `<span class="badge none">
+            NONE FOUND
+          </span>`;
+
+      }
+
+
+      const items =
+        result.items.map(item => {
+
+          return `
+
+            <div class="item">
+
+              <div>
+                <span class="type">
+                  ${esc(item.type)}
+                </span>
+              </div>
+
+              <div>
+                <b>Value:</b>
+                ${esc(item.value)}
+              </div>
+
+              <div class="loc">
+                Approx. line:
+                ${item.line}
+              </div>
+
+            </div>
+
+          `;
+
+        }).join("");
+
+
+      return `
+
+        <div class="result">
+
+          <div class="rhead">
+
+            <div class="fname">
+
+              📄 ${esc(result.name)}
+
+              <div class="loc">
+                ${Math.round(result.size / 1024)}
+                KB
+              </div>
+
+            </div>
+
+            ${badge}
+
+          </div>
+
+
+          ${
+            result.message
+              ? `
+                <div
+                  class="note"
+                  style="margin-top:8px">
+
+                  ${esc(result.message)}
+
+                </div>
+              `
+              : ""
+          }
+
+
+          ${items}
+
+        </div>
+
+      `;
+
+    }).join("");
+
+}
+
+
+/*
+==========================================================
+EXPORT REPORT
+==========================================================
+*/
+
+function exportReport(){
+
+  const output = [
+
+    "AssetGuard Password & PIN Scanner Report",
+
+    "Generated: " +
+      new Date().toLocaleString(),
+
+    "",
+
+    "FILE | STATUS | TYPE | VALUE | LINE"
+
+  ];
+
+
+  for(const result of results){
+
+    if(!result.items.length){
+
+      output.push(
+
+        `${result.name} | ${result.status} | | |`
+
+      );
+
+    }
+
+    else{
+
+      result.items.forEach(item => {
+
+        output.push(
+
+          `${result.name} | FOUND | ` +
+
+          `${item.type} | ` +
+
+          `${item.value.replace(/\|/g,"/")} | ` +
+
+          `${item.line}`
+
+        );
+
+      });
+
+    }
+
+  }
+
+
+  const blob =
+    new Blob(
+
+      [output.join("\n")],
+
+      {
+        type:
+          "text/plain;charset=utf-8"
+      }
+
+    );
+
+
+  const link =
+    document.createElement("a");
+
+
+  link.href =
+    URL.createObjectURL(blob);
+
+
+  link.download =
+    "password-pin-scan-report.txt";
+
+
+  link.click();
+
+
+  setTimeout(
+    () =>
+      URL.revokeObjectURL(link.href),
+    1000
+  );
+
+}
+
+
+/*
+==========================================================
+BUTTONS
+==========================================================
+*/
+
+scanBtn.onclick =
+  scan;
+
+
+stopBtn.onclick =
+  () => {
+
+    stop = true;
+
+  };
+
+
+exportBtn.onclick =
+  exportReport;
+
+
+searchEl.oninput =
+  render;
+
+
+clearBtn.onclick =
+  () => {
+
+    files = [];
+
+    results = [];
+
+    input.value = "";
+
+    bar.style.width = "0%";
+
+    scanBtn.disabled = true;
+
+    exportBtn.disabled = true;
+
+    statusEl.textContent =
+      "Cleared.";
+
+    render();
+
+  };
+
+</script>
+
 </body>
 </html>
