@@ -2,250 +2,52 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-
-<title>AssetGuard Password & PIN Scanner</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>AssetGuard Dashboard File Security Manager</title>
 
 <style>
-:root{
-  --bg:#07111f;
-  --card:#0d1b2e;
-  --line:#20334d;
-  --text:#eaf2ff;
-  --muted:#91a4bd;
-  --accent:#35d07f;
-  --warn:#ffbd4a;
-  --danger:#ff6678;
-}
-
-*{
-  box-sizing:border-box;
-}
-
-body{
-  margin:0;
-  background:linear-gradient(145deg,#06101d,#0a1728);
-  color:var(--text);
-  font-family:Arial,sans-serif;
-}
-
-.wrap{
-  max-width:1000px;
-  margin:auto;
-  padding:18px;
-}
-
-.hero{
-  padding:22px 4px;
-}
-
-.hero h1{
-  margin:0 0 8px;
-  font-size:25px;
-}
-
-.hero p{
-  margin:0;
-  color:var(--muted);
-  line-height:1.5;
-}
-
-.panel{
-  background:rgba(13,27,46,.96);
-  border:1px solid var(--line);
-  border-radius:16px;
-  padding:16px;
-  margin:12px 0;
-  box-shadow:0 12px 35px #0004;
-}
-
-.actions{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-}
-
-.btn{
-  border:0;
-  border-radius:10px;
-  padding:12px 15px;
-  font-weight:800;
-  cursor:pointer;
-  background:#183252;
-  color:white;
-}
-
-.btn.primary{
-  background:var(--accent);
-  color:#04130b;
-}
-
-.btn.warn{
-  background:var(--warn);
-  color:#1b1300;
-}
-
-.btn.danger{
-  background:#6e2330;
-}
-
-.btn:disabled{
-  opacity:.45;
-}
-
-input[type=file]{
-  display:none;
-}
-
-.drop{
-  border:2px dashed #315171;
-  border-radius:14px;
-  padding:25px;
-  text-align:center;
-  cursor:pointer;
-  background:#0a1727;
-}
-
-.drop strong{
-  display:block;
-  margin-bottom:7px;
-}
-
-.drop span{
-  color:var(--muted);
-  font-size:13px;
-}
-
-.stats{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:9px;
-}
-
-.stat{
-  background:#091626;
-  border:1px solid var(--line);
-  border-radius:12px;
-  padding:13px;
-}
-
-.stat b{
-  display:block;
-  font-size:22px;
-}
-
-.stat small{
-  color:var(--muted);
-}
-
-.progress{
-  height:9px;
-  background:#06101c;
-  border-radius:20px;
-  overflow:hidden;
-  margin:10px 0;
-}
-
-.bar{
-  height:100%;
-  width:0;
-  background:var(--accent);
-  transition:.2s;
-}
-
-.search{
-  width:100%;
-  padding:12px;
-  border-radius:10px;
-  border:1px solid var(--line);
-  background:#081423;
-  color:white;
-  outline:none;
-}
-
-.result{
-  border:1px solid var(--line);
-  border-radius:12px;
-  margin:9px 0;
-  padding:13px;
-  background:#091727;
-}
-
-.rhead{
-  display:flex;
-  justify-content:space-between;
-  gap:10px;
-}
-
-.fname{
-  font-weight:800;
-  word-break:break-word;
-}
-
-.badge{
-  padding:4px 8px;
-  border-radius:20px;
-  font-size:11px;
-  font-weight:800;
-  white-space:nowrap;
-}
-
-.found{
-  background:#143c2a;
-  color:#6ff0a5;
-}
-
-.none{
-  background:#263449;
-  color:#aab8ca;
-}
-
-.err{
-  background:#4a2028;
-  color:#ff9aa6;
-}
-
-.item{
-  margin-top:9px;
-  padding:9px;
-  background:#06111e;
-  border-radius:9px;
-  font-family:monospace;
-  font-size:12px;
-  word-break:break-all;
-}
-
-.item .type{
-  color:#6ff0a5;
-  font-weight:bold;
-}
-
-.item .loc{
-  color:#91a4bd;
-}
-
-.note{
-  font-size:12px;
-  color:var(--muted);
-  line-height:1.5;
-}
-
-.empty{
-  text-align:center;
-  color:var(--muted);
-  padding:30px;
-}
-
-@media(max-width:650px){
-  .stats{
-    grid-template-columns:repeat(2,1fr);
-  }
-
-  .hero h1{
-    font-size:21px;
-  }
-}
+*{box-sizing:border-box}
+body{margin:0;background:#07111f;color:#eef5ff;font-family:Arial,sans-serif}
+.wrap{max-width:1100px;margin:auto;padding:15px}
+.panel{background:#0d1b2e;border:1px solid #20334d;border-radius:15px;padding:15px;margin:12px 0}
+h1{font-size:22px;margin:0 0 8px}
+h3{margin-top:0}
+.muted{color:#91a4bd;font-size:12px;line-height:1.5}
+input,textarea{width:100%;background:#071321;border:1px solid #29415f;border-radius:9px;color:white;padding:11px;outline:none}
+textarea{min-height:520px;font-family:monospace;font-size:12px;resize:vertical}
+button{border:0;border-radius:9px;padding:11px 14px;font-weight:800;cursor:pointer;margin:3px}
+button:disabled{opacity:.4}
+.scan{background:#35d07f;color:#04130b}
+.edit{background:#4da3ff;color:white}
+.save{background:#35d07f;color:#04130b}
+.delete{background:#ff6678;color:white}
+.cancel{background:#263449;color:white}
+.export{background:#183252;color:white}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.stat{background:#091626;border:1px solid #20334d;padding:12px;border-radius:10px}
+.stat b{display:block;font-size:21px}
+.stat span{font-size:10px;color:#91a4bd}
+.file{background:#091727;border:1px solid #20334d;border-radius:12px;margin:9px 0;overflow:hidden}
+.fileHead{padding:12px;display:flex;justify-content:space-between;gap:10px}
+.path{font-weight:800;font-size:13px;word-break:break-all}
+.badge{padding:4px 8px;border-radius:20px;font-size:10px;font-weight:900;white-space:nowrap}
+.found{background:#143c2a;color:#6ff0a5}
+.clean{background:#263449;color:#b4c1d1}
+.err{background:#4a2028;color:#ff9aa6}
+.finding{border-top:1px solid #20334d;padding:11px}
+.type{color:#6ff0a5;font-weight:900;font-size:10px}
+.value{font-family:monospace;background:#050d17;padding:8px;border-radius:7px;margin-top:5px;word-break:break-all}
+.line{font-size:10px;color:#91a4bd;margin-top:5px}
+.editor{display:none}
+.editor.active{display:block}
+.status{font-size:12px;color:#91a4bd;margin-top:8px;line-height:1.5}
+.tokenBox{display:none}
+.tokenBox.active{display:block}
+.tree{background:#081423;border:1px solid #20334d;border-radius:10px;padding:10px;margin-top:10px}
+.tree div{padding:5px 0;font-size:12px;word-break:break-all}
+.root{color:#6ff0a5;font-weight:900}
+.linked{color:#8ec8ff}
+@media(max-width:650px){.stats{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 
@@ -253,943 +55,1728 @@ input[type=file]{
 
 <div class="wrap">
 
-  <div class="hero">
-    <h1>🔐 AssetGuard Password & PIN Scanner</h1>
-
-    <p>
-      Select the folder containing your files and scan all readable
-      source/text files for password, PIN, access-key, token and API-key
-      values.
-    </p>
-  </div>
-
-
-  <!-- FILE SELECTOR -->
-  <div class="panel">
-
-    <label class="drop" for="fileInput">
-
-      <strong>
-        📁 Select Folder Containing Your Files
-      </strong>
-
-      <span>
-        Choose the folder. The scanner will automatically process
-        the files inside it.
-      </span>
-
-    </label>
-
-    <input
-      id="fileInput"
-      type="file"
-      multiple
-      webkitdirectory
-      directory
-    >
-
-    <div style="height:10px"></div>
-
-    <div class="actions">
-
-      <button
-        class="btn primary"
-        id="scanBtn"
-        disabled>
-        ▶ Scan Files
-      </button>
-
-      <button
-        class="btn warn"
-        id="stopBtn"
-        disabled>
-        ■ Stop
-      </button>
-
-      <button
-        class="btn"
-        id="exportBtn"
-        disabled>
-        ⬇ Export Report
-      </button>
-
-      <button
-        class="btn danger"
-        id="clearBtn">
-        Clear
-      </button>
-
-    </div>
-
-    <div class="progress">
-      <div
-        class="bar"
-        id="bar">
-      </div>
-    </div>
-
-    <div
-      id="status"
-      class="note">
-      No files selected.
-    </div>
-
-  </div>
+<div class="panel">
+<h1>🔐 AssetGuard Dashboard Security Manager</h1>
+<div class="muted">
+Starts from <b>dashboard.html</b>, follows files referenced by it,
+then follows references inside those files. Passwords and PINs are
+searched throughout the discovered dashboard file tree.
+</div>
+</div>
 
 
-  <!-- STATISTICS -->
-  <div class="panel">
+<div class="panel">
 
-    <div class="stats">
+<h3>Repository</h3>
 
-      <div class="stat">
-        <b id="fileCount">0</b>
-        <small>Files</small>
-      </div>
+<input
+id="repo"
+value="https://github.com/assetguard-lin/use-assetguard-web1">
 
-      <div class="stat">
-        <b id="scanned">0</b>
-        <small>Scanned</small>
-      </div>
+<br>
 
-      <div class="stat">
-        <b id="hits">0</b>
-        <small>Password/PIN Hits</small>
-      </div>
+<button class="scan" onclick="startScan()">
+🔎 SCAN DASHBOARD + ATTACHED FILES
+</button>
 
-      <div class="stat">
-        <b id="errors">0</b>
-        <small>Errors</small>
-      </div>
+<button class="export" onclick="exportReport()">
+⬇ EXPORT
+</button>
 
-    </div>
+<div id="status" class="status">
+Ready.
+</div>
 
-  </div>
+</div>
 
 
-  <!-- SEARCH -->
-  <div class="panel">
+<div class="panel">
 
-    <input
-      class="search"
-      id="search"
-      placeholder="Search filename, password, PIN, API key, token...">
+<button class="edit" onclick="toggleToken()">
+🔑 GitHub EDIT / DELETE AUTHORIZATION
+</button>
 
-  </div>
+<div id="tokenBox" class="tokenBox">
+
+<div class="muted">
+GitHub token is required only for modifying repository files.
+It is not stored by this page.
+</div>
+
+<br>
+
+<input
+id="token"
+type="password"
+placeholder="GitHub token">
+
+</div>
+
+</div>
 
 
-  <!-- RESULTS -->
-  <div class="panel">
+<div class="panel">
 
-    <div id="results">
+<div class="stats">
 
-      <div class="empty">
-        Scan results will appear here.
-      </div>
+<div class="stat">
+<b id="files">0</b>
+<span>ATTACHED FILES</span>
+</div>
 
-    </div>
+<div class="stat">
+<b id="scanned">0</b>
+<span>SCANNED</span>
+</div>
 
-  </div>
+<div class="stat">
+<b id="findings">0</b>
+<span>PASSWORD/PIN FINDINGS</span>
+</div>
+
+<div class="stat">
+<b id="errors">0</b>
+<span>ERRORS</span>
+</div>
+
+</div>
+
+</div>
 
 
-  <div class="panel note">
+<div class="panel">
 
-    <b>Important:</b>
+<input
+id="search"
+placeholder="Search file, password, PIN...">
 
-    This scanner detects credentials that are actually present
-    in readable source/text files.
+</div>
 
-    It does not decrypt encrypted ZIP/PDF/DOCX files and does not
-    bypass passwords.
 
-  </div>
+<div class="panel">
+
+<h3>Discovered Dashboard Files</h3>
+
+<div id="tree" class="tree">
+<div class="muted">Nothing scanned yet.</div>
+</div>
+
+</div>
+
+
+<div class="panel">
+
+<h3>Security Findings</h3>
+
+<div id="results">
+<div class="muted">Nothing scanned yet.</div>
+</div>
+
+</div>
+
+
+<div id="editorPanel" class="panel editor">
+
+<h3 id="editorTitle">Edit File</h3>
+
+<textarea
+id="editorText"
+spellcheck="false"></textarea>
+
+<br>
+
+<button class="save" onclick="saveFile()">
+💾 SAVE TO GITHUB
+</button>
+
+<button class="delete" onclick="deleteCurrentFile()">
+🗑 DELETE FILE
+</button>
+
+<button class="cancel" onclick="closeEditor()">
+CANCEL
+</button>
+
+<div id="editorStatus" class="status"></div>
+
+</div>
 
 </div>
 
 
 <script>
 
-const input =
-  document.getElementById("fileInput");
+/* =========================================================
+CONFIG
+========================================================= */
 
-const scanBtn =
-  document.getElementById("scanBtn");
+const API="https://api.github.com";
+const API_VERSION="2022-11-28";
 
-const stopBtn =
-  document.getElementById("stopBtn");
-
-const exportBtn =
-  document.getElementById("exportBtn");
-
-const clearBtn =
-  document.getElementById("clearBtn");
-
-const resultsEl =
-  document.getElementById("results");
-
-const statusEl =
-  document.getElementById("status");
-
-const bar =
-  document.getElementById("bar");
-
-const searchEl =
-  document.getElementById("search");
+let repoInfo=null;
+let allRepoFiles=[];
+let discoveredFiles=new Map();
+let scanResults=[];
+let currentFile=null;
 
 
-let files = [];
-let results = [];
-let stop = false;
+/* =========================================================
+REPO
+========================================================= */
+
+function parseRepo(url){
+
+url=url.trim()
+.replace(/\/+$/,"")
+.replace(/\.git$/i,"");
+
+const match=
+url.match(
+/github\.com\/([^\/]+)\/([^\/#?]+)/
+);
+
+if(!match)
+throw new Error("Invalid GitHub repository URL.");
+
+return{
+owner:match[1],
+repo:match[2]
+};
+
+}
+
+
+/* =========================================================
+GITHUB API
+========================================================= */
+
+async function github(url,options={}){
+
+options.headers={
+"Accept":"application/vnd.github+json",
+"X-GitHub-Api-Version":API_VERSION,
+...(options.headers||{})
+};
+
+const response=
+await fetch(url,options);
+
+if(!response.ok){
+
+let message=
+"GitHub HTTP "+response.status;
+
+try{
+
+const data=await response.json();
+
+if(data.message)
+message+=": "+data.message;
+
+}catch(e){}
+
+throw new Error(message);
+
+}
+
+return response.json();
+
+}
+
+
+/* =========================================================
+TOKEN
+========================================================= */
+
+function toggleToken(){
+
+document
+.getElementById("tokenBox")
+.classList.toggle("active");
+
+}
+
+function token(){
+
+return document
+.getElementById("token")
+.value.trim();
+
+}
+
+
+/* =========================================================
+PATH HELPERS
+========================================================= */
+
+function encodePath(path){
+
+return path
+.split("/")
+.map(x=>encodeURIComponent(x))
+.join("/");
+
+}
+
+
+function normalizePath(path){
+
+const parts=path.split("/");
+const out=[];
+
+for(const part of parts){
+
+if(!part || part===".")continue;
+
+if(part===".."){
+out.pop();
+}else{
+out.push(part);
+}
+
+}
+
+return out.join("/");
+
+}
+
+
+function directoryOf(path){
+
+const p=path.lastIndexOf("/");
+
+return p===-1 ? "" : path.slice(0,p);
+
+}
+
+
+/* =========================================================
+RESOLVE REFERENCE
+========================================================= */
+
+function resolveReference(fromPath,ref){
+
+ref=ref.trim();
+
+if(!ref)return null;
+
+ref=ref.replace(/^["']|["']$/g,"");
+
+if(
+ref.startsWith("#") ||
+ref.startsWith("data:") ||
+ref.startsWith("mailto:") ||
+ref.startsWith("tel:")
+)
+return null;
+
+if(
+/^(https?:)?\/\//i.test(ref)
+)
+return null;
+
+if(
+/^(javascript:|mailto:|tel:)/i.test(ref)
+)
+return null;
 
 
 /*
-==========================================================
-SUPPORTED TEXT FILES
-==========================================================
+Remove query and hash.
 */
 
-const TEXT_EXT =
-  /\.(html?|js|css|json|txt|xml|csv|md|php|py|java|kt|dart|ts|tsx|jsx|vue|sql|yaml|yml|env|ini|conf|config|log)$/i;
+ref=ref.split("#")[0];
+ref=ref.split("?")[0];
+
+if(!ref)return null;
 
 
 /*
-==========================================================
-FILES WE DON'T NEED TO READ AS TEXT
-==========================================================
+Root-relative reference.
 */
 
-const SKIP_EXT =
-  /\.(png|jpe?g|gif|webp|bmp|ico|mp3|mp4|avi|mov|mkv|woff2?|ttf|otf|exe|apk|bin)$/i;
+if(ref.startsWith("/")){
+
+ref=ref.replace(/^\/+/,"");
+
+return normalizePath(ref);
+
+}
 
 
 /*
-==========================================================
-FILE SELECTION
-==========================================================
+Relative reference.
 */
 
-input.addEventListener("change", () => {
+return normalizePath(
+directoryOf(fromPath)+"/"+ref
+);
 
-  files = [...input.files];
+}
 
-  results = [];
 
-  render();
+/* =========================================================
+GET RAW CONTENT
+========================================================= */
 
-  scanBtn.disabled = !files.length;
+function rawUrl(path){
 
-  exportBtn.disabled = true;
+return(
+"https://raw.githubusercontent.com/"+
+encodeURIComponent(repoInfo.owner)+"/"+
+encodeURIComponent(repoInfo.repo)+
+"/HEAD/"+
+path.split("/")
+.map(encodeURIComponent)
+.join("/")
+);
 
-  statusEl.textContent =
-    files.length
-      ? `${files.length} file(s) ready. Press Scan.`
-      : "No files selected.";
+}
 
-  bar.style.width = "0%";
+
+/* =========================================================
+BASE64 DECODE
+========================================================= */
+
+function decodeBase64(value){
+
+value=value.replace(/\n/g,"");
+
+const binary=atob(value);
+
+const bytes=
+Uint8Array.from(
+binary,
+c=>c.charCodeAt(0)
+);
+
+try{
+
+return new TextDecoder()
+.decode(bytes);
+
+}catch(e){
+
+return binary;
+
+}
+
+}
+
+
+/* =========================================================
+GET FILE CONTENT
+========================================================= */
+
+async function getFile(path){
+
+const data=
+await github(
+`${API}/repos/${repoInfo.owner}/${repoInfo.repo}/contents/${encodePath(path)}?ref=HEAD`
+);
+
+return{
+
+path:path,
+
+sha:data.sha,
+
+size:data.size||0,
+
+content:
+decodeBase64(data.content||"")
+
+};
+
+}
+
+
+/* =========================================================
+FIND REFERENCES IN CONTENT
+========================================================= */
+
+function extractReferences(content){
+
+const refs=new Set();
+
+
+/*
+HTML:
+
+href
+src
+action
+data-src
+*/
+
+const htmlRegex=
+/(?:href|src|action|data-src)\s*=\s*["']([^"']+)["']/gi;
+
+let match;
+
+while(
+(match=htmlRegex.exec(content))
+){
+
+refs.add(match[1]);
+
+}
+
+
+/*
+JavaScript imports:
+
+import "...";
+require("...");
+import("...");
+*/
+
+const jsRegex=
+/(?:import\s*(?:[^'"]*from\s*)?|import\s*\(|require\s*\()\s*["']([^"']+)["']/gi;
+
+while(
+(match=jsRegex.exec(content))
+){
+
+refs.add(match[1]);
+
+}
+
+
+/*
+CSS url(...)
+*/
+
+const cssRegex=
+/url\s*\(\s*["']?([^"')]+)["']?\s*\)/gi;
+
+while(
+(match=cssRegex.exec(content))
+){
+
+refs.add(match[1]);
+
+}
+
+
+/*
+Inline JS string references to HTML pages.
+*/
+
+const htmlStringRegex=
+/["'`]([^"'`?#\s]+\.html(?:\?[^"'`]*)?)["'`]/gi;
+
+while(
+(match=htmlStringRegex.exec(content))
+){
+
+refs.add(match[1]);
+
+}
+
+
+/*
+Common JS files.
+*/
+
+const jsStringRegex=
+/["'`]([^"'`?#\s]+\.(?:js|mjs|json|css))["'`]/gi;
+
+while(
+(match=jsStringRegex.exec(content))
+){
+
+refs.add(match[1]);
+
+}
+
+
+return [...refs];
+
+}
+
+
+/* =========================================================
+DASHBOARD ENTRY FILE
+========================================================= */
+
+function findDashboardFile(){
+
+const exact=
+allRepoFiles.find(
+f=>f.path.toLowerCase()==="dashboard.html"
+);
+
+if(exact)
+return exact;
+
+
+/*
+Fallback: root dashboard-like page.
+*/
+
+return allRepoFiles.find(
+f=>
+f.path.toLowerCase().endsWith("/dashboard.html")
+);
+
+}
+
+
+/* =========================================================
+RECURSIVE DISCOVERY
+========================================================= */
+
+async function discover(path){
+
+if(discoveredFiles.has(path))
+return;
+
+const repoFile=
+allRepoFiles.find(
+f=>f.path===path
+);
+
+if(!repoFile)
+return;
+
+
+/*
+Only readable source-like files.
+*/
+
+if(
+!isReadable(repoFile.path)
+)
+return;
+
+
+status(
+"Reading attached file: "+path
+);
+
+
+try{
+
+const file=
+await getFile(path);
+
+discoveredFiles.set(
+path,
+file
+);
+
+
+/*
+Now inspect this file for references.
+*/
+
+const refs=
+extractReferences(
+file.content
+);
+
+
+for(const ref of refs){
+
+const resolved=
+resolveReference(
+path,
+ref
+);
+
+if(!resolved)
+continue;
+
+
+const target=
+findRepoFile(resolved);
+
+
+if(!target)
+continue;
+
+
+if(
+isReadable(target.path)
+){
+
+await discover(target.path);
+
+}
+
+}
+
+}
+catch(error){
+
+discoveredFiles.set(
+path,
+{
+path:path,
+sha:repoFile.sha,
+size:repoFile.size,
+content:"",
+error:error.message
+});
+
+}
+
+}
+
+
+/* =========================================================
+FILE LOOKUP
+========================================================= */
+
+function findRepoFile(path){
+
+let exact=
+allRepoFiles.find(
+f=>f.path===path
+);
+
+if(exact)return exact;
+
+
+/*
+Try adding common extensions.
+*/
+
+const candidates=[
+
+path+".html",
+path+".js",
+path+".css",
+path+".json",
+
+path+"/index.html"
+
+];
+
+
+for(
+const candidate
+of candidates
+){
+
+exact=
+allRepoFiles.find(
+f=>f.path===candidate
+);
+
+if(exact)return exact;
+
+}
+
+
+return null;
+
+}
+
+
+/* =========================================================
+READABLE FILE
+========================================================= */
+
+function isReadable(path){
+
+const p=path.toLowerCase();
+
+return(
+p.endsWith(".html") ||
+p.endsWith(".htm") ||
+p.endsWith(".js") ||
+p.endsWith(".mjs") ||
+p.endsWith(".css") ||
+p.endsWith(".json") ||
+p.endsWith(".txt") ||
+p.endsWith(".xml") ||
+p.endsWith(".php") ||
+p.endsWith(".py") ||
+p.endsWith(".ts") ||
+p.endsWith(".tsx") ||
+p.endsWith(".jsx") ||
+p.endsWith(".vue") ||
+p.endsWith(".svelte") ||
+p.endsWith(".yaml") ||
+p.endsWith(".yml") ||
+!p.includes(".")
+);
+
+}
+
+
+/* =========================================================
+START SCAN
+========================================================= */
+
+async function startScan(){
+
+try{
+
+repoInfo=
+parseRepo(
+document.getElementById("repo").value
+);
+
+discoveredFiles.clear();
+scanResults=[];
+allRepoFiles=[];
+
+
+status(
+"Loading repository tree..."
+);
+
+
+const tree=
+await github(
+`${API}/repos/${repoInfo.owner}/${repoInfo.repo}/git/trees/HEAD?recursive=1`
+);
+
+
+allRepoFiles=
+(tree.tree||[])
+.filter(
+x=>x.type==="blob"
+);
+
+
+const dashboard=
+findDashboardFile();
+
+
+if(!dashboard){
+
+throw new Error(
+"dashboard.html was not found in the repository."
+);
+
+}
+
+
+status(
+"Found dashboard.html. Following attached files..."
+);
+
+
+/*
+THIS IS THE IMPORTANT PART:
+
+Start ONLY at dashboard.html.
+
+Every referenced file is followed.
+
+Referenced files can reference other files.
+
+Those are followed too.
+*/
+
+await discover(
+dashboard.path
+);
+
+
+status(
+"Scanning discovered dashboard files for passwords and PINs..."
+);
+
+
+for(
+const file
+of discoveredFiles.values()
+){
+
+if(file.error){
+
+scanResults.push({
+
+path:file.path,
+sha:file.sha,
+size:file.size,
+content:"",
+findings:[],
+error:file.error
+
+});
+
+continue;
+
+}
+
+
+const findings=
+findSecrets(
+file.content
+);
+
+
+scanResults.push({
+
+path:file.path,
+
+sha:file.sha,
+
+size:file.size,
+
+content:file.content,
+
+findings:findings
+
+});
+
+}
+
+
+renderTree();
+renderResults();
+
+
+status(
+`Complete. ${discoveredFiles.size} attached file(s) discovered and scanned.`
+);
+
+}
+catch(error){
+
+status(
+"ERROR: "+error.message
+);
+
+}
+
+}
+
+
+/* =========================================================
+SECRET SCANNER
+========================================================= */
+
+function findSecrets(text){
+
+const patterns=[
+
+{
+type:"PASSWORD",
+regex:
+/\b(?:password|passwd|pwd)\b\s*(?:=|:|=>)\s*["'`]([^"'`\r\n]{3,120})["'`]/gi
+},
+
+{
+type:"PIN",
+regex:
+/\b(?:pin|passcode|accessPin|access_pin|adminPin|admin_pin|securityPin|security_pin)\b\s*(?:=|:|=>)\s*["'`](\d{4,10})["'`]/gi
+},
+
+{
+type:"PASSWORD COMPARISON",
+regex:
+/\b(?:password|passwd|pwd|pass|pin|passcode)\b[^;\r\n]{0,120}?(?:===|==|!==|!=)\s*["'`]([^"'`\r\n]{3,120})["'`]/gi
+},
+
+{
+type:"ACCESS KEY",
+regex:
+/\b(?:accessKey|access_key|accessCode|access_code)\b\s*(?:=|:|=>)\s*["'`]([^"'`\r\n]{3,150})["'`]/gi
+},
+
+{
+type:"API KEY",
+regex:
+/\b(?:apiKey|api_key|apikey)\b\s*(?:=|:|=>)\s*["'`]([^"'`\r\n]{8,300})["'`]/gi
+},
+
+{
+type:"SECRET",
+regex:
+/\b(?:secret|secretKey|secret_key|clientSecret|client_secret)\b\s*(?:=|:|=>)\s*["'`]([^"'`\r\n]{4,300})["'`]/gi
+},
+
+{
+type:"TOKEN",
+regex:
+/\b(?:token|authToken|auth_token|accessToken|access_token)\b\s*(?:=|:|=>)\s*["'`]([^"'`\r\n]{8,500})["'`]/gi
+},
+
+{
+type:"LOCAL STORAGE CREDENTIAL",
+regex:
+/localStorage\.(?:setItem|getItem)\s*\(\s*["'`]([^"'`]*(?:password|pass|pin|token|secret|key)[^"'`]*)["'`]\s*(?:,\s*["'`]([^"'`]*)["'`])?/gi
+}
+
+];
+
+
+const found=[];
+const seen=new Set();
+
+
+for(
+const pattern of patterns
+){
+
+let match;
+
+
+while(
+(match=pattern.regex.exec(text))
+){
+
+let value=
+match[1];
+
+
+if(
+pattern.type===
+"LOCAL STORAGE CREDENTIAL"
+){
+
+value=
+match[2]||match[1];
+
+}
+
+
+if(!value)
+continue;
+
+
+value=value.trim();
+
+
+if(
+/^(your[_ -]?password|your[_ -]?key|your[_ -]?token|xxx+|change[_ -]?me|placeholder|example)$/i
+.test(value)
+)
+continue;
+
+
+const key=
+pattern.type+"|"+value;
+
+
+if(seen.has(key))
+continue;
+
+
+seen.add(key);
+
+
+const line=
+text
+.slice(0,match.index)
+.split(/\r?\n/)
+.length;
+
+
+found.push({
+
+type:pattern.type,
+
+value:value,
+
+line:line
+
+});
+
+}
+
+}
+
+
+return found;
+
+}
+
+
+/* =========================================================
+TREE
+========================================================= */
+
+function renderTree(){
+
+const files=
+[...discoveredFiles.values()];
+
+
+document.getElementById("files")
+.textContent=
+files.length;
+
+
+if(!files.length){
+
+document.getElementById("tree")
+.innerHTML=
+`<div class="muted">No files discovered.</div>`;
+
+return;
+
+}
+
+
+document.getElementById("tree")
+.innerHTML=
+files.map((file,index)=>`
+
+<div class="${index===0?"root":"linked"}">
+
+${index===0?"🟢 ":"↳ "}
+
+${escapeHtml(file.path)}
+
+</div>
+
+`).join("");
+
+}
+
+
+/* =========================================================
+RESULTS
+========================================================= */
+
+function renderResults(){
+
+const query=
+document
+.getElementById("search")
+.value
+.trim()
+.toLowerCase();
+
+
+const visible=
+scanResults.filter(item=>{
+
+const text=
+item.path+
+" "+
+item.findings
+.map(
+f=>f.type+" "+f.value
+)
+.join(" ");
+
+return text
+.toLowerCase()
+.includes(query);
 
 });
 
 
-/*
-==========================================================
-HTML ESCAPE
-==========================================================
-*/
-
-function esc(value){
-
-  return String(value)
-    .replace(/[&<>"']/g, m => ({
-
-      "&":"&amp;",
-      "<":"&lt;",
-      ">":"&gt;",
-      '"':"&quot;",
-      "'":"&#039;"
-
-    }[m]));
-
-}
+let total=0;
+let errors=0;
 
 
-/*
-==========================================================
-ADD RESULT
-==========================================================
-*/
-
-function addResult(
-  file,
-  status,
-  items = [],
-  message = ""
+for(
+const item
+of scanResults
 ){
 
-  results.push({
+total+=
+item.findings.length;
 
-    name:
-      file.webkitRelativePath ||
-      file.name,
-
-    size:
-      file.size,
-
-    type:
-      file.type,
-
-    status,
-
-    items,
-
-    message
-
-  });
+if(item.error)
+errors++;
 
 }
 
 
-/*
-==========================================================
-PASSWORD / PIN DETECTION
-==========================================================
-*/
+document.getElementById("scanned")
+.textContent=
+scanResults.length;
 
-function regexHits(text){
+document.getElementById("findings")
+.textContent=
+total;
 
-  const found = [];
-
-  const seen = new Set();
-
-
-  const patterns = [
-
-    /*
-    PIN
-    */
-
-    {
-      type:"PIN / Numeric Code",
-
-      re:
-      /\b(?:pin|passcode|access\s*pin|admin\s*pin|security\s*pin)\b\s*(?:=|:|=>)\s*["'`](\d{4,8})["'`]/gi
-    },
+document.getElementById("errors")
+.textContent=
+errors;
 
 
-    /*
-    PASSWORD
-    */
+if(!visible.length){
 
-    {
-      type:"Password",
+document.getElementById("results")
+.innerHTML=
+`<div class="muted">
+No passwords or PINs found in the discovered files.
+</div>`;
 
-      re:
-      /\b(?:password|passwd|pass|access\s*key|secret)\b\s*(?:=|:|=>)\s*["'`]([^"'`]{3,80})["'`]/gi
-    },
-
-
-    /*
-    PASSWORD COMPARISON
-    */
-
-    {
-      type:"Password Comparison",
-
-      re:
-      /\b(?:password|pass|pin|access\s*key|secret)\b[^;\n]{0,100}?(?:===|==)\s*["'`]([^"'`]{3,80})["'`]/gi
-    },
-
-
-    /*
-    API KEY / TOKEN
-    */
-
-    {
-      type:"API Key / Token",
-
-      re:
-      /\b(?:api[_ -]?key|token|access[_ -]?token|secret[_ -]?key)\b\s*(?:=|:|=>)\s*["'`]([^"'`]{6,200})["'`]/gi
-    },
-
-
-    /*
-    LOCAL STORAGE CREDENTIAL
-    */
-
-    {
-      type:"Credential Storage Key",
-
-      re:
-      /localStorage\.(?:setItem|getItem)\s*\(\s*["'`]([^"'`]*(?:pass|pin|token|key|secret)[^"'`]*)["'`]/gi
-    }
-
-  ];
-
-
-  for(const pattern of patterns){
-
-    let match;
-
-
-    while((match = pattern.re.exec(text))){
-
-      const value =
-        match[1]?.trim();
-
-
-      if(!value)
-        continue;
-
-
-      const key =
-        pattern.type +
-        "|" +
-        value;
-
-
-      if(seen.has(key))
-        continue;
-
-
-      seen.add(key);
-
-
-      const line =
-        text
-          .slice(0, match.index)
-          .split(/\r?\n/)
-          .length;
-
-
-      found.push({
-
-        type:
-          pattern.type,
-
-        value:
-          value,
-
-        line:
-          line
-
-      });
-
-
-      if(found.length >= 100)
-        return found;
-
-    }
-
-  }
-
-
-  return found;
+return;
 
 }
 
 
-/*
-==========================================================
-READ FILE
-==========================================================
-*/
+document.getElementById("results")
+.innerHTML=
+visible.map(item=>{
 
-async function readFile(file){
-
-  /*
-  Skip images/binary files
-  */
-
-  if(SKIP_EXT.test(file.name)){
-
-    return {
-
-      items:[],
-
-      message:
-        "Binary/media file skipped."
-
-    };
-
-  }
+let badge;
 
 
-  /*
-  Prevent extremely large files
-  */
+if(item.error){
 
-  if(file.size > 15 * 1024 * 1024){
+badge=
+`<span class="badge err">
+ERROR
+</span>`;
 
-    return {
+}
+else if(item.findings.length){
 
-      items:[],
+badge=
+`<span class="badge found">
+${item.findings.length} FOUND
+</span>`;
 
-      message:
-        "File larger than 15 MB skipped."
+}
+else{
 
-    };
-
-  }
-
-
-  try{
-
-    const text =
-      await file.text();
-
-
-    return {
-
-      items:
-        regexHits(text),
-
-      message:""
-
-    };
-
-  }
-
-  catch(error){
-
-    return {
-
-      items:[],
-
-      message:
-        error.message ||
-        "Could not read file."
-
-    };
-
-  }
+badge=
+`<span class="badge clean">
+CLEAN
+</span>`;
 
 }
 
 
-/*
-==========================================================
-SCAN
-==========================================================
-*/
-
-async function scan(){
-
-  if(!files.length)
-    return;
+let findingHTML="";
 
 
-  stop = false;
+for(
+const f
+of item.findings
+){
 
-  results = [];
+findingHTML+=`
 
+<div class="finding">
 
-  scanBtn.disabled = true;
+<div class="type">
+${escapeHtml(f.type)}
+</div>
 
-  stopBtn.disabled = false;
+<div class="value">
+${escapeHtml(f.value)}
+</div>
 
-  exportBtn.disabled = true;
+<div class="line">
+Line ${f.line}
+</div>
 
+</div>
 
-  for(let i = 0; i < files.length; i++){
-
-    if(stop)
-      break;
-
-
-    const file =
-      files[i];
-
-
-    const result =
-      await readFile(file);
-
-
-    addResult(
-
-      file,
-
-      result.message
-        ? "error"
-        : result.items.length
-          ? "found"
-          : "none",
-
-      result.items,
-
-      result.message
-
-    );
-
-
-    document.getElementById("scanned")
-      .textContent = i + 1;
-
-
-    bar.style.width =
-      Math.round(
-        ((i + 1) / files.length) * 100
-      ) + "%";
-
-
-    statusEl.textContent =
-      `Scanning ${i + 1} of ${files.length}: ${
-        file.webkitRelativePath ||
-        file.name
-      }`;
-
-
-    render();
-
-
-    await new Promise(
-      requestAnimationFrame
-    );
-
-  }
-
-
-  stopBtn.disabled = true;
-
-  scanBtn.disabled = false;
-
-  exportBtn.disabled =
-    !results.length;
-
-
-  statusEl.textContent =
-    stop
-      ? `Stopped after ${results.length} file(s).`
-      : `Finished. ${results.length} file(s) scanned.`;
+`;
 
 }
 
 
-/*
-==========================================================
-RENDER
-==========================================================
-*/
+return`
 
-function render(){
+<div class="file">
 
-  document.getElementById("fileCount")
-    .textContent = files.length;
+<div class="fileHead">
 
+<div class="path">
+📄 ${escapeHtml(item.path)}
+</div>
 
-  document.getElementById("scanned")
-    .textContent = results.length;
+${badge}
 
+</div>
 
-  document.getElementById("hits")
-    .textContent =
-      results.reduce(
-        (total, result) =>
-          total + result.items.length,
-        0
-      );
+<div style="padding:7px">
 
+<button
+class="edit"
+onclick='openEditor(${JSON.stringify(item.path)})'>
+✏️ EDIT
+</button>
 
-  document.getElementById("errors")
-    .textContent =
-      results.filter(
-        result =>
-          result.status === "error"
-      ).length;
+<button
+class="delete"
+onclick='deleteFile(${JSON.stringify(item.path)})'>
+🗑 DELETE
+</button>
 
+</div>
 
-  const query =
-    searchEl.value
-      .trim()
-      .toLowerCase();
+${findingHTML}
 
+</div>
 
-  const visible =
-    results.filter(result => {
+`;
 
-      const text =
-        result.name +
-        " " +
-        result.items
-          .map(x =>
-            x.type +
-            " " +
-            x.value
-          )
-          .join(" ");
-
-
-      return text
-        .toLowerCase()
-        .includes(query);
-
-    });
-
-
-  if(!visible.length){
-
-    resultsEl.innerHTML =
-      `<div class="empty">
-        No matching results.
-      </div>`;
-
-    return;
-
-  }
-
-
-  resultsEl.innerHTML =
-    visible.map(result => {
-
-
-      let badge;
-
-
-      if(result.status === "found"){
-
-        badge =
-          `<span class="badge found">
-            FOUND
-          </span>`;
-
-      }
-
-      else if(result.status === "error"){
-
-        badge =
-          `<span class="badge err">
-            ERROR
-          </span>`;
-
-      }
-
-      else{
-
-        badge =
-          `<span class="badge none">
-            NONE FOUND
-          </span>`;
-
-      }
-
-
-      const items =
-        result.items.map(item => {
-
-          return `
-
-            <div class="item">
-
-              <div>
-                <span class="type">
-                  ${esc(item.type)}
-                </span>
-              </div>
-
-              <div>
-                <b>Value:</b>
-                ${esc(item.value)}
-              </div>
-
-              <div class="loc">
-                Approx. line:
-                ${item.line}
-              </div>
-
-            </div>
-
-          `;
-
-        }).join("");
-
-
-      return `
-
-        <div class="result">
-
-          <div class="rhead">
-
-            <div class="fname">
-
-              📄 ${esc(result.name)}
-
-              <div class="loc">
-                ${Math.round(result.size / 1024)}
-                KB
-              </div>
-
-            </div>
-
-            ${badge}
-
-          </div>
-
-
-          ${
-            result.message
-              ? `
-                <div
-                  class="note"
-                  style="margin-top:8px">
-
-                  ${esc(result.message)}
-
-                </div>
-              `
-              : ""
-          }
-
-
-          ${items}
-
-        </div>
-
-      `;
-
-    }).join("");
+}).join("");
 
 }
 
 
-/*
-==========================================================
-EXPORT REPORT
-==========================================================
-*/
+/* =========================================================
+EDITOR
+========================================================= */
+
+function openEditor(path){
+
+currentFile=
+scanResults.find(
+x=>x.path===path
+);
+
+if(!currentFile)
+return;
+
+
+document
+.getElementById("editorPanel")
+.classList.add("active");
+
+
+document.getElementById("editorTitle")
+.textContent=
+"Edit: "+path;
+
+
+document.getElementById("editorText")
+.value=
+currentFile.content;
+
+
+document.getElementById("editorStatus")
+.textContent="";
+
+
+window.scrollTo({
+
+top:
+document
+.getElementById("editorPanel")
+.offsetTop-10,
+
+behavior:"smooth"
+
+});
+
+}
+
+
+function closeEditor(){
+
+currentFile=null;
+
+document
+.getElementById("editorPanel")
+.classList.remove("active");
+
+}
+
+
+/* =========================================================
+SAVE
+========================================================= */
+
+async function saveFile(){
+
+if(!currentFile)
+return;
+
+
+const accessToken=
+token();
+
+
+if(!accessToken){
+
+alert(
+"Enter your GitHub token first."
+);
+
+return;
+
+}
+
+
+if(
+!confirm(
+"Save this file directly to GitHub?"
+)
+)
+return;
+
+
+const newContent=
+document
+.getElementById("editorText")
+.value;
+
+
+document
+.getElementById("editorStatus")
+.textContent=
+"Saving...";
+
+
+try{
+
+const response=
+await github(
+
+`${API}/repos/${repoInfo.owner}/${repoInfo.repo}/contents/${encodePath(currentFile.path)}`,
+
+{
+
+method:"PUT",
+
+headers:{
+"Authorization":
+"Bearer "+accessToken,
+"Content-Type":
+"application/json"
+},
+
+body:
+JSON.stringify({
+
+message:
+"Update dashboard attached file: "+
+currentFile.path,
+
+content:
+utf8ToBase64(newContent),
+
+sha:
+currentFile.sha
+
+})
+
+);
+
+
+currentFile.content=
+newContent;
+
+currentFile.sha=
+response.content.sha;
+
+currentFile.findings=
+findSecrets(newContent);
+
+
+document
+.getElementById("editorStatus")
+.textContent=
+"✅ Saved successfully.";
+
+renderResults();
+
+}
+catch(error){
+
+document
+.getElementById("editorStatus")
+.textContent=
+"❌ "+error.message;
+
+}
+
+}
+
+
+/* =========================================================
+DELETE
+========================================================= */
+
+async function deleteFile(path){
+
+const accessToken=
+token();
+
+
+if(!accessToken){
+
+alert(
+"Enter your GitHub token first."
+);
+
+return;
+
+}
+
+
+const item=
+scanResults.find(
+x=>x.path===path
+);
+
+
+if(!item)
+return;
+
+
+if(
+!confirm(
+"DELETE THIS FILE FROM GITHUB?\n\n"+
+path+
+"\n\nThis action creates a GitHub commit."
+)
+)
+return;
+
+
+status(
+"Deleting "+path+"..."
+);
+
+
+try{
+
+await github(
+
+`${API}/repos/${repoInfo.owner}/${repoInfo.repo}/contents/${encodePath(path)}`,
+
+{
+
+method:"DELETE",
+
+headers:{
+"Authorization":
+"Bearer "+accessToken,
+"Content-Type":
+"application/json"
+},
+
+body:
+JSON.stringify({
+
+message:
+"Delete dashboard attached file: "+
+path,
+
+sha:item.sha
+
+})
+
+});
+
+
+scanResults=
+scanResults.filter(
+x=>x.path!==path
+);
+
+
+discoveredFiles.delete(path);
+
+
+renderTree();
+renderResults();
+closeEditor();
+
+
+status(
+"✅ Deleted "+path
+);
+
+}
+catch(error){
+
+status(
+"❌ Delete failed: "+error.message
+);
+
+}
+
+}
+
+
+/* =========================================================
+BASE64 ENCODE
+========================================================= */
+
+function utf8ToBase64(text){
+
+const bytes=
+new TextEncoder()
+.encode(text);
+
+let binary="";
+
+const chunk=0x8000;
+
+
+for(
+let i=0;
+i<bytes.length;
+i+=chunk
+){
+
+binary+=
+String.fromCharCode(
+...bytes.subarray(
+i,
+Math.min(
+i+chunk,
+bytes.length
+)
+)
+);
+
+}
+
+
+return btoa(binary);
+
+}
+
+
+/* =========================================================
+EXPORT
+========================================================= */
 
 function exportReport(){
 
-  const output = [
-
-    "AssetGuard Password & PIN Scanner Report",
-
-    "Generated: " +
-      new Date().toLocaleString(),
-
-    "",
-
-    "FILE | STATUS | TYPE | VALUE | LINE"
-
-  ];
+if(!scanResults.length)
+return;
 
 
-  for(const result of results){
+const rows=[
 
-    if(!result.items.length){
+[
+"File",
+"Finding",
+"Value",
+"Line"
+]
 
-      output.push(
-
-        `${result.name} | ${result.status} | | |`
-
-      );
-
-    }
-
-    else{
-
-      result.items.forEach(item => {
-
-        output.push(
-
-          `${result.name} | FOUND | ` +
-
-          `${item.type} | ` +
-
-          `${item.value.replace(/\|/g,"/")} | ` +
-
-          `${item.line}`
-
-        );
-
-      });
-
-    }
-
-  }
+];
 
 
-  const blob =
-    new Blob(
+for(
+const item
+of scanResults
+){
 
-      [output.join("\n")],
+if(!item.findings.length){
 
-      {
-        type:
-          "text/plain;charset=utf-8"
-      }
+rows.push([
+item.path,
+"CLEAN",
+"",
+""
+]);
 
-    );
+}
+else{
 
+for(
+const f
+of item.findings
+){
 
-  const link =
-    document.createElement("a");
+rows.push([
+item.path,
+f.type,
+f.value,
+f.line
+]);
 
+}
 
-  link.href =
-    URL.createObjectURL(blob);
-
-
-  link.download =
-    "password-pin-scan-report.txt";
-
-
-  link.click();
-
-
-  setTimeout(
-    () =>
-      URL.revokeObjectURL(link.href),
-    1000
-  );
+}
 
 }
 
 
-/*
-==========================================================
-BUTTONS
-==========================================================
-*/
-
-scanBtn.onclick =
-  scan;
-
-
-stopBtn.onclick =
-  () => {
-
-    stop = true;
-
-  };
+const csv=
+rows
+.map(row=>
+row
+.map(x=>
+`"${String(x)
+.replace(/"/g,'""')}"`
+)
+.join(",")
+)
+.join("\n");
 
 
-exportBtn.onclick =
-  exportReport;
+const blob=
+new Blob(
+[csv],
+{
+type:"text/csv;charset=utf-8"
+}
+);
 
 
-searchEl.oninput =
-  render;
+const url=
+URL.createObjectURL(blob);
 
 
-clearBtn.onclick =
-  () => {
+const a=
+document.createElement("a");
 
-    files = [];
+a.href=url;
 
-    results = [];
+a.download=
+"AssetGuard-Dashboard-Security-Report.csv";
 
-    input.value = "";
+a.click();
 
-    bar.style.width = "0%";
+setTimeout(
+()=>URL.revokeObjectURL(url),
+1000
+);
 
-    scanBtn.disabled = true;
+}
 
-    exportBtn.disabled = true;
 
-    statusEl.textContent =
-      "Cleared.";
+/* =========================================================
+STATUS
+========================================================= */
 
-    render();
+function status(text){
 
-  };
+document
+.getElementById("status")
+.textContent=text;
+
+}
+
+
+/* =========================================================
+ESCAPE
+========================================================= */
+
+function escapeHtml(value){
+
+return String(value)
+.replace(/[&<>"']/g,c=>({
+
+"&":"&amp;",
+"<":"&lt;",
+">":"&gt;",
+'"':"&quot;",
+"'":"&#039;"
+
+}[c]));
+
+}
+
+
+/* =========================================================
+SEARCH
+========================================================= */
+
+document
+.getElementById("search")
+.addEventListener(
+"input",
+renderResults
+);
 
 </script>
 
