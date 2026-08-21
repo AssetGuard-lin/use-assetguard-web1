@@ -301,6 +301,14 @@ let adminRequests = {};
 let activeGeoWatchId = null;
 let currentDispatchId = null;
 
+// Direct-route protection: Fixed Area users must not open this page manually.
+(function enforceMarketingTeamAccess() {
+    const role = String(localStorage.getItem("ag_user_role") || "").toLowerCase();
+    if (role === "fixed_area") {
+        window.location.replace("dashboard.html?authError=marketing_restricted");
+    }
+})();
+
 window.addEventListener("DOMContentLoaded", () => {
     loadUserProfile();
     startGlobalGPSMonitoring();

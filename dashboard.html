@@ -9,6 +9,24 @@
     // Keep the protected UI invisible until Firebase has resolved the session.
     document.documentElement.classList.add('auth-pending');
 </script>
+<script>
+    // Role-based navigation: Fixed Area users can use every module except Marketing Team.
+    window.AGCanAccessPage = function (pageName) {
+        const role = String(localStorage.getItem("ag_user_role") || "").toLowerCase();
+        return pageName !== "marketing-team" || role !== "fixed_area";
+    };
+
+    window.AGUpdateRoleNavigation = function () {
+        const marketingLink = document.getElementById("marketingTeamNav");
+        if (!marketingLink) return;
+
+        const canAccess = window.AGCanAccessPage("marketing-team");
+        marketingLink.style.display = canAccess ? "" : "none";
+        marketingLink.setAttribute("aria-hidden", canAccess ? "false" : "true");
+    };
+
+    document.addEventListener("DOMContentLoaded", window.AGUpdateRoleNavigation);
+</script>
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -456,7 +474,7 @@ iframe { width: 100%; height: 100%; border: none; display: none; }
         <div class="label">Operations</div>
         <div class="nav-link" onclick="loadPage('sales')">Sales Terminal</div>
         <div class="nav-link" onclick="loadPage('purchases')">Purchases</div>
-        <div class="nav-link" onclick="loadPage('marketing-team')">Marketing team</div>
+        <div id="marketingTeamNav" class="nav-link" onclick="loadPage('marketing-team')">Marketing team</div>
         
         <div class="label">Relationships</div>
         <div class="nav-link" onclick="loadPage('crm')" style="color:#4ade80;">Customer Registry</div>
@@ -1782,6 +1800,10 @@ window.showDashboard = () => {
 
 window.loadPage = (pageName) => { 
     if (document.body.classList.contains('app-locked')) return;
+    if (!window.AGCanAccessPage(pageName)) {
+        triggerToast('Marketing Team access is available only to Marketing Team users.');
+        return;
+    }
     document.getElementById('dashboard-wrapper').style.display = 'none';
     document.getElementById('main-frame').style.display = 'block';
     document.getElementById('main-frame').src = `${pageName}.html?uid=${activeUID}`;
