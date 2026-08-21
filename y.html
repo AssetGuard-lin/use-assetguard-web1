@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>AssetGuard — My Dashboard Security</title>
+<title>AssetGuard — Admin Security</title>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -12,139 +12,79 @@
 <style>
 *{box-sizing:border-box}
 body{
- margin:0;
- background:#07111f;
- color:#eef5ff;
+ margin:0;background:#07111f;color:#eef5ff;
  font-family:Arial,sans-serif
 }
 .wrap{max-width:1000px;margin:auto;padding:14px}
 .panel{
- background:#0d1b2e;
- border:1px solid #20334d;
- border-radius:15px;
- padding:15px;
- margin:12px 0
+ background:#0d1b2e;border:1px solid #20334d;
+ border-radius:15px;padding:15px;margin:12px 0
 }
 h1{font-size:21px;margin:0 0 8px}
-h3{margin:0 0 10px}
+h3{margin:0 0 12px}
 .muted{color:#91a4bd;font-size:12px;line-height:1.5}
-.user{
- background:#091626;
- border:1px solid #20334d;
- padding:12px;
- border-radius:10px
-}
-.user b{display:block;margin-bottom:4px}
 input,textarea{
- width:100%;
- background:#071321;
- border:1px solid #29415f;
- border-radius:9px;
- color:#fff;
- padding:11px;
- outline:none
-}
-textarea{
- min-height:500px;
- font-family:monospace;
- font-size:12px
+ width:100%;background:#071321;border:1px solid #29415f;
+ border-radius:9px;color:#fff;padding:12px;outline:none
 }
 button{
- border:0;
- border-radius:9px;
- padding:11px 14px;
- font-weight:800;
- cursor:pointer;
- margin:3px
+ border:0;border-radius:9px;padding:11px 14px;
+ font-weight:800;cursor:pointer;margin:3px
 }
-.scan{background:#35d07f;color:#04130b}
-.edit{background:#4da3ff;color:#fff}
-.save{background:#35d07f;color:#04130b}
-.delete{background:#ff6678;color:#fff}
-.cancel{background:#263449;color:#fff}
-.export{background:#183252;color:#fff}
-.logout{background:#ff6678;color:#fff}
+.primary{background:#35d07f;color:#04130b}
+.blue{background:#4da3ff;color:#fff}
+.red{background:#ff6678;color:#fff}
+.gray{background:#263449;color:#fff}
+.login{
+ max-width:430px;margin:70px auto
+}
+.logo{
+ width:55px;height:55px;border-radius:15px;
+ background:#35d07f;color:#04130b;
+ display:flex;align-items:center;justify-content:center;
+ font-size:27px;font-weight:900;margin-bottom:15px
+}
+.error{color:#ff8795;font-size:12px;margin-top:10px}
+.success{color:#6ff0a5;font-size:12px;margin-top:10px}
 .stats{
- display:grid;
- grid-template-columns:repeat(3,1fr);
- gap:8px
+ display:grid;grid-template-columns:repeat(3,1fr);gap:8px
 }
 .stat{
- background:#091626;
- border:1px solid #20334d;
- padding:12px;
- border-radius:10px
+ background:#091626;border:1px solid #20334d;
+ padding:12px;border-radius:10px
 }
 .stat b{display:block;font-size:21px}
 .stat span{font-size:10px;color:#91a4bd}
-.status{
- margin-top:9px;
- font-size:12px;
- color:#91a4bd;
- white-space:pre-wrap
-}
 .page{
- background:#091727;
- border:1px solid #20334d;
- border-radius:12px;
- margin:9px 0;
- overflow:hidden
+ background:#091727;border:1px solid #20334d;
+ border-radius:12px;margin:9px 0;overflow:hidden
 }
 .pageHead{
- padding:12px;
- display:flex;
- justify-content:space-between;
- gap:10px;
- align-items:center
+ padding:12px;display:flex;justify-content:space-between;
+ gap:10px;align-items:center
 }
-.pageName{
- font-size:14px;
- font-weight:900
-}
-.pagePath{
- font-size:10px;
- color:#617792;
- margin-top:4px
-}
+.pageName{font-size:14px;font-weight:900}
+.pagePath{font-size:10px;color:#617792;margin-top:4px}
 .badge{
- padding:4px 8px;
- border-radius:20px;
- font-size:10px;
- font-weight:900;
- white-space:nowrap
+ padding:4px 8px;border-radius:20px;
+ font-size:10px;font-weight:900
 }
 .found{background:#143c2a;color:#6ff0a5}
 .clean{background:#263449;color:#b4c1d1}
-.err{background:#4a2028;color:#ff9aa6}
-.finding{
- border-top:1px solid #20334d;
- padding:11px
-}
-.type{
- color:#6ff0a5;
- font-weight:900;
- font-size:10px
-}
+.finding{border-top:1px solid #20334d;padding:11px}
+.type{color:#6ff0a5;font-weight:900;font-size:10px}
 .value{
- background:#050d17;
- padding:8px;
- border-radius:7px;
- margin-top:5px;
- font-family:monospace;
- word-break:break-all
+ background:#050d17;padding:8px;border-radius:7px;
+ margin-top:5px;font-family:monospace;word-break:break-all
 }
-.line{
- color:#91a4bd;
- font-size:10px;
- margin-top:5px
-}
+.line{color:#91a4bd;font-size:10px;margin-top:5px}
 .editor{display:none}
 .editor.active{display:block}
-.login{
- text-align:center;
- padding:35px 15px
-}
 .hidden{display:none!important}
+.status{
+ margin-top:10px;color:#91a4bd;font-size:12px;
+ white-space:pre-wrap
+}
 @media(max-width:600px){
  .stats{grid-template-columns:1fr 1fr}
  .pageHead{display:block}
@@ -156,16 +96,52 @@ button{
 
 <div class="wrap">
 
-<div id="loginScreen" class="panel login">
+<!-- ================= LOGIN ================= -->
 
-<h1>🔐 AssetGuard Security</h1>
+<div id="loginBox" class="panel login">
+
+<div class="logo">A</div>
+
+<h1>AssetGuard Admin</h1>
 
 <div class="muted">
-Checking your AssetGuard account...
+Sign in with the same email and password you use for your
+AssetGuard admin account.
 </div>
+
+<br>
+
+<input
+id="email"
+type="email"
+autocomplete="username"
+placeholder="Admin email">
+
+<br><br>
+
+<input
+id="password"
+type="password"
+autocomplete="current-password"
+placeholder="Admin password">
+
+<br><br>
+
+<button
+class="primary"
+style="width:100%"
+onclick="login()">
+
+🔐 LOGIN
+
+</button>
+
+<div id="loginError" class="error"></div>
 
 </div>
 
+
+<!-- ================= APPLICATION ================= -->
 
 <div id="app" class="hidden">
 
@@ -173,14 +149,12 @@ Checking your AssetGuard account...
 
 <h1>🔐 My Dashboard Security</h1>
 
-<div class="user">
-<b id="userName">Loading...</b>
-<span id="userEmail" class="muted"></span>
+<div class="muted">
+This account can only see dashboard pages assigned to this
+Firebase user.
 </div>
 
-<div class="status" id="status">
-Loading your permissions...
-</div>
+<div class="status" id="accountInfo"></div>
 
 </div>
 
@@ -211,17 +185,31 @@ Loading your permissions...
 
 <div class="panel">
 
-<button class="scan" onclick="scanMyPages()">
+<button
+class="primary"
+onclick="scanMyPages()">
+
 🔎 SCAN MY PAGES
+
 </button>
 
-<button class="export" onclick="exportReport()">
+<button
+class="blue"
+onclick="exportReport()">
+
 ⬇ EXPORT
+
 </button>
 
-<button class="logout" onclick="logout()">
+<button
+class="red"
+onclick="logout()">
+
 LOGOUT
+
 </button>
+
+<div id="status" class="status"></div>
 
 </div>
 
@@ -230,7 +218,7 @@ LOGOUT
 
 <input
 id="search"
-placeholder="Search my pages or findings...">
+placeholder="Search only my pages...">
 
 </div>
 
@@ -239,22 +227,18 @@ placeholder="Search my pages or findings...">
 
 <h3>My Allowed Dashboard Pages</h3>
 
-<div id="pages">
-<div class="muted">
-Loading...
-</div>
-</div>
+<div id="pages"></div>
 
 </div>
 
 
 <div class="panel">
 
-<h3>My Security Findings</h3>
+<h3>Passwords / PINs Found</h3>
 
 <div id="results">
 <div class="muted">
-Nothing scanned yet.
+Scan your assigned pages.
 </div>
 </div>
 
@@ -271,15 +255,15 @@ spellcheck="false"></textarea>
 
 <br>
 
-<button class="save" onclick="saveFile()">
+<button class="primary" onclick="saveFile()">
 💾 SAVE
 </button>
 
-<button class="delete" onclick="deleteFile()">
+<button class="red" onclick="deleteFile()">
 🗑 DELETE
 </button>
 
-<button class="cancel" onclick="closeEditor()">
+<button class="gray" onclick="closeEditor()">
 CANCEL
 </button>
 
@@ -294,30 +278,19 @@ CANCEL
 
 <script>
 
-/* =========================================================
-FIREBASE
-=========================================================
-
-USE THE SAME FIREBASE CONFIG AS YOUR ASSETGUARD DASHBOARD.
-
-Replace ONLY these values with the existing values from your
-main AssetGuard project.
-========================================================= */
+/* ==========================================================
+ FIREBASE CONFIG
+ USE THE EXACT SAME CONFIG AS YOUR EXISTING ASSETGUARD APP
+========================================================== */
 
 const firebaseConfig={
 
 apiKey:"YOUR_FIREBASE_API_KEY",
-
 authDomain:"YOUR_FIREBASE_AUTH_DOMAIN",
-
 databaseURL:"YOUR_FIREBASE_DATABASE_URL",
-
 projectId:"YOUR_FIREBASE_PROJECT_ID",
-
 storageBucket:"YOUR_FIREBASE_STORAGE_BUCKET",
-
 messagingSenderId:"YOUR_FIREBASE_MESSAGING_SENDER_ID",
-
 appId:"YOUR_FIREBASE_APP_ID"
 
 };
@@ -328,56 +301,93 @@ const auth=firebase.auth();
 const db=firebase.database();
 
 
-/* =========================================================
-GITHUB
-========================================================= */
+/* ==========================================================
+ GITHUB REPOSITORY
+========================================================== */
+
+const OWNER="assetguard-lin";
+const REPO="use-assetguard-web1";
+const BRANCH="main";
 
 const GITHUB_API="https://api.github.com";
 
-const GITHUB_REPO=
-"assetguard-lin/use-assetguard-web1";
 
-const GITHUB_OWNER=
-"assetguard-lin";
-
-const GITHUB_REPOSITORY=
-"use-assetguard-web1";
-
-
-/* =========================================================
-STATE
-========================================================= */
+/* ==========================================================
+ STATE
+========================================================== */
 
 let currentUser=null;
-
-let userRecord=null;
-
+let userData=null;
 let allowedPages=[];
-
-let scanResults=[];
-
+let results=[];
 let currentFile=null;
 
 
-/* =========================================================
-AUTH
-========================================================= */
+/* ==========================================================
+ LOGIN
+========================================================== */
+
+async function login(){
+
+const email=
+document.getElementById("email")
+.value.trim();
+
+const password=
+document.getElementById("password")
+.value;
+
+const error=
+document.getElementById("loginError");
+
+error.textContent="";
+
+
+if(!email||!password){
+
+error.textContent=
+"Enter your email and password.";
+
+return;
+
+}
+
+
+try{
+
+error.textContent="Signing in...";
+
+await auth.signInWithEmailAndPassword(
+email,
+password
+);
+
+}
+catch(e){
+
+error.textContent=
+firebaseError(e);
+
+}
+
+}
+
+
+/* ==========================================================
+ FIREBASE AUTH STATE
+========================================================== */
 
 auth.onAuthStateChanged(async user=>{
 
 if(!user){
 
 document
-.getElementById("loginScreen")
-.innerHTML=`
+.getElementById("loginBox")
+.classList.remove("hidden");
 
-<h1>🔒 Login Required</h1>
-
-<div class="muted">
-You must sign in through the AssetGuard dashboard.
-</div>
-
-`;
+document
+.getElementById("app")
+.classList.add("hidden");
 
 return;
 
@@ -386,42 +396,28 @@ return;
 
 currentUser=user;
 
-document
-.getElementById("loginScreen")
-.classList.add("hidden");
-
-document
-.getElementById("app")
-.classList.remove("hidden");
-
-
-document
-.getElementById("userEmail")
-.textContent=
-user.email||"";
-
-
-await loadUserPermissions();
+await loadIsolatedAccount();
 
 });
 
 
-/* =========================================================
-LOAD USER
-========================================================= */
+/* ==========================================================
+ LOAD ISOLATED USER ACCOUNT
+========================================================== */
 
-async function loadUserPermissions(){
+async function loadIsolatedAccount(){
 
 try{
 
-status(
+setStatus(
 "Loading your account permissions..."
 );
 
 
 /*
-FIRST:
-Try users/{uid}
+Only this UID is requested.
+
+No global users list is downloaded.
 */
 
 let snap=
@@ -429,69 +425,70 @@ await db.ref(
 "users/"+currentUser.uid
 ).once("value");
 
-
-userRecord=
-snap.val();
+userData=snap.val();
 
 
 /*
-SECOND:
-Try userProfiles/{uid}
+Support common AssetGuard structures.
 */
 
-if(!userRecord){
+if(!userData){
 
 snap=
 await db.ref(
 "userProfiles/"+currentUser.uid
 ).once("value");
 
-userRecord=
-snap.val();
+userData=snap.val();
 
 }
 
 
-/*
-THIRD:
-Try admins/{uid}
-*/
-
-if(!userRecord){
+if(!userData){
 
 snap=
 await db.ref(
 "admins/"+currentUser.uid
 ).once("value");
 
-userRecord=
-snap.val();
+userData=snap.val();
 
 }
 
 
-if(!userRecord){
+if(!userData){
 
 throw new Error(
-"No AssetGuard user record was found for this account."
+"This account has no AssetGuard user profile."
 );
 
 }
 
 
-document
-.getElementById("userName")
-.textContent=
-userRecord.name||
-userRecord.displayName||
-userRecord.fullName||
-currentUser.displayName||
-currentUser.email||
-"User";
-
+/*
+Build ONLY this user's page list.
+*/
 
 allowedPages=
-extractUserPages(userRecord);
+extractPages(userData);
+
+
+/*
+Display account.
+*/
+
+document
+.getElementById("accountInfo")
+.textContent=
+(
+userData.name||
+userData.displayName||
+userData.fullName||
+currentUser.displayName||
+"Admin"
+)+
+" • "+
+currentUser.email;
 
 
 document
@@ -500,18 +497,27 @@ document
 allowedPages.length;
 
 
-renderAllowedPages();
+renderPages();
 
 
-status(
-"✓ Loaded only pages assigned to this account."
+document
+.getElementById("loginBox")
+.classList.add("hidden");
+
+document
+.getElementById("app")
+.classList.remove("hidden");
+
+
+setStatus(
+"✓ Logged in. Only your assigned dashboard pages are available."
 );
 
 }
-catch(error){
+catch(e){
 
-status(
-"❌ "+error.message
+setStatus(
+"❌ "+e.message
 );
 
 }
@@ -519,280 +525,216 @@ status(
 }
 
 
-/* =========================================================
-EXTRACT USER PAGES
-========================================================= */
+/* ==========================================================
+ EXTRACT ONLY THIS USER'S PERMISSIONS
+========================================================== */
 
-function extractUserPages(user){
+function extractPages(u){
 
-const output=[];
+const list=[];
 
 
 /*
-Common permission fields used by AssetGuard.
+Common AssetGuard permission fields.
 */
 
 const fields=[
 
-user.pages,
-
-user.allowedPages,
-
-user.dashboardPages,
-
-user.permissions,
-
-user.modules,
-
-user.menuItems,
-
-user.access,
-
-user.pageAccess,
-
-user.allowedModules
+u.pages,
+u.allowedPages,
+u.dashboardPages,
+u.pageAccess,
+u.allowedModules,
+u.modules,
+u.menuItems,
+u.access,
+u.permissions
 
 ];
 
 
-for(const value of fields){
-
-parsePermissionValue(value,output);
-
-}
+fields.forEach(v=>{
+parsePermission(v,list);
+});
 
 
 /*
-Individual boolean fields.
-
-Example:
-
-sales:true
-purchases:true
-inventory:true
+Also detect direct boolean page permissions.
 */
 
-for(const key in user){
+Object.keys(u).forEach(key=>{
+
+const value=u[key];
 
 if(
-typeof user[key]==="boolean" &&
-user[key]===true
+value===true &&
+isPageKey(key)
 ){
 
-if(
-isPossiblePageName(key)
-){
-
-output.push({
-name:formatName(key),
-path:guessPath(key)
+list.push({
+name:displayName(key),
+path:pagePath(key)
 });
 
 }
 
-}
-
-
-/*
-Object permissions.
-
-Example:
-
-permissions:{
- sales:true,
- purchases:true
-}
-
-*/
 
 if(
-user[key] &&
-typeof user[key]==="object" &&
-!Array.isArray(user[key])
+value &&
+typeof value==="object" &&
+!Array.isArray(value)
 ){
 
-const obj=user[key];
-
-for(const sub in obj){
+Object.keys(value).forEach(sub=>{
 
 if(
-obj[sub]===true &&
-isPossiblePageName(sub)
+value[sub]===true &&
+isPageKey(sub)
 ){
 
-output.push({
-name:formatName(sub),
-path:guessPath(sub)
+list.push({
+name:displayName(sub),
+path:pagePath(sub)
 });
 
 }
 
-}
+});
 
 }
 
+});
+
+
+return unique(list);
+
 }
 
 
-return uniquePages(output);
+/* ==========================================================
+ PARSE PERMISSION
+========================================================== */
 
-}
-
-
-/* =========================================================
-PARSE PERMISSION VALUE
-========================================================= */
-
-function parsePermissionValue(value,out){
+function parsePermission(value,list){
 
 if(!value)return;
 
 
-/*
-Array.
-*/
-
 if(Array.isArray(value)){
 
-for(const item of value){
+value.forEach(item=>{
 
 if(typeof item==="string"){
 
-out.push({
-name:item,
-path:guessPath(item)
+list.push({
+name:displayName(item),
+path:pagePath(item)
 });
-
-}
-else if(item){
-
-if(
-item.allowed===false ||
-item.enabled===false
-)
-continue;
-
-out.push({
-name:
-item.name||
-item.title||
-item.label||
-item.page||
-item.module||
-item.displayName||
-"Dashboard Page",
-
-path:
-item.path||
-item.file||
-item.url||
-item.href||
-item.page||
-guessPath(
-item.name||
-item.title||
-item.label||
-item.module||
-""
-)
-
-});
-
-}
-
-}
 
 return;
 
 }
 
 
-/*
-Object.
-*/
-
-if(typeof value==="object"){
-
-for(const key in value){
-
-const item=value[key];
-
-
-/*
-Explicit false = no access.
-*/
-
-if(
-item===false ||
-item===null
-)
-continue;
-
-
-if(item===true){
-
-out.push({
-name:formatName(key),
-path:guessPath(key)
-});
-
-continue;
-
-}
-
-
-if(typeof item==="object"){
+if(item && typeof item==="object"){
 
 if(
 item.allowed===false ||
 item.enabled===false
-)
-continue;
+)return;
 
 
-out.push({
-
-name:
+const name=
 item.name||
 item.title||
 item.label||
 item.displayName||
-formatName(key),
+item.page||
+item.module;
 
-path:
+
+const path=
 item.path||
 item.file||
-item.url||
 item.href||
-guessPath(
-item.name||
-item.title||
-item.label||
-item.displayName||
-key
-)
+item.url||
+item.pageFile||
+pagePath(name);
 
+
+if(name||path){
+
+list.push({
+name:name||displayName(path),
+path:path
 });
 
 }
 
 }
+
+});
 
 return;
 
 }
 
-
-/*
-String.
-
-*/
 
 if(typeof value==="string"){
 
-out.push({
-name:value,
-path:guessPath(value)
+list.push({
+name:displayName(value),
+path:pagePath(value)
+});
+
+return;
+
+}
+
+
+if(typeof value==="object"){
+
+Object.keys(value).forEach(key=>{
+
+const v=value[key];
+
+if(v===true){
+
+list.push({
+name:displayName(key),
+path:pagePath(key)
+});
+
+}
+
+else if(
+v &&
+typeof v==="object" &&
+v.allowed!==false &&
+v.enabled!==false
+){
+
+const name=
+v.name||
+v.title||
+v.label||
+v.displayName||
+displayName(key);
+
+const path=
+v.path||
+v.file||
+v.href||
+v.url||
+pagePath(name);
+
+list.push({
+name:name,
+path:path
+});
+
+}
+
 });
 
 }
@@ -800,69 +742,67 @@ path:guessPath(value)
 }
 
 
-/* =========================================================
-PAGE NAME
-========================================================= */
+/* ==========================================================
+ PAGE KEY
+========================================================== */
 
-function formatName(value){
+function isPageKey(k){
 
-return String(value)
+k=k.toLowerCase();
+
+return(
+k.includes("sale")||
+k.includes("purchase")||
+k.includes("expense")||
+k.includes("inventory")||
+k.includes("stock")||
+k.includes("crm")||
+k.includes("cash")||
+k.includes("ledger")||
+k.includes("report")||
+k.includes("marketing")||
+k.includes("dispatch")||
+k.includes("product")||
+k.includes("admin")||
+k.includes("dashboard")
+);
+
+}
+
+
+/* ==========================================================
+ DISPLAY NAME
+========================================================== */
+
+function displayName(v){
+
+return String(v||"")
+.replace(/\.(html?|php|js)$/i,"")
 .replace(/[_-]+/g," ")
 .replace(/\b\w/g,c=>c.toUpperCase())
-.replace(/\.(html?|php|js)$/i,"")
 .trim();
 
 }
 
 
-/* =========================================================
-GUESS PAGE
-========================================================= */
+/* ==========================================================
+ PATH
+========================================================== */
 
-function guessPath(value){
+function pagePath(v){
 
-let x=
-String(value||"")
-.trim();
+if(!v)return"";
 
 
-if(!x)
-return "";
-
-
-x=
-x.split("?")[0]
+let x=String(v)
+.trim()
+.split("?")[0]
 .split("#")[0];
 
 
-/*
-Already a file.
-*/
-
-if(
-/\.(html?|php)$/i.test(x)
-)
+if(/\.(html?|php)$/i.test(x))
 return x;
 
-
-/*
-URL.
-*/
-
-if(
-x.includes("/")
-){
-
-return x.endsWith("/")
-?x+"index.html"
-:x+".html";
-
-}
-
-
-/*
-Known AssetGuard names.
-*/
 
 const map={
 
@@ -879,8 +819,8 @@ const map={
 "record expense":"expenses.html",
 
 "inventory":"inventory.html",
-"stock":"inventory.html",
 "inventory list":"inventory.html",
+"stock":"inventory.html",
 
 "crm":"crm.html",
 
@@ -894,23 +834,24 @@ const map={
 "ledger":"master-ledger.html",
 
 "bi dashboard":"bi-dashboard.html",
-"business intelligence":"bi-dashboard.html",
 
 "marketing":"marketing.html",
 "dispatch":"dispatch.html",
 
-"admin":"admin.html",
-
 "products":"products.html",
-"product editor":"product-editor.html"
+"product editor":"product-editor.html",
+
+"admin":"admin.html"
 
 };
 
 
-const lower=x.toLowerCase();
+if(map[x.toLowerCase()])
+return map[x.toLowerCase()];
 
-if(map[lower])
-return map[lower];
+
+if(x.includes("/"))
+return x;
 
 
 return x
@@ -921,93 +862,36 @@ return x
 }
 
 
-/* =========================================================
-POSSIBLE PAGE NAME
-========================================================= */
+/* ==========================================================
+ UNIQUE PAGES
+========================================================== */
 
-function isPossiblePageName(key){
-
-const k=
-key.toLowerCase();
-
-const blocked=[
-"uid",
-"email",
-"name",
-"role",
-"active",
-"enabled",
-"status",
-"created",
-"updated",
-"phone",
-"password",
-"pin",
-"gps",
-"latitude",
-"longitude"
-];
-
-if(blocked.includes(k))
-return false;
-
-return(
-k.includes("sale")||
-k.includes("purchase")||
-k.includes("expense")||
-k.includes("inventory")||
-k.includes("stock")||
-k.includes("crm")||
-k.includes("cash")||
-k.includes("report")||
-k.includes("ledger")||
-k.includes("dashboard")||
-k.includes("marketing")||
-k.includes("dispatch")||
-k.includes("product")||
-k.includes("admin")
-);
-
-}
-
-
-/* =========================================================
-UNIQUE
-========================================================= */
-
-function uniquePages(arr){
+function unique(list){
 
 const map=new Map();
 
+list.forEach(p=>{
 
-for(const p of arr){
-
-if(!p.path && !p.name)
-continue;
+if(!p.path)return;
 
 
-const key=
-(p.path||p.name)
-.toLowerCase();
+/*
+The user's display name is preserved.
+The filename is hidden from the page title.
+*/
 
+const key=p.path.toLowerCase();
 
 if(!map.has(key)){
 
 map.set(key,{
-
-name:
-p.name||
-formatName(p.path),
-
-path:
-p.path||
-guessPath(p.name)
-
+name:p.name||displayName(p.path),
+path:p.path
 });
 
 }
 
-}
+});
 
 
 return [...map.values()];
@@ -1015,11 +899,11 @@ return [...map.values()];
 }
 
 
-/* =========================================================
-RENDER USER PAGES
-========================================================= */
+/* ==========================================================
+ RENDER PAGES
+========================================================== */
 
-function renderAllowedPages(){
+function renderPages(){
 
 const box=
 document.getElementById("pages");
@@ -1027,15 +911,8 @@ document.getElementById("pages");
 
 if(!allowedPages.length){
 
-box.innerHTML=`
-
-<div class="muted">
-
-No dashboard pages have been assigned to this account.
-
-</div>
-
-`;
+box.innerHTML=
+"<div class='muted'>No pages assigned.</div>";
 
 return;
 
@@ -1055,11 +932,11 @@ allowedPages.map(p=>`
 ${escapeHtml(p.name)}
 </div>
 
-<div class="pagePath">
-${escapeHtml(p.path)}
 </div>
 
-</div>
+<span class="badge clean">
+AUTHORIZED
+</span>
 
 </div>
 
@@ -1070,25 +947,52 @@ ${escapeHtml(p.path)}
 }
 
 
-/* =========================================================
-SCAN ONLY USER PAGES
-========================================================= */
+/* ==========================================================
+ SECURITY CHECK
+========================================================== */
+
+function authorized(path){
+
+return allowedPages.some(p=>
+normalize(p.path)===
+normalize(path)
+);
+
+}
+
+
+/*
+IMPORTANT:
+
+Before downloading, editing or deleting ANY file,
+the path must belong to this user's Firebase permissions.
+*/
+
+function normalize(x){
+
+return String(x||"")
+.replace(/\\/g,"/")
+.replace(/^\/+/,"")
+.replace(/\/+/g,"/")
+.toLowerCase();
+
+}
+
+
+/* ==========================================================
+ SCAN
+========================================================== */
 
 async function scanMyPages(){
 
-if(!currentUser){
-
-alert("Login required.");
-
+if(!currentUser)
 return;
-
-}
 
 
 if(!allowedPages.length){
 
-status(
-"No pages are assigned to your account."
+setStatus(
+"No dashboard pages are assigned to this account."
 );
 
 return;
@@ -1096,12 +1000,7 @@ return;
 }
 
 
-scanResults=[];
-
-
-status(
-"Scanning only your assigned pages..."
-);
+results=[];
 
 
 for(
@@ -1110,14 +1009,18 @@ i<allowedPages.length;
 i++
 ){
 
-const p=
+const page=
 allowedPages[i];
 
 
-status(
-"Scanning "+p.name+
+if(!authorized(page.path))
+continue;
+
+
+setStatus(
+"Scanning "+page.name+
 "\n"+
-(i+1)+" of "+
+(i+1)+" / "+
 allowedPages.length
 );
 
@@ -1125,48 +1028,30 @@ allowedPages.length
 try{
 
 const file=
-await getGitHubFile(p.path);
+await githubFile(page.path);
 
 
-/*
-Only this user's permitted path is scanned.
-*/
+results.push({
 
-scanResults.push({
-
-name:p.name,
-
-path:p.path,
-
+name:page.name,
+path:page.path,
 sha:file.sha,
-
 content:file.content,
-
-size:file.size,
-
-findings:
-findSecrets(file.content)
+findings:findSecrets(file.content)
 
 });
 
 }
-catch(error){
+catch(e){
 
-scanResults.push({
+results.push({
 
-name:p.name,
-
-path:p.path,
-
+name:page.name,
+path:page.path,
 sha:"",
-
 content:"",
-
-size:0,
-
 findings:[],
-
-error:error.message
+error:e.message
 
 });
 
@@ -1178,52 +1063,46 @@ error:error.message
 renderResults();
 
 
-status(
+setStatus(
 "✓ Scan complete.\n"+
-"Only your assigned pages were scanned."
+"Only pages assigned to "+currentUser.email+
+" were scanned."
 );
 
 }
 
 
-/* =========================================================
-GITHUB FILE
-========================================================= */
+/* ==========================================================
+ GITHUB FILE
+========================================================== */
 
-async function getGitHubFile(path){
+async function githubFile(path){
 
-const response=
+if(!authorized(path)){
+
+throw new Error(
+"Unauthorized page."
+);
+
+}
+
+
+const r=
 await fetch(
 
-`${GITHUB_API}/repos/${GITHUB_OWNER}/${GITHUB_REPOSITORY}/contents/${encodePath(path)}?ref=HEAD`
+`${GITHUB_API}/repos/${OWNER}/${REPO}/contents/${encodePath(path)}?ref=${BRANCH}`
 
 );
 
 
-if(!response.ok){
-
 const d=
-await response.json()
-.catch(()=>({}));
+await r.json();
+
+
+if(!r.ok){
 
 throw new Error(
-d.message||
-"Unable to read "+path
-);
-
-}
-
-
-const d=
-await response.json();
-
-
-if(
-!d.content
-){
-
-throw new Error(
-"No readable content for "+path
+d.message||"Unable to read file."
 );
 
 }
@@ -1233,53 +1112,16 @@ return{
 
 sha:d.sha,
 
-size:d.size||0,
-
-content:decode64(d.content)
+content:decode64(d.content||"")
 
 };
 
 }
 
 
-/* =========================================================
-ENCODE PATH
-========================================================= */
-
-function encodePath(path){
-
-return path
-.split("/")
-.map(encodeURIComponent)
-.join("/");
-
-}
-
-
-/* =========================================================
-DECODE
-========================================================= */
-
-function decode64(s){
-
-s=s.replace(/\s/g,"");
-
-const binary=atob(s);
-
-const bytes=
-Uint8Array.from(
-binary,
-c=>c.charCodeAt(0)
-);
-
-return new TextDecoder().decode(bytes);
-
-}
-
-
-/* =========================================================
-SECRET SCANNER
-========================================================= */
+/* ==========================================================
+ SECRET SCANNER
+========================================================== */
 
 function findSecrets(text){
 
@@ -1318,7 +1160,7 @@ re:
 ];
 
 
-const output=[];
+const found=[];
 const seen=new Set();
 
 
@@ -1328,7 +1170,7 @@ let m;
 
 while((m=p.re.exec(text))){
 
-let value=
+const value=
 p.type==="LOCAL STORAGE CREDENTIAL"
 ?(m[2]||m[1])
 :m[1];
@@ -1338,9 +1180,6 @@ if(!value)
 continue;
 
 
-value=value.trim();
-
-
 if(
 /^(xxx+|example|placeholder|change[_ -]?me|your[_ -]?(password|pin|key|token)|enter[_ -]?here)$/i
 .test(value)
@@ -1348,31 +1187,24 @@ if(
 continue;
 
 
-const unique=
-p.type+"|"+value;
+const key=p.type+"|"+value;
 
-
-if(seen.has(unique))
+if(seen.has(key))
 continue;
 
-
-seen.add(unique);
-
-
-const line=
-text
-.slice(0,m.index)
-.split(/\r?\n/)
-.length;
+seen.add(key);
 
 
-output.push({
+found.push({
 
 type:p.type,
 
 value:value,
 
-line:line
+line:
+text.substring(0,m.index)
+.split(/\r?\n/)
+.length
 
 });
 
@@ -1381,76 +1213,62 @@ line:line
 }
 
 
-return output;
+return found;
 
 }
 
 
-/* =========================================================
-RESULTS
-========================================================= */
+/* ==========================================================
+ RESULTS
+========================================================== */
 
 function renderResults(){
 
-let total=0;
+let count=0;
 
-for(const x of scanResults){
-
-total+=
-(x.findings||[]).length;
-
-}
+results.forEach(r=>{
+count+=(r.findings||[]).length;
+});
 
 
 document
 .getElementById("scannedCount")
 .textContent=
-scanResults.length;
+results.length;
 
 
 document
 .getElementById("findingCount")
 .textContent=
-total;
+count;
 
 
-const query=
+const q=
 document
 .getElementById("search")
 .value
+.toLowerCase();
+
+
+const list=
+results.filter(r=>{
+
+return(
+r.name+
+r.path+
+JSON.stringify(r.findings)
+)
 .toLowerCase()
-.trim();
-
-
-const visible=
-scanResults.filter(x=>{
-
-const s=
-x.name+
-" "+
-x.path+
-" "+
-(x.findings||[])
-.map(f=>f.type+" "+f.value)
-.join(" ");
-
-return s.toLowerCase().includes(query);
+.includes(q);
 
 });
 
 
-if(!visible.length){
+if(!list.length){
 
 document.getElementById("results")
-.innerHTML=`
-
-<div class="muted">
-
-No passwords or PINs found in your assigned pages.
-
-</div>
-
-`;
+.innerHTML=
+"<div class='muted'>No findings.</div>";
 
 return;
 
@@ -1459,9 +1277,9 @@ return;
 
 document.getElementById("results")
 .innerHTML=
-visible.map(x=>{
+list.map(r=>{
 
-if(x.error){
+if(r.error){
 
 return`
 
@@ -1469,26 +1287,19 @@ return`
 
 <div class="pageHead">
 
-<div>
-
 <div class="pageName">
-${escapeHtml(x.name)}
+${escapeHtml(r.name)}
 </div>
 
-<div class="pagePath">
-${escapeHtml(x.path)}
-</div>
-
-</div>
-
-<span class="badge err">
+<span class="badge"
+style="background:#4a2028;color:#ff9aa6">
 ERROR
 </span>
 
 </div>
 
 <div class="finding">
-${escapeHtml(x.error)}
+${escapeHtml(r.error)}
 </div>
 
 </div>
@@ -1498,20 +1309,10 @@ ${escapeHtml(x.error)}
 }
 
 
-const findings=
-x.findings||[];
-
-
-const badge=
-findings.length
-?`<span class="badge found">${findings.length} FOUND</span>`
-:`<span class="badge clean">CLEAN</span>`;
-
-
 let html="";
 
 
-for(const f of findings){
+(r.findings||[]).forEach(f=>{
 
 html+=`
 
@@ -1533,7 +1334,7 @@ Line ${f.line}
 
 `;
 
-}
+});
 
 
 return`
@@ -1545,30 +1346,34 @@ return`
 <div>
 
 <div class="pageName">
-${escapeHtml(x.name)}
-</div>
-
-<div class="pagePath">
-${escapeHtml(x.path)}
+${escapeHtml(r.name)}
 </div>
 
 </div>
 
-${badge}
+<span class="badge ${
+r.findings.length?"found":"clean"
+}">
+${
+r.findings.length
+?r.findings.length+" FOUND"
+:"CLEAN"
+}
+</span>
 
 </div>
 
 <div style="padding:7px">
 
 <button
-class="edit"
-onclick='openEditor(${JSON.stringify(x.path)})'>
+class="blue"
+onclick='openEditor(${JSON.stringify(r.path)})'>
 ✏️ EDIT
 </button>
 
 <button
-class="delete"
-onclick='deleteFile(${JSON.stringify(x.path)})'>
+class="red"
+onclick='deleteFile(${JSON.stringify(r.path)})'>
 🗑 DELETE
 </button>
 
@@ -1585,36 +1390,15 @@ ${html}
 }
 
 
-/* =========================================================
-PERMISSION CHECK
-========================================================= */
-
-function canAccess(path){
-
-return allowedPages.some(p=>
-normalizePath(p.path)===
-normalizePath(path)
-);
-
-
-/*
-This check is performed before every edit/delete.
-*/
-
-}
-
-
-/* =========================================================
-EDITOR
-========================================================= */
+/* ==========================================================
+ EDIT
+========================================================== */
 
 function openEditor(path){
 
-if(!canAccess(path)){
+if(!authorized(path)){
 
-alert(
-"You are not authorized to access this page."
-);
+alert("Unauthorized.");
 
 return;
 
@@ -1622,9 +1406,7 @@ return;
 
 
 currentFile=
-scanResults.find(
-x=>x.path===path
-);
+results.find(r=>r.path===path);
 
 
 if(!currentFile)
@@ -1639,7 +1421,7 @@ document
 document
 .getElementById("editorTitle")
 .textContent=
-"Edit: "+currentFile.name;
+"Edit "+currentFile.name;
 
 
 document
@@ -1648,18 +1430,12 @@ document
 currentFile.content;
 
 
-document
-.getElementById("editorStatus")
-.textContent=
-"";
-
-
 window.scrollTo({
 
 top:
 document
 .getElementById("editorPanel")
-.offsetTop-10,
+.offsetTop,
 
 behavior:"smooth"
 
@@ -1668,24 +1444,9 @@ behavior:"smooth"
 }
 
 
-/* =========================================================
-CLOSE
-========================================================= */
-
-function closeEditor(){
-
-currentFile=null;
-
-document
-.getElementById("editorPanel")
-.classList.remove("active");
-
-}
-
-
-/* =========================================================
-SAVE
-========================================================= */
+/* ==========================================================
+ SAVE
+========================================================== */
 
 async function saveFile(){
 
@@ -1693,11 +1454,9 @@ if(!currentFile)
 return;
 
 
-if(!canAccess(currentFile.path)){
+if(!authorized(currentFile.path)){
 
-alert(
-"Unauthorized page."
-);
+alert("Unauthorized.");
 
 return;
 
@@ -1705,23 +1464,10 @@ return;
 
 
 const token=
-getGitHubToken();
+prompt("GitHub authorization token:");
 
 
-if(!token){
-
-alert(
-"GitHub edit authorization is required."
-);
-
-return;
-
-}
-
-
-if(!confirm(
-"Save changes to "+currentFile.name+"?"
-))
+if(!token)
 return;
 
 
@@ -1731,18 +1477,12 @@ document
 .value;
 
 
-document
-.getElementById("editorStatus")
-.textContent=
-"Saving...";
-
-
 try{
 
-const response=
+const r=
 await fetch(
 
-`${GITHUB_API}/repos/${GITHUB_OWNER}/${GITHUB_REPOSITORY}/contents/${encodePath(currentFile.path)}`,
+`${GITHUB_API}/repos/${OWNER}/${REPO}/contents/${encodePath(currentFile.path)}`,
 
 {
 
@@ -1767,8 +1507,7 @@ headers:{
 body:JSON.stringify({
 
 message:
-"Update authorized dashboard page: "+
-currentFile.name,
+"Update "+currentFile.name,
 
 content:
 encode64(content),
@@ -1778,79 +1517,54 @@ currentFile.sha
 
 })
 
-);
+});
 
 
-const data=
-await response.json();
+const d=await r.json();
 
 
-if(!response.ok){
-
-throw new Error(
-data.message||
-"Save failed."
-);
-
-}
+if(!r.ok)
+throw new Error(d.message||"Save failed.");
 
 
-currentFile.content=
-content;
+currentFile.content=content;
 
-currentFile.sha=
-data.content.sha;
+currentFile.sha=d.content.sha;
 
 currentFile.findings=
 findSecrets(content);
 
 
-document
-.getElementById("editorStatus")
-.textContent=
-"✓ Saved.";
-
 renderResults();
 
-}
-catch(error){
 
 document
 .getElementById("editorStatus")
 .textContent=
-"❌ "+error.message;
+"✓ Saved successfully.";
+
+}
+catch(e){
+
+document
+.getElementById("editorStatus")
+textContent=
+"❌ "+e.message;
 
 }
 
 }
 
 
-/* =========================================================
-DELETE
-========================================================= */
+/* ==========================================================
+ DELETE
+========================================================== */
 
 async function deleteFile(path){
 
-if(!canAccess(path)){
+if(!authorized(path)){
 
-alert(
-"You are not authorized to delete this page."
-);
-
-return;
-
-}
-
-
-const token=
-getGitHubToken();
-
-
-if(!token){
-
-alert(
-"GitHub edit authorization is required."
-);
+alert("Unauthorized.");
 
 return;
 
@@ -1858,30 +1572,33 @@ return;
 
 
 const file=
-scanResults.find(
-x=>x.path===path
-);
+results.find(r=>r.path===path);
 
 
 if(!file)
 return;
 
 
+const token=
+prompt("GitHub authorization token:");
+
+
+if(!token)
+return;
+
+
 if(!confirm(
-"PERMANENTLY DELETE:\n\n"+
-file.name+
-"\n\n"+path+
-"\n\nContinue?"
+"Delete "+file.name+" permanently?"
 ))
 return;
 
 
 try{
 
-const response=
+const r=
 await fetch(
 
-`${GITHUB_API}/repos/${GITHUB_OWNER}/${GITHUB_REPOSITORY}/contents/${encodePath(path)}`,
+`${GITHUB_API}/repos/${OWNER}/${REPO}/contents/${encodePath(path)}`,
 
 {
 
@@ -1906,8 +1623,7 @@ headers:{
 body:JSON.stringify({
 
 message:
-"Delete authorized dashboard page: "+
-file.name,
+"Delete "+file.name,
 
 sha:file.sha
 
@@ -1916,39 +1632,30 @@ sha:file.sha
 });
 
 
-const data=
-await response.json();
+const d=await r.json();
 
 
-if(!response.ok){
-
-throw new Error(
-data.message||
-"Delete failed."
-);
-
-}
+if(!r.ok)
+throw new Error(d.message||"Delete failed.");
 
 
-scanResults=
-scanResults.filter(
-x=>x.path!==path
-);
+results=
+results.filter(r=>r.path!==path);
 
 
-closeEditor();
 renderResults();
 
+closeEditor();
 
-status(
+setStatus(
 "✓ "+file.name+" deleted."
 );
 
 }
-catch(error){
+catch(e){
 
-status(
-"❌ "+error.message
+setStatus(
+"❌ "+e.message
 );
 
 }
@@ -1956,72 +1663,38 @@ status(
 }
 
 
-/* =========================================================
-GITHUB TOKEN
-========================================================= */
+/* ==========================================================
+ CLOSE
+========================================================== */
 
-function getGitHubToken(){
+function closeEditor(){
 
-/*
-Token is deliberately not stored in Firebase or localStorage.
-If your main dashboard already exposes a secure backend/API for
-GitHub changes, replace this function with that API call.
-*/
+currentFile=null;
 
-let t=
-sessionStorage.getItem(
-"ag_github_edit_token"
-);
-
-if(t)
-return t;
-
-
-t=prompt(
-"Enter GitHub edit token:"
-);
-
-if(t){
-
-sessionStorage.setItem(
-"ag_github_edit_token",
-t.trim()
-);
-
-}
-
-return t||"";
+document
+.getElementById("editorPanel")
+.classList.remove("active");
 
 }
 
 
-/* =========================================================
-EXPORT
-========================================================= */
+/* ==========================================================
+ EXPORT
+========================================================== */
 
 function exportReport(){
 
-if(!scanResults.length){
-
-alert("Scan your pages first.");
-
-return;
-
-}
-
-
 const rows=[
-["PAGE NAME","FILE","FINDING","VALUE","LINE"]
+["PAGE NAME","FINDING","VALUE","LINE"]
 ];
 
 
-for(const x of scanResults){
+results.forEach(r=>{
 
-if(!x.findings.length){
+if(!r.findings.length){
 
 rows.push([
-x.name,
-x.path,
+r.name,
 "CLEAN",
 "",
 ""
@@ -2030,21 +1703,20 @@ x.path,
 }
 else{
 
-for(const f of x.findings){
+r.findings.forEach(f=>{
 
 rows.push([
-x.name,
-x.path,
+r.name,
 f.type,
 f.value,
 f.line
 ]);
 
-}
+});
 
 }
 
-}
+});
 
 
 const csv=
@@ -2056,39 +1728,96 @@ row.map(v=>
 
 
 const blob=
-new Blob(
-[csv],
-{
-type:"text/csv;charset=utf-8"
-}
-);
-
-
-const url=
-URL.createObjectURL(blob);
+new Blob([csv],{
+type:"text/csv"
+});
 
 
 const a=
 document.createElement("a");
 
-a.href=url;
+a.href=
+URL.createObjectURL(blob);
 
 a.download=
-"my-dashboard-security-report.csv";
+"my-assetguard-security-report.csv";
 
 a.click();
-
-setTimeout(
-()=>URL.revokeObjectURL(url),
-1000
-);
 
 }
 
 
-/* =========================================================
-SEARCH
-========================================================= */
+/* ==========================================================
+ LOGOUT
+========================================================== */
+
+function logout(){
+
+auth.signOut();
+
+}
+
+
+/* ==========================================================
+ STATUS
+========================================================== */
+
+function setStatus(text){
+
+document
+.getElementById("status")
+.textContent=text;
+
+}
+
+
+/* ==========================================================
+ BASE64
+========================================================== */
+
+function encode64(text){
+
+const bytes=
+new TextEncoder().encode(text);
+
+let binary="";
+
+for(let i=0;i<bytes.length;i+=0x8000){
+
+binary+=String.fromCharCode(
+...bytes.subarray(
+i,
+Math.min(i+0x8000,bytes.length)
+)
+);
+
+}
+
+return btoa(binary);
+
+}
+
+
+function decode64(base64){
+
+const binary=atob(
+base64.replace(/\s/g,"")
+);
+
+const bytes=
+Uint8Array.from(
+binary,
+c=>c.charCodeAt(0)
+);
+
+return new TextDecoder().decode(bytes);
+
+}
+
+
+/* ==========================================================
+ SEARCH
+========================================================== */
 
 document
 .getElementById("search")
@@ -2098,40 +1827,48 @@ renderResults
 );
 
 
-/* =========================================================
-LOGOUT
-========================================================= */
+/* ==========================================================
+ FIREBASE ERRORS
+========================================================== */
 
-function logout(){
+function firebaseError(e){
 
-auth.signOut();
+const map={
+
+"auth/invalid-email":
+"Invalid email address.",
+
+"auth/user-disabled":
+"This account has been disabled.",
+
+"auth/user-not-found":
+"No AssetGuard account was found with this email.",
+
+"auth/wrong-password":
+"Incorrect password.",
+
+"auth/invalid-credential":
+"Incorrect email or password.",
+
+"auth/too-many-requests":
+"Too many attempts. Try again later."
+
+};
+
+return map[e.code]||
+e.message||
+"Login failed.";
 
 }
 
 
-/* =========================================================
-NORMALIZE
-========================================================= */
+/* ==========================================================
+ ESCAPE
+========================================================== */
 
-function normalizePath(path){
+function escapeHtml(v){
 
-return String(path||"")
-.replace(/\\/g,"/")
-.replace(/^\/+/,"")
-.replace(/\/+/g,"/")
-.replace(/\/$/,"")
-.toLowerCase();
-
-}
-
-
-/* =========================================================
-ESCAPE
-========================================================= */
-
-function escapeHtml(value){
-
-return String(value)
+return String(v)
 .replace(/[&<>"']/g,c=>({
 
 "&":"&amp;",
