@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AssetGuard Pro - Terminal & Dashboard</title>
+    <!-- Tailwind CSS for modern responsive styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase App (Core) & Realtime Database & Auth SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col">
+
+    <!-- TOP NAVIGATION BAR -->
+    <header class="bg-slate-800 border-b border-slate-700 px-6 py-4 flex justify-between items-center shadow-md">
+        <div class="flex items-center space-x-3">
+            <span class="bg-indigo-600 text-white font-bold px-3 py-1.5 rounded-lg text-sm">AGP</span>
+            <h1 class="text-xl font-bold tracking-wide">AssetGuard Pro <span class="text-xs text-indigo-400 font-normal">Isolated Terminal</span></h1>
+        </div>
+        <div id="auth-status-container" class="flex items-center space-x-4">
+            <span id="user-display-email" class="text-sm text-slate-300 hidden">Not Signed In</span>
+            <button id="auth-action-btn" onclick="toggleAuthModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition">Sign In</button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-grow p-6 max-w-7xl mx-auto w-full">
+        
+        <!-- AUTHENTICATION / LANDING VIEW -->
+        <div id="view-auth" class="max-w-md mx-auto bg-slate-800 border border-slate-700 p-8 rounded-2xl shadow-xl mt-12">
+            <h2 class="text-2xl font-bold mb-2 text-center">Welcome to AssetGuard Pro</h2>
+            <p class="text-sm text-slate-400 text-center mb-6">Sign in to access your isolated inventory & support node.</p>
+            
+            <!-- ON-SCREEN STATUS/ERROR BOX -->
+            <div id="auth-feedback" class="hidden mb-4 p-3 rounded-lg text-xs font-mono"></div>
+
+            <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-slate-400 mb-1">Email Address</label>
+                    <input type="email" id="login-email" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 text-white">
+                </div>
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-slate-400 mb-1">Password</label>
+                    <input type="password" id="login-password" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 text-white">
+                </div>
+                <button type="submit" id="submit-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-lg transition text-sm">Authenticate Session</button>
+            </form>
+        </div>
+
+        <!-- CLIENT TERMINAL VIEW (Standard Users) -->
+        <div id="view-client" class="hidden space-y-6">
+            <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-lg">
+                <h3 class="text-lg font-semibold mb-2 text-indigo-400">Client Operations Panel</h3>
+                <p class="text-sm text-slate-300 mb-6">Submit support tickets, dispatch notifications, or log activities directly to your private isolated node.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Support Ticket Form -->
+                    <div class="bg-slate-900/60 p-5 rounded-xl border border-slate-700/50">
+                        <h4 class="font-medium text-sm text-slate-200 mb-3">Open Support Ticket</h4>
+                        <form onsubmit="submitClientTicket(event)" class="space-y-3">
+                            <textarea id="client-ticket-msg" rows="3" placeholder="Describe your issue or request..." required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm focus:outline-none focus:border-indigo-500 text-white"></textarea>
+                            <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-xs font-medium transition">Submit Ticket</button>
+                        </form>
+                    </div>
+
+                    <!-- Dispatch Request Form -->
+                    <div class="bg-slate-900/60 p-5 rounded-xl border border-slate-700/50">
+                        <h4 class="font-medium text-sm text-slate-200 mb-3">New Dispatch / Tracker Entry</h4>
+                        <form onsubmit="submitClientDispatch(event)" class="space-y-3">
+                            <input type="text" id="dispatch-name" placeholder="Client / Asset Name" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 text-white">
+                            <input type="text" id="dispatch-plate" placeholder="Vehicle Numberplate / ID" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 text-white">
+                            <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-xs font-medium transition">Push Dispatch Record</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MASTER ADMIN TERMINAL VIEW -->
+        <div id="view-admin" class="hidden space-y-6">
+            <div class="flex justify-between items-center bg-slate-800 border border-slate-700 p-4 rounded-2xl shadow-lg flex-wrap gap-4">
+                <div>
+                    <h3 class="text-lg font-semibold text-indigo-400">Master Admin Oversight Terminal</h3>
+                    <p class="text-xs text-slate-400">Aggregating and supervising isolated user sub-paths across the database tree.</p>
+                </div>
+                <div class="space-x-2">
+                    <button onclick="clearAllActivityLogs()" class="bg-red-600/20 border border-red-500/50 hover:bg-red-600 text-red-300 hover:text-white px-3 py-1.5 rounded-lg text-xs transition">Clear All Audit Logs</button>
+                    <button onclick="deleteSelectedTickets()" class="bg-amber-600/20 border border-amber-500/50 hover:bg-amber-600 text-amber-300 hover:text-white px-3 py-1.5 rounded-lg text-xs transition">Delete Selected Tickets</button>
+                </div>
+            </div>
+
+            <!-- Admin Data Tables Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Support Tickets Table -->
+                <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-lg overflow-hidden">
+                    <h4 class="font-medium text-sm text-slate-200 mb-3">Aggregated Support Tickets</h4>
+                    <div class="overflow-x-auto max-h-80">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="bg-slate-900 uppercase text-slate-400">
+                                <tr>
+                                    <th class="p-2.5">Sel</th>
+                                    <th class="p-2.5">User UID</th>
+                                    <th class="p-2.5">Message</th>
+                                    <th class="p-2.5">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-tickets-tbody" class="divide-y divide-slate-700">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Dispatch Requests Table -->
+                <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-lg overflow-hidden">
+                    <h4 class="font-medium text-sm text-slate-200 mb-3">Aggregated Dispatch Requests</h4>
+                    <div class="overflow-x-auto max-h-80">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="bg-slate-900 uppercase text-slate-400">
+                                <tr>
+                                    <th class="p-2.5">User UID</th>
+                                    <th class="p-2.5">Asset / Name</th>
+                                    <th class="p-2.5">Plate</th>
+                                    <th class="p-2.5">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-dispatches-tbody" class="divide-y divide-slate-700">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- APPLICATION LOGIC SCRIPT -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyC9gIKfjyQ6AUeL4ibZcjIukFaTRmmI_tE",
+            authDomain: "assetguard-c8c8c.firebaseapp.com",
+            databaseURL: "https://assetguard-c8c8c-default-rtdb.firebaseio.com",
+            projectId: "assetguard-c8c8c",
+            storageBucket: "assetguard-c8c8c.firebasestorage.app",
+            messagingSenderId: "717561990429",
+            appId: "1:717561990429:web:assetguardc8c8c"
+        };
+
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const auth = firebase.auth();
+        const rtdb = firebase.database();
+
+        // Fix for local file/content URI freezing: set persistence to SESSION
+        auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(err => {
+            console.warn("Persistence fallback warning:", err);
+        });
+
+        const MASTER_ADMIN_EMAIL = 'forexlin254@gmail.com';
+
+        let activeTicketsCache = {};
+        let allMarketingRequestsCache = {};
+        let userListenerRef = null;
+
+        function showFeedback(message, isError = true) {
+            const fb = document.getElementById('auth-feedback');
+            fb.textContent = message;
+            fb.classList.remove('hidden');
+            fb.className = `mb-4 p-3 rounded-lg text-xs font-mono ${isError ? 'bg-red-900/50 border border-red-500 text-red-200' : 'bg-emerald-900/50 border border-emerald-500 text-emerald-200'}`;
+        }
+
+        auth.onAuthStateChanged(user => {
+            const authView = document.getElementById('view-auth');
+            const clientView = document.getElementById('view-client');
+            const adminView = document.getElementById('view-admin');
+            const userEmailDisplay = document.getElementById('user-display-email');
+            const authActionBtn = document.getElementById('auth-action-btn');
+
+            if (user) {
+                authView.classList.add('hidden');
+                userEmailDisplay.textContent = user.email;
+                userEmailDisplay.classList.remove('hidden');
+                authActionBtn.textContent = 'Sign Out';
+                authActionBtn.onclick = () => auth.signOut();
+
+                if (user.email === MASTER_ADMIN_EMAIL) {
+                    adminView.classList.remove('hidden');
+                    clientView.classList.add('hidden');
+                    initAdminListeners();
+                } else {
+                    clientView.classList.remove('hidden');
+                    adminView.classList.add('hidden');
+                    if (userListenerRef) userListenerRef.off();
+                }
+            } else {
+                authView.classList.remove('hidden');
+                clientView.classList.add('hidden');
+                adminView.classList.add('hidden');
+                userEmailDisplay.classList.add('hidden');
+                authActionBtn.textContent = 'Sign In';
+                authActionBtn.onclick = toggleAuthModal;
+                if (userListenerRef) userListenerRef.off();
+            }
+        });
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value.trim();
+            const pass = document.getElementById('login-password').value;
+            const submitBtn = document.getElementById('submit-btn');
+
+            submitBtn.textContent = "Authenticating...";
+            submitBtn.disabled = true;
+
+            try {
+                showFeedback("Attempting sign in...", false);
+                await auth.signInWithEmailAndPassword(email, pass);
+            } catch (err) {
+                console.warn("Sign-in failed, attempting account creation:", err.message);
+                try {
+                    showFeedback("Account not found. Creating new account...", false);
+                    await auth.createUserWithEmailAndPassword(email, pass);
+                } catch (regErr) {
+                    showFeedback("Error: " + regErr.message, true);
+                    submitBtn.textContent = "Authenticate Session";
+                    submitBtn.disabled = false;
+                }
+            }
+        }
+
+        function toggleAuthModal() {
+            document.getElementById('view-auth').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function submitClientTicket(e) {
+            e.preventDefault();
+            const user = auth.currentUser;
+            if (!user) return;
+            const message = document.getElementById('client-ticket-msg').value;
+
+            try {
+                await rtdb.ref(`users/${user.uid}/support_tickets`).push({
+                    message: message,
+                    timestamp: Date.now(),
+                    status: 'Pending'
+                });
+                document.getElementById('client-ticket-msg').value = '';
+                alert("Support ticket submitted successfully.");
+            } catch (err) {
+                alert("Failed to submit ticket: " + err.message);
+            }
+        }
+
+        async function submitClientDispatch(e) {
+            e.preventDefault();
+            const user = auth.currentUser;
+            if (!user) return;
+            const name = document.getElementById('dispatch-name').value;
+            const plate = document.getElementById('dispatch-plate').value;
+
+            try {
+                await rtdb.ref(`users/${user.uid}/dispatches`).push({
+                    name: name,
+                    carNumberplate: plate,
+                    timestamp: Date.now(),
+                    status: 'Pending'
+                });
+                document.getElementById('dispatch-name').value = '';
+                document.getElementById('dispatch-plate').value = '';
+                alert("Dispatch record successfully pushed.");
+            } catch (err) {
+                alert("Failed to push dispatch: " + err.message);
+            }
+        }
+
+        function initAdminListeners() {
+            userListenerRef = rtdb.ref('users');
+            userListenerRef.on('value', snapshot => {
+                if (!snapshot.exists()) {
+                    activeTicketsCache = {};
+                    allMarketingRequestsCache = {};
+                    renderAdminTables();
+                    return;
+                }
+
+                const usersData = snapshot.val();
+                activeTicketsCache = {};
+                allMarketingRequestsCache = {};
+
+                for (let uid in usersData) {
+                    const userData = usersData[uid];
+
+                    if (userData.support_tickets) {
+                        for (let ticketId in userData.support_tickets) {
+                            activeTicketsCache[ticketId] = {
+                                id: ticketId,
+                                uid: uid,
+                                ...userData.support_tickets[ticketId]
+                            };
+                        }
+                    }
+
+                    if (userData.dispatches) {
+                        for (let dispatchId in userData.dispatches) {
+                            allMarketingRequestsCache[dispatchId] = {
+                                id: dispatchId,
+                                uid: uid,
+                                ...userData.dispatches[dispatchId]
+                            };
+                        }
+                    }
+                }
+
+                renderAdminTables();
+            }, error => {
+                console.error("Database read error:", error);
+                alert("Database permission or read error: " + error.message);
+            });
+        }
+
+        function renderAdminTables() {
+            const ticketsTbody = document.getElementById('admin-tickets-tbody');
+            const dispatchesTbody = document.getElementById('admin-dispatches-tbody');
+
+            ticketsTbody.innerHTML = '';
+            const ticketKeys = Object.keys(activeTicketsCache);
+            if (ticketKeys.length === 0) {
+                ticketsTbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-500">No active support tickets found.</td></tr>`;
+            } else {
+                ticketKeys.forEach(id => {
+                    const t = activeTicketsCache[id];
+                    ticketsTbody.innerHTML += `
+                        <tr class="hover:bg-slate-700/40">
+                            <td class="p-2.5"><input type="checkbox" class="ticket-checkbox" value="${id}"></td>
+                            <td class="p-2.5 font-mono text-slate-400">${t.uid.substring(0, 8)}...</td>
+                            <td class="p-2.5">${t.message}</td>
+                            <td class="p-2.5 text-amber-400">${t.status}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            dispatchesTbody.innerHTML = '';
+            const dispatchKeys = Object.keys(allMarketingRequestsCache);
+            if (dispatchKeys.length === 0) {
+                dispatchesTbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-500">No active dispatches found.</td></tr>`;
+            } else {
+                dispatchKeys.forEach(id => {
+                    const d = allMarketingRequestsCache[id];
+                    dispatchesTbody.innerHTML += `
+                        <tr class="hover:bg-slate-700/40">
+                            <td class="p-2.5 font-mono text-slate-400">${d.uid.substring(0, 8)}...</td>
+                            <td class="p-2.5">${d.name}</td>
+                            <td class="p-2.5 font-mono">${d.carNumberplate}</td>
+                            <td class="p-2.5">
+                                <button onclick="resolveDispatch('${d.uid}', '${id}')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-1 rounded text-xs">Resolve</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        async function deleteSelectedTickets() {
+            const checked = document.querySelectorAll('.ticket-checkbox:checked');
+            if (checked.length === 0) {
+                alert("Select at least one ticket to delete.");
+                return;
+            }
+            if (!confirm(`Delete ${checked.length} selected ticket(s)?`)) return;
+
+            const updates = {};
+            checked.forEach(cb => {
+                const ticketId = cb.value;
+                const ticket = activeTicketsCache[ticketId];
+                if (ticket && ticket.uid) {
+                    updates[`users/${ticket.uid}/support_tickets/${ticketId}`] = null;
+                }
+            });
+
+            try {
+                await rtdb.ref().update(updates);
+                alert("Selected tickets removed.");
+            } catch (err) {
+                alert("Error deleting tickets: " + err.message);
+            }
+        }
+
+        async function resolveDispatch(uid, dispatchId) {
+            try {
+                await rtdb.ref(`users/${uid}/dispatches/${dispatchId}`).update({ status: 'Resolved' });
+                alert("Dispatch marked as resolved.");
+            } catch (err) {
+                alert("Error updating dispatch: " + err.message);
+            }
+        }
+
+        async function clearAllActivityLogs() {
+            if (!confirm("Clear all user activity audit logs?")) return;
+            try {
+                const snap = await rtdb.ref('users').once('value');
+                if (!snap.exists()) return;
+                const updates = {};
+                snap.forEach(child => {
+                    updates[`users/${child.key}/activity_logs`] = null;
+                });
+                await rtdb.ref().update(updates);
+                alert("All user activity logs cleared.");
+            } catch (err) {
+                alert("Error clearing logs: " + err.message);
+            }
+        }
+    </script>
+</body>
+</html>
