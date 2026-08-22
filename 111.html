@@ -313,9 +313,9 @@
             }
         }
 
-        // Private Vault Actions for Regular Users
+        // Private Vault Actions (Stored in isolated top-level path: private_vaults/{uid})
         function initClientVaultListener(uid) {
-            clientVaultListenerRef = rtdb.ref(`users/${uid}/private_vault`);
+            clientVaultListenerRef = rtdb.ref(`private_vaults/${uid}`);
             clientVaultListenerRef.on('value', snapshot => {
                 const tbody = document.getElementById('user-vault-tbody');
                 if (!tbody) return;
@@ -342,6 +342,8 @@
                         </tr>
                     `;
                 });
+            }, error => {
+                console.error("Vault read error:", error);
             });
         }
 
@@ -354,7 +356,7 @@
             const secret = document.getElementById('vault-secret').value;
 
             try {
-                await rtdb.ref(`users/${user.uid}/private_vault`).push({
+                await rtdb.ref(`private_vaults/${user.uid}`).push({
                     title: title,
                     secret: secret,
                     timestamp: Date.now()
@@ -369,13 +371,13 @@
         async function deleteUserCredential(uid, id) {
             if (!confirm("Delete this saved credential?")) return;
             try {
-                await rtdb.ref(`users/${uid}/private_vault/${id}`).remove();
+                await rtdb.ref(`private_vaults/${uid}/${id}`).remove();
             } catch (err) {
                 alert("Error removing item: " + err.message);
             }
         }
 
-        // Admin Listeners (Explicitly ignores private_vault nodes)
+        // Admin Listeners
         function initAdminListeners() {
             userListenerRef = rtdb.ref('users');
             userListenerRef.on('value', snapshot => {
