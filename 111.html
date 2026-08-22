@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AssetGuard Pro - Terminal & Private Vault</title>
+    <title>AssetGuard Pro - Asset & File Manager</title>
     <!-- Tailwind CSS for modern responsive styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Firebase App (Core) & Realtime Database & Auth SDKs -->
@@ -17,7 +17,7 @@
     <header class="bg-slate-800 border-b border-slate-700 px-6 py-4 flex justify-between items-center shadow-md">
         <div class="flex items-center space-x-3">
             <span class="bg-indigo-600 text-white font-bold px-3 py-1.5 rounded-lg text-sm">AGP</span>
-            <h1 class="text-xl font-bold tracking-wide">AssetGuard Pro <span class="text-xs text-indigo-400 font-normal">Isolated Terminal</span></h1>
+            <h1 class="text-xl font-bold tracking-wide">AssetGuard Pro <span class="text-xs text-indigo-400 font-normal">Asset & File Manager</span></h1>
         </div>
         <div id="auth-status-container" class="flex items-center space-x-4">
             <span id="user-display-email" class="text-sm text-slate-300 hidden">Not Signed In</span>
@@ -31,7 +31,7 @@
         <!-- AUTHENTICATION / LANDING VIEW -->
         <div id="view-auth" class="max-w-md mx-auto bg-slate-800 border border-slate-700 p-8 rounded-2xl shadow-xl mt-12">
             <h2 class="text-2xl font-bold mb-2 text-center">Welcome to AssetGuard Pro</h2>
-            <p class="text-sm text-slate-400 text-center mb-6">Sign in to access your isolated inventory & private vault.</p>
+            <p class="text-sm text-slate-400 text-center mb-6">Sign in to access your personal asset inventory and uploaded files.</p>
             
             <!-- ON-SCREEN STATUS/ERROR BOX -->
             <div id="auth-feedback" class="hidden mb-4 p-3 rounded-lg text-xs font-mono"></div>
@@ -49,120 +49,75 @@
             </form>
         </div>
 
-        <!-- CLIENT TERMINAL VIEW (Standard Users with Private Vault) -->
-        <div id="view-client" class="hidden space-y-6">
-            <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-lg">
-                <h3 class="text-lg font-semibold mb-2 text-indigo-400">Client Operations Panel</h3>
-                <p class="text-sm text-slate-300 mb-6">Submit support tickets, manage dispatches, or securely store your private side-panel credentials below.</p>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Support Ticket Form -->
-                    <div class="bg-slate-900/60 p-5 rounded-xl border border-slate-700/50">
-                        <h4 class="font-medium text-sm text-slate-200 mb-3">Open Support Ticket</h4>
-                        <form onsubmit="submitClientTicket(event)" class="space-y-3">
-                            <textarea id="client-ticket-msg" rows="3" placeholder="Describe your issue or request..." required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm focus:outline-none focus:border-indigo-500 text-white"></textarea>
-                            <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-xs font-medium transition">Submit Ticket</button>
-                        </form>
-                    </div>
-
-                    <!-- Dispatch Request Form -->
-                    <div class="bg-slate-900/60 p-5 rounded-xl border border-slate-700/50">
-                        <h4 class="font-medium text-sm text-slate-200 mb-3">New Dispatch / Tracker Entry</h4>
-                        <form onsubmit="submitClientDispatch(event)" class="space-y-3">
-                            <input type="text" id="dispatch-name" placeholder="Client / Asset Name" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 text-white">
-                            <input type="text" id="dispatch-plate" placeholder="Vehicle Numberplate / ID" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 text-white">
-                            <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-xs font-medium transition">Push Dispatch Record</button>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- PRIVATE CREDENTIALS VAULT (Strictly Private to Logged-In User) -->
-                <div class="bg-slate-900/60 p-5 rounded-xl border border-slate-700/50 mt-6">
-                    <h4 class="font-medium text-sm text-indigo-400 mb-1">My Personal Credentials Vault</h4>
-                    <p class="text-xs text-slate-400 mb-4">Store your private account details or side-panel passwords here. Only you can view this data.</p>
-                    
-                    <form onsubmit="saveUserCredential(event)" class="space-y-3 mb-4">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <input type="text" id="vault-title" placeholder="Service / Page Name (e.g., Panel A)" required class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
-                            <input type="password" id="vault-secret" placeholder="Password / Secret Key" required class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
-                        </div>
-                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-xs font-medium transition">Save to My Private Vault</button>
-                    </form>
-
-                    <div class="overflow-x-auto max-h-48 border border-slate-800 rounded-lg">
-                        <table class="w-full text-left text-xs text-slate-300">
-                            <thead class="bg-slate-900 text-slate-400">
-                                <tr>
-                                    <th class="p-2.5">Service</th>
-                                    <th class="p-2.5">Password / Secret</th>
-                                    <th class="p-2.5">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="user-vault-tbody" class="divide-y divide-slate-800">
-                                <!-- Populated dynamically for this user only -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- MASTER ADMIN TERMINAL VIEW (forexlin254@gmail.com) -->
-        <div id="view-admin" class="hidden space-y-6">
-            <div class="flex justify-between items-center bg-slate-800 border border-slate-700 p-4 rounded-2xl shadow-lg flex-wrap gap-4">
+        <!-- ASSET MANAGER DASHBOARD VIEW -->
+        <div id="view-dashboard" class="hidden space-y-6">
+            
+            <!-- STATS & HEADER ACTIONS -->
+            <div class="flex justify-between items-center bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-lg flex-wrap gap-4">
                 <div>
-                    <h3 class="text-lg font-semibold text-indigo-400">Master Admin Oversight Terminal</h3>
-                    <p class="text-xs text-slate-400">Supervising user support requests and dispatches (Private vaults are completely hidden).</p>
+                    <h3 class="text-lg font-semibold text-indigo-400">Inventory & File Repository</h3>
+                    <p class="text-xs text-slate-400">Manage your project files, screenshots, and registered physical assets securely.</p>
                 </div>
-                <div class="space-x-2">
-                    <button onclick="clearAllActivityLogs()" class="bg-red-600/20 border border-red-500/50 hover:bg-red-600 text-red-300 hover:text-white px-3 py-1.5 rounded-lg text-xs transition">Clear All Audit Logs</button>
-                    <button onclick="deleteSelectedTickets()" class="bg-amber-600/20 border border-amber-500/50 hover:bg-amber-600 text-amber-300 hover:text-white px-3 py-1.5 rounded-lg text-xs transition">Delete Selected Tickets</button>
+                <button onclick="openAddAssetModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-xs font-medium transition flex items-center space-x-2">
+                    <span>+ Register New Asset</span>
+                </button>
+            </div>
+
+            <!-- ADD / EDIT ASSET FORM PANEL -->
+            <div id="asset-form-card" class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-lg">
+                <h4 id="form-title" class="font-medium text-sm text-indigo-400 mb-3">Add New Asset Record</h4>
+                <form onsubmit="saveAssetRecord(event)" class="space-y-4">
+                    <input type="hidden" id="asset-id">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Asset / File Name</label>
+                            <input type="text" id="asset-name" placeholder="e.g., App Dashboard UI" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Category / Type</label>
+                            <input type="text" id="asset-category" placeholder="e.g., images/app-screenshot.png" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Status / Condition</label>
+                            <select id="asset-status" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+                                <option value="Active">Active</option>
+                                <option value="In Maintenance">In Maintenance</option>
+                                <option value="Archived">Archived</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Notes / Description</label>
+                        <textarea id="asset-notes" rows="2" placeholder="Optional description or metadata..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-indigo-500"></textarea>
+                    </div>
+                    <div class="flex space-x-3">
+                        <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-xs font-medium transition">Save Asset</button>
+                        <button type="button" onclick="resetAssetForm()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-xs font-medium transition">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- ASSETS TABLE LISTING -->
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-lg overflow-hidden">
+                <h4 class="font-medium text-sm text-slate-200 mb-4">Registered Assets & Files</h4>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <thead class="bg-slate-900 uppercase text-slate-400">
+                            <tr>
+                                <th class="p-3">Asset Name</th>
+                                <th class="p-3">File / Path Reference</th>
+                                <th class="p-3">Status</th>
+                                <th class="p-3">Notes</th>
+                                <th class="p-3">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="assets-tbody" class="divide-y divide-slate-700">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
-            <!-- Admin Data Tables Grid -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Support Tickets Table -->
-                <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-lg overflow-hidden">
-                    <h4 class="font-medium text-sm text-slate-200 mb-3">Aggregated Support Tickets</h4>
-                    <div class="overflow-x-auto max-h-80">
-                        <table class="w-full text-left text-xs text-slate-300">
-                            <thead class="bg-slate-900 uppercase text-slate-400">
-                                <tr>
-                                    <th class="p-2.5">Sel</th>
-                                    <th class="p-2.5">User UID</th>
-                                    <th class="p-2.5">Message</th>
-                                    <th class="p-2.5">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="admin-tickets-tbody" class="divide-y divide-slate-700">
-                                <!-- Populated dynamically -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Dispatch Requests Table -->
-                <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-lg overflow-hidden">
-                    <h4 class="font-medium text-sm text-slate-200 mb-3">Aggregated Dispatch Requests</h4>
-                    <div class="overflow-x-auto max-h-80">
-                        <table class="w-full text-left text-xs text-slate-300">
-                            <thead class="bg-slate-900 uppercase text-slate-400">
-                                <tr>
-                                    <th class="p-2.5">User UID</th>
-                                    <th class="p-2.5">Asset / Name</th>
-                                    <th class="p-2.5">Plate</th>
-                                    <th class="p-2.5">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="admin-dispatches-tbody" class="divide-y divide-slate-700">
-                                <!-- Populated dynamically -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
         </div>
 
     </main>
@@ -187,12 +142,7 @@
         const auth = firebase.auth();
         const rtdb = firebase.database();
 
-        const MASTER_ADMIN_EMAIL = 'forexlin254@gmail.com';
-
-        let activeTicketsCache = {};
-        let allMarketingRequestsCache = {};
-        let userListenerRef = null;
-        let clientVaultListenerRef = null;
+        let assetListenerRef = null;
 
         function showFeedback(message, isError = true) {
             const fb = document.getElementById('auth-feedback');
@@ -204,42 +154,31 @@
         // Auth State Listener
         auth.onAuthStateChanged(user => {
             const authView = document.getElementById('view-auth');
-            const clientView = document.getElementById('view-client');
-            const adminView = document.getElementById('view-admin');
+            const dashboardView = document.getElementById('view-dashboard');
             const userEmailDisplay = document.getElementById('user-display-email');
             const authActionBtn = document.getElementById('auth-action-btn');
 
-            // Clean up old listeners
-            if (userListenerRef) userListenerRef.off();
-            if (clientVaultListenerRef) clientVaultListenerRef.off();
+            if (assetListenerRef) assetListenerRef.off();
 
             if (user) {
                 authView.classList.add('hidden');
+                dashboardView.classList.remove('hidden');
                 userEmailDisplay.textContent = user.email;
                 userEmailDisplay.classList.remove('hidden');
                 authActionBtn.textContent = 'Sign Out';
                 authActionBtn.onclick = () => auth.signOut();
 
-                if (user.email === MASTER_ADMIN_EMAIL) {
-                    adminView.classList.remove('hidden');
-                    clientView.classList.add('hidden');
-                    initAdminListeners();
-                } else {
-                    clientView.classList.remove('hidden');
-                    adminView.classList.add('hidden');
-                    initClientVaultListener(user.uid);
-                }
+                initAssetListener(user.uid);
             } else {
                 authView.classList.remove('hidden');
-                clientView.classList.add('hidden');
-                adminView.classList.add('hidden');
+                dashboardView.classList.add('hidden');
                 userEmailDisplay.classList.add('hidden');
                 authActionBtn.textContent = 'Sign In';
                 authActionBtn.onclick = toggleAuthModal;
             }
         });
 
-        // Handle Login / Auto-Registration with live status logging
+        // Handle Login / Auto-Registration
         async function handleLogin(e) {
             e.preventDefault();
             const email = document.getElementById('login-email').value.trim();
@@ -270,59 +209,16 @@
             document.getElementById('view-auth').scrollIntoView({ behavior: 'smooth' });
         }
 
-        // Client Actions: Support Ticket
-        async function submitClientTicket(e) {
-            e.preventDefault();
-            const user = auth.currentUser;
-            if (!user) return;
-            const message = document.getElementById('client-ticket-msg').value;
-
-            try {
-                await rtdb.ref(`users/${user.uid}/support_tickets`).push({
-                    message: message,
-                    timestamp: Date.now(),
-                    status: 'Pending'
-                });
-                document.getElementById('client-ticket-msg').value = '';
-                alert("Support ticket submitted successfully.");
-            } catch (err) {
-                alert("Failed to submit ticket: " + err.message);
-            }
-        }
-
-        // Client Actions: Dispatch Request
-        async function submitClientDispatch(e) {
-            e.preventDefault();
-            const user = auth.currentUser;
-            if (!user) return;
-            const name = document.getElementById('dispatch-name').value;
-            const plate = document.getElementById('dispatch-plate').value;
-
-            try {
-                await rtdb.ref(`users/${user.uid}/dispatches`).push({
-                    name: name,
-                    carNumberplate: plate,
-                    timestamp: Date.now(),
-                    status: 'Pending'
-                });
-                document.getElementById('dispatch-name').value = '';
-                document.getElementById('dispatch-plate').value = '';
-                alert("Dispatch record successfully pushed.");
-            } catch (err) {
-                alert("Failed to push dispatch: " + err.message);
-            }
-        }
-
-        // Private Vault Actions (Stored in isolated top-level path: private_vaults/{uid})
-        function initClientVaultListener(uid) {
-            clientVaultListenerRef = rtdb.ref(`private_vaults/${uid}`);
-            clientVaultListenerRef.on('value', snapshot => {
-                const tbody = document.getElementById('user-vault-tbody');
+        // Load Asset Records for Logged-In User
+        function initAssetListener(uid) {
+            assetListenerRef = rtdb.ref(`user_assets/${uid}`);
+            assetListenerRef.on('value', snapshot => {
+                const tbody = document.getElementById('assets-tbody');
                 if (!tbody) return;
                 tbody.innerHTML = '';
-                
+
                 if (!snapshot.exists()) {
-                    tbody.innerHTML = `<tr><td colspan="3" class="p-3 text-center text-slate-500">No saved credentials yet.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">No assets or files registered yet. Click "+ Register New Asset" above.</td></tr>`;
                     return;
                 }
 
@@ -330,194 +226,88 @@
                     const item = child.val();
                     const id = child.key;
                     tbody.innerHTML += `
-                        <tr class="hover:bg-slate-800/50">
-                            <td class="p-2.5 font-medium text-slate-200">${item.title}</td>
-                            <td class="p-2.5 font-mono text-emerald-400">
-                                •••••••• 
-                                <span class="text-indigo-400 text-[10px] cursor-pointer hover:underline ml-2" onclick="alert('Secret for ${item.title}:\\n\\n${item.secret}')">[Reveal]</span>
-                            </td>
-                            <td class="p-2.5">
-                                <button onclick="deleteUserCredential('${uid}', '${id}')" class="text-red-400 hover:text-red-300 text-xs">Delete</button>
+                        <tr class="hover:bg-slate-700/40">
+                            <td class="p-3 font-medium text-white">${item.name}</td>
+                            <td class="p-3 font-mono text-indigo-400">${item.category}</td>
+                            <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] ${item.status === 'Active' ? 'bg-emerald-900/50 text-emerald-300 border border-emerald-700' : 'bg-amber-900/50 text-amber-300 border border-amber-700'}">${item.status}</span></td>
+                            <td class="p-3 text-slate-400">${item.notes || '-'}</td>
+                            <td class="p-3 space-x-2">
+                                <button onclick="editAsset('${id}', '${item.name}', '${item.category}', '${item.status}', '${item.notes || ''}')" class="text-indigo-400 hover:text-indigo-300">Edit</button>
+                                <button onclick="deleteAsset('${uid}', '${id}')" class="text-red-400 hover:text-red-300">Delete</button>
                             </td>
                         </tr>
                     `;
                 });
             }, error => {
-                console.error("Vault read error:", error);
+                console.error("Database read error:", error);
             });
         }
 
-        async function saveUserCredential(e) {
+        // Save or Update Asset Record
+        async function saveAssetRecord(e) {
             e.preventDefault();
             const user = auth.currentUser;
             if (!user) return;
-            
-            const title = document.getElementById('vault-title').value.trim();
-            const secret = document.getElementById('vault-secret').value;
+
+            const id = document.getElementById('asset-id').value;
+            const name = document.getElementById('asset-name').value.trim();
+            const category = document.getElementById('asset-category').value.trim();
+            const status = document.getElementById('asset-status').value;
+            const notes = document.getElementById('asset-notes').value.trim();
+
+            const assetData = {
+                name,
+                category,
+                status,
+                notes,
+                timestamp: Date.now()
+            };
 
             try {
-                await rtdb.ref(`private_vaults/${user.uid}`).push({
-                    title: title,
-                    secret: secret,
-                    timestamp: Date.now()
-                });
-                document.getElementById('vault-title').value = '';
-                document.getElementById('vault-secret').value = '';
-            } catch (err) {
-                alert("Failed to save credential: " + err.message);
-            }
-        }
-
-        async function deleteUserCredential(uid, id) {
-            if (!confirm("Delete this saved credential?")) return;
-            try {
-                await rtdb.ref(`private_vaults/${uid}/${id}`).remove();
-            } catch (err) {
-                alert("Error removing item: " + err.message);
-            }
-        }
-
-        // Admin Listeners
-        function initAdminListeners() {
-            userListenerRef = rtdb.ref('users');
-            userListenerRef.on('value', snapshot => {
-                if (!snapshot.exists()) {
-                    activeTicketsCache = {};
-                    allMarketingRequestsCache = {};
-                    renderAdminTables();
-                    return;
+                if (id) {
+                    await rtdb.ref(`user_assets/${user.uid}/${id}`).update(assetData);
+                    alert("Asset updated successfully.");
+                } else {
+                    await rtdb.ref(`user_assets/${user.uid}`).push(assetData);
+                    alert("Asset registered successfully.");
                 }
-
-                const usersData = snapshot.val();
-                activeTicketsCache = {};
-                allMarketingRequestsCache = {};
-
-                for (let uid in usersData) {
-                    const userData = usersData[uid];
-
-                    if (userData.support_tickets) {
-                        for (let ticketId in userData.support_tickets) {
-                            activeTicketsCache[ticketId] = {
-                                id: ticketId,
-                                uid: uid,
-                                ...userData.support_tickets[ticketId]
-                            };
-                        }
-                    }
-
-                    if (userData.dispatches) {
-                        for (let dispatchId in userData.dispatches) {
-                            allMarketingRequestsCache[dispatchId] = {
-                                id: dispatchId,
-                                uid: uid,
-                                ...userData.dispatches[dispatchId]
-                            };
-                        }
-                    }
-                }
-
-                renderAdminTables();
-            }, error => {
-                console.error("Database read error:", error);
-                alert("Database permission or read error: " + error.message);
-            });
-        }
-
-        // Render Admin Tables UI
-        function renderAdminTables() {
-            const ticketsTbody = document.getElementById('admin-tickets-tbody');
-            const dispatchesTbody = document.getElementById('admin-dispatches-tbody');
-
-            // Render Tickets
-            ticketsTbody.innerHTML = '';
-            const ticketKeys = Object.keys(activeTicketsCache);
-            if (ticketKeys.length === 0) {
-                ticketsTbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-500">No active support tickets found.</td></tr>`;
-            } else {
-                ticketKeys.forEach(id => {
-                    const t = activeTicketsCache[id];
-                    ticketsTbody.innerHTML += `
-                        <tr class="hover:bg-slate-700/40">
-                            <td class="p-2.5"><input type="checkbox" class="ticket-checkbox" value="${id}"></td>
-                            <td class="p-2.5 font-mono text-slate-400">${t.uid.substring(0, 8)}...</td>
-                            <td class="p-2.5">${t.message}</td>
-                            <td class="p-2.5 text-amber-400">${t.status}</td>
-                        </tr>
-                    `;
-                });
-            }
-
-            // Render Dispatches
-            dispatchesTbody.innerHTML = '';
-            const dispatchKeys = Object.keys(allMarketingRequestsCache);
-            if (dispatchKeys.length === 0) {
-                dispatchesTbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-500">No active dispatches found.</td></tr>`;
-            } else {
-                dispatchKeys.forEach(id => {
-                    const d = allMarketingRequestsCache[id];
-                    dispatchesTbody.innerHTML += `
-                        <tr class="hover:bg-slate-700/40">
-                            <td class="p-2.5 font-mono text-slate-400">${d.uid.substring(0, 8)}...</td>
-                            <td class="p-2.5">${d.name}</td>
-                            <td class="p-2.5 font-mono">${d.carNumberplate}</td>
-                            <td class="p-2.5">
-                                <button onclick="resolveDispatch('${d.uid}', '${id}')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-1 rounded text-xs">Resolve</button>
-                            </td>
-                        </tr>
-                    `;
-                });
-            }
-        }
-
-        // Admin Actions
-        async function deleteSelectedTickets() {
-            const checked = document.querySelectorAll('.ticket-checkbox:checked');
-            if (checked.length === 0) {
-                alert("Select at least one ticket to delete.");
-                return;
-            }
-            if (!confirm(`Delete ${checked.length} selected ticket(s)?`)) return;
-
-            const updates = {};
-            checked.forEach(cb => {
-                const ticketId = cb.value;
-                const ticket = activeTicketsCache[ticketId];
-                if (ticket && ticket.uid) {
-                    updates[`users/${ticket.uid}/support_tickets/${ticketId}`] = null;
-                }
-            });
-
-            try {
-                await rtdb.ref().update(updates);
-                alert("Selected tickets removed.");
+                resetAssetForm();
             } catch (err) {
-                alert("Error deleting tickets: " + err.message);
+                alert("Error saving asset: " + err.message);
             }
         }
 
-        async function resolveDispatch(uid, dispatchId) {
+        function editAsset(id, name, category, status, notes) {
+            document.getElementById('asset-id').value = id;
+            document.getElementById('asset-name').value = name;
+            document.getElementById('asset-category').value = category;
+            document.getElementById('asset-status').value = status;
+            document.getElementById('asset-notes').value = notes;
+            document.getElementById('form-title').textContent = "Edit Asset Record";
+            document.getElementById('asset-form-card').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function deleteAsset(uid, id) {
+            if (!confirm("Are you sure you want to delete this asset record?")) return;
             try {
-                await rtdb.ref(`users/${uid}/dispatches/${dispatchId}`).update({ status: 'Resolved' });
-                alert("Dispatch marked as resolved.");
+                await rtdb.ref(`user_assets/${uid}/${id}`).remove();
             } catch (err) {
-                alert("Error updating dispatch: " + err.message);
+                alert("Error deleting asset: " + err.message);
             }
         }
 
-        async function clearAllActivityLogs() {
-            if (!confirm("Clear all user activity audit logs?")) return;
-            try {
-                const snap = await rtdb.ref('users').once('value');
-                if (!snap.exists()) return;
-                const updates = {};
-                snap.forEach(child => {
-                    updates[`users/${child.key}/activity_logs`] = null;
-                });
-                await rtdb.ref().update(updates);
-                alert("All user activity logs cleared.");
-            } catch (err) {
-                alert("Error clearing logs: " + err.message);
-            }
+        function resetAssetForm() {
+            document.getElementById('asset-id').value = '';
+            document.getElementById('asset-name').value = '';
+            document.getElementById('asset-category').value = '';
+            document.getElementById('asset-status').value = 'Active';
+            document.getElementById('asset-notes').value = '';
+            document.getElementById('form-title').textContent = "Add New Asset Record";
+        }
+
+        function openAddAssetModal() {
+            resetAssetForm();
+            document.getElementById('asset-form-card').scrollIntoView({ behavior: 'smooth' });
         }
     </script>
 </body>
